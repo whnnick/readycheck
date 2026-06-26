@@ -1,0 +1,25 @@
+name: Product feedback
+description: Suggest an improvement for ReadyCheck.
+title: "[Feedback]: "
+labels: [feedback]
+body:
+  - type: markdown
+    attributes:
+      value: "Please do not include OAuth tokens, callback URLs, account IDs, screenshots with private data, or raw usage responses."
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ReadyCheck version
+      placeholder: "0.1.39"

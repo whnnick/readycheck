@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a reproducible ReadyCheck problem without credentials or account data.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include OAuth tokens, callback URLs, account IDs, screenshots with private data, or raw usage responses."
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open ReadyCheck\n2. ..."
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ReadyCheck version
+      placeholder: "0.1.39"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "macOS 14.0"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
