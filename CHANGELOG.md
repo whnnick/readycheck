@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.40 - 2026-06-26
+
+- Start with Show widget enabled on every app launch, even if a previous session hid the widget.
+- Remove the native transparent-panel shadow from the desktop widget so it no longer produces a jagged outer outline; retain the rounded SwiftUI shadow.
+
 ## 0.1.39 - 2026-06-26
 
 - Default Show widget to on again for this release, including upgrades that previously persisted the old off state; choices made in this version remain persisted.

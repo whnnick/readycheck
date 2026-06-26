@@ -4,7 +4,7 @@
 
 ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex 订阅额度窗口；刷新不会发送模型推理请求。
 
-> 当前状态：`0.1.39` 为 macOS 早期预览版。本版本仅支持 Codex OAuth；Windows 和其他模型服务商尚未包含。
+> 当前状态：`0.1.40` 为 macOS 早期预览版。本版本仅支持 Codex OAuth；Windows 和其他模型服务商尚未包含。
 
 ## 可以做什么
 
@@ -18,7 +18,7 @@ ReadyCheck 采用保守策略：无法安全读取或验证额度数据时，显
 
 ## 安装
 
-从[最新发布页](https://github.com/whnnick/readycheck/releases/latest)下载 `ReadyCheck-0.1.39-macos.dmg`，打开 DMG 后将 `ReadyCheck.app` 拖入“应用程序”。
+从[最新发布页](https://github.com/whnnick/readycheck/releases/latest)下载 `ReadyCheck-0.1.40-macos.dmg`，打开 DMG 后将 `ReadyCheck.app` 拖入“应用程序”。
 
 当前预览构建使用 ad-hoc 签名，尚未经过 Apple notarization。首次打开时，macOS 可能需要在“系统设置 > 隐私与安全性”中确认。详见[安装说明](docs/INSTALL.zh-CN.md)。
 
@@ -40,7 +40,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-DMG 输出到 `dist/ReadyCheck-0.1.39-macos.dmg`。
+DMG 输出到 `dist/ReadyCheck-0.1.40-macos.dmg`。
 
 ## 准确性与隐私
 

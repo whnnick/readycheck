@@ -145,7 +145,6 @@ final class ReadyCheckAppModel {
         didSet {
             guard widgetVisible != oldValue else { return }
 
-            UserDefaults.standard.set(widgetVisible, forKey: WidgetVisibilityPreference.defaultsKey)
             guard !isSyncingWidgetVisibilityFromWindow else { return }
 
             if widgetVisible {

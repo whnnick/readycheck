@@ -21,9 +21,9 @@ final class WidgetVisibilityPreferenceTests: XCTestCase {
         XCTAssertTrue(WidgetVisibilityPreference.value(defaults: defaults))
     }
 
-    func testPreservesExplicitChoiceForCurrentPreferenceVersion() {
+    func testDefaultsToVisibleWhenPreviousSessionPersistedHiddenState() {
         defaults.set(false, forKey: WidgetVisibilityPreference.defaultsKey)
 
-        XCTAssertFalse(WidgetVisibilityPreference.value(defaults: defaults))
+        XCTAssertTrue(WidgetVisibilityPreference.value(defaults: defaults))
     }
 }

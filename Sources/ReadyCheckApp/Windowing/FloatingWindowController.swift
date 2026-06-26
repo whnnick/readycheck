@@ -40,6 +40,7 @@ final class FloatingWindowController: NSObject, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.backgroundColor = .clear
         window.isOpaque = false
+        window.hasShadow = false
         applyLevel(to: window, alwaysOnTop: model.widgetAlwaysOnTop)
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         window.delegate = self
