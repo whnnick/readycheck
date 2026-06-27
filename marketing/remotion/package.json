@@ -1,0 +1,26 @@
+{
+  "name": "readycheck-product-motion",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ReadyCheck product intro motion video built with Remotion.",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "generate:bgm": "node scripts/generate-tech-bgm.mjs",
+    "typecheck": "tsc --noEmit",
+    "still": "remotion still src/index.ts ReadyCheckIntroCN --frame=210 --scale=0.35 out/readycheck-intro-cn-frame.png",
+    "render:cn": "remotion render src/index.ts ReadyCheckIntroCN out/readycheck-intro-cn.mp4 --codec=h264",
+    "render:en": "remotion render src/index.ts ReadyCheckIntroEN out/readycheck-intro-en.mp4 --codec=h264"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/media": "^4.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.8.0"
+  }
+}

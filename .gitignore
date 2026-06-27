@@ -7,3 +7,5 @@ DerivedData/
 *.xcuserstate
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
+node_modules/
+marketing/remotion/out/

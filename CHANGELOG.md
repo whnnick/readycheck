@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Add a Remotion product intro motion project under `marketing/remotion`, with Chinese and English 30-second ReadyCheck compositions.
+- Add a procedural techno/synth background track for the Remotion product intro.
+- Rework the product intro with stronger promo-style motion, prominent GitHub address placement, green/orange/red quota states, and a non-overlapping OAuth usage-flow diagram.
+- Replace the soundtrack with a more restrained premium-tech bed.
+- Add a lightweight animated README preview generated from the product intro.
+
 ## 0.1.40 - 2026-06-26
 
 - Start with Show widget enabled on every app launch, even if a previous session hid the widget.

@@ -4,6 +4,10 @@
 
 ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex 订阅额度窗口；刷新不会发送模型推理请求。
 
+<p align="center">
+  <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
+</p>
+
 > 当前状态：`0.1.40` 为 macOS 早期预览版。本版本仅支持 Codex OAuth；Windows 和其他模型服务商尚未包含。
 
 ## 可以做什么
@@ -41,6 +45,16 @@ scripts/package_dmg.sh
 ```
 
 DMG 输出到 `dist/ReadyCheck-0.1.40-macos.dmg`。
+
+## 产品动效
+
+README 预览动图从 [`marketing/remotion`](marketing/remotion/README.md) 的 Remotion 产品介绍视频生成。
+
+```bash
+cd marketing/remotion
+npm install
+npm run dev
+```
 
 ## 准确性与隐私
 

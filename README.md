@@ -4,6 +4,10 @@
 
 ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subscription quota windows without sending model inference requests.
 
+<p align="center">
+  <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
+</p>
+
 > Status: `0.1.40` is an early macOS preview. Codex OAuth is the only supported provider in this release. Windows and other providers are planned, not included.
 
 ## What It Does
@@ -41,6 +45,16 @@ scripts/package_dmg.sh
 ```
 
 The DMG is written to `dist/ReadyCheck-0.1.40-macos.dmg`.
+
+## Product Motion
+
+The README preview is generated from the Remotion product intro in [`marketing/remotion`](marketing/remotion/README.md).
+
+```bash
+cd marketing/remotion
+npm install
+npm run dev
+```
 
 ## Accuracy And Privacy
 
