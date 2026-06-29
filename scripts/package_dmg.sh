@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-VERSION="0.1.46"
+VERSION="0.1.47"
 
 if [[ "${REPO_ROOT}" == */.worktrees/* ]]; then
     DEFAULT_DIST_DIR="$(cd "${REPO_ROOT}/../.." && pwd)/dist"

@@ -11,6 +11,14 @@ enum CodexOAuthConnectionStatus: Equatable {
     case failed
 }
 
+enum AppUpdateStatus: Equatable {
+    case idle
+    case checking
+    case upToDate
+    case updateAvailable(AppUpdate)
+    case failed
+}
+
 @MainActor private var readyCheckApplicationDelegate: ReadyCheckApplication?
 
 @main
@@ -47,6 +55,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         Task {
             await appModel.reloadCodexOAuthConnectionStatus()
             await appModel.refresh(reason: .openedPanel)
+            await appModel.checkForUpdates(isManual: false)
             appModel.restoreFloatingWidgetIfNeeded()
         }
         NSApp.activate(ignoringOtherApps: true)
@@ -182,12 +191,16 @@ final class ReadyCheckAppModel {
     var codexOAuthCallbackURL = ""
     var codexOAuthStatusMessage: String?
     var codexOAuthLoginEmail: String?
+    var updateStatus: AppUpdateStatus = .idle
 
     @ObservationIgnored
     private let credentialStore: any CredentialStore
 
     @ObservationIgnored
     private let codexOAuthClient: CodexOAuthClient
+
+    @ObservationIgnored
+    private let updateChecker: GitHubReleaseUpdateChecker
 
     @ObservationIgnored
     private var store: QuotaStore
@@ -215,10 +228,12 @@ final class ReadyCheckAppModel {
 
     init(
         credentialStore: any CredentialStore = KeychainCredentialStore(),
-        codexOAuthClient: CodexOAuthClient = CodexOAuthClient()
+        codexOAuthClient: CodexOAuthClient = CodexOAuthClient(),
+        updateChecker: GitHubReleaseUpdateChecker = GitHubReleaseUpdateChecker()
     ) {
         self.credentialStore = credentialStore
         self.codexOAuthClient = codexOAuthClient
+        self.updateChecker = updateChecker
         self.store = QuotaStore(
             registry: ProviderRegistry(
                 configurations: ProviderConfiguration.defaults,
@@ -277,6 +292,26 @@ final class ReadyCheckAppModel {
 
     func showAboutWindow() {
         aboutWindowController.show(localization: localization)
+    }
+
+    func checkForUpdates(isManual: Bool) async {
+        updateStatus = .checking
+
+        do {
+            switch try await updateChecker.check(currentVersion: ReadyCheckCore.version) {
+            case .upToDate:
+                updateStatus = isManual ? .upToDate : .idle
+            case .updateAvailable(let update):
+                updateStatus = .updateAvailable(update)
+            }
+        } catch {
+            updateStatus = isManual ? .failed : .idle
+        }
+    }
+
+    func openUpdateReleasePage() {
+        guard case .updateAvailable(let update) = updateStatus else { return }
+        NSWorkspace.shared.open(update.releaseURL)
     }
 
     var isCodexOAuthCallbackInputVisible: Bool {

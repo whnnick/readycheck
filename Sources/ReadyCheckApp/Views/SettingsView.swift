@@ -214,6 +214,10 @@ struct SettingsView: View {
 
             Divider()
 
+            updateControls
+
+            Divider()
+
             Text(model.localization.text("settings.widgetAlwaysOnTopHelp"))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -223,6 +227,58 @@ struct SettingsView: View {
             Text(model.localization.text("status.safeRefresh"))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    private var updateControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(model.localization.text("settings.updates"), systemImage: "arrow.down.circle")
+                .font(.subheadline.weight(.semibold))
+
+            Text(updateStatusText)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 8) {
+                Button {
+                    Task {
+                        await model.checkForUpdates(isManual: true)
+                    }
+                } label: {
+                    if model.updateStatus == .checking {
+                        Label(model.localization.text("update.checking"), systemImage: "arrow.triangle.2.circlepath")
+                    } else {
+                        Label(model.localization.text("action.checkForUpdates"), systemImage: "arrow.triangle.2.circlepath")
+                    }
+                }
+                .disabled(model.updateStatus == .checking)
+
+                if case .updateAvailable = model.updateStatus {
+                    Button {
+                        model.openUpdateReleasePage()
+                    } label: {
+                        Label(model.localization.text("action.downloadUpdate"), systemImage: "arrow.down.circle.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+    }
+
+    private var updateStatusText: String {
+        switch model.updateStatus {
+        case .idle:
+            "\(model.localization.text("about.version")) \(ReadyCheckCore.version)"
+        case .checking:
+            model.localization.text("update.checking")
+        case .upToDate:
+            model.localization.text("update.upToDate")
+        case .failed:
+            model.localization.text("update.failed")
+        case .updateAvailable(let update):
+            "\(model.localization.text("update.available")) \(update.version)"
         }
     }
 

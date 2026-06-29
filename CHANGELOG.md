@@ -8,6 +8,10 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.47 - 2026-06-29
+
+- Add a lightweight GitHub Release update check with a manual Check for updates action and a download link when a newer version is available.
+
 ## 0.1.46 - 2026-06-29
 
 - Hide source and verification metadata from compact quota cards so the desktop widget stays focused on the quota values.
