@@ -2,7 +2,7 @@ import CoreGraphics
 
 public enum FloatingWidgetPlacement {
     public static let defaultMargin: CGFloat = 28
-    public static let defaultSize = CGSize(width: 376, height: 360)
+    public static let defaultSize = CGSize(width: 376, height: 420)
 
     public static func frame(
         preferredSize: CGSize,

@@ -21,6 +21,43 @@ public struct CodexUsageParser: Sendable {
         return windows
     }
 
+    public func parseManualResetDetails(_ data: Data) -> ProviderQuotaDetails {
+        guard let object = try? JSONSerialization.jsonObject(with: data),
+              let root = object as? [String: Any]
+        else {
+            return ProviderQuotaDetails()
+        }
+
+        return ProviderQuotaDetails(
+            manualResetCount: firstInt(
+                in: root,
+                paths: [
+                    ["manual_reset_count"],
+                    ["manual_resets_count"],
+                    ["manual_resets"],
+                    ["manual_reset_expirations"],
+                    ["rate_limit", "manual_reset_count"],
+                    ["rate_limit", "manual_resets_count"],
+                    ["rate_limit", "manual_resets"],
+                    ["rate_limit", "manual_reset_expirations"]
+                ]
+            ),
+            manualResetExpirations: firstDateArray(
+                in: root,
+                paths: [
+                    ["manual_reset_expires_at"],
+                    ["manual_reset_expire_at"],
+                    ["manual_reset_expirations"],
+                    ["manual_resets", "expires_at"],
+                    ["rate_limit", "manual_reset_expires_at"],
+                    ["rate_limit", "manual_reset_expire_at"],
+                    ["rate_limit", "manual_reset_expirations"],
+                    ["rate_limit", "manual_resets", "expires_at"]
+                ]
+            )
+        )
+    }
+
     private func makeWindow(
         _ payload: CodexUsageWindowPayload?,
         id: String,
@@ -61,6 +98,95 @@ public struct CodexUsageParser: Sendable {
             return refreshedAt.addingTimeInterval(resetAfterSeconds)
         }
 
+        return nil
+    }
+
+    private func firstInt(in root: [String: Any], paths: [[String]]) -> Int? {
+        for path in paths {
+            guard let value = value(in: root, path: path) else { continue }
+            if let int = int(from: value) {
+                return int
+            }
+        }
+        return nil
+    }
+
+    private func firstDateArray(in root: [String: Any], paths: [[String]]) -> [Date] {
+        for path in paths {
+            guard let value = value(in: root, path: path) else { continue }
+            let dates = dates(from: value)
+            if !dates.isEmpty {
+                return dates
+            }
+        }
+        return []
+    }
+
+    private func value(in root: [String: Any], path: [String]) -> Any? {
+        var current: Any = root
+        for key in path {
+            if let dictionary = current as? [String: Any] {
+                guard let next = dictionary[key] else { return nil }
+                current = next
+            } else if let array = current as? [[String: Any]] {
+                current = array.compactMap { $0[key] }
+            } else {
+                return nil
+            }
+        }
+        return current
+    }
+
+    private func int(from value: Any) -> Int? {
+        if let int = value as? Int {
+            return int >= 0 ? int : nil
+        }
+        if let number = value as? NSNumber {
+            let int = number.intValue
+            return int >= 0 ? int : nil
+        }
+        if let string = value as? String, let int = Int(string.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            return int >= 0 ? int : nil
+        }
+        if let array = value as? [Any] {
+            return array.count
+        }
+        return nil
+    }
+
+    private func dates(from value: Any) -> [Date] {
+        if let array = value as? [Any] {
+            return array.compactMap(date(from:))
+        }
+        if let array = value as? [[String: Any]] {
+            return array.compactMap { dictionary in
+                dictionary["expires_at"].flatMap(date(from:))
+                    ?? dictionary["expire_at"].flatMap(date(from:))
+                    ?? dictionary["reset_at"].flatMap(date(from:))
+            }
+        }
+        if let date = date(from: value) {
+            return [date]
+        }
+        return []
+    }
+
+    private func date(from value: Any) -> Date? {
+        if let number = value as? NSNumber {
+            let raw = number.doubleValue
+            guard raw.isFinite, raw > 0 else { return nil }
+            let seconds = raw > 1_000_000_000_000 ? raw / 1_000 : raw
+            return Date(timeIntervalSince1970: seconds)
+        }
+        if let string = value as? String {
+            let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+            if let raw = Double(trimmed), raw.isFinite, raw > 0 {
+                let seconds = raw > 1_000_000_000_000 ? raw / 1_000 : raw
+                return Date(timeIntervalSince1970: seconds)
+            }
+            return ISO8601DateFormatter().date(from: trimmed)
+        }
         return nil
     }
 

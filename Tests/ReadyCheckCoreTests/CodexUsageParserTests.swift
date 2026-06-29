@@ -74,4 +74,41 @@ final class CodexUsageParserTests: XCTestCase {
             XCTAssertEqual(error as? CodexUsageParserError, .noDisplayableWindows)
         }
     }
+
+    func testParserExtractsManualResetDetailsWhenProvided() {
+        let parser = CodexUsageParser()
+        let data = Data(
+            """
+            {
+              "rate_limit": {
+                "manual_reset_count": 1,
+                "manual_reset_expirations": [1782526542]
+              }
+            }
+            """.utf8
+        )
+
+        let details = parser.parseManualResetDetails(data)
+
+        XCTAssertEqual(details.manualResetCount, 1)
+        XCTAssertEqual(details.manualResetExpirations, [Date(timeIntervalSince1970: 1_782_526_542)])
+    }
+
+    func testParserExtractsZeroManualResetCountFromEmptyArray() {
+        let parser = CodexUsageParser()
+        let data = Data(
+            """
+            {
+              "rate_limit": {
+                "manual_resets": []
+              }
+            }
+            """.utf8
+        )
+
+        let details = parser.parseManualResetDetails(data)
+
+        XCTAssertEqual(details.manualResetCount, 0)
+        XCTAssertEqual(details.manualResetExpirations, [])
+    }
 }

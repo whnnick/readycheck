@@ -8,6 +8,33 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.45 - 2026-06-29
+
+- Always render the manual reset count as a number; missing count data now falls back to `0` instead of `Not provided`.
+
+## 0.1.44 - 2026-06-29
+
+- Remove duplicated account email text from quota cards and the desktop widget so limited space stays focused on quota details.
+- Show manual reset expiration only in the main window as a normal account-detail row, without the extra dark framed block.
+- Display an explicit `0` manual reset count when the usage payload reports an empty manual reset list.
+- Reduce the main window width from the previous wide layout while keeping richer account details readable.
+- Restore click-to-open behavior on the desktop widget content area without making refresh and close buttons open the main window.
+
+## 0.1.43 - 2026-06-29
+
+- Restore the desktop widget to its original compact width while keeping Codex account and subscription details readable in a stacked narrow layout.
+- Keep the main window scrollable and wide enough for the richer account details.
+
+## 0.1.42 - 2026-06-29
+
+- Restyle the Codex quota card to match the compact account-summary layout: provider pill, account title, subscription row, manual reset block, and quota progress rows.
+- Make the main window scrollable and wider so the connected email and quota details are not clipped.
+
+## 0.1.41 - 2026-06-29
+
+- Add Codex account, plan, subscription renewal, and manual reset detail rows to the quota card when those fields are available.
+- Keep unverified subscription and manual reset fields clearly marked as not provided instead of guessing values.
+
 ## 0.1.40 - 2026-06-26
 
 - Start with Show widget enabled on every app launch, even if a previous session hid the widget.

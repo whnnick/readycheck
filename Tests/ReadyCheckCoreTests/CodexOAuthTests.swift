@@ -245,9 +245,44 @@ final class CodexOAuthTests: XCTestCase {
         XCTAssertNil(token.loginEmail)
     }
 
+    func testJWTClaimsExtractPlanAndSubscriptionRenewal() throws {
+        let token = jwtToken(payload: [
+            "https://api.openai.com/auth": [
+                "chatgpt_account_id": "account-123",
+                "chatgpt_plan_type": "plus",
+                "chatgpt_subscription_active_until": 1_782_316_378
+            ]
+        ])
+
+        XCTAssertEqual(CodexJWTClaims.planName(from: token), "plus")
+        XCTAssertEqual(
+            CodexJWTClaims.subscriptionRenewalAt(from: token),
+            Date(timeIntervalSince1970: 1_782_316_378)
+        )
+    }
+
     private func queryDictionary(from components: URLComponents) -> [String: String] {
         Dictionary(grouping: components.queryItems ?? [], by: \.name)
             .compactMapValues { $0.last?.value }
+    }
+
+    private func jwtToken(payload: [String: Any]) -> String {
+        let header = ["alg": "none"]
+        let headerData = try! JSONSerialization.data(withJSONObject: header)
+        let payloadData = try! JSONSerialization.data(withJSONObject: payload)
+
+        return [
+            base64URL(headerData),
+            base64URL(payloadData),
+            "signature"
+        ].joined(separator: ".")
+    }
+
+    private func base64URL(_ data: Data) -> String {
+        data.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
     }
 }
 

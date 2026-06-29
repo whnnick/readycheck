@@ -24,7 +24,8 @@ struct MenuBarQuotaView: View {
                         QuotaCardView(
                             snapshot: snapshot,
                             localization: localization,
-                            now: now
+                            now: now,
+                            displayMode: .compact
                         )
                     }
                 }

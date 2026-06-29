@@ -116,7 +116,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 720, height: 700),
+            contentRect: NSRect(x: 0, y: 0, width: 740, height: 760),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false

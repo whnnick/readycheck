@@ -2,9 +2,27 @@ import ReadyCheckCore
 import SwiftUI
 
 struct QuotaCardView: View {
+    enum DisplayMode {
+        case full
+        case compact
+    }
+
     let snapshot: ProviderQuotaSnapshot
     let localization: LocalizationService
     let now: Date
+    let displayMode: DisplayMode
+
+    init(
+        snapshot: ProviderQuotaSnapshot,
+        localization: LocalizationService,
+        now: Date,
+        displayMode: DisplayMode = .compact
+    ) {
+        self.snapshot = snapshot
+        self.localization = localization
+        self.now = now
+        self.displayMode = displayMode
+    }
 
     private var canShowPercentages: Bool {
         snapshot.canShowPercentages(now: now)
@@ -22,6 +40,8 @@ struct QuotaCardView: View {
                 if snapshot.windows.isEmpty {
                     errorContent
                 } else {
+                    detailGrid
+
                     VStack(spacing: 10) {
                         ForEach(snapshot.windows) { window in
                             windowRow(window)
@@ -35,7 +55,11 @@ struct QuotaCardView: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(snapshot.displayName)
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.accentColor.opacity(0.82), in: Capsule())
 
             Spacer()
 
@@ -46,6 +70,115 @@ struct QuotaCardView: View {
                 .padding(.vertical, 3)
                 .background(statusColor.opacity(0.12), in: Capsule())
         }
+    }
+
+    private var detailGrid: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            summaryRows
+
+            if displayMode == .full {
+                VStack(alignment: .leading, spacing: 5) {
+                    if manualResetExpirations.isEmpty {
+                        inlineDetail(
+                            label: localization.text("quota.manualResetExpires"),
+                            value: localization.text("quota.notProvided")
+                        )
+                    } else {
+                        ForEach(Array(manualResetExpirations.enumerated()), id: \.offset) { index, date in
+                            inlineDetail(
+                                label: index == 0 ? localization.text("quota.manualResetExpires") : "",
+                                value: "\(localization.text("quota.manualResetIndex")) \(index + 1) \(localization.text("quota.manualResetTimes")) - \(dateText(for: date, forceFullDate: true))"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.top, 2)
+    }
+
+    private var summaryRows: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 18) {
+                subscriptionSummaryItems
+            }
+
+            VStack(alignment: .leading, spacing: 5) {
+                subscriptionSummaryItems
+            }
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.86)
+    }
+
+    private func inlineDetail(label: String, value: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Text(label)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(Color.primary.opacity(0.58))
+
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.primary.opacity(0.92))
+                .monospacedDigit()
+                .truncationMode(.tail)
+                .help(value)
+        }
+    }
+
+    @ViewBuilder
+    private var subscriptionSummaryItems: some View {
+        inlineDetail(
+            label: localization.text("quota.plan"),
+            value: displayPlanName
+        )
+
+        inlineDetail(
+            label: localization.text("quota.subscriptionRenewal"),
+            value: subscriptionRenewalText
+        )
+
+        inlineDetail(
+            label: localization.text("quota.manualResetCount"),
+            value: manualResetCountText
+        )
+    }
+
+    private var displayPlanName: String {
+        guard let plan = nonEmpty(snapshot.details?.planName) else {
+            return localization.text("quota.notProvided")
+        }
+
+        return plan.prefix(1).uppercased() + String(plan.dropFirst())
+    }
+
+    private var subscriptionRenewalText: String {
+        guard let date = snapshot.details?.subscriptionRenewalAt else {
+            return localization.text("quota.notProvided")
+        }
+
+        return dateText(for: date, forceFullDate: true)
+    }
+
+    private var manualResetCountText: String {
+        if let count = snapshot.details?.manualResetCount {
+            return "\(count)"
+        }
+
+        let expirations = manualResetExpirations
+        return "\(expirations.count)"
+    }
+
+    private var manualResetExpirations: [Date] {
+        snapshot.details?.manualResetExpirations ?? []
+    }
+
+    private func nonEmpty(_ value: String?) -> String? {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let trimmed, !trimmed.isEmpty {
+            return trimmed
+        }
+        return nil
     }
 
     private var errorContent: some View {
@@ -70,23 +203,27 @@ struct QuotaCardView: View {
         let showsProgress = ratio != nil
         let progress = ratio ?? 0
 
-        return VStack(alignment: .leading, spacing: 5) {
+        return VStack(alignment: .leading, spacing: 7) {
             HStack(alignment: .firstTextBaseline) {
                 Text(localization.text(window.labelKey))
-                    .font(.subheadline.weight(.medium))
+                    .font(.headline.weight(.semibold))
                     .lineLimit(1)
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 1) {
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Text(canShowPercentages ? QuotaFormatters.percentageText(for: ratio) : "—")
-                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                        .font(.system(.headline, design: .rounded).weight(.semibold))
                         .monospacedDigit()
                         .foregroundStyle(showsProgress ? .primary : .tertiary)
 
-                    Text(localization.text("quota.remaining"))
-                        .font(.caption)
-                        .foregroundStyle(Color.primary.opacity(0.72))
+                    if let resetAt = window.resetAt {
+                        Text(dateText(for: resetAt))
+                            .font(.headline.weight(.medium))
+                            .monospacedDigit()
+                            .foregroundStyle(Color.primary.opacity(0.58))
+                            .lineLimit(1)
+                    }
                 }
             }
 
@@ -168,21 +305,15 @@ struct QuotaCardView: View {
     }
 
     private func metadataText(for window: QuotaWindow) -> String {
-        var parts = [
+        [
             sourceText(snapshot.source),
             confidenceText(window.confidence)
-        ]
-
-        if let resetAt = window.resetAt {
-            parts.append("\(localization.text("quota.resetAt")) \(resetText(for: resetAt))")
-        }
-
-        return parts.joined(separator: " · ")
+        ].joined(separator: " · ")
     }
 
-    private func resetText(for date: Date) -> String {
+    private func dateText(for date: Date, forceFullDate: Bool = false) -> String {
         let calendar = Calendar.current
-        let dateStyle: DateFormatter.Style = calendar.isDate(date, inSameDayAs: now) ? .none : .short
+        let dateStyle: DateFormatter.Style = forceFullDate || !calendar.isDate(date, inSameDayAs: now) ? .short : .none
         return DateFormatter.localizedString(from: date, dateStyle: dateStyle, timeStyle: .short)
     }
 

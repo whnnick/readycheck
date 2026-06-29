@@ -1,3 +1,3 @@
 public enum ReadyCheckCore {
-    public static let version = "0.1.40"
+    public static let version = "0.1.45"
 }

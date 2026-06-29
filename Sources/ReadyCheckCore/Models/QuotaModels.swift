@@ -97,6 +97,25 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
+public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
+    public let planName: String?
+    public let subscriptionRenewalAt: Date?
+    public let manualResetCount: Int?
+    public let manualResetExpirations: [Date]
+
+    public init(
+        planName: String? = nil,
+        subscriptionRenewalAt: Date? = nil,
+        manualResetCount: Int? = nil,
+        manualResetExpirations: [Date] = []
+    ) {
+        self.planName = planName
+        self.subscriptionRenewalAt = subscriptionRenewalAt
+        self.manualResetCount = manualResetCount
+        self.manualResetExpirations = manualResetExpirations
+    }
+}
+
 public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable {
     public var id: String { providerId }
     public let providerId: String
@@ -107,6 +126,7 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
     public let staleAfter: Date
     public let windows: [QuotaWindow]
     public let errors: [String]
+    public let details: ProviderQuotaDetails?
 
     public init(
         providerId: String,
@@ -116,7 +136,8 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
         refreshedAt: Date,
         staleAfter: Date,
         windows: [QuotaWindow],
-        errors: [String]
+        errors: [String],
+        details: ProviderQuotaDetails? = nil
     ) {
         self.providerId = providerId
         self.displayName = displayName
@@ -126,6 +147,7 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
         self.staleAfter = staleAfter
         self.windows = windows
         self.errors = errors
+        self.details = details
     }
 
     var hasDisplayablePercentageWindowIgnoringStaleness: Bool {

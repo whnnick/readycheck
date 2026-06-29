@@ -103,6 +103,17 @@ final class LocalizationServiceTests: XCTestCase {
             "confidence.unknown",
             "quota.remaining",
             "quota.resetAt",
+            "quota.account",
+            "quota.plan",
+            "quota.subscriptionRenewal",
+            "quota.manualResetCount",
+            "quota.manualResetExpires",
+            "quota.manualResetIndex",
+            "quota.manualResetTimes",
+            "quota.notProvided",
+            "quota.dataSource",
+            "quota.refreshedAt",
+            "quota.validUntil",
             "quota.window.codex.5h",
             "quota.window.codex.7d",
             "quota.window.codex.primary",
@@ -147,6 +158,10 @@ final class LocalizationServiceTests: XCTestCase {
         XCTAssertEqual(service.text("status.autoUpdate"), "自动刷新")
         XCTAssertEqual(service.text("confidence.estimated"), "估算")
         XCTAssertEqual(service.text("quota.remaining"), "剩余")
+        XCTAssertEqual(service.text("quota.plan"), "套餐")
+        XCTAssertEqual(service.text("quota.manualResetCount"), "主动重置次数")
+        XCTAssertEqual(service.text("quota.dataSource"), "来源")
+        XCTAssertEqual(service.text("quota.validUntil"), "有效期")
         XCTAssertEqual(service.text("empty.quota.codexMessage"), "请先在设置里连接 Codex OAuth，并粘贴回调 URL 完成授权。")
     }
 }

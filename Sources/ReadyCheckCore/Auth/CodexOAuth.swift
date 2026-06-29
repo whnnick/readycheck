@@ -185,6 +185,52 @@ public enum CodexJWTClaims {
         return trimmed.isEmpty ? nil : trimmed
     }
 
+    public static func planName(from token: String?) -> String? {
+        guard let payload = decodePayload(from: token),
+              let auth = payload[authClaim] as? [String: Any],
+              let plan = auth["chatgpt_plan_type"] as? String
+        else {
+            return nil
+        }
+
+        let trimmed = plan.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    public static func subscriptionRenewalAt(from token: String?) -> Date? {
+        guard let payload = decodePayload(from: token),
+              let auth = payload[authClaim] as? [String: Any],
+              let value = auth["chatgpt_subscription_active_until"]
+        else {
+            return nil
+        }
+
+        return date(from: value)
+    }
+
+    private static func date(from value: Any) -> Date? {
+        if let number = value as? NSNumber {
+            let raw = number.doubleValue
+            guard raw.isFinite, raw > 0 else { return nil }
+            let seconds = raw > 1_000_000_000_000 ? raw / 1_000 : raw
+            return Date(timeIntervalSince1970: seconds)
+        }
+
+        if let string = value as? String {
+            let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+
+            if let raw = Double(trimmed), raw.isFinite, raw > 0 {
+                let seconds = raw > 1_000_000_000_000 ? raw / 1_000 : raw
+                return Date(timeIntervalSince1970: seconds)
+            }
+
+            return ISO8601DateFormatter().date(from: trimmed)
+        }
+
+        return nil
+    }
+
     private static func decodePayload(from token: String?) -> [String: Any]? {
         guard let token else { return nil }
         let parts = token.split(separator: ".")

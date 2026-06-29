@@ -10,27 +10,29 @@ struct SettingsView: View {
     private let refreshIntervalOptions: [TimeInterval] = [60, 180, 300]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            hero
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 14) {
+                hero
 
-            GlassSurface(cornerRadius: 24) {
-                quotaControls
-            }
-
-            HStack(alignment: .top, spacing: 14) {
-                GlassSurface(cornerRadius: 20) {
-                    codexOAuthProviderControls
+                GlassSurface(cornerRadius: 24) {
+                    quotaControls
                 }
-                .frame(maxWidth: .infinity, alignment: .topLeading)
 
-                GlassSurface(cornerRadius: 20) {
-                    generalControls
+                HStack(alignment: .top, spacing: 14) {
+                    GlassSurface(cornerRadius: 20) {
+                        codexOAuthProviderControls
+                    }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+
+                    GlassSurface(cornerRadius: 20) {
+                        generalControls
+                    }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
-                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
+            .padding(18)
         }
-        .padding(18)
-        .frame(width: 720, height: 700, alignment: .topLeading)
+        .frame(width: 740, height: 760, alignment: .topLeading)
         .background {
             ZStack {
                 LinearGradient(
@@ -374,7 +376,8 @@ struct SettingsView: View {
                     QuotaCardView(
                         snapshot: snapshot,
                         localization: model.localization,
-                        now: now
+                        now: now,
+                        displayMode: .full
                     )
                 }
             }

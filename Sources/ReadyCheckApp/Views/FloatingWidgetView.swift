@@ -21,15 +21,24 @@ struct FloatingWidgetView: View {
 
                 if model.snapshots.isEmpty {
                     emptyState
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            model.openMainWindowFromWidget()
+                        }
                 } else {
                     VStack(spacing: 10) {
                         ForEach(Array(visibleSnapshots)) { snapshot in
                             QuotaCardView(
                                 snapshot: snapshot,
                                 localization: localization,
-                                now: now
+                                now: now,
+                                displayMode: .compact
                             )
                         }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        model.openMainWindowFromWidget()
                     }
                 }
             }
@@ -37,10 +46,6 @@ struct FloatingWidgetView: View {
         }
         .padding(12)
         .frame(width: 352)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            model.openMainWindowFromWidget()
-        }
         .background(.clear)
         .task {
             await updateNowWhileVisible()

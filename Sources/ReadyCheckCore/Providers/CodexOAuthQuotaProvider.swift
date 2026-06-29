@@ -70,6 +70,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 accountID: accountID
             )
             let windows = try usageParser.parse(payload, refreshedAt: date)
+            let usageDetails = usageParser.parseManualResetDetails(payload)
             return ProviderQuotaSnapshot(
                 providerId: id,
                 displayName: displayName,
@@ -78,7 +79,13 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 refreshedAt: date,
                 staleAfter: date.addingTimeInterval(300),
                 windows: windows,
-                errors: []
+                errors: [],
+                details: ProviderQuotaDetails(
+                    planName: CodexJWTClaims.planName(from: token.idToken),
+                    subscriptionRenewalAt: CodexJWTClaims.subscriptionRenewalAt(from: token.idToken),
+                    manualResetCount: usageDetails.manualResetCount,
+                    manualResetExpirations: usageDetails.manualResetExpirations
+                )
             )
         } catch CodexUsageParserError.noDisplayableWindows {
             return snapshot(date: date, error: "quota.error.parserUnavailable")
