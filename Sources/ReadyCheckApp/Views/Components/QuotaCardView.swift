@@ -233,10 +233,12 @@ struct QuotaCardView: View {
                 isActive: showsProgress
             )
 
-            Text(metadataText(for: window))
-                .font(.caption)
-                .foregroundStyle(Color.primary.opacity(0.72))
-                .lineLimit(2)
+            if displayMode == .full {
+                Text(metadataText(for: window))
+                    .font(.caption)
+                    .foregroundStyle(Color.primary.opacity(0.72))
+                    .lineLimit(2)
+            }
         }
     }
 

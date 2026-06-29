@@ -8,6 +8,10 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.46 - 2026-06-29
+
+- Hide source and verification metadata from compact quota cards so the desktop widget stays focused on the quota values.
+
 ## 0.1.45 - 2026-06-29
 
 - Always render the manual reset count as a number; missing count data now falls back to `0` instead of `Not provided`.
