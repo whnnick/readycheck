@@ -32,7 +32,7 @@ struct FloatingWidgetView: View {
                                 snapshot: snapshot,
                                 localization: localization,
                                 now: now,
-                                displayMode: .compact
+                                displayMode: quotaCardDisplayMode
                             )
                         }
                     }
@@ -49,6 +49,15 @@ struct FloatingWidgetView: View {
         .background(.clear)
         .task {
             await updateNowWhileVisible()
+        }
+    }
+
+    private var quotaCardDisplayMode: QuotaCardView.DisplayMode {
+        switch model.widgetDisplayMode {
+        case .minimal:
+            .compact
+        case .detailed:
+            .full
         }
     }
 

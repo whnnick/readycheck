@@ -151,6 +151,38 @@ struct MenuBarQuotaView: View {
 
             Divider()
 
+            VStack(alignment: .leading, spacing: 8) {
+                Text(updateStatusText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+
+                HStack(spacing: 8) {
+                    Button {
+                        Task {
+                            await model.checkForUpdates(isManual: true)
+                        }
+                    } label: {
+                        if model.updateStatus == .checking {
+                            Label(localization.text("update.checking"), systemImage: "arrow.triangle.2.circlepath")
+                        } else {
+                            Label(localization.text("action.checkForUpdates"), systemImage: "arrow.triangle.2.circlepath")
+                        }
+                    }
+                    .disabled(model.updateStatus == .checking)
+
+                    if case .updateAvailable = model.updateStatus {
+                        Button {
+                            model.openUpdateReleasePage()
+                        } label: {
+                            Label(localization.text("action.downloadUpdate"), systemImage: "arrow.down.circle.fill")
+                        }
+                    }
+                }
+            }
+
+            Divider()
+
             Button(role: .destructive) {
                 NSApp.terminate(nil)
             } label: {
@@ -210,6 +242,21 @@ struct MenuBarQuotaView: View {
         }
 
         return localization.text("empty.quota.codexMessage")
+    }
+
+    private var updateStatusText: String {
+        switch model.updateStatus {
+        case .idle:
+            "\(localization.text("about.version")) \(ReadyCheckCore.version)"
+        case .checking:
+            localization.text("update.checking")
+        case .upToDate:
+            localization.text("update.upToDate")
+        case .failed:
+            localization.text("update.failed")
+        case .updateAvailable(let update):
+            "\(localization.text("update.available")) \(update.version)"
+        }
     }
 
     private var accountSummary: String {

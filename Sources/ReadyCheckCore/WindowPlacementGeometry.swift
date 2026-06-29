@@ -2,23 +2,26 @@ import CoreGraphics
 
 public enum FloatingWidgetPlacement {
     public static let defaultMargin: CGFloat = 28
+    public static let defaultBottomMargin: CGFloat = 12
     public static let defaultSize = CGSize(width: 376, height: 420)
 
     public static func frame(
         preferredSize: CGSize,
         visibleFrame: CGRect,
-        margin: CGFloat = defaultMargin
+        margin: CGFloat = defaultMargin,
+        bottomMargin: CGFloat = defaultBottomMargin
     ) -> CGRect {
         let safeMargin = max(0, margin)
+        let safeBottomMargin = max(0, bottomMargin)
         let width = dimension(preferred: preferredSize.width, visible: visibleFrame.width, margin: safeMargin)
-        let height = dimension(preferred: preferredSize.height, visible: visibleFrame.height, margin: safeMargin)
+        let height = dimension(preferred: preferredSize.height, visible: visibleFrame.height, margin: max(safeMargin, safeBottomMargin))
         let x = clamped(
             visibleFrame.maxX - width - safeMargin,
             lower: visibleFrame.minX,
             upper: visibleFrame.maxX - width
         )
         let y = clamped(
-            visibleFrame.minY + safeMargin,
+            visibleFrame.minY + safeBottomMargin,
             lower: visibleFrame.minY,
             upper: visibleFrame.maxY - height
         )

@@ -8,6 +8,29 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.51 - 2026-06-29
+
+- Move the default widget placement closer to the bottom edge while preserving the right-side margin.
+- Add a persisted Minimal/Detailed widget style selector in the top widget controls; Minimal remains the default.
+- Detailed widget mode restores subscription, renewal, reset, source, and verification details inside the widget.
+
+## 0.1.50 - 2026-06-29
+
+- Make Show widget reopen the widget at the same default lower-right position as Reset widget.
+- Avoid sending a hidden-state callback when no widget window exists.
+
+## 0.1.49 - 2026-06-29
+
+- Fix the Widget preference controls so Chinese labels no longer collapse into vertical text in the main window.
+
+## 0.1.48 - 2026-06-29
+
+- Add a non-blocking update banner in the main window when a newer GitHub Release is available.
+- Add Check for updates and Download update actions to the menu-bar panel.
+- Simplify compact quota cards for the desktop widget by keeping subscription details in the main window.
+- Add a low-quota warning when a quota window drops below 25% remaining.
+- Reorganize preferences into Language, Refresh, Widget, and Updates sections.
+
 ## 0.1.47 - 2026-06-29
 
 - Add a lightweight GitHub Release update check with a manual Check for updates action and a download link when a newer version is available.

@@ -169,6 +169,11 @@ final class ReadyCheckAppModel {
             floatingWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
         }
     }
+    var widgetDisplayMode: WidgetDisplayMode = WidgetDisplayModePreference.value() {
+        didSet {
+            WidgetDisplayModePreference.set(widgetDisplayMode)
+        }
+    }
     var mockProviderEnabled = false {
         didSet {
             rebuildStoreIfConfigurationChanged(oldValue: oldValue, newValue: mockProviderEnabled)

@@ -40,7 +40,9 @@ struct QuotaCardView: View {
                 if snapshot.windows.isEmpty {
                     errorContent
                 } else {
-                    detailGrid
+                    if displayMode == .full {
+                        detailGrid
+                    }
 
                     VStack(spacing: 10) {
                         ForEach(snapshot.windows) { window in
@@ -239,6 +241,13 @@ struct QuotaCardView: View {
                     .foregroundStyle(Color.primary.opacity(0.72))
                     .lineLimit(2)
             }
+
+            if urgency(for: progress, isActive: showsProgress) == .critical {
+                Label(localization.text("quota.lowQuotaWarning"), systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.red)
+                    .lineLimit(1)
+            }
         }
     }
 
@@ -320,14 +329,21 @@ struct QuotaCardView: View {
     }
 
     private func progressTint(for progress: Double) -> Color {
-        switch progress {
-        case 0..<0.25:
+        switch urgency(for: progress, isActive: true) {
+        case .critical:
             .red
-        case 0.25..<0.5:
+        case .warning:
             .orange
-        default:
+        case .normal:
             .green
+        case .unknown:
+            .secondary
         }
+    }
+
+    private func urgency(for progress: Double, isActive: Bool) -> QuotaUrgency {
+        guard isActive else { return .unknown }
+        return QuotaUrgency(remainingRatio: progress)
     }
 }
 

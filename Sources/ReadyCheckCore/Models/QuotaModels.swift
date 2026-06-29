@@ -40,6 +40,29 @@ public enum QuotaConfidence: String, Codable, Equatable, Sendable {
     case unknown
 }
 
+public enum QuotaUrgency: String, Codable, Equatable, Sendable {
+    case normal
+    case warning
+    case critical
+    case unknown
+
+    public init(remainingRatio: Double?) {
+        guard let remainingRatio, remainingRatio.isFinite else {
+            self = .unknown
+            return
+        }
+
+        switch remainingRatio {
+        case ..<0.25:
+            self = .critical
+        case ..<0.5:
+            self = .warning
+        default:
+            self = .normal
+        }
+    }
+}
+
 public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
     private static let consistencyTolerance = 0.0001
 

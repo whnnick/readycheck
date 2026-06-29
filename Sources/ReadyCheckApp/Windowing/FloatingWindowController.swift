@@ -63,12 +63,7 @@ final class FloatingWindowController: NSObject, NSWindowDelegate {
 
     func showAtDefaultPosition(model: ReadyCheckAppModel) {
         UserDefaults.standard.removeObject(forKey: frameDefaultsKey)
-
-        if let window {
-            show(window)
-            onVisibilityChanged?(true)
-            return
-        }
+        close(preservingFrame: false)
 
         show(model: model)
     }
@@ -83,12 +78,14 @@ final class FloatingWindowController: NSObject, NSWindowDelegate {
 
     private func close(preservingFrame: Bool) {
         let closingWindow = window
+        guard let closingWindow else { return }
+
         window = nil
-        if preservingFrame, let closingWindow {
+        if preservingFrame {
             persistFrame(closingWindow.frame)
         }
-        closingWindow?.delegate = nil
-        closingWindow?.close()
+        closingWindow.delegate = nil
+        closingWindow.close()
         onVisibilityChanged?(false)
     }
 

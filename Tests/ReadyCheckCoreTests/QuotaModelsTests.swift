@@ -19,6 +19,15 @@ final class QuotaModelsTests: XCTestCase {
         XCTAssertEqual(remainingRatio, 0.72, accuracy: 0.0001)
     }
 
+    func testQuotaUrgencyUsesRemainingRatioThresholds() {
+        XCTAssertEqual(QuotaUrgency(remainingRatio: nil), .unknown)
+        XCTAssertEqual(QuotaUrgency(remainingRatio: 0.24), .critical)
+        XCTAssertEqual(QuotaUrgency(remainingRatio: 0.25), .warning)
+        XCTAssertEqual(QuotaUrgency(remainingRatio: 0.49), .warning)
+        XCTAssertEqual(QuotaUrgency(remainingRatio: 0.50), .normal)
+        XCTAssertEqual(QuotaUrgency(remainingRatio: 0.63), .normal)
+    }
+
     func testInvalidWindowSuppressesRatioWhenLimitIsZero() {
         let window = QuotaWindow(
             id: "invalid",

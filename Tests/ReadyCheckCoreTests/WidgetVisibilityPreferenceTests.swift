@@ -26,4 +26,14 @@ final class WidgetVisibilityPreferenceTests: XCTestCase {
 
         XCTAssertTrue(WidgetVisibilityPreference.value(defaults: defaults))
     }
+
+    func testWidgetDisplayModeDefaultsToMinimal() {
+        XCTAssertEqual(WidgetDisplayModePreference.value(defaults: defaults), .minimal)
+    }
+
+    func testWidgetDisplayModePersistsDetailedSelection() {
+        WidgetDisplayModePreference.set(.detailed, defaults: defaults)
+
+        XCTAssertEqual(WidgetDisplayModePreference.value(defaults: defaults), .detailed)
+    }
 }

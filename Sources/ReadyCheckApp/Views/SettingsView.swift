@@ -14,6 +14,8 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 14) {
                 hero
 
+                updateBanner
+
                 GlassSurface(cornerRadius: 24) {
                     quotaControls
                 }
@@ -178,6 +180,14 @@ struct SettingsView: View {
                 Label(model.localization.text("settings.widgetAlwaysOnTop"), systemImage: "rectangle.on.rectangle")
             }
 
+            Picker(model.localization.text("settings.widgetStyle"), selection: $model.widgetDisplayMode) {
+                Text(model.localization.text("widgetStyle.minimal")).tag(WidgetDisplayMode.minimal)
+                Text(model.localization.text("widgetStyle.detailed")).tag(WidgetDisplayMode.detailed)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 126)
+            .help(model.localization.text("settings.widgetStyle"))
+
             Button {
                 model.resetFloatingWidgetPosition()
             } label: {
@@ -192,41 +202,83 @@ struct SettingsView: View {
     }
 
     private var generalControls: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             Label(model.localization.text("settings.preferences"), systemImage: "slider.horizontal.3")
                 .font(.headline)
 
-            Picker(model.localization.text("settings.language"), selection: $model.language) {
-                Text("中文").tag(AppLanguage.zhCN)
-                Text("English").tag(AppLanguage.enUS)
-            }
-            .pickerStyle(.segmented)
-
-            Picker(model.localization.text("settings.refreshInterval"), selection: $model.refreshInterval) {
-                ForEach(refreshIntervalOptions, id: \.self) { interval in
-                    Text(refreshIntervalLabel(for: interval)).tag(interval)
+            preferenceSection(titleKey: "settings.language", systemImage: "globe") {
+                Picker(model.localization.text("settings.language"), selection: $model.language) {
+                    Text("中文").tag(AppLanguage.zhCN)
+                    Text("English").tag(AppLanguage.enUS)
                 }
+                .pickerStyle(.segmented)
             }
-
-            Text(model.localization.text("settings.refreshHelp"))
-                .font(.footnote)
-                .foregroundStyle(.secondary)
 
             Divider()
+
+            preferenceSection(titleKey: "settings.refresh", systemImage: "arrow.clockwise") {
+                Picker(model.localization.text("settings.refreshInterval"), selection: $model.refreshInterval) {
+                    ForEach(refreshIntervalOptions, id: \.self) { interval in
+                        Text(refreshIntervalLabel(for: interval)).tag(interval)
+                    }
+                }
+
+                Text(model.localization.text("settings.refreshHelp"))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+
+                Text(model.localization.text("status.safeRefresh"))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
 
             updateControls
+        }
+    }
 
-            Divider()
+    private func preferenceSection<Content: View>(
+        titleKey: String,
+        systemImage: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(model.localization.text(titleKey), systemImage: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.primary.opacity(0.86))
 
-            Text(model.localization.text("settings.widgetAlwaysOnTopHelp"))
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            content()
+        }
+    }
 
-            Divider()
+    @ViewBuilder
+    private var updateBanner: some View {
+        if case .updateAvailable(let update) = model.updateStatus {
+            GlassSurface(cornerRadius: 18) {
+                HStack(spacing: 10) {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.tint)
 
-            Text(model.localization.text("status.safeRefresh"))
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(model.localization.text("update.available")) \(update.version)")
+                            .font(.subheadline.weight(.semibold))
+
+                        Text(model.localization.text("update.bannerMessage"))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        model.openUpdateReleasePage()
+                    } label: {
+                        Label(model.localization.text("action.downloadUpdate"), systemImage: "arrow.down.circle.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                }
+            }
         }
     }
 
