@@ -45,7 +45,13 @@ Commit the development worktree after these checks pass.
 
 ## 3. Publish The Public Repository
 
-Use the public sync directory, not the development worktree, for the public `main` release. From the repository root, sync from the development worktree while excluding internal agent material:
+Use the public sync directory, not the development worktree, for the public `main` release. Before syncing, clear the previous public sync contents while preserving its `.git` directory so stale build caches or old artifacts cannot survive an excluded rsync path:
+
+```bash
+find /private/tmp/readycheck-public-sync-20260629 -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+```
+
+From the repository root, sync from the development worktree while excluding internal agent material:
 
 ```bash
 rsync -a --delete \

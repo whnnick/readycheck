@@ -142,6 +142,18 @@ struct MenuBarQuotaView: View {
                 }
                 .toggleStyle(.switch)
 
+                HStack(spacing: 8) {
+                    Label(localization.text("settings.widgetStyle"), systemImage: "rectangle.split.2x1")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+
+                    WidgetStyleSwitcherView(selection: $model.widgetDisplayMode, localization: localization)
+
+                    Spacer(minLength: 0)
+                }
+
                 Button {
                     model.resetFloatingWidgetPosition()
                 } label: {

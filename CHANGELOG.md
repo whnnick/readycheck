@@ -8,6 +8,10 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.55 - 2026-06-30
+
+- Add the same Minimal/Detailed widget style switcher to the menu-bar panel and share the switcher component with the floating widget.
+
 ## 0.1.54 - 2026-06-30
 
 - Add a compact Minimal/Detailed widget style switcher directly in the floating widget header.

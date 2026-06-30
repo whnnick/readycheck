@@ -45,7 +45,13 @@ shasum -a 256 ../../dist/ReadyCheck-<version>-macos.dmg
 
 ## 3. 发布公开仓库
 
-公开 `main` 发布只从 public sync 目录执行，不直接从开发工作区发布。在仓库根目录执行同步命令，并排除内部 agent 材料：
+公开 `main` 发布只从 public sync 目录执行，不直接从开发工作区发布。同步前先清理上一次 public sync 的内容，但保留 `.git` 目录，避免旧构建缓存或旧产物因为 rsync exclude 规则残留：
+
+```bash
+find /private/tmp/readycheck-public-sync-20260629 -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+```
+
+在仓库根目录执行同步命令，并排除内部 agent 材料：
 
 ```bash
 rsync -a --delete \
