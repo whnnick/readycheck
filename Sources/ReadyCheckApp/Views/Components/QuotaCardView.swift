@@ -109,8 +109,6 @@ struct QuotaCardView: View {
                 subscriptionSummaryItems
             }
         }
-        .lineLimit(1)
-        .minimumScaleFactor(0.86)
     }
 
     private func inlineDetail(label: String, value: String) -> some View {
@@ -118,11 +116,13 @@ struct QuotaCardView: View {
             Text(label)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.primary.opacity(0.58))
+                .lineLimit(1)
 
             Text(value)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.primary.opacity(0.92))
                 .monospacedDigit()
+                .lineLimit(1)
                 .truncationMode(.tail)
                 .help(value)
         }

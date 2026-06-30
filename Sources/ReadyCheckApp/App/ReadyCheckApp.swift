@@ -268,7 +268,7 @@ final class ReadyCheckAppModel {
 
     func restoreFloatingWidgetIfNeeded() {
         guard widgetVisible else { return }
-        floatingWindowController.show(model: self)
+        floatingWindowController.showAtDefaultPosition(model: self)
     }
 
     func showFloatingWidget() {

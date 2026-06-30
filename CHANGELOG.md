@@ -8,6 +8,13 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.52 - 2026-06-30
+
+- Hide the visible widget style picker label in the top control row so it no longer collapses into vertical text in Chinese layouts.
+- Make app-launch widget restoration use the same default lower-right placement as Show widget and Reset position.
+- Group the widget visibility, always-on-top, and style controls with clearer spacing while keeping every label on one line.
+- Keep detailed widget account rows on a consistent font size instead of shrinking only the subscription summary rows.
+
 ## 0.1.51 - 2026-06-29
 
 - Move the default widget placement closer to the bottom edge while preserving the right-side margin.

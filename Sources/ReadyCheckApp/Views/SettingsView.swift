@@ -171,22 +171,40 @@ struct SettingsView: View {
     }
 
     private var widgetControls: some View {
-        HStack(spacing: 12) {
-            Toggle(isOn: $model.widgetVisible) {
-                Label(model.localization.text("action.pinWidget"), systemImage: "macwindow.on.rectangle")
-            }
+        HStack(spacing: 22) {
+            widgetToggleControl(
+                title: model.localization.text("action.pinWidget"),
+                systemImage: "macwindow.on.rectangle",
+                isOn: $model.widgetVisible
+            )
 
-            Toggle(isOn: $model.widgetAlwaysOnTop) {
-                Label(model.localization.text("settings.widgetAlwaysOnTop"), systemImage: "rectangle.on.rectangle")
-            }
+            widgetToggleControl(
+                title: model.localization.text("settings.widgetAlwaysOnTop"),
+                systemImage: "rectangle.on.rectangle",
+                isOn: $model.widgetAlwaysOnTop
+            )
 
-            Picker(model.localization.text("settings.widgetStyle"), selection: $model.widgetDisplayMode) {
-                Text(model.localization.text("widgetStyle.minimal")).tag(WidgetDisplayMode.minimal)
-                Text(model.localization.text("widgetStyle.detailed")).tag(WidgetDisplayMode.detailed)
+            HStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "rectangle.split.2x1")
+                        .imageScale(.medium)
+
+                    Text(model.localization.text("settings.widgetStyle"))
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+
+                Picker("", selection: $model.widgetDisplayMode) {
+                    Text(model.localization.text("widgetStyle.minimal")).tag(WidgetDisplayMode.minimal)
+                    Text(model.localization.text("widgetStyle.detailed")).tag(WidgetDisplayMode.detailed)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 116)
+                .accessibilityLabel(model.localization.text("settings.widgetStyle"))
+                .help(model.localization.text("settings.widgetStyle"))
             }
-            .pickerStyle(.segmented)
-            .frame(width: 126)
-            .help(model.localization.text("settings.widgetStyle"))
+            .layoutPriority(1)
 
             Button {
                 model.resetFloatingWidgetPosition()
@@ -199,6 +217,22 @@ struct SettingsView: View {
         .toggleStyle(.switch)
         .buttonStyle(.bordered)
         .controlSize(.small)
+    }
+
+    private func widgetToggleControl(title: String, systemImage: String, isOn: Binding<Bool>) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: systemImage)
+                .imageScale(.medium)
+
+            Text(title)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+        }
+        .layoutPriority(1)
+        .help(title)
     }
 
     private var generalControls: some View {
