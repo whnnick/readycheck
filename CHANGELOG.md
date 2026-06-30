@@ -8,6 +8,10 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.56 - 2026-06-30
+
+- Keep the detailed floating widget focused on user-facing quota and subscription details by hiding source and confidence metadata there while preserving it in the main window.
+
 ## 0.1.55 - 2026-06-30
 
 - Add the same Minimal/Detailed widget style switcher to the menu-bar panel and share the switcher component with the floating widget.

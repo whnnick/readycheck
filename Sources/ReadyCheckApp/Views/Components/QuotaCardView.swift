@@ -4,6 +4,7 @@ import SwiftUI
 struct QuotaCardView: View {
     enum DisplayMode {
         case full
+        case widgetDetailed
         case compact
     }
 
@@ -40,7 +41,7 @@ struct QuotaCardView: View {
                 if snapshot.windows.isEmpty {
                     errorContent
                 } else {
-                    if displayMode == .full {
+                    if showsDetails {
                         detailGrid
                     }
 
@@ -78,7 +79,7 @@ struct QuotaCardView: View {
         VStack(alignment: .leading, spacing: 10) {
             summaryRows
 
-            if displayMode == .full {
+            if showsDetails {
                 VStack(alignment: .leading, spacing: 5) {
                     if manualResetExpirations.isEmpty {
                         inlineDetail(
@@ -235,7 +236,7 @@ struct QuotaCardView: View {
                 isActive: showsProgress
             )
 
-            if displayMode == .full {
+            if showsMetadata {
                 Text(metadataText(for: window))
                     .font(.caption)
                     .foregroundStyle(Color.primary.opacity(0.72))
@@ -266,6 +267,19 @@ struct QuotaCardView: View {
         case .error:
             localization.text("status.error")
         }
+    }
+
+    private var showsDetails: Bool {
+        switch displayMode {
+        case .full, .widgetDetailed:
+            true
+        case .compact:
+            false
+        }
+    }
+
+    private var showsMetadata: Bool {
+        displayMode == .full
     }
 
     private var statusColor: Color {

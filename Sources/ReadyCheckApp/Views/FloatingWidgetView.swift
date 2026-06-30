@@ -57,7 +57,7 @@ struct FloatingWidgetView: View {
         case .minimal:
             .compact
         case .detailed:
-            .full
+            .widgetDetailed
         }
     }
 
