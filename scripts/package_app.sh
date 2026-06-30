@@ -19,7 +19,7 @@ EXECUTABLE_TARGET="${MACOS_DIR}/ReadyCheckApp"
 ICONSET_DIR="${BUILD_DIR}/ReadyCheck.iconset"
 ICON_SOURCE="${BUILD_DIR}/ReadyCheckIcon1024.png"
 ICON_TARGET="${RESOURCES_DIR}/ReadyCheck.icns"
-VERSION="0.1.52"
+VERSION="0.1.53"
 
 cd "${REPO_ROOT}"
 mkdir -p "${BUILD_DIR}/module-cache"

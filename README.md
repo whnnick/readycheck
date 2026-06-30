@@ -8,7 +8,7 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Status: `0.1.52` is an early macOS preview. Codex OAuth is the only supported provider in this release. Windows and other providers are planned, not included.
+> Status: `0.1.53` is an early macOS preview. Codex OAuth is the only supported provider in this release. Windows and other providers are planned, not included.
 
 ## What It Does
 
@@ -22,7 +22,7 @@ ReadyCheck fails closed: when quota data cannot be read or validated, it shows a
 
 ## Install
 
-Download `ReadyCheck-0.1.52-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
+Download `ReadyCheck-0.1.53-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
 
 The preview build is ad-hoc signed and not notarized. macOS may require you to confirm the first launch in **System Settings > Privacy & Security**. See [installation details](docs/INSTALL.md).
 
@@ -44,7 +44,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The DMG is written to `dist/ReadyCheck-0.1.52-macos.dmg`.
+The DMG is written to `dist/ReadyCheck-0.1.53-macos.dmg`.
 
 ## Product Motion
 
@@ -66,6 +66,7 @@ npm run dev
 ## Documentation
 
 - [Install guide](docs/INSTALL.md) | [安装说明](docs/INSTALL.zh-CN.md)
+- [Real-world QA checklist](docs/QA.md) | [真实场景验收](docs/QA.zh-CN.md)
 - [Release process](docs/RELEASE.md) | [发布流程](docs/RELEASE.zh-CN.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)

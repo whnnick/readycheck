@@ -38,6 +38,7 @@ final class UpdateCheckerTests: XCTestCase {
         let request = try await loader.recordedRequest()
         XCTAssertEqual(request.url?.absoluteString, "https://api.github.com/repos/whnnick/readycheck/releases/latest")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Accept"), "application/vnd.github+json")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "User-Agent"), "ReadyCheck/0.1.46")
     }
 
     func testCheckerReturnsUpToDateWhenLatestReleaseMatches() async throws {

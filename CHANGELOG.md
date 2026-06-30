@@ -8,6 +8,11 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.53 - 2026-06-30
+
+- Add a public real-world QA checklist covering first install, OAuth, safe refresh, update checks, widget placement, and failure modes.
+- Add a regression assertion that update checks send the ReadyCheck version in the GitHub API User-Agent.
+
 ## 0.1.52 - 2026-06-30
 
 - Hide the visible widget style picker label in the top control row so it no longer collapses into vertical text in Chinese layouts.
