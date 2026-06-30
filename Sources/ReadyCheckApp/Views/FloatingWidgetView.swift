@@ -62,44 +62,104 @@ struct FloatingWidgetView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .top, spacing: 8) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(localization.text("app.name"))
-                    .font(.headline)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(localization.text("app.name"))
+                        .font(.headline)
 
-                Text(refreshSummary)
-                    .font(.caption2)
-                    .foregroundStyle(Color.primary.opacity(0.72))
-            }
-
-            Text(localization.text("status.autoUpdate"))
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(Color.primary.opacity(0.78))
-                .padding(.horizontal, 7)
-                .padding(.vertical, 3)
-                .background(Color.primary.opacity(0.10), in: Capsule())
-
-            Spacer()
-
-            Button {
-                Task {
-                    await model.refresh(reason: .manual)
-                    now = Date()
+                    Text(refreshSummary)
+                        .font(.caption2)
+                        .foregroundStyle(Color.primary.opacity(0.72))
                 }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-            }
-            .buttonStyle(.borderless)
-            .disabled(model.isRefreshing)
-            .help(localization.text("action.refresh"))
 
-            Button {
-                model.hideFloatingWidget()
-            } label: {
-                Image(systemName: "xmark")
+                Text(localization.text("status.autoUpdate"))
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.primary.opacity(0.78))
+                    .lineLimit(1)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(Color.primary.opacity(0.10), in: Capsule())
+
+                Spacer()
+
+                Button {
+                    Task {
+                        await model.refresh(reason: .manual)
+                        now = Date()
+                    }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .buttonStyle(.borderless)
+                .disabled(model.isRefreshing)
+                .help(localization.text("action.refresh"))
+
+                Button {
+                    model.hideFloatingWidget()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .buttonStyle(.borderless)
+                .help(localization.text("action.hideWidget"))
             }
-            .buttonStyle(.borderless)
-            .help(localization.text("action.hideWidget"))
+
+            HStack(spacing: 8) {
+                Label(localization.text("settings.widgetStyle"), systemImage: "rectangle.split.2x1")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.primary.opacity(0.72))
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+
+                widgetStyleSwitcher
+
+                Spacer(minLength: 0)
+            }
+        }
+    }
+
+    private var widgetStyleSwitcher: some View {
+        HStack(spacing: 0) {
+            widgetStyleButton(.minimal)
+            widgetStyleButton(.detailed)
+        }
+        .padding(2)
+        .background(Color.primary.opacity(0.10), in: Capsule())
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(localization.text("settings.widgetStyle"))
+    }
+
+    private func widgetStyleButton(_ mode: WidgetDisplayMode) -> some View {
+        let isSelected = model.widgetDisplayMode == mode
+
+        return Button {
+            model.widgetDisplayMode = mode
+        } label: {
+            Text(widgetStyleTitle(for: mode))
+                .font(.caption2.weight(.semibold))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+                .foregroundStyle(isSelected ? Color.white : Color.primary.opacity(0.72))
+                .padding(.horizontal, 9)
+                .padding(.vertical, 4)
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .background {
+            if isSelected {
+                Capsule()
+                    .fill(Color.accentColor)
+            }
+        }
+        .help(widgetStyleTitle(for: mode))
+    }
+
+    private func widgetStyleTitle(for mode: WidgetDisplayMode) -> String {
+        switch mode {
+        case .minimal:
+            localization.text("widgetStyle.minimal")
+        case .detailed:
+            localization.text("widgetStyle.detailed")
         }
     }
 

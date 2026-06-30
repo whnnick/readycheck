@@ -8,6 +8,11 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.54 - 2026-06-30
+
+- Add a compact Minimal/Detailed widget style switcher directly in the floating widget header.
+- Standardize the release workflow and make DMG packaging clean old ReadyCheck DMGs from `dist` before writing the current build.
+
 ## 0.1.53 - 2026-06-30
 
 - Add a public real-world QA checklist covering first install, OAuth, safe refresh, update checks, widget placement, and failure modes.
