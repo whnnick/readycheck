@@ -29,6 +29,7 @@ function parseManualResetDetails(payload) {
       ["manual_resets_count"],
       ["manual_resets"],
       ["manual_reset_expirations"],
+      ["rate_limit_reset_credits", "available_count"],
       ["rate_limit", "manual_reset_count"],
       ["rate_limit", "manual_resets_count"],
       ["rate_limit", "manual_resets"],

@@ -59,6 +59,13 @@ const resetDetails = parseManualResetDetails({
 assert.equal(resetDetails.manualResetCount, 1);
 assert.deepEqual(resetDetails.manualResetExpirations, [new Date(1_782_526_542 * 1000).toISOString()]);
 
+const resetCreditDetails = parseManualResetDetails({
+  rate_limit_reset_credits: {
+    available_count: 1
+  }
+});
+assert.equal(resetCreditDetails.manualResetCount, 1);
+
 const emptyResetDetails = parseManualResetDetails({
   rate_limit: {
     manual_resets: []

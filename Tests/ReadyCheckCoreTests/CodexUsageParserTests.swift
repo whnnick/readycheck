@@ -94,6 +94,23 @@ final class CodexUsageParserTests: XCTestCase {
         XCTAssertEqual(details.manualResetExpirations, [Date(timeIntervalSince1970: 1_782_526_542)])
     }
 
+    func testParserExtractsManualResetCreditsAvailableCount() {
+        let parser = CodexUsageParser()
+        let data = Data(
+            """
+            {
+              "rate_limit_reset_credits": {
+                "available_count": 1
+              }
+            }
+            """.utf8
+        )
+
+        let details = parser.parseManualResetDetails(data)
+
+        XCTAssertEqual(details.manualResetCount, 1)
+    }
+
     func testParserExtractsZeroManualResetCountFromEmptyArray() {
         let parser = CodexUsageParser()
         let data = Data(

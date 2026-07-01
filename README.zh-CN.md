@@ -8,7 +8,7 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 当前状态：`0.1.56` 为 macOS 早期预览版。本版本仅支持 Codex OAuth；已提供 Windows 便携预览包，可用于 Windows 10/11 测试。
+> 当前状态：`0.1.57` 为 macOS 早期预览版。本版本仅支持 Codex OAuth；已提供 Windows 便携预览包，可用于 Windows 10/11 测试。
 
 ## 可以做什么
 
@@ -22,7 +22,7 @@ ReadyCheck 采用保守策略：无法安全读取或验证额度数据时，显
 
 ## 安装
 
-从[最新发布页](https://github.com/whnnick/readycheck/releases/latest)下载 `ReadyCheck-0.1.56-macos.dmg`，打开 DMG 后将 `ReadyCheck.app` 拖入“应用程序”。
+从[最新发布页](https://github.com/whnnick/readycheck/releases/latest)下载 `ReadyCheck-0.1.57-macos.dmg`，打开 DMG 后将 `ReadyCheck.app` 拖入“应用程序”。
 
 Windows 10/11 预览测试可从同一个发布页下载 `ReadyCheck-0.1.0-windows-x64-portable.zip`，解压后运行 `ReadyCheck.exe`。
 
@@ -46,7 +46,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-DMG 输出到 `dist/ReadyCheck-0.1.56-macos.dmg`。
+DMG 输出到 `dist/ReadyCheck-0.1.57-macos.dmg`。
 
 ## Windows 预览版开发
 
