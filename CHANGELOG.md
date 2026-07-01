@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Start the Windows desktop client under `apps/windows` with an Electron tray, main window, floating widget shell, local preferences, and fail-closed safe-refresh state.
+- Add Codex OAuth callback handling and Electron `safeStorage` encrypted token persistence to the Windows preview; quota fetching remains fail-closed until the parser is ported.
+- Add read-only Codex usage fetching and quota parsing to the Windows preview, including 5-hour / 7-day windows, subscription details, and manual reset details while keeping missing critical data fail-closed.
+- Add a Windows black-box QA guide and `npm run smoke` preflight script for real-machine Windows 10/11 validation.
+- Add a Windows portable packaging script that writes `ReadyCheck-0.1.0-windows-x64-portable.zip` for copy-to-Windows testing.
+- Document the Windows portable preview package as a downloadable GitHub Release asset for Windows 10/11 testing.
+- Fix Windows preview widget always-on-top toggling, Minimal/Detailed switching, Detailed-mode clipping, and add OAuth region-restriction guidance.
+- Add a Windows UI behavior smoke test that validates widget layout constraints, style switching, and OAuth guidance before packaging.
+- Compact Windows main-window and widget typography, spacing, and window sizes so the persistent widget blocks less of the desktop.
 - Add a Remotion product intro motion project under `marketing/remotion`, with Chinese and English 30-second ReadyCheck compositions.
 - Add a procedural techno/synth background track for the Remotion product intro.
 - Rework the product intro with stronger promo-style motion, prominent GitHub address placement, green/orange/red quota states, and a non-overlapping OAuth usage-flow diagram.

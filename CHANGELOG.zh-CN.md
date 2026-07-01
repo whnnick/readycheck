@@ -2,6 +2,15 @@
 
 ## 未发布
 
+- 在 `apps/windows` 启动 Windows 桌面客户端，包含 Electron 托盘、主窗口、悬浮 widget 壳层、本地偏好设置和 fail-closed 安全刷新状态。
+- 为 Windows 预览版接入 Codex OAuth 回调流程和 Electron `safeStorage` 加密 token 存储；额度读取仍保持 fail-closed，等待解析器移植后再展示真实额度。
+- 为 Windows 预览版接入只读 Codex usage 拉取和额度解析，支持 5 小时 / 7 天额度、套餐续期和主动重置信息；缺少关键数据时继续 fail-closed。
+- 新增 Windows 黑盒测试手册和 `npm run smoke` 预检脚本，方便在 Windows 10/11 真机上验证预览版。
+- 新增 Windows 便携版打包脚本，输出可复制到 Windows 运行的 `ReadyCheck-0.1.0-windows-x64-portable.zip`。
+- 在公开文档中说明 Windows 便携预览包可作为 GitHub Release 资产下载，用于 Windows 10/11 测试。
+- 修复 Windows 预览版 widget 置顶切换、极简/详细切换和详细模式内容裁切问题，并在 OAuth 授权中补充地区限制提示。
+- 新增 Windows UI 行为 smoke test，打包前自动验证 widget 布局约束、样式切换和 OAuth 提示。
+- 压缩 Windows 主窗口和 widget 的字体、间距与窗口尺寸，降低常驻 widget 对桌面的遮挡。
 - 新增 `marketing/remotion` Remotion 产品介绍动效工程，提供 ReadyCheck 中文和英文 30 秒视频 composition。
 - 为 Remotion 产品介绍动效新增程序生成的科技感电子背景音乐。
 - 重做产品介绍动效的宣传片视觉：强化 GitHub 地址展示，加入与软件本体一致的绿/橙/红额度状态，并修复 OAuth 用量流程图线条覆盖文字的问题。

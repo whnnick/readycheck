@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ReadyCheck Widget</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body data-surface="widget">
+    <section class="widget glass" id="widgetRoot">
+      <header class="widget-header">
+        <div>
+          <h1>ReadyCheck</h1>
+          <p id="widgetLastRefresh">尚未刷新</p>
+        </div>
+        <button id="widgetRefreshButton" title="刷新">↻</button>
+      </header>
+      <div class="widget-style" role="group" aria-label="Widget 样式">
+        <span>Widget 样式</span>
+        <div class="segmented-control">
+          <button type="button" data-widget-mode-option="minimal">极简</button>
+          <button type="button" data-widget-mode-option="detailed">详细</button>
+        </div>
+      </div>
+      <div id="quotaContent"></div>
+    </section>
+    <script src="./renderer.js"></script>
+  </body>
+</html>
