@@ -94,6 +94,13 @@ git push origin v<version>
 gh release create v<version> dist/ReadyCheck-<version>-macos.dmg --repo whnnick/readycheck --title "ReadyCheck <version>" --notes "<release notes>"
 ```
 
+如果本地网络无法稳定上传较大的 Windows zip，运行 GitHub Actions 里的 `Upload Windows Release Asset` 手动 workflow：
+
+- `tag`：`v<version>`
+- `ref`：`main`
+
+该 workflow 会在 GitHub runner 上重新执行 `scripts/package_windows_portable.sh`，并把 `ReadyCheck-<version>-windows-x64-portable.zip` 上传到已有 release。
+
 验证 GitHub latest：
 
 ```bash

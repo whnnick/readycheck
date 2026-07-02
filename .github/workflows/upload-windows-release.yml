@@ -1,0 +1,43 @@
+name: Upload Windows Release Asset
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example v0.1.59"
+        required: true
+      ref:
+        description: "Source ref to build"
+        required: true
+        default: "main"
+
+permissions:
+  contents: write
+
+jobs:
+  upload-windows-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/windows/package-lock.json
+
+      - name: Build Windows portable package
+        run: scripts/package_windows_portable.sh
+
+      - name: Upload Windows asset to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          VERSION="$(node -p "require('./apps/windows/package.json').version")"
+          gh release upload "$RELEASE_TAG" "dist/windows/ReadyCheck-${VERSION}-windows-x64-portable.zip" --clobber
