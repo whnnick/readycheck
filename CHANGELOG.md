@@ -17,6 +17,12 @@
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
 
+## 0.1.60 - 2026-07-02
+
+- Add a non-interrupting update banner action to remind later, hiding the current version banner without disabling manual update checks.
+- Change the main update banner action to View update because ReadyCheck opens GitHub Releases instead of installing updates in-app.
+- Refine low-quota thresholds so 10-24% remaining is warning and below 10% is critical, while keeping widget warnings focused on the 5-hour quota.
+
 ## 0.1.59 - 2026-07-02
 
 - Let detailed widget reset-expiration rows wrap onto multiple lines so long dates remain readable in the compact widget width.

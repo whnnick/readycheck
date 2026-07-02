@@ -19,17 +19,18 @@ EXECUTABLE_TARGET="${MACOS_DIR}/ReadyCheckApp"
 ICONSET_DIR="${BUILD_DIR}/ReadyCheck.iconset"
 ICON_SOURCE="${BUILD_DIR}/ReadyCheckIcon1024.png"
 ICON_TARGET="${RESOURCES_DIR}/ReadyCheck.icns"
-VERSION="0.1.59"
+VERSION="0.1.60"
 
 cd "${REPO_ROOT}"
 mkdir -p "${BUILD_DIR}/module-cache"
 export CLANG_MODULE_CACHE_PATH="${BUILD_DIR}/module-cache"
 export SWIFTPM_MODULECACHE_PATH="${BUILD_DIR}/module-cache"
 
+mkdir -p "${DIST_DIR}"
+find "${DIST_DIR}" -maxdepth 1 -type d -name "ReadyCheck*.app" -exec rm -rf {} +
+
 swift build --disable-sandbox -c release --product ReadyCheckApp
 
-rm -rf "${APP_DIR}"
-mkdir -p "${DIST_DIR}"
 mkdir -p "${MACOS_DIR}" "${RESOURCES_DIR}"
 cp "${EXECUTABLE_SOURCE}" "${EXECUTABLE_TARGET}"
 chmod +x "${EXECUTABLE_TARGET}"
@@ -174,5 +175,6 @@ touch "${APP_DIR}" "${CONTENTS_DIR}" "${RESOURCES_DIR}"
 xattr -cr "${APP_DIR}"
 codesign --force --deep --sign - --no-strict "${APP_DIR}" >/dev/null
 xattr -cr "${APP_DIR}"
+find "${DIST_DIR}" -maxdepth 1 -type d -name "ReadyCheck*.app" ! -name "ReadyCheck.app" -exec rm -rf {} +
 
 echo "Packaged ${APP_DIR}"

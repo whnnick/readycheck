@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-VERSION="0.1.59"
+VERSION="0.1.60"
 
 if [[ "${REPO_ROOT}" == */.worktrees/* ]]; then
     DEFAULT_DIST_DIR="$(cd "${REPO_ROOT}/../.." && pwd)/dist"
@@ -22,7 +22,7 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "${DIST_DIR}"
-find "${DIST_DIR}" -maxdepth 1 -type f \( -name "ReadyCheck-*-macos.dmg" -o -name ".DS_Store" \) -delete
+find "${DIST_DIR}" -maxdepth 1 -type f \( -name "ReadyCheck-*-macos*.dmg" -o -name ".DS_Store" \) -delete
 
 "${SCRIPT_DIR}/package_app.sh"
 
@@ -38,4 +38,6 @@ hdiutil create \
 
 rm -f "${DIST_DIR}/.DS_Store"
 hdiutil imageinfo "${DMG_PATH}" >/dev/null
+find "${DIST_DIR}" -maxdepth 1 -type d -name "ReadyCheck*.app" ! -name "ReadyCheck.app" -exec rm -rf {} +
+find "${DIST_DIR}" -maxdepth 1 -type f -name "ReadyCheck-*-macos*.dmg" ! -name "ReadyCheck-${VERSION}-macos.dmg" -delete
 echo "Packaged ${DMG_PATH}"

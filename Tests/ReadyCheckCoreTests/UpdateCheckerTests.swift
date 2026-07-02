@@ -74,7 +74,7 @@ final class UpdateCheckerTests: XCTestCase {
         )
         let checker = GitHubReleaseUpdateChecker(loader: loader)
 
-        let result = try await checker.check(currentVersion: "0.1.59")
+        let result = try await checker.check(currentVersion: "0.1.60")
 
         XCTAssertEqual(result, .upToDate)
     }

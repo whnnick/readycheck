@@ -274,10 +274,11 @@ struct QuotaCardView: View {
                     .lineLimit(2)
             }
 
-            if urgency(for: progress, isActive: showsProgress) == .critical {
-                Label(localization.text("quota.lowQuotaWarning"), systemImage: "exclamationmark.triangle.fill")
+            let currentUrgency = urgency(for: progress, isActive: showsProgress)
+            if shouldShowLowQuotaWarning(for: window, urgency: currentUrgency) {
+                Label(lowQuotaWarningText(for: currentUrgency), systemImage: "exclamationmark.triangle.fill")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.red)
+                    .foregroundStyle(currentUrgency == .critical ? .red : .orange)
                     .lineLimit(1)
             }
         }
@@ -389,6 +390,20 @@ struct QuotaCardView: View {
     private func urgency(for progress: Double, isActive: Bool) -> QuotaUrgency {
         guard isActive else { return .unknown }
         return QuotaUrgency(remainingRatio: progress)
+    }
+
+    private func shouldShowLowQuotaWarning(for window: QuotaWindow, urgency: QuotaUrgency) -> Bool {
+        guard urgency == .warning || urgency == .critical else { return false }
+        if displayMode == .full {
+            return true
+        }
+        return window.labelKey == "quota.window.codex.5h"
+    }
+
+    private func lowQuotaWarningText(for urgency: QuotaUrgency) -> String {
+        urgency == .critical
+            ? localization.text("quota.criticalQuotaWarning")
+            : localization.text("quota.lowQuotaWarning")
     }
 }
 

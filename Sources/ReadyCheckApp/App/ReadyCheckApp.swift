@@ -197,6 +197,7 @@ final class ReadyCheckAppModel {
     var codexOAuthStatusMessage: String?
     var codexOAuthLoginEmail: String?
     var updateStatus: AppUpdateStatus = .idle
+    var updatePromptState = UpdatePromptState()
 
     @ObservationIgnored
     private let credentialStore: any CredentialStore
@@ -317,6 +318,17 @@ final class ReadyCheckAppModel {
     func openUpdateReleasePage() {
         guard case .updateAvailable(let update) = updateStatus else { return }
         NSWorkspace.shared.open(update.releaseURL)
+    }
+
+    var visibleUpdate: AppUpdate? {
+        guard case .updateAvailable(let update) = updateStatus else { return nil }
+        guard updatePromptState.shouldShowBanner(for: update) else { return nil }
+        return update
+    }
+
+    func dismissVisibleUpdate() {
+        guard case .updateAvailable(let update) = updateStatus else { return }
+        updatePromptState.dismiss(update)
     }
 
     var isCodexOAuthCallbackInputVisible: Bool {

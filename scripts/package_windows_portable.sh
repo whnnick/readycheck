@@ -18,7 +18,7 @@ ZIP_NAME="ReadyCheck-${VERSION}-windows-x64-portable.zip"
 ZIP_PATH="$DIST_DIR/$ZIP_NAME"
 APP_DIR="$DIST_DIR/ReadyCheck-win32-x64"
 
-find "$DIST_DIR" -maxdepth 1 -type f \( -name "ReadyCheck-*-windows-x64-portable.zip" -o -name ".DS_Store" \) -delete
+find "$DIST_DIR" -maxdepth 1 -type f \( -name "ReadyCheck-*-windows-x64-portable*.zip" -o -name ".DS_Store" \) -delete
 (
   cd "$DIST_DIR"
   zip -r -X "$ZIP_NAME" ReadyCheck-win32-x64

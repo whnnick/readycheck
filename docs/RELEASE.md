@@ -59,6 +59,8 @@ rsync -a --delete \
   --exclude .build \
   --exclude dist \
   --exclude apps/windows/node_modules \
+  --exclude marketing/remotion/node_modules \
+  --exclude marketing/remotion/out \
   --exclude .worktrees \
   --exclude .codex \
   --exclude .agents \

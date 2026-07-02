@@ -286,7 +286,7 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var updateBanner: some View {
-        if case .updateAvailable(let update) = model.updateStatus {
+        if let update = model.visibleUpdate {
             GlassSurface(cornerRadius: 18) {
                 HStack(spacing: 10) {
                     Image(systemName: "arrow.down.circle.fill")
@@ -305,9 +305,21 @@ struct SettingsView: View {
                     Spacer()
 
                     Button {
+                        model.dismissVisibleUpdate()
+                    } label: {
+                        Text(model.localization.text("action.remindLater"))
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+
+                    Button {
                         model.openUpdateReleasePage()
                     } label: {
-                        Label(model.localization.text("action.downloadUpdate"), systemImage: "arrow.down.circle.fill")
+                        Label(model.localization.text("action.viewUpdate"), systemImage: "arrow.up.forward.circle.fill")
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.small)
