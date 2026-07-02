@@ -25,6 +25,7 @@ function parseManualResetDetails(payload) {
   const root = payload && typeof payload === "object" ? payload : {};
   return {
     manualResetCount: firstInt(root, [
+      ["available_count"],
       ["manual_reset_count"],
       ["manual_resets_count"],
       ["manual_resets"],
@@ -39,6 +40,7 @@ function parseManualResetDetails(payload) {
       ["manual_reset_expires_at"],
       ["manual_reset_expire_at"],
       ["manual_reset_expirations"],
+      ["credits"],
       ["manual_resets", "expires_at"],
       ["rate_limit", "manual_reset_expires_at"],
       ["rate_limit", "manual_reset_expire_at"],
@@ -142,9 +144,19 @@ function datesFrom(value) {
   if (Array.isArray(value)) {
     return value.flatMap((item) => {
       if (item && typeof item === "object" && !Array.isArray(item)) {
+        const resetType = stringFrom(item.reset_type ?? item.resetType);
+        if (resetType && resetType !== "codex_rate_limits") {
+          return [];
+        }
+        const status = stringFrom(item.status);
+        if (status && status !== "available") {
+          return [];
+        }
         return [
           epochDate(item.expires_at),
           epochDate(item.expire_at),
+          epochDate(item.expiresAt),
+          epochDate(item.expireAt),
           epochDate(item.reset_at)
         ].filter(Boolean);
       }
@@ -155,6 +167,17 @@ function datesFrom(value) {
 
   const date = epochDate(value);
   return date ? [date] : [];
+}
+
+function stringFrom(value) {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed || null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
 }
 
 function epochDate(value) {

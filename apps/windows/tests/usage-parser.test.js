@@ -66,6 +66,27 @@ const resetCreditDetails = parseManualResetDetails({
 });
 assert.equal(resetCreditDetails.manualResetCount, 1);
 
+const resetCreditEndpointDetails = parseManualResetDetails({
+  available_count: 1,
+  credits: [
+    {
+      reset_type: "codex_rate_limits",
+      status: "available",
+      granted_at: "2026-07-01T20:38:12.468133Z",
+      expires_at: "2026-07-31T20:38:12.468133Z"
+    },
+    {
+      reset_type: "codex_rate_limits",
+      status: "consumed",
+      expires_at: "2026-08-01T20:38:12.468133Z"
+    }
+  ]
+});
+assert.equal(resetCreditEndpointDetails.manualResetCount, 1);
+assert.deepEqual(resetCreditEndpointDetails.manualResetExpirations, [
+  new Date("2026-07-31T20:38:12.468133Z").toISOString()
+]);
+
 const emptyResetDetails = parseManualResetDetails({
   rate_limit: {
     manual_resets: []

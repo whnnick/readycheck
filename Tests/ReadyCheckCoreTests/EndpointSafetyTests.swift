@@ -52,11 +52,13 @@ final class EndpointSafetyTests: XCTestCase {
         let usageURL = try XCTUnwrap(URL(string: "https://api.openai.com/v1/organization/usage/completions"))
         let costsURL = try XCTUnwrap(URL(string: "https://api.openai.com/v1/organization/costs"))
         let codexUsageURL = try XCTUnwrap(URL(string: "https://chatgpt.com/backend-api/wham/usage"))
+        let codexResetCreditsURL = try XCTUnwrap(URL(string: "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits"))
         let localFileURL = URL(fileURLWithPath: "/Users/example/.codex/sqlite/state_5.sqlite")
 
         XCTAssertTrue(EndpointSafety.isAllowedForRefresh(usageURL))
         XCTAssertTrue(EndpointSafety.isAllowedForRefresh(costsURL))
         XCTAssertTrue(EndpointSafety.isAllowedForRefresh(codexUsageURL))
+        XCTAssertTrue(EndpointSafety.isAllowedForRefresh(codexResetCreditsURL))
         XCTAssertTrue(EndpointSafety.isLocalFileAllowed(localFileURL))
     }
 

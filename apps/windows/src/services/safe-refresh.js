@@ -14,6 +14,11 @@ const ALLOWED_REFRESH_ENDPOINTS = [
   },
   {
     protocol: "https:",
+    host: "chatgpt.com",
+    path: "/backend-api/wham/rate-limit-reset-credits"
+  },
+  {
+    protocol: "https:",
     host: "api.openai.com",
     pathPrefix: "/v1/organization/usage"
   },

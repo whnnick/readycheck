@@ -414,10 +414,16 @@ struct SettingsView: View {
                 Spacer(minLength: 8)
 
                 if shouldShowConnectButton {
-                    Button(model.localization.text("action.connect")) {
+                    Button(connectButtonTitle) {
                         if let url = model.beginCodexOAuthConnection() {
                             NSWorkspace.shared.open(url)
                         }
+                    }
+                }
+
+                if shouldShowCancelAuthorizationButton {
+                    Button(model.localization.text("action.cancelAuthorization")) {
+                        model.cancelCodexOAuthConnection()
                     }
                 }
 
@@ -569,6 +575,16 @@ struct SettingsView: View {
 
     private var shouldShowConnectButton: Bool {
         model.codexOAuthStatus == .notConnected || model.codexOAuthStatus == .failed
+    }
+
+    private var shouldShowCancelAuthorizationButton: Bool {
+        model.codexOAuthStatus == .waitingForCallback || model.codexOAuthStatus == .exchanging
+    }
+
+    private var connectButtonTitle: String {
+        model.codexOAuthStatus == .failed
+            ? model.localization.text("action.retryAuthorization")
+            : model.localization.text("action.connect")
     }
 
     private var accountDetailText: String {

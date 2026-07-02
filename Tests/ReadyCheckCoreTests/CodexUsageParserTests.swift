@@ -111,6 +111,35 @@ final class CodexUsageParserTests: XCTestCase {
         XCTAssertEqual(details.manualResetCount, 1)
     }
 
+    func testParserExtractsManualResetCreditsEndpointExpirations() {
+        let parser = CodexUsageParser()
+        let data = Data(
+            """
+            {
+              "available_count": 1,
+              "credits": [
+                {
+                  "reset_type": "codex_rate_limits",
+                  "status": "available",
+                  "granted_at": "2026-07-01T20:38:12.468133Z",
+                  "expires_at": "2026-07-31T20:38:12.468133Z"
+                },
+                {
+                  "reset_type": "codex_rate_limits",
+                  "status": "consumed",
+                  "expires_at": "2026-08-01T20:38:12.468133Z"
+                }
+              ]
+            }
+            """.utf8
+        )
+
+        let details = parser.parseManualResetDetails(data)
+
+        XCTAssertEqual(details.manualResetCount, 1)
+        XCTAssertEqual(details.manualResetExpirations.map { Int($0.timeIntervalSince1970) }, [1_785_530_292])
+    }
+
     func testParserExtractsZeroManualResetCountFromEmptyArray() {
         let parser = CodexUsageParser()
         let data = Data(

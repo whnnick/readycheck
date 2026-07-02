@@ -32,6 +32,7 @@ public struct CodexUsageParser: Sendable {
             manualResetCount: firstInt(
                 in: root,
                 paths: [
+                    ["available_count"],
                     ["manual_reset_count"],
                     ["manual_resets_count"],
                     ["manual_resets"],
@@ -49,6 +50,7 @@ public struct CodexUsageParser: Sendable {
                     ["manual_reset_expires_at"],
                     ["manual_reset_expire_at"],
                     ["manual_reset_expirations"],
+                    ["credits"],
                     ["manual_resets", "expires_at"],
                     ["rate_limit", "manual_reset_expires_at"],
                     ["rate_limit", "manual_reset_expire_at"],
@@ -156,15 +158,25 @@ public struct CodexUsageParser: Sendable {
     }
 
     private func dates(from value: Any) -> [Date] {
-        if let array = value as? [Any] {
-            return array.compactMap(date(from:))
-        }
         if let array = value as? [[String: Any]] {
             return array.compactMap { dictionary in
-                dictionary["expires_at"].flatMap(date(from:))
+                if let resetType = string(from: dictionary["reset_type"] ?? dictionary["resetType"]),
+                   resetType != "codex_rate_limits" {
+                    return nil
+                }
+                if let status = string(from: dictionary["status"]),
+                   status != "available" {
+                    return nil
+                }
+                return dictionary["expires_at"].flatMap(date(from:))
                     ?? dictionary["expire_at"].flatMap(date(from:))
+                    ?? dictionary["expiresAt"].flatMap(date(from:))
+                    ?? dictionary["expireAt"].flatMap(date(from:))
                     ?? dictionary["reset_at"].flatMap(date(from:))
             }
+        }
+        if let array = value as? [Any] {
+            return array.compactMap(date(from:))
         }
         if let date = date(from: value) {
             return [date]
@@ -186,7 +198,43 @@ public struct CodexUsageParser: Sendable {
                 let seconds = raw > 1_000_000_000_000 ? raw / 1_000 : raw
                 return Date(timeIntervalSince1970: seconds)
             }
-            return ISO8601DateFormatter().date(from: trimmed)
+            if let date = ISO8601DateFormatter().date(from: trimmed) {
+                return date
+            }
+            let fractionalFormatter = ISO8601DateFormatter()
+            fractionalFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = fractionalFormatter.date(from: trimmed) {
+                return date
+            }
+            return fixedWidthFractionalISO8601Date(from: trimmed)
+        }
+        return nil
+    }
+
+    private func fixedWidthFractionalISO8601Date(from value: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        for format in [
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX",
+            "yyyy-MM-dd'T'HH:mm:ssXXXXX"
+        ] {
+            formatter.dateFormat = format
+            if let date = formatter.date(from: value) {
+                return date
+            }
+        }
+        return nil
+    }
+
+    private func string(from value: Any?) -> String? {
+        if let string = value as? String {
+            let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+        if let number = value as? NSNumber {
+            return number.stringValue
         }
         return nil
     }

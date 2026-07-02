@@ -6,7 +6,7 @@
 - 为 Windows 预览版接入 Codex OAuth 回调流程和 Electron `safeStorage` 加密 token 存储；额度读取仍保持 fail-closed，等待解析器移植后再展示真实额度。
 - 为 Windows 预览版接入只读 Codex usage 拉取和额度解析，支持 5 小时 / 7 天额度、套餐续期和主动重置信息；缺少关键数据时继续 fail-closed。
 - 新增 Windows 黑盒测试手册和 `npm run smoke` 预检脚本，方便在 Windows 10/11 真机上验证预览版。
-- 新增 Windows 便携版打包脚本，输出可复制到 Windows 运行的 `ReadyCheck-0.1.0-windows-x64-portable.zip`。
+- 新增 Windows 便携版打包脚本，输出可复制到 Windows 运行的当前版本 `ReadyCheck-<version>-windows-x64-portable.zip`。
 - 在公开文档中说明 Windows 便携预览包可作为 GitHub Release 资产下载，用于 Windows 10/11 测试。
 - 修复 Windows 预览版 widget 置顶切换、极简/详细切换和详细模式内容裁切问题，并在 OAuth 授权中补充地区限制提示。
 - 新增 Windows UI 行为 smoke test，打包前自动验证 widget 布局约束、样式切换和 OAuth 提示。
@@ -16,6 +16,17 @@
 - 重做产品介绍动效的宣传片视觉：强化 GitHub 地址展示，加入与软件本体一致的绿/橙/红额度状态，并修复 OAuth 用量流程图线条覆盖文字的问题。
 - 替换为更克制的高级科技感背景音乐。
 - 新增从产品介绍视频生成的轻量 README 动态预览。
+
+## 0.1.59 - 2026-07-02
+
+- 详细 widget 中的主动重置过期时间支持换行展示，避免长日期在紧凑宽度下被遮挡。
+- 为 Codex OAuth 回调失败和等待回调状态增加“取消授权 / 重新授权”操作，不再需要退出应用后重进。
+- 确认软件更新检测仍连接到启动时静默检查和手动 GitHub Releases 检查。
+
+## 0.1.58 - 2026-07-02
+
+- 将 Windows 预览版应用版本号和便携版 zip 文件名与 macOS 发布版本统一。
+- 从只读 `/wham/rate-limit-reset-credits` 详情端点读取 Codex 主动重置过期时间，避免 `/wham/usage` 只返回次数时过期时间显示为“未提供”。
 
 ## 0.1.57 - 2026-07-02
 

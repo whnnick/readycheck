@@ -440,7 +440,8 @@ public struct CodexQuotaHTTPClient: Sendable {
     public func fetchReadOnlyPayload(
         from endpoint: URL,
         accessToken: String,
-        accountID: String? = nil
+        accountID: String? = nil,
+        additionalHeaders: [String: String] = [:]
     ) async throws -> Data {
         guard EndpointSafety.isAllowedForRefresh(endpoint) else {
             throw CodexQuotaHTTPClientError.unsafeRefreshEndpoint
@@ -453,6 +454,9 @@ public struct CodexQuotaHTTPClient: Sendable {
         request.setValue("ReadyCheck/0.1", forHTTPHeaderField: "User-Agent")
         if let accountID {
             request.setValue(accountID, forHTTPHeaderField: "ChatGPT-Account-Id")
+        }
+        for (field, value) in additionalHeaders {
+            request.setValue(value, forHTTPHeaderField: field)
         }
 
         let (data, response) = try await loader.data(for: request)

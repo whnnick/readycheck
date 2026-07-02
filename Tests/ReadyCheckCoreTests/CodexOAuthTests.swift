@@ -198,6 +198,30 @@ final class CodexOAuthTests: XCTestCase {
         XCTAssertEqual(request.value(forHTTPHeaderField: "ChatGPT-Account-Id"), "account-123")
     }
 
+    func testQuotaHTTPClientUsesGETForResetCreditsEndpointWithAdditionalHeaders() async throws {
+        let loader = RecordingHTTPDataLoader(data: Data("{}".utf8), statusCode: 200)
+        let client = CodexQuotaHTTPClient(loader: loader)
+        let endpoint = try XCTUnwrap(URL(string: "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits"))
+
+        _ = try await client.fetchReadOnlyPayload(
+            from: endpoint,
+            accessToken: "access",
+            accountID: "account-123",
+            additionalHeaders: [
+                "OpenAI-Beta": "codex-1",
+                "originator": "Codex Desktop"
+            ]
+        )
+
+        let request = try await loader.recordedRequest()
+        XCTAssertEqual(request.url, endpoint)
+        XCTAssertEqual(request.httpMethod, "GET")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer access")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "ChatGPT-Account-Id"), "account-123")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "OpenAI-Beta"), "codex-1")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "originator"), "Codex Desktop")
+    }
+
     func testTokenStoreRoundTripsWithoutProviderConfiguration() async throws {
         let store = InMemoryCredentialStore()
         let tokenStore = CodexOAuthTokenStore(credentialStore: store)

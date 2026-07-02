@@ -9,11 +9,13 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
     private let quotaClient: CodexQuotaHTTPClient
     private let usageParser: CodexUsageParser
     private let quotaEndpoint: URL?
+    private let resetCreditsEndpoint: URL?
     private let now: @Sendable () -> Date
 
     public init(
         credentialStore: any CredentialStore,
         quotaEndpoint: URL? = URL(string: "https://chatgpt.com/backend-api/wham/usage")!,
+        resetCreditsEndpoint: URL? = URL(string: "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits")!,
         oauthClient: CodexOAuthClient = CodexOAuthClient(),
         quotaClient: CodexQuotaHTTPClient = CodexQuotaHTTPClient(),
         usageParser: CodexUsageParser = CodexUsageParser(),
@@ -24,6 +26,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         self.quotaClient = quotaClient
         self.usageParser = usageParser
         self.quotaEndpoint = quotaEndpoint
+        self.resetCreditsEndpoint = resetCreditsEndpoint
         self.now = now
     }
 
@@ -70,7 +73,11 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 accountID: accountID
             )
             let windows = try usageParser.parse(payload, refreshedAt: date)
-            let usageDetails = usageParser.parseManualResetDetails(payload)
+            let usageDetails = await mergedManualResetDetails(
+                usagePayload: payload,
+                accessToken: token.accessToken,
+                accountID: accountID
+            )
             return ProviderQuotaSnapshot(
                 providerId: id,
                 displayName: displayName,
@@ -92,6 +99,37 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         } catch {
             return snapshot(date: date, error: "quota.error.requestFailed")
         }
+    }
+
+    private func mergedManualResetDetails(
+        usagePayload: Data,
+        accessToken: String,
+        accountID: String
+    ) async -> ProviderQuotaDetails {
+        let usageDetails = usageParser.parseManualResetDetails(usagePayload)
+        guard let resetCreditsEndpoint else {
+            return usageDetails
+        }
+
+        guard let resetCreditsPayload = try? await quotaClient.fetchReadOnlyPayload(
+            from: resetCreditsEndpoint,
+            accessToken: accessToken,
+            accountID: accountID,
+            additionalHeaders: [
+                "OpenAI-Beta": "codex-1",
+                "originator": "Codex Desktop"
+            ]
+        ) else {
+            return usageDetails
+        }
+
+        let resetCreditDetails = usageParser.parseManualResetDetails(resetCreditsPayload)
+        return ProviderQuotaDetails(
+            manualResetCount: resetCreditDetails.manualResetCount ?? usageDetails.manualResetCount,
+            manualResetExpirations: resetCreditDetails.manualResetExpirations.isEmpty
+                ? usageDetails.manualResetExpirations
+                : resetCreditDetails.manualResetExpirations
+        )
     }
 
     private func snapshot(date: Date, error: String) -> ProviderQuotaSnapshot {

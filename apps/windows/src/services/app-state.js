@@ -171,18 +171,34 @@ class ReadyCheckState {
       const payload = await this.usageClient.fetchUsage(token.accessToken, accountID);
       const windows = parseUsagePayload(payload, refreshedAt);
       const resetDetails = parseManualResetDetails(payload);
+      const resetCreditDetails = await this.fetchResetCreditDetails(token.accessToken, accountID);
+      const manualResetExpirations = resetCreditDetails.manualResetExpirations.length > 0
+        ? resetCreditDetails.manualResetExpirations
+        : resetDetails.manualResetExpirations;
       this.status = "available";
       this.quota = {
         provider: "Codex",
         plan: planNameFromToken(token.idToken),
         subscriptionRenewalAt: subscriptionRenewalAtFromToken(token.idToken),
-        manualResetCount: resetDetails.manualResetCount ?? 0,
-        manualResetExpiresAt: resetDetails.manualResetExpirations[0] || null,
+        manualResetCount: resetCreditDetails.manualResetCount ?? resetDetails.manualResetCount ?? 0,
+        manualResetExpiresAt: manualResetExpirations[0] || null,
         windows
       };
     } catch (_error) {
       this.status = "usageUnavailable";
       this.quota = buildUnavailableQuota();
+    }
+  }
+
+  async fetchResetCreditDetails(accessToken, accountID) {
+    if (!this.usageClient || typeof this.usageClient.fetchResetCredits !== "function") {
+      return { manualResetCount: null, manualResetExpirations: [] };
+    }
+
+    try {
+      return parseManualResetDetails(await this.usageClient.fetchResetCredits(accessToken, accountID));
+    } catch (_error) {
+      return { manualResetCount: null, manualResetExpirations: [] };
     }
   }
 }

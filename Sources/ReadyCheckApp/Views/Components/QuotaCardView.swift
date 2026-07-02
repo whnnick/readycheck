@@ -90,7 +90,7 @@ struct QuotaCardView: View {
                         ForEach(Array(manualResetExpirations.enumerated()), id: \.offset) { index, date in
                             inlineDetail(
                                 label: index == 0 ? localization.text("quota.manualResetExpires") : "",
-                                value: "\(localization.text("quota.manualResetIndex")) \(index + 1) \(localization.text("quota.manualResetTimes")) - \(dateText(for: date, forceFullDate: true))"
+                                value: manualResetExpirationText(index: index, date: date)
                             )
                         }
                     }
@@ -113,19 +113,41 @@ struct QuotaCardView: View {
     }
 
     private func inlineDetail(label: String, value: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 7) {
-            Text(label)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(Color.primary.opacity(0.58))
-                .lineLimit(1)
+        Group {
+            if displayMode == .widgetDetailed {
+                VStack(alignment: .leading, spacing: 2) {
+                    if !label.isEmpty {
+                        Text(label)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.primary.opacity(0.58))
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
 
-            Text(value)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.primary.opacity(0.92))
-                .monospacedDigit()
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .help(value)
+                    Text(value)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.primary.opacity(0.92))
+                        .monospacedDigit()
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .help(value)
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 7) {
+                    Text(label)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.primary.opacity(0.58))
+                        .lineLimit(1)
+
+                    Text(value)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.primary.opacity(0.92))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .help(value)
+                }
+            }
         }
     }
 
@@ -174,6 +196,15 @@ struct QuotaCardView: View {
 
     private var manualResetExpirations: [Date] {
         snapshot.details?.manualResetExpirations ?? []
+    }
+
+    private func manualResetExpirationText(index: Int, date: Date) -> String {
+        let prefix = "\(localization.text("quota.manualResetIndex")) \(index + 1) \(localization.text("quota.manualResetTimes"))"
+        let dateText = dateText(for: date, forceFullDate: true)
+        if displayMode == .widgetDetailed {
+            return "\(prefix)\n\(dateText)"
+        }
+        return "\(prefix) - \(dateText)"
     }
 
     private func nonEmpty(_ value: String?) -> String? {

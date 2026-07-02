@@ -113,6 +113,19 @@ async function main() {
               manual_reset_count: 0
             }
           };
+        },
+        async fetchResetCredits(_accessToken, accountID) {
+          assert.equal(accountID, "account-123");
+          return {
+            available_count: 1,
+            credits: [
+              {
+                reset_type: "codex_rate_limits",
+                status: "available",
+                expires_at: "2026-07-31T20:38:12.468133Z"
+              }
+            ]
+          };
         }
       }
     }
@@ -123,7 +136,8 @@ async function main() {
   assert.equal(refreshed.status, "available");
   assert.equal(refreshed.connected, true);
   assert.equal(refreshed.quota.plan, "Plus");
-  assert.equal(refreshed.quota.manualResetCount, 0);
+  assert.equal(refreshed.quota.manualResetCount, 1);
+  assert.equal(refreshed.quota.manualResetExpiresAt, new Date("2026-07-31T20:38:12.468133Z").toISOString());
   assert.equal(refreshed.quota.windows[0].labelKey, "quota.window.codex.5h");
   assert.equal(refreshed.quota.windows[0].remainingRatio, 0.8);
 

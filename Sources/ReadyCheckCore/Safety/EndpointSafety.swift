@@ -12,6 +12,7 @@ public enum EndpointSafety {
         "/v1/organization/costs"
     ]
     private static let chatGPTRefreshPaths: Set<String> = [
+        "/backend-api/wham/rate-limit-reset-credits",
         "/backend-api/wham/usage"
     ]
     private static let openAIOAuthPaths: Set<String> = [

@@ -5,6 +5,7 @@ const { isAllowedForRefresh } = require("../src/services/safe-refresh");
 const { normalizePrefs } = require("../src/services/prefs-store");
 
 assert.equal(isAllowedForRefresh("https://chatgpt.com/backend-api/wham/usage"), true);
+assert.equal(isAllowedForRefresh("https://chatgpt.com/backend-api/wham/rate-limit-reset-credits"), true);
 assert.equal(isAllowedForRefresh("https://api.openai.com/v1/organization/usage/completions"), true);
 assert.equal(isAllowedForRefresh("https://api.openai.com/v1/organization/costs"), true);
 

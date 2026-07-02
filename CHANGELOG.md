@@ -6,7 +6,7 @@
 - Add Codex OAuth callback handling and Electron `safeStorage` encrypted token persistence to the Windows preview; quota fetching remains fail-closed until the parser is ported.
 - Add read-only Codex usage fetching and quota parsing to the Windows preview, including 5-hour / 7-day windows, subscription details, and manual reset details while keeping missing critical data fail-closed.
 - Add a Windows black-box QA guide and `npm run smoke` preflight script for real-machine Windows 10/11 validation.
-- Add a Windows portable packaging script that writes `ReadyCheck-0.1.0-windows-x64-portable.zip` for copy-to-Windows testing.
+- Add a Windows portable packaging script that writes the current versioned `ReadyCheck-<version>-windows-x64-portable.zip` for copy-to-Windows testing.
 - Document the Windows portable preview package as a downloadable GitHub Release asset for Windows 10/11 testing.
 - Fix Windows preview widget always-on-top toggling, Minimal/Detailed switching, Detailed-mode clipping, and add OAuth region-restriction guidance.
 - Add a Windows UI behavior smoke test that validates widget layout constraints, style switching, and OAuth guidance before packaging.
@@ -16,6 +16,17 @@
 - Rework the product intro with stronger promo-style motion, prominent GitHub address placement, green/orange/red quota states, and a non-overlapping OAuth usage-flow diagram.
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
+
+## 0.1.59 - 2026-07-02
+
+- Let detailed widget reset-expiration rows wrap onto multiple lines so long dates remain readable in the compact widget width.
+- Add Cancel authorization and Retry authorization actions for Codex OAuth callback failures so users do not need to quit the app to restart the flow.
+- Confirm the software update checker remains wired to the startup silent check and manual GitHub Releases check.
+
+## 0.1.58 - 2026-07-02
+
+- Align the Windows preview app version and portable zip name with the macOS release version.
+- Read Codex reset credit expiration from the read-only `/wham/rate-limit-reset-credits` detail endpoint instead of leaving the expiration field unavailable when `/wham/usage` only provides the count.
 
 ## 0.1.57 - 2026-07-02
 

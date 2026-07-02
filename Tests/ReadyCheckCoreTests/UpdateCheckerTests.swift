@@ -60,6 +60,25 @@ final class UpdateCheckerTests: XCTestCase {
         XCTAssertEqual(result, .upToDate)
     }
 
+    func testCheckerReturnsUpToDateWhenCurrentVersionIsNewerThanLatestRelease() async throws {
+        let loader = UpdateRecordingHTTPDataLoader(
+            data: Data(
+                """
+                {
+                  "tag_name": "v0.1.57",
+                  "html_url": "https://github.com/whnnick/readycheck/releases/tag/v0.1.57"
+                }
+                """.utf8
+            ),
+            statusCode: 200
+        )
+        let checker = GitHubReleaseUpdateChecker(loader: loader)
+
+        let result = try await checker.check(currentVersion: "0.1.59")
+
+        XCTAssertEqual(result, .upToDate)
+    }
+
     func testCheckerFailsOnHTTPError() async throws {
         let loader = UpdateRecordingHTTPDataLoader(data: Data(), statusCode: 500)
         let checker = GitHubReleaseUpdateChecker(loader: loader)

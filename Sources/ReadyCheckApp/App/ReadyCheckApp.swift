@@ -397,11 +397,22 @@ final class ReadyCheckAppModel {
             codexOAuthLoginEmail = token.loginEmail
             await refresh(reason: .manual)
         } catch {
+            pendingCodexOAuthSession = nil
+            codexOAuthCallbackURL = ""
             stopCodexOAuthCallbackServer()
             codexOAuthStatus = .failed
             codexOAuthStatusMessage = codexOAuthMessage(for: error)
             codexOAuthLoginEmail = nil
         }
+    }
+
+    func cancelCodexOAuthConnection() {
+        pendingCodexOAuthSession = nil
+        codexOAuthCallbackURL = ""
+        stopCodexOAuthCallbackServer()
+        codexOAuthStatus = .notConnected
+        codexOAuthStatusMessage = nil
+        codexOAuthLoginEmail = nil
     }
 
     func disconnectCodexOAuth() async {

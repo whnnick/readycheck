@@ -14,6 +14,8 @@ final class LocalizationServiceTests: XCTestCase {
             "action.connectCodex",
             "action.disconnect",
             "action.completeAuthorization",
+            "action.cancelAuthorization",
+            "action.retryAuthorization",
             "action.closeWindow",
             "action.quit",
             "action.checkForUpdates",
