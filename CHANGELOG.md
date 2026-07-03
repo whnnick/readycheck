@@ -18,6 +18,7 @@
 - Add a lightweight animated README preview generated from the product intro.
 - Replace the README preview GIF with a real ReadyCheck UI capture and a dedicated high-impact GitHub preview composition.
 - Refine the README preview GIF by removing the GitHub address overlay and keeping all text clear of the real app UI.
+- Add a redesigned menu-bar preview panel to the README GIF and scale the main window down so the product surfaces are easier to read without exposing user account information.
 
 ## 0.1.60 - 2026-07-02
 

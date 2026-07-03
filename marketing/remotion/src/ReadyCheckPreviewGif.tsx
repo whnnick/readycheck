@@ -25,16 +25,19 @@ export const ReadyCheckPreviewGif: React.FC = () => {
   const frame = useCurrentFrame();
   const intro = fade(frame, 0, 20);
   const productFocus = fade(frame, 24, 78);
-  const widgetFocus = fade(frame, 66, 118);
+  const menuFocus = fade(frame, 50, 98);
+  const widgetFocus = fade(frame, 78, 126);
   const loopFade = fadeOut(frame, 168, 180);
   const sweepX = interpolate(frame, [0, 180], [-220, 1010], clamp);
 
-  const mainScale = interpolate(productFocus, [0, 1], [0.34, 0.38]);
-  const mainX = interpolate(productFocus, [0, 1], [94, 72]);
-  const mainY = interpolate(productFocus, [0, 1], [116, 96]);
-  const widgetScale = interpolate(widgetFocus, [0, 1], [0.29, 0.34]);
-  const widgetX = interpolate(widgetFocus, [0, 1], [558, 520]);
-  const widgetY = interpolate(widgetFocus, [0, 1], [176, 150]);
+  const mainScale = interpolate(productFocus, [0, 1], [0.27, 0.30]);
+  const mainX = interpolate(productFocus, [0, 1], [62, 48]);
+  const mainY = interpolate(productFocus, [0, 1], [92, 82]);
+  const menuX = interpolate(menuFocus, [0, 1], [536, 498]);
+  const menuY = interpolate(menuFocus, [0, 1], [104, 88]);
+  const widgetScale = interpolate(widgetFocus, [0, 1], [0.25, 0.29]);
+  const widgetX = interpolate(widgetFocus, [0, 1], [534, 496]);
+  const widgetY = interpolate(widgetFocus, [0, 1], [278, 252]);
 
   return (
     <AbsoluteFill
@@ -61,7 +64,7 @@ export const ReadyCheckPreviewGif: React.FC = () => {
           borderRadius: 26,
           overflow: 'hidden',
           boxShadow: '0 36px 120px rgba(0,0,0,0.62), 0 0 90px rgba(10,132,255,0.42)',
-          transform: `scale(${mainScale}) rotate(${interpolate(productFocus, [0, 1], [-1.4, -0.45])}deg)`,
+          transform: `scale(${mainScale}) rotate(${interpolate(productFocus, [0, 1], [-1.0, -0.25])}deg)`,
           transformOrigin: 'top left',
           opacity: intro * loopFade,
         }}
@@ -71,6 +74,8 @@ export const ReadyCheckPreviewGif: React.FC = () => {
           style={{width: '100%', height: '100%', objectFit: 'cover'}}
         />
       </div>
+
+      <MenuPanel frame={frame} x={menuX} y={menuY} progress={menuFocus} loopFade={loopFade} />
 
       <div
         style={{
@@ -82,9 +87,9 @@ export const ReadyCheckPreviewGif: React.FC = () => {
           borderRadius: 30,
           overflow: 'hidden',
           boxShadow: '0 36px 120px rgba(0,0,0,0.66), 0 0 88px rgba(68,211,107,0.36)',
-          transform: `scale(${widgetScale}) rotate(${interpolate(widgetFocus, [0, 1], [3.2, 0.6])}deg)`,
+          transform: `scale(${widgetScale}) rotate(${interpolate(widgetFocus, [0, 1], [2.2, 0.35])}deg)`,
           transformOrigin: 'top left',
-          opacity: interpolate(frame, [32, 62], [0.76, 1], clamp) * loopFade,
+          opacity: interpolate(frame, [58, 86], [0.72, 1], clamp) * loopFade,
         }}
       >
         <Img
@@ -151,9 +156,128 @@ const QuotaStripes: React.FC<{frame: number}> = ({frame}) => {
   );
 };
 
+const MenuPanel: React.FC<{
+  frame: number;
+  x: number;
+  y: number;
+  progress: number;
+  loopFade: number;
+}> = ({frame, x, y, progress, loopFade}) => {
+  const rows = [
+    {label: '5 小时', value: '88%', color: '#44D36B', width: 0.88},
+    {label: '7 天', value: '78%', color: '#44D36B', width: 0.78},
+  ];
+  const show = interpolate(frame, [42, 70], [0, 1], clamp);
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: x,
+        top: y,
+        width: 238,
+        padding: 12,
+        borderRadius: 24,
+        color: '#F7FAFF',
+        background:
+          'linear-gradient(145deg, rgba(28,32,38,0.94), rgba(16,18,22,0.90))',
+        border: '1px solid rgba(255,255,255,0.16)',
+        boxShadow: '0 30px 90px rgba(0,0,0,0.58), 0 0 70px rgba(10,132,255,0.22)',
+        opacity: show * loopFade,
+        transform: `translateY(${interpolate(progress, [0, 1], [-18, 0])}px) rotate(${interpolate(progress, [0, 1], [1.6, 0.25])}deg)`,
+      }}
+    >
+      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+        <div>
+          <div style={{fontSize: 15, fontWeight: 950}}>菜单栏速览</div>
+          <div style={{marginTop: 2, fontSize: 10, color: 'rgba(247,250,255,0.58)', fontWeight: 750}}>
+            ReadyCheck
+          </div>
+        </div>
+        <div
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 12,
+            display: 'grid',
+            placeItems: 'center',
+            background: 'linear-gradient(135deg, #0A84FF, #44D36B)',
+            boxShadow: '0 0 30px rgba(10,132,255,0.38)',
+          }}
+        >
+          <div
+            style={{
+              width: 13,
+              height: 13,
+              borderRadius: 99,
+              border: '3px solid white',
+              borderTopColor: 'rgba(255,255,255,0.45)',
+              transform: `rotate(${frame * 3}deg)`,
+            }}
+          />
+        </div>
+      </div>
+
+      <div style={{marginTop: 10, display: 'grid', gap: 8}}>
+        {rows.map((row, index) => (
+          <div key={row.label}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: 11,
+                fontWeight: 850,
+              }}
+            >
+              <span>{row.label}</span>
+              <span>{row.value}</span>
+            </div>
+            <div
+              style={{
+                marginTop: 5,
+                height: 6,
+                borderRadius: 99,
+                overflow: 'hidden',
+                background: 'rgba(255,255,255,0.15)',
+              }}
+            >
+              <div
+                style={{
+                  width: `${row.width * interpolate(frame, [60 + index * 8, 100 + index * 8], [0.2, 1], clamp) * 100}%`,
+                  height: '100%',
+                  borderRadius: 99,
+                  background: row.color,
+                  boxShadow: `0 0 18px ${row.color}88`,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          marginTop: 10,
+          display: 'flex',
+          gap: 8,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontSize: 10,
+          color: 'rgba(247,250,255,0.68)',
+          fontWeight: 800,
+        }}
+      >
+        <span>自动刷新</span>
+        <span style={{color: '#44D36B'}}>不消耗模型额度</span>
+      </div>
+    </div>
+  );
+};
+
 const TopBar: React.FC<{frame: number}> = ({frame}) => {
   const show = fade(frame, 0, 14);
-  const chips = ['5 小时额度', '7 天额度', '桌面 Widget', '安全刷新'];
+  const chips = ['主窗口', '菜单栏', '桌面 Widget', '安全刷新'];
   return (
     <div
       style={{
