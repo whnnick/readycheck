@@ -16,6 +16,7 @@
 - Rework the product intro with stronger promo-style motion, prominent GitHub address placement, green/orange/red quota states, and a non-overlapping OAuth usage-flow diagram.
 - Replace the soundtrack with a more restrained premium-tech bed.
 - Add a lightweight animated README preview generated from the product intro.
+- Replace the README preview GIF with a real ReadyCheck UI capture and a dedicated high-impact GitHub preview composition.
 
 ## 0.1.60 - 2026-07-02
 

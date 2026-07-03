@@ -1,5 +1,6 @@
 import {Composition, Folder} from 'remotion';
 import {ReadyCheckIntro, type ReadyCheckIntroProps} from './ReadyCheckIntro';
+import {ReadyCheckPreviewGif} from './ReadyCheckPreviewGif';
 
 const defaultProps = {
   locale: 'zh',
@@ -25,6 +26,14 @@ export const RemotionRoot = () => {
         width={1920}
         height={1080}
         defaultProps={{locale: 'en'} satisfies ReadyCheckIntroProps}
+      />
+      <Composition
+        id="ReadyCheckPreviewGif"
+        component={ReadyCheckPreviewGif}
+        durationInFrames={180}
+        fps={30}
+        width={800}
+        height={450}
       />
     </Folder>
   );
