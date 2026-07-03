@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.61 - 2026-07-03
+
 - Start the Windows desktop client under `apps/windows` with an Electron tray, main window, floating widget shell, local preferences, and fail-closed safe-refresh state.
 - Add Codex OAuth callback handling and Electron `safeStorage` encrypted token persistence to the Windows preview; quota fetching remains fail-closed until the parser is ported.
 - Add read-only Codex usage fetching and quota parsing to the Windows preview, including 5-hour / 7-day windows, subscription details, and manual reset details while keeping missing critical data fail-closed.
@@ -19,6 +21,7 @@
 - Replace the README preview GIF with a real ReadyCheck UI capture and a dedicated high-impact GitHub preview composition.
 - Refine the README preview GIF by removing the GitHub address overlay and keeping all text clear of the real app UI.
 - Add a redesigned menu-bar preview panel to the README GIF and scale the main window down so the product surfaces are easier to read without exposing user account information.
+- Align macOS quota urgency thresholds with Windows so below 25% is critical, 25-49% is warning, and 31% remaining no longer appears green.
 
 ## 0.1.60 - 2026-07-02
 

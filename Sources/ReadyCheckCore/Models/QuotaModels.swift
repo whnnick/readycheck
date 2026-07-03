@@ -53,9 +53,9 @@ public enum QuotaUrgency: String, Codable, Equatable, Sendable {
         }
 
         switch remainingRatio {
-        case ..<0.10:
-            self = .critical
         case ..<0.25:
+            self = .critical
+        case ..<0.50:
             self = .warning
         default:
             self = .normal

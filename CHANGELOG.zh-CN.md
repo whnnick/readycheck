@@ -2,6 +2,8 @@
 
 ## 未发布
 
+## 0.1.61 - 2026-07-03
+
 - 在 `apps/windows` 启动 Windows 桌面客户端，包含 Electron 托盘、主窗口、悬浮 widget 壳层、本地偏好设置和 fail-closed 安全刷新状态。
 - 为 Windows 预览版接入 Codex OAuth 回调流程和 Electron `safeStorage` 加密 token 存储；额度读取仍保持 fail-closed，等待解析器移植后再展示真实额度。
 - 为 Windows 预览版接入只读 Codex usage 拉取和额度解析，支持 5 小时 / 7 天额度、套餐续期和主动重置信息；缺少关键数据时继续 fail-closed。
@@ -19,6 +21,7 @@
 - 将 README 预览动图替换为真实 ReadyCheck 界面截图素材，并新增专用的高冲击力 GitHub 预览 composition。
 - 优化 README 预览动图，移除 GitHub 地址叠层，并确保所有文案不再遮挡真实应用界面。
 - 为 README 预览动图加入重新设计的菜单栏面板，并缩小主窗口展示比例，让产品形态更完整可读且不暴露用户账号信息。
+- 将 macOS 额度紧急程度阈值与 Windows 对齐：低于 25% 为很低，25-49% 为偏低，31% 剩余不再显示为绿色。
 
 ## 0.1.60 - 2026-07-02
 
