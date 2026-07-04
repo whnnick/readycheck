@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Replace the GitHub README preview GIF with the ReadySuite site version to avoid visible edge artifacts.
+- Rebuild the GitHub README preview GIF from the ReadySuite ReadyCheck hero layout and cropped screenshot assets to avoid visible edge artifacts.
 
 ## 0.1.61 - 2026-07-03
 
