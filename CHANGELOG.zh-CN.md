@@ -2,6 +2,8 @@
 
 ## 未发布
 
+- 将 GitHub README 预览动图替换为 ReadySuite 官网版本，避免可见边缘毛刺。
+
 ## 0.1.61 - 2026-07-03
 
 - 在 `apps/windows` 启动 Windows 桌面客户端，包含 Electron 托盘、主窗口、悬浮 widget 壳层、本地偏好设置和 fail-closed 安全刷新状态。

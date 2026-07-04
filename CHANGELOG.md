@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Replace the GitHub README preview GIF with the ReadySuite site version to avoid visible edge artifacts.
+
 ## 0.1.61 - 2026-07-03
 
 - Start the Windows desktop client under `apps/windows` with an Electron tray, main window, floating widget shell, local preferences, and fail-closed safe-refresh state.
