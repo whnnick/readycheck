@@ -2,7 +2,7 @@
 
 ## 未发布
 
-- 使用 ReadySuite 官网 ReadyCheck 主视觉布局和裁切截图素材重做 GitHub README 预览动图，避免可见边缘毛刺。
+- 使用 HyperFrames 和真实产品截图重做 GitHub README 预览动图，让产品展示更清晰。
 
 ## 0.1.61 - 2026-07-03
 

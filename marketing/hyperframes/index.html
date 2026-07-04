@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #07101e;
+      }
+
+      body {
+        color: #f7faff;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 16% 16%, rgba(10, 132, 255, 0.24), transparent 30%),
+          radial-gradient(circle at 84% 82%, rgba(53, 229, 153, 0.20), transparent 30%),
+          linear-gradient(135deg, #07101e 0%, #08121f 52%, #050a12 100%);
+      }
+
+      .noise {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.16;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+        background-size: 54px 54px;
+        mask-image: radial-gradient(circle at 50% 50%, black, transparent 82%);
+      }
+
+      .backplate {
+        position: absolute;
+        inset: 34px;
+        z-index: 2;
+        border: 1px solid rgba(120, 190, 255, 0.24);
+        border-radius: 42px;
+        background:
+          linear-gradient(120deg, rgba(10,132,255,0.11), transparent 34%),
+          linear-gradient(300deg, rgba(53,229,153,0.11), transparent 42%),
+          rgba(7, 14, 25, 0.58);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+          0 46px 140px rgba(0, 0, 0, 0.46);
+      }
+
+      .headline {
+        position: absolute;
+        left: 106px;
+        top: 68px;
+        z-index: 6;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .brand-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: #35e599;
+        box-shadow: 0 0 36px rgba(53, 229, 153, 0.80);
+      }
+
+      .headline-title {
+        font-size: 38px;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .headline-subtitle {
+        margin-top: 8px;
+        color: #a7b0be;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .main-shot {
+        position: absolute;
+        left: 88px;
+        top: 150px;
+        z-index: 4;
+        width: 1160px;
+        height: 866px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 28px;
+        background: #0a101b;
+        box-shadow:
+          0 42px 110px rgba(0, 0, 0, 0.54),
+          0 0 72px rgba(10, 132, 255, 0.18);
+      }
+
+      .main-shot img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: contain;
+        background: rgba(4, 7, 12, 0.90);
+      }
+
+      .side-stack {
+        position: absolute;
+        right: 88px;
+        top: 184px;
+        z-index: 5;
+        width: 520px;
+        display: flex;
+        flex-direction: column;
+        gap: 34px;
+      }
+
+      .menu-card,
+      .widget-card {
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 28px;
+        background: rgba(17, 25, 35, 0.92);
+        box-shadow:
+          0 32px 90px rgba(0, 0, 0, 0.46),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+      }
+
+      .menu-card {
+        height: 264px;
+        padding: 32px;
+      }
+
+      .card-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .card-kicker {
+        color: #a7b0be;
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .card-title {
+        margin-top: 8px;
+        font-size: 34px;
+        line-height: 1;
+        font-weight: 950;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border-radius: 999px;
+        background: rgba(53, 229, 153, 0.13);
+        color: #35e599;
+        font-size: 18px;
+        font-weight: 900;
+      }
+
+      .status-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 99px;
+        background: #35e599;
+      }
+
+      .metric {
+        margin-top: 24px;
+      }
+
+      .metric-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #f7faff;
+        font-size: 24px;
+        font-weight: 900;
+      }
+
+      .bar {
+        margin-top: 10px;
+        height: 12px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.13);
+      }
+
+      .bar-fill {
+        height: 100%;
+        border-radius: inherit;
+        transform-origin: left center;
+      }
+
+      .bar-fill.blue {
+        width: 88%;
+        background: #48d0f5;
+        box-shadow: 0 0 24px rgba(72, 208, 245, 0.52);
+      }
+
+      .bar-fill.green {
+        width: 78%;
+        background: #35e599;
+        box-shadow: 0 0 24px rgba(53, 229, 153, 0.52);
+      }
+
+      .widget-card {
+        height: 536px;
+        padding: 16px;
+      }
+
+      .widget-card img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: contain;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.28);
+      }
+
+      .sweep {
+        position: absolute;
+        top: 60px;
+        bottom: 60px;
+        z-index: 7;
+        width: 170px;
+        pointer-events: none;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), rgba(72, 208, 245, 0.28), transparent);
+        filter: blur(3px);
+        transform: skewX(-16deg);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="6"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="noise" data-layout-ignore></div>
+      <div class="backplate"></div>
+      <div class="sweep"></div>
+
+      <div class="headline">
+        <div class="brand-dot"></div>
+        <div>
+          <div class="headline-title">ReadyCheck</div>
+          <div class="headline-subtitle">Codex 配额状态与刷新控制</div>
+        </div>
+      </div>
+
+      <div class="main-shot">
+        <img src="assets/readycheck-main.png" alt="ReadyCheck 主界面截图" />
+      </div>
+
+      <div class="side-stack">
+        <div class="menu-card">
+          <div class="card-label">
+            <div>
+              <div class="card-kicker">菜单栏速览</div>
+              <div class="card-title">ReadyCheck</div>
+            </div>
+            <div class="status-pill"><span class="status-dot"></span>自动刷新</div>
+          </div>
+          <div class="metric">
+            <div class="metric-row"><span>5 小时窗口</span><span>88%</span></div>
+            <div class="bar"><div class="bar-fill blue"></div></div>
+          </div>
+          <div class="metric">
+            <div class="metric-row"><span>7 天窗口</span><span>78%</span></div>
+            <div class="bar"><div class="bar-fill green"></div></div>
+          </div>
+        </div>
+
+        <div class="widget-card">
+          <img src="assets/readycheck-widget.png" alt="ReadyCheck 桌面 widget 截图" />
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.fromTo(".sweep", { x: -260, opacity: 0 }, { x: 2020, opacity: 0.85, duration: 1.2, ease: "power2.inOut" }, 0.35);
+      tl.to(".sweep", { opacity: 0, duration: 0.18 }, 1.58);
+
+      tl.to(".main-shot", { y: -8, duration: 1.8, repeat: 2, yoyo: true, ease: "sine.inOut" }, 0.35);
+      tl.to(".menu-card", { y: 7, duration: 1.6, repeat: 2, yoyo: true, ease: "sine.inOut" }, 0.28);
+      tl.to(".widget-card", { y: -10, duration: 1.75, repeat: 2, yoyo: true, ease: "sine.inOut" }, 0.34);
+      tl.to(".brand-dot", { scale: 1.28, opacity: 0.72, duration: 0.8, repeat: 4, yoyo: true, ease: "sine.inOut" }, 0.2);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
