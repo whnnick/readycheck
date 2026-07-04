@@ -1,27 +1,9 @@
 import React from 'react';
-import {
-  AbsoluteFill,
-  Easing,
-  Img,
-  interpolate,
-  staticFile,
-  useCurrentFrame,
-} from 'remotion';
-
-const clamp = {
-  extrapolateLeft: 'clamp' as const,
-  extrapolateRight: 'clamp' as const,
-};
-
-const ease = Easing.bezier(0.16, 1, 0.3, 1);
-
-const enter = (frame: number, start: number, end: number) =>
-  interpolate(frame, [start, end], [0, 1], {...clamp, easing: ease});
+import {AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame} from 'remotion';
 
 export const ReadyCheckPreviewGif: React.FC = () => {
   const frame = useCurrentFrame();
-  const show = enter(frame, 0, 24);
-  const mainDrift = Math.sin(frame / 38) * 4;
+  const mainDrift = Math.sin(frame / 38) * 2;
   const widgetFloat = Math.sin(frame / 23) * 5;
   const menuFloat = Math.sin(frame / 25) * 6;
   const fillPulse = interpolate(Math.sin(frame / 24), [-1, 1], [0.74, 1]);
@@ -46,7 +28,6 @@ export const ReadyCheckPreviewGif: React.FC = () => {
           background:
             'linear-gradient(120deg, rgba(72,208,245,0.13), transparent 38%), linear-gradient(320deg, rgba(53,229,153,0.12), transparent 42%)',
           boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.04), 0 24px 80px rgba(0,0,0,0.48)',
-          opacity: show,
         }}
       />
 
@@ -61,8 +42,6 @@ export const ReadyCheckPreviewGif: React.FC = () => {
           border: '1px solid rgba(255,255,255,0.10)',
           background: '#050914',
           boxShadow: '0 22px 70px rgba(0,0,0,0.38)',
-          opacity: show,
-          transform: `translateY(${interpolate(show, [0, 1], [18, 0])}px)`,
         }}
       >
         <Img
@@ -70,7 +49,7 @@ export const ReadyCheckPreviewGif: React.FC = () => {
           style={{
             display: 'block',
             width: '100%',
-            height: 282,
+            height: 245,
             objectFit: 'cover',
             objectPosition: '50% 0%',
             filter: 'contrast(1.05) saturate(0.95) brightness(0.88)',
@@ -84,7 +63,6 @@ export const ReadyCheckPreviewGif: React.FC = () => {
         width={405}
         fillPulse={fillPulse}
         spinner={spinner}
-        show={enter(frame, 18, 44)}
       />
 
       <div
@@ -100,8 +78,6 @@ export const ReadyCheckPreviewGif: React.FC = () => {
           border: '1px solid rgba(255,255,255,0.14)',
           background: '#09101F',
           boxShadow: '0 18px 54px rgba(0,0,0,0.34)',
-          opacity: enter(frame, 30, 56),
-          transform: `translateY(${interpolate(enter(frame, 30, 56), [0, 1], [18, 0])}px)`,
         }}
       >
         <Img
@@ -126,8 +102,7 @@ const MenuCard: React.FC<{
   width: number;
   fillPulse: number;
   spinner: number;
-  show: number;
-}> = ({x, y, width, fillPulse, spinner, show}) => (
+}> = ({x, y, width, fillPulse, spinner}) => (
   <div
     style={{
       position: 'absolute',
@@ -140,8 +115,6 @@ const MenuCard: React.FC<{
       border: '1px solid rgba(255,255,255,0.14)',
       background: 'rgba(17,24,39,0.92)',
       boxShadow: '0 24px 70px rgba(0,0,0,0.48)',
-      opacity: interpolate(show, [0, 1], [0, 0.96]),
-      transform: `translateY(${interpolate(show, [0, 1], [18, 0])}px)`,
     }}
   >
     <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12}}>
