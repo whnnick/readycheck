@@ -77,7 +77,7 @@ public actor QuotaHistoryStore {
 
         var samples = load().filter { $0.providerID != sample.providerID || $0.recordedAt <= sample.recordedAt }
         if let lastIndex = samples.lastIndex(where: { $0.providerID == sample.providerID }),
-           sample.recordedAt.timeIntervalSince(samples[lastIndex].recordedAt) < minimumSampleInterval {
+           sampleBucket(sample.recordedAt) == sampleBucket(samples[lastIndex].recordedAt) {
             samples[lastIndex] = sample
         } else {
             samples.append(sample)
@@ -85,6 +85,11 @@ public actor QuotaHistoryStore {
         samples = retained(samples).sorted { $0.recordedAt < $1.recordedAt }
         save(samples)
         return samples
+    }
+
+    private func sampleBucket(_ date: Date) -> Int64 {
+        let interval = max(minimumSampleInterval, 1)
+        return Int64(floor(date.timeIntervalSince1970 / interval))
     }
 
     private func retained(_ samples: [QuotaHistorySample]) -> [QuotaHistorySample] {

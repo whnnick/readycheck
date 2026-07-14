@@ -35,6 +35,23 @@ final class QuotaHistoryStoreTests: XCTestCase {
         XCTAssertEqual(samples[0].values[0].remainingRatio, 0.7)
     }
 
+    func testMinuteRefreshesStillAppendWhenCrossingFixedBucketBoundary() async {
+        let fileURL = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
+        let store = QuotaHistoryStore(
+            fileURL: fileURL,
+            now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        for minute in 0...6 {
+            _ = await store.record(makeSnapshot(at: TimeInterval(600 + minute * 60), remaining: 0.8))
+        }
+
+        let samples = await store.load()
+        XCTAssertEqual(samples.count, 2)
+        XCTAssertEqual(samples.map { Int($0.recordedAt.timeIntervalSince1970) }, [840, 960])
+    }
+
     func testRetainsThirtyDaysAndPersistsToDisk() async {
         let fileURL = temporaryFileURL()
         defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }

@@ -34,6 +34,15 @@ fs.writeFileSync(pollutedPath, JSON.stringify([{ ...appended[0], accountEmail: "
 const sanitized = store.load(new Date("2026-07-14T00:08:00.000Z"));
 assert.equal(Object.hasOwn(sanitized[0], "accountEmail"), false, "unknown identity fields must be discarded on load");
 
+const minuteDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "readycheck-minute-history-"));
+const minuteStore = new QuotaHistoryStore(minuteDirectory);
+let minuteSamples = [];
+for (let minute = 0; minute <= 6; minute += 1) {
+  minuteSamples = minuteStore.record(quota, new Date(Date.UTC(2026, 6, 14, 0, minute, 0)));
+}
+assert.equal(minuteSamples.length, 2, "one-minute refreshes should append after crossing a fixed five-minute bucket");
+fs.rmSync(minuteDirectory, { recursive: true, force: true });
+
 const afterRetention = store.load(new Date("2026-08-20T00:00:00.000Z"));
 assert.equal(afterRetention.length, 0, "samples older than 30 days should be excluded");
 

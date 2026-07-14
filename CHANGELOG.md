@@ -4,6 +4,10 @@
 
 - Rebuild the GitHub README preview GIF with HyperFrames and real product screenshots for a clearer product showcase.
 
+## 0.1.63 - 2026-07-14
+
+- Fix recent-usage sampling so one-minute automatic refreshes accumulate a new history point after crossing each fixed five-minute boundary instead of overwriting one record forever.
+
 ## 0.1.62 - 2026-07-14
 
 - Add contextual quota recovery actions: retry temporary refresh failures, reconnect only when authorization is explicitly rejected or cannot be refreshed, and keep existing credentials until replacement authorization succeeds.

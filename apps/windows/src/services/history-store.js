@@ -28,7 +28,7 @@ class QuotaHistoryStore {
 
     const samples = this.load(recordedAt);
     const last = samples.at(-1);
-    if (last && new Date(sample.recordedAt).getTime() - new Date(last.recordedAt).getTime() < SAMPLE_INTERVAL_MS) {
+    if (last && sampleBucket(sample.recordedAt) === sampleBucket(last.recordedAt)) {
       samples[samples.length - 1] = sample;
     } else {
       samples.push(sample);
@@ -45,6 +45,10 @@ class QuotaHistoryStore {
     }
     return normalized;
   }
+}
+
+function sampleBucket(value) {
+  return Math.floor(new Date(value).getTime() / SAMPLE_INTERVAL_MS);
 }
 
 function makeSample(quota, recordedAt) {

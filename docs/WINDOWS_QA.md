@@ -8,7 +8,7 @@ Use this guide to validate the ReadyCheck Windows preview on Windows 10/11. Do n
 
 Option A: use the portable zip.
 
-1. Copy `dist/windows/ReadyCheck-0.1.62-windows-x64-portable.zip` to the Windows machine.
+1. Copy `dist/windows/ReadyCheck-0.1.63-windows-x64-portable.zip` to the Windows machine.
 2. Unzip it.
 3. Run `ReadyCheck-win32-x64\ReadyCheck.exe`.
 
