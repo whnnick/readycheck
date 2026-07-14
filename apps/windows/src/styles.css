@@ -217,6 +217,33 @@ h2 {
   padding: 10px 12px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  text-align: left;
+}
+
+button.usage-metric {
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+button.usage-metric.selectable:hover,
+button.usage-metric.selectable:focus-visible {
+  border-color: rgba(96, 165, 250, 0.72);
+  background: rgba(30, 136, 229, 0.12);
+}
+
+button.usage-metric.selected {
+  border-color: var(--blue);
+  background: rgba(30, 136, 229, 0.16);
+}
+
+.usage-metric small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.critical-text {
+  color: var(--red);
 }
 
 .usage-metric span,
@@ -235,10 +262,25 @@ h2 {
   background: rgba(0, 0, 0, 0.16);
 }
 
+.usage-chart-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.usage-chart-heading span,
+.usage-zero,
+.usage-explanation {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .usage-chart {
   display: block;
   width: 100%;
-  height: 150px;
+  height: 184px;
 }
 
 .chart-grid {
@@ -246,45 +288,43 @@ h2 {
   stroke-width: 1;
 }
 
-.chart-line {
-  fill: none;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.chart-bar {
+  fill: url(#usage-bar-gradient);
+  fill: #2597fa;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: usage-bar-enter 220ms ease-out both;
 }
 
-.chart-line.five-hour,
-.chart-point.five-hour,
-.usage-legend i.five-hour {
-  stroke: #4ade80;
-  background: #4ade80;
-  fill: #4ade80;
+.chart-bar:hover {
+  fill: #74c6ff;
 }
 
-.chart-line.seven-day,
-.chart-point.seven-day,
-.usage-legend i.seven-day {
-  stroke: #60a5fa;
-  background: #60a5fa;
-  fill: #60a5fa;
+.chart-label {
+  fill: var(--muted);
+  font-size: 11px;
 }
 
-.usage-legend {
-  justify-content: flex-end;
-  color: var(--muted);
-  font-size: 12px;
+.usage-zero {
+  margin: 4px 0 0;
 }
 
-.usage-legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+.usage-explanation {
+  margin: 8px 0 0;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.usage-legend i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+@keyframes usage-bar-enter {
+  from { opacity: 0; transform: scaleY(0.15); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-bar {
+    animation: none;
+  }
 }
 
 .usage-empty {

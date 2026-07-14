@@ -41,6 +41,8 @@ const elements = {
 const isWidget = document.body.dataset.surface === "widget";
 let currentState = null;
 let usageRangeDays = 1;
+let usageWindowID = "codex-primary";
+const MAX_USAGE_ATTRIBUTABLE_GAP_MS = 10 * 60 * 1000;
 
 function render(state) {
   currentState = state;
@@ -166,35 +168,48 @@ function renderUsageDashboard(state) {
     button.classList.toggle("active", Number(button.dataset.usageRange) === usageRangeDays);
   }
 
-  const cutoff = Date.now() - usageRangeDays * 24 * 60 * 60 * 1000;
-  const samples = (state.quotaHistory || []).filter((sample) => new Date(sample.recordedAt).getTime() >= cutoff);
-  if (samples.length === 0) {
+  const now = Date.now();
+  const cutoff = now - usageRangeDays * 24 * 60 * 60 * 1000;
+  const series = historySeries(state.quotaHistory || []);
+  if (series.length === 0) {
     elements.usageDashboard.innerHTML = `
       <div class="usage-empty">
         <strong>正在收集本地记录</strong>
-        <p>成功刷新后会逐步形成趋势，历史最多保留 30 天。</p>
+        <p>完成两次成功刷新后，这里会展示检测到的额度消耗。</p>
       </div>
     `;
     return;
   }
 
-  const series = historySeries(samples);
   const fiveHour = series.find((item) => item.labelKey === "quota.window.codex.5h" || item.labelKey === "quota.fiveHour");
   const sevenDay = series.find((item) => item.labelKey === "quota.window.codex.7d" || item.labelKey === "quota.sevenDay");
-  const latest = samples.at(-1);
+  const availableSeries = [fiveHour, sevenDay].filter(Boolean);
+  if (!availableSeries.some((item) => item.windowID === usageWindowID)) {
+    usageWindowID = availableSeries[0].windowID;
+  }
+  const selected = availableSeries.find((item) => item.windowID === usageWindowID) || availableSeries[0];
+  const selectedPoints = selected.points.filter((point) => point.timestamp >= cutoff);
+  const latest = selected.points.at(-1);
+  const bars = usageBars(selected.points, cutoff, now, usageBucketSizeMs());
   elements.usageDashboard.innerHTML = `
     <div class="usage-metrics">
-      ${usageMetric("5 小时已使用", consumedPercent(fiveHour), "five-hour")}
-      ${usageMetric("7 天已使用", consumedPercent(sevenDay), "seven-day")}
-      <div class="usage-metric"><span>最近记录</span><strong>${formatHistoryTime(latest.recordedAt)}</strong></div>
+      ${usageMetric("5 小时额度", fiveHour, cutoff)}
+      ${usageMetric("7 天额度", sevenDay, cutoff)}
+      <div class="usage-metric data-status"><span>数据状态</span><strong>最近记录 ${formatHistoryTime(latest.timestamp)}</strong><small>成功刷新后按 1 分钟采样</small></div>
     </div>
-    <div class="usage-chart-wrap">
-      ${usageChart(series, cutoff, Date.now())}
-      <div class="usage-legend">
-        <span><i class="five-hour"></i>5 小时剩余</span>
-        <span><i class="seven-day"></i>7 天剩余</span>
+    ${selectedPoints.length < 2 ? `
+      <div class="usage-empty">
+        <strong>正在积累使用记录</strong>
+        <p>完成两次成功刷新后，这里会展示检测到的额度消耗。</p>
       </div>
-    </div>
+    ` : `
+      <div class="usage-chart-wrap">
+        <div class="usage-chart-heading"><strong>${usageWindowLabel(selected)} · 每时段消耗</strong><span>悬停查看详情</span></div>
+        ${usageChart(bars, cutoff, now)}
+        ${bars.every((bar) => bar.consumedPercent === 0) ? '<p class="usage-zero">该时间范围内未检测到额度下降。</p>' : ""}
+        <p class="usage-explanation">${latest.ratio <= 0 ? "当前剩余 0% 不代表使用量为 0；零柱表示该时段未检测到新的额度下降。" : "统计本地成功刷新之间的额度下降，不代表 Token 数量；额度重置、恢复和长时间无数据不会计入消耗。"}</p>
+      </div>
+    `}
   `;
 }
 
@@ -204,7 +219,7 @@ function historySeries(samples) {
     for (const value of sample.values || []) {
       const key = value.windowID;
       if (!grouped.has(key)) {
-        grouped.set(key, { labelKey: value.labelKey, points: [] });
+        grouped.set(key, { windowID: key, labelKey: value.labelKey, points: [] });
       }
       grouped.get(key).points.push({ timestamp: new Date(sample.recordedAt).getTime(), ratio: value.remainingRatio });
     }
@@ -212,47 +227,97 @@ function historySeries(samples) {
   return [...grouped.values()];
 }
 
-function consumedPercent(series) {
+function consumedPercent(series, start) {
   if (!series || series.points.length < 2) {
     return null;
   }
   let consumed = 0;
   for (let index = 1; index < series.points.length; index += 1) {
-    consumed += Math.max(0, series.points[index - 1].ratio - series.points[index].ratio);
+    const previous = series.points[index - 1];
+    const current = series.points[index];
+    if (current.timestamp < start || current.timestamp - previous.timestamp > MAX_USAGE_ATTRIBUTABLE_GAP_MS) {
+      continue;
+    }
+    consumed += Math.max(0, previous.ratio - current.ratio);
   }
   return Math.round(consumed * 100);
 }
 
-function usageMetric(label, value, className) {
-  return `<div class="usage-metric ${className}"><span>${label}</span><strong>${value === null ? "记录中" : `${value} 个百分点`}</strong></div>`;
+function usageMetric(label, series, cutoff) {
+  const latest = series && series.points.at(-1);
+  const remaining = latest ? Math.round(latest.ratio * 100) : null;
+  const consumed = consumedPercent(series, cutoff);
+  const selected = series && series.windowID === usageWindowID ? " selected" : "";
+  const unavailable = series ? "" : " unavailable";
+  return `<button class="usage-metric selectable${selected}${unavailable}" data-usage-window="${series ? series.windowID : ""}" ${series ? "" : "disabled"}>
+    <span>${label}${selected ? " · 当前查看" : ""}</span>
+    <strong>${consumed === null ? "记录中" : `${consumed} 个百分点消耗`}</strong>
+    <small>当前剩余 <b class="${remaining !== null && remaining < 25 ? "critical-text" : ""}">${remaining === null ? "--" : `${remaining}%`}</b></small>
+  </button>`;
 }
 
-function usageChart(series, start, end) {
-  const width = 760;
-  const height = 160;
-  const padding = 14;
-  const line = (item, className) => {
-    if (!item || item.points.length === 0) {
-      return "";
+function usageBucketSizeMs() {
+  if (usageRangeDays === 1) return 60 * 60 * 1000;
+  if (usageRangeDays === 7) return 6 * 60 * 60 * 1000;
+  return 24 * 60 * 60 * 1000;
+}
+
+function usageBars(points, start, end, bucketSize) {
+  const count = Math.ceil((end - start) / bucketSize);
+  const bars = Array.from({ length: count }, (_, index) => ({
+    start: start + index * bucketSize,
+    end: Math.min(start + (index + 1) * bucketSize, end),
+    consumedPercent: 0
+  }));
+  for (let index = 1; index < points.length; index += 1) {
+    const previous = points[index - 1];
+    const current = points[index];
+    if (current.timestamp < start || current.timestamp > end || current.timestamp - previous.timestamp > MAX_USAGE_ATTRIBUTABLE_GAP_MS) {
+      continue;
     }
-    const points = item.points.map((point) => {
-      const x = padding + ((point.timestamp - start) / Math.max(end - start, 1)) * (width - padding * 2);
-      const y = padding + (1 - point.ratio) * (height - padding * 2);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(" ");
-    const last = item.points.at(-1);
-    const lastX = padding + ((last.timestamp - start) / Math.max(end - start, 1)) * (width - padding * 2);
-    const lastY = padding + (1 - last.ratio) * (height - padding * 2);
-    return `<polyline class="chart-line ${className}" points="${points}"></polyline><circle class="chart-point ${className}" cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3.5"></circle>`;
-  };
-  const fiveHour = series.find((item) => item.labelKey === "quota.window.codex.5h" || item.labelKey === "quota.fiveHour");
-  const sevenDay = series.find((item) => item.labelKey === "quota.window.codex.7d" || item.labelKey === "quota.sevenDay");
-  return `<svg class="usage-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="近期配额剩余趋势">
-    <line class="chart-grid" x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}"></line>
-    <line class="chart-grid" x1="${padding}" y1="${height / 2}" x2="${width - padding}" y2="${height / 2}"></line>
-    <line class="chart-grid" x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}"></line>
-    ${line(fiveHour, "five-hour")}${line(sevenDay, "seven-day")}
+    const bucketIndex = Math.min(bars.length - 1, Math.max(0, Math.floor((current.timestamp - start) / bucketSize)));
+    bars[bucketIndex].consumedPercent += Math.max(0, previous.ratio - current.ratio) * 100;
+  }
+  return bars;
+}
+
+function usageChart(bars, start, end) {
+  const width = 760;
+  const height = 184;
+  const padding = { top: 12, right: 12, bottom: 28, left: 32 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+  const maximum = Math.max(5, Math.ceil(Math.max(...bars.map((bar) => bar.consumedPercent), 0) / 5) * 5);
+  const barWidth = Math.max(3, Math.min(22, (plotWidth / Math.max(bars.length, 1)) * 0.62));
+  const columns = bars.map((bar, index) => {
+    const value = bar.consumedPercent;
+    const barHeight = (value / maximum) * plotHeight;
+    const x = padding.left + (index + 0.5) * (plotWidth / bars.length) - barWidth / 2;
+    const y = padding.top + plotHeight - barHeight;
+    return `<rect class="chart-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barHeight.toFixed(1)}" rx="3"><title>${formatHistoryTime(bar.start)} - ${formatHistoryTime(bar.end)}：消耗 ${value.toFixed(1)} 个百分点</title></rect>`;
+  }).join("");
+  const yLabels = [maximum, maximum / 2, 0].map((value, index) => {
+    const y = padding.top + index * (plotHeight / 2);
+    return `<line class="chart-grid" x1="${padding.left}" y1="${y.toFixed(1)}" x2="${width - padding.right}" y2="${y.toFixed(1)}"></line><text class="chart-label" x="${padding.left - 7}" y="${(y + 4).toFixed(1)}" text-anchor="end">${Math.round(value)}</text>`;
+  }).join("");
+  const xLabels = [start, start + (end - start) / 2, end].map((timestamp) => {
+    const x = padding.left + ((timestamp - start) / Math.max(end - start, 1)) * plotWidth;
+    return `<text class="chart-label" x="${x.toFixed(1)}" y="${height - 7}" text-anchor="middle">${formatUsageAxisTime(timestamp)}</text>`;
+  }).join("");
+  return `<svg class="usage-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="近期额度消耗柱状图">
+    ${yLabels}${columns}${xLabels}
   </svg>`;
+}
+
+function usageWindowLabel(series) {
+  return labels[series.labelKey] || series.labelKey;
+}
+
+function formatUsageAxisTime(timestamp) {
+  const date = new Date(timestamp);
+  if (usageRangeDays === 1) return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  if (usageRangeDays === 7) return date.toLocaleDateString([], { weekday: "short", hour: "2-digit" });
+  return date.toLocaleDateString([], { month: "numeric", day: "numeric" });
 }
 
 function formatHistoryTime(value) {
@@ -334,6 +399,14 @@ function wireEvents() {
   for (const button of elements.usageRangeButtons || []) {
     button.addEventListener("click", () => {
       usageRangeDays = Number(button.dataset.usageRange);
+      renderUsageDashboard(currentState);
+    });
+  }
+  if (elements.usageDashboard) {
+    elements.usageDashboard.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-usage-window]");
+      if (!button || !button.dataset.usageWindow) return;
+      usageWindowID = button.dataset.usageWindow;
       renderUsageDashboard(currentState);
     });
   }

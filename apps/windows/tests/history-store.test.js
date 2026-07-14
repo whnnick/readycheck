@@ -21,17 +21,17 @@ const firstDate = new Date("2026-07-14T00:00:00.000Z");
 assert.equal(store.record(quota, firstDate).length, 1);
 
 quota.windows[0].remainingRatio = 0.75;
-const replacement = store.record(quota, new Date("2026-07-14T00:03:00.000Z"));
-assert.equal(replacement.length, 1, "samples inside five minutes should share one bucket");
+const replacement = store.record(quota, new Date("2026-07-14T00:00:30.000Z"));
+assert.equal(replacement.length, 1, "samples inside one minute should share one bucket");
 assert.equal(replacement[0].values[0].remainingRatio, 0.75);
 
-const appended = store.record(quota, new Date("2026-07-14T00:08:00.000Z"));
+const appended = store.record(quota, new Date("2026-07-14T00:01:00.000Z"));
 assert.equal(appended.length, 2);
 assert.equal(Object.hasOwn(appended[0], "accountEmail"), false);
 
 const pollutedPath = path.join(directory, "quota-history.json");
 fs.writeFileSync(pollutedPath, JSON.stringify([{ ...appended[0], accountEmail: "private@example.com" }]), "utf8");
-const sanitized = store.load(new Date("2026-07-14T00:08:00.000Z"));
+const sanitized = store.load(new Date("2026-07-14T00:01:00.000Z"));
 assert.equal(Object.hasOwn(sanitized[0], "accountEmail"), false, "unknown identity fields must be discarded on load");
 
 const minuteDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "readycheck-minute-history-"));
@@ -40,7 +40,7 @@ let minuteSamples = [];
 for (let minute = 0; minute <= 6; minute += 1) {
   minuteSamples = minuteStore.record(quota, new Date(Date.UTC(2026, 6, 14, 0, minute, 0)));
 }
-assert.equal(minuteSamples.length, 2, "one-minute refreshes should append after crossing a fixed five-minute bucket");
+assert.equal(minuteSamples.length, 7, "one-minute refreshes should append in every fixed minute bucket");
 fs.rmSync(minuteDirectory, { recursive: true, force: true });
 
 const afterRetention = store.load(new Date("2026-08-20T00:00:00.000Z"));

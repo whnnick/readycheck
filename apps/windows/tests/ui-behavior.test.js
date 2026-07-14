@@ -29,7 +29,10 @@ assert.match(renderer, /quotaReconnectButton.*readyCheck\.beginOAuth/s);
 const rendererHTML = source("src/renderer.html");
 assert.equal(rendererHTML.includes('id="usageDashboard"'), true);
 assert.equal(rendererHTML.includes('id="quotaRecoveryActions"'), true);
-assert.match(rendererHTML, /根据本机记录的配额百分比变化统计/);
+assert.match(rendererHTML, /柱形表示每个时段检测到的额度下降/);
+assert.match(renderer, /usageWindowID/);
+assert.match(renderer, /usageBars\(/);
+assert.match(renderer, /MAX_USAGE_ATTRIBUTABLE_GAP_MS/);
 
 const main = source("src/main.js");
 assert.match(main, /minimal:\s*\{\s*width:\s*330,\s*height:\s*220\s*\}/);

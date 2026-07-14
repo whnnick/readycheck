@@ -8,13 +8,14 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Status: `0.1.63` is an early macOS preview. Codex OAuth is the only supported provider in this release. A Windows portable preview package is available for Windows 10/11 testing.
+> Status: `0.1.64` is an early macOS preview. Codex OAuth is the only supported provider in this release. A Windows portable preview package is available for Windows 10/11 testing.
 
 ## What It Does
 
 - Shows available Codex 5-hour and 7-day quota windows when the authorized usage response is parseable.
 - Provides a main window, menu-bar summary, and optional draggable desktop widget.
 - Refreshes usage data manually or every 1, 3, or 5 minutes. Refreshes are read-only usage requests and do not call model inference endpoints.
+- Includes a local consumption dashboard for 5-hour and 7-day quota windows. It records detected quota decreases in percentage points, not token counts.
 - Stores OAuth credentials in the macOS Keychain.
 - Supports Simplified Chinese and English.
 
@@ -22,9 +23,9 @@ ReadyCheck fails closed: when quota data cannot be read or validated, it shows a
 
 ## Install
 
-Download `ReadyCheck-0.1.63-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
+Download `ReadyCheck-0.1.64-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
 
-For Windows 10/11 preview testing, download `ReadyCheck-0.1.63-windows-x64-portable.zip` from the same release, unzip it, and run `ReadyCheck.exe`.
+For Windows 10/11 preview testing, download `ReadyCheck-0.1.64-windows-x64-portable.zip` from the same release, unzip it, and run `ReadyCheck.exe`.
 
 The preview build is ad-hoc signed and not notarized. macOS may require you to confirm the first launch in **System Settings > Privacy & Security**. See [installation details](docs/INSTALL.md).
 
@@ -46,7 +47,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The DMG is written to `dist/ReadyCheck-0.1.63-macos.dmg`.
+The DMG is written to `dist/ReadyCheck-0.1.64-macos.dmg`.
 
 ## Windows Preview Development
 

@@ -44,9 +44,11 @@ Use this checklist before publishing a preview build or when validating a user-r
 4. With a valid login and a temporary network or server failure, confirm **Try again** appears and can recover without signing in again.
 5. Simulate a rejected or unrefreshable authorization and confirm **Sign in again** appears; cancelling or failing replacement authorization must not delete a previously valid token.
 
-## Local Usage Trends
+## Local Quota Consumption
 
-1. Complete at least two successful refreshes more than five minutes apart and confirm the 24-hour dashboard plots both quota windows.
+1. Complete at least two successful refreshes more than one minute apart and confirm the 24-hour dashboard shows selectable 5-hour and 7-day consumption cards.
+2. Confirm bars represent detected quota decreases in percentage points, while current remaining quota is shown separately.
+3. Confirm a reset or recovery does not create negative consumption, and a long refresh gap is not attributed to a bar.
 2. Confirm 7-day and 30-day range switching does not affect the floating widget or trigger a network request.
 3. Confirm quota resets do not count as consumption and the UI describes values as percentage-point changes, not token usage.
 4. Inspect the local history payload and confirm it contains no email, account id, credential, or raw API response.

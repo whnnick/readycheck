@@ -9,27 +9,33 @@ struct RecentUsageView: View {
         case month = 2_592_000
 
         var id: TimeInterval { rawValue }
+
+        var bucketInterval: TimeInterval {
+            switch self {
+            case .day: 3_600
+            case .week: 6 * 3_600
+            case .month: 86_400
+            }
+        }
     }
 
-    private struct ChartPoint: Identifiable {
-        let recordedAt: Date
-        let label: String
-        let remainingPercent: Double
-        let windowID: String
-
-        var id: String { "\(windowID)-\(recordedAt.timeIntervalSince1970)" }
+    private struct UsageWindow: Identifiable, Equatable {
+        let id: String
+        let labelKey: String
     }
 
     let samples: [QuotaHistorySample]
     let localization: LocalizationService
     let now: Date
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedRange: Range = .day
+    @State private var selectedWindowID = "codex-primary"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
-                Label(localization.text("usage.title"), systemImage: "chart.xyaxis.line")
+                Label(localization.text("usage.title"), systemImage: "chart.bar.xaxis")
                     .font(.headline)
 
                 Text(localization.text("usage.localRecord"))
@@ -51,17 +57,17 @@ struct RecentUsageView: View {
                 .frame(width: 184)
             }
 
-            if chartPoints.isEmpty {
-                ContentUnavailableView {
-                    Label(localization.text("usage.emptyTitle"), systemImage: "chart.line.uptrend.xyaxis")
-                } description: {
-                    Text(localization.text("usage.emptyMessage"))
-                }
-                .frame(maxWidth: .infinity, minHeight: 130)
+            Text(localization.text("usage.subtitle"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if windows.isEmpty {
+                collectingState
             } else {
-                HStack(spacing: 12) {
-                    metricCard(labelKey: "quota.window.codex.5h", windowID: "codex-primary")
-                    metricCard(labelKey: "quota.window.codex.7d", windowID: "codex-secondary")
+                HStack(spacing: 10) {
+                    ForEach(windows) { window in
+                        metricCard(window)
+                    }
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(localization.text("usage.lastRecorded"))
@@ -76,85 +82,209 @@ struct RecentUsageView: View {
                     .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
                 }
 
-                Chart(chartPoints) { point in
-                    LineMark(
-                        x: .value(localization.text("usage.time"), point.recordedAt),
-                        y: .value(localization.text("usage.remainingPercent"), point.remainingPercent)
-                    )
-                    .foregroundStyle(by: .value(localization.text("usage.window"), point.label))
-                    .interpolationMethod(.linear)
-                    .lineStyle(StrokeStyle(lineWidth: 2))
-                }
-                .chartYScale(domain: 0...100)
-                .chartYAxis {
-                    AxisMarks(position: .leading, values: [0, 25, 50, 75, 100]) { value in
-                        AxisGridLine()
-                        AxisValueLabel {
-                            if let percent = value.as(Int.self) {
-                                Text("\(percent)%")
+                if selectedPoints.count < 2 {
+                    collectingState
+                } else {
+                    Text(chartTitle)
+                        .font(.subheadline.weight(.semibold))
+
+                    Chart(buckets) { bucket in
+                        BarMark(
+                            x: .value(localization.text("usage.time"), bucket.start, unit: axisUnit),
+                            y: .value(localization.text("usage.consumedPercent"), bucket.consumedRatio * 100)
+                        )
+                        .foregroundStyle(Color.accentColor.gradient)
+                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                        .annotation(position: .top, alignment: .center) {
+                            if bucket.consumedRatio > 0, bucket == highestBucket {
+                                Text(String(format: "%.0f", bucket.consumedRatio * 100))
+                                    .font(.caption2.weight(.bold))
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
+                    .chartYScale(domain: 0...chartMaximum)
+                    .chartYAxis {
+                        AxisMarks(position: .leading, values: yAxisValues) { value in
+                            AxisGridLine()
+                            AxisValueLabel {
+                                if let amount = value.as(Double.self) {
+                                    Text("\(Int(amount))")
+                                }
+                            }
+                        }
+                    }
+                    .chartXAxis {
+                        AxisMarks(values: .automatic(desiredCount: selectedRange == .day ? 5 : 4)) { value in
+                            AxisValueLabel(format: axisFormat)
+                        }
+                    }
+                    .chartPlotStyle { plotArea in
+                        plotArea.background(Color.primary.opacity(0.025))
+                    }
+                    .frame(height: 178)
+                    .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: buckets)
+
+                    if buckets.allSatisfy({ $0.consumedRatio == 0 }) {
+                        Text(localization.text("usage.noConsumption"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Text((currentRemainingRatio ?? 1) <= 0 ? localization.text("usage.zeroExplanation") : localization.text("usage.help"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
                 }
-                .chartLegend(position: .bottom, alignment: .leading, spacing: 14)
-                .frame(height: 178)
-
-                Text(localization.text("usage.help"))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
         }
     }
 
-    private var filteredSamples: [QuotaHistorySample] {
-        let cutoff = now.addingTimeInterval(-selectedRange.rawValue)
-        return samples.filter { $0.providerID == "codex-oauth" && $0.recordedAt >= cutoff }
-            .sorted { $0.recordedAt < $1.recordedAt }
+    private var providerSamples: [QuotaHistorySample] {
+        samples.filter { $0.providerID == "codex-oauth" }.sorted { $0.recordedAt < $1.recordedAt }
     }
 
-    private var chartPoints: [ChartPoint] {
-        filteredSamples.flatMap { sample in
-            sample.values.map { value in
-                ChartPoint(
-                    recordedAt: sample.recordedAt,
-                    label: localization.text(value.labelKey),
-                    remainingPercent: value.remainingRatio * 100,
-                    windowID: value.windowID
-                )
-            }
+    private var windows: [UsageWindow] {
+        let values = providerSamples.flatMap(\.values)
+        var seen = Set<String>()
+        return values.compactMap { value in
+            guard seen.insert(value.windowID).inserted else { return nil }
+            return UsageWindow(id: value.windowID, labelKey: value.labelKey)
         }
     }
 
-    private func metricCard(labelKey: String, windowID: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(localization.text(labelKey))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(consumedText(windowID: windowID))
-                .font(.subheadline.weight(.semibold))
-                .monospacedDigit()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+    private var activeWindow: UsageWindow? {
+        windows.first(where: { $0.id == selectedWindowID }) ?? windows.first
     }
 
-    private func consumedText(windowID: String) -> String {
-        let values = filteredSamples.compactMap { sample in
-            sample.values.first(where: { $0.windowID == windowID })?.remainingRatio
+    private var selectedPoints: [(date: Date, ratio: Double)] {
+        guard let window = activeWindow else { return [] }
+        return providerSamples.compactMap { sample in
+            guard let value = sample.values.first(where: { $0.windowID == window.id }) else { return nil }
+            return (sample.recordedAt, value.remainingRatio)
         }
-        guard values.count > 1 else { return localization.text("usage.collecting") }
-        let consumed = zip(values, values.dropFirst()).reduce(0.0) { result, pair in
-            result + max(0, pair.0 - pair.1)
+    }
+
+    private var rangeStart: Date {
+        now.addingTimeInterval(-selectedRange.rawValue)
+    }
+
+    private var buckets: [QuotaUsageBucket] {
+        guard let window = activeWindow else { return [] }
+        return QuotaUsageAggregation.buckets(
+            samples: providerSamples,
+            providerID: "codex-oauth",
+            windowID: window.id,
+            rangeStart: rangeStart,
+            rangeEnd: now,
+            bucketInterval: selectedRange.bucketInterval
+        )
+    }
+
+    private var highestBucket: QuotaUsageBucket? {
+        buckets.max { $0.consumedRatio < $1.consumedRatio }
+    }
+
+    private var chartMaximum: Double {
+        let highest = (buckets.map(\.consumedRatio).max() ?? 0) * 100
+        return max(5, ceil(highest / 5) * 5)
+    }
+
+    private var yAxisValues: [Double] {
+        [0, chartMaximum / 2, chartMaximum]
+    }
+
+    private var axisUnit: Calendar.Component {
+        switch selectedRange {
+        case .day: .hour
+        case .week: .hour
+        case .month: .day
         }
-        return String(format: localization.text("usage.consumedFormat"), consumed * 100)
+    }
+
+    private var axisFormat: Date.FormatStyle {
+        switch selectedRange {
+        case .day: .dateTime.hour()
+        case .week: .dateTime.weekday(.abbreviated).hour()
+        case .month: .dateTime.month().day()
+        }
     }
 
     private var lastRecordedText: String {
-        guard let date = filteredSamples.last?.recordedAt else {
-            return localization.text("usage.collecting")
-        }
+        guard let date = providerSamples.last?.recordedAt else { return localization.text("usage.collecting") }
         return DateFormatter.localizedString(from: date, dateStyle: .none, timeStyle: .short)
+    }
+
+    private var currentRemainingRatio: Double? {
+        selectedPoints.last?.ratio
+    }
+
+    private var chartTitle: String {
+        guard let window = activeWindow else { return "" }
+        return "\(localization.text(window.labelKey)) · \(localization.text("usage.barTitle"))"
+    }
+
+    private var collectingState: some View {
+        ContentUnavailableView {
+            Label(localization.text("usage.emptyTitle"), systemImage: "chart.bar.xaxis")
+        } description: {
+            Text(localization.text("usage.emptyMessage"))
+        }
+        .frame(maxWidth: .infinity, minHeight: 126)
+    }
+
+    private func metricCard(_ window: UsageWindow) -> some View {
+        let isSelected = activeWindow?.id == window.id
+        let currentRatio = providerSamples.last?.values.first(where: { $0.windowID == window.id })?.remainingRatio
+        let consumed = consumedRatio(windowID: window.id)
+
+        return Button {
+            selectedWindowID = window.id
+        } label: {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(localization.text(window.labelKey))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                Text(consumed.map { String(format: localization.text("usage.consumedFormat"), $0 * 100) } ?? localization.text("usage.collecting"))
+                    .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
+                HStack(spacing: 4) {
+                    Text(localization.text("usage.currentRemaining"))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(currentRatio.map { String(format: "%.0f%%", $0 * 100) } ?? "--")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle((currentRatio ?? 1) < 0.25 ? .red : .primary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(10)
+            .background(isSelected ? Color.accentColor.opacity(0.13) : Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isSelected ? Color.accentColor : .clear, lineWidth: 1.25)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(localization.text(window.labelKey)) \(localization.text("usage.selectWindow"))")
+    }
+
+    private func consumedRatio(windowID: String) -> Double? {
+        let points = providerSamples.compactMap { sample -> (date: Date, ratio: Double)? in
+            guard sample.recordedAt >= rangeStart,
+                  let value = sample.values.first(where: { $0.windowID == windowID })
+            else { return nil }
+            return (sample.recordedAt, value.remainingRatio)
+        }
+        guard points.count > 1 else { return nil }
+        return zip(points, points.dropFirst()).reduce(0) { result, pair in
+            let gap = pair.1.date.timeIntervalSince(pair.0.date)
+            guard gap > 0, gap <= 10 * 60 else { return result }
+            return result + max(0, pair.0.ratio - pair.1.ratio)
+        }
     }
 
     private func rangeTitle(_ range: Range) -> String {

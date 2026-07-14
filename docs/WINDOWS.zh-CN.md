@@ -40,7 +40,7 @@ npm run smoke
 scripts/package_windows_portable.sh
 ```
 
-输出：`dist/windows/ReadyCheck-0.1.63-windows-x64-portable.zip`。
+输出：`dist/windows/ReadyCheck-0.1.64-windows-x64-portable.zip`。
 
 仍需在 Windows 上验收：
 

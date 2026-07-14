@@ -4,6 +4,11 @@
 
 - Rebuild the GitHub README preview GIF with HyperFrames and real product screenshots for a clearer product showcase.
 
+## 0.1.64 - 2026-07-15
+
+- Replace the ambiguous remaining-quota line chart with a selectable 5-hour / 7-day consumption bar dashboard. Bars show detected quota decreases in percentage points and keep the current remaining percentage separate.
+- Record successful quota refreshes in fixed one-minute buckets by default, retain 30 days of privacy-minimized local history, and do not attribute long refresh gaps, quota resets, or quota recoveries as consumption.
+
 ## 0.1.63 - 2026-07-14
 
 - Fix recent-usage sampling so one-minute automatic refreshes accumulate a new history point after crossing each fixed five-minute boundary instead of overwriting one record forever.

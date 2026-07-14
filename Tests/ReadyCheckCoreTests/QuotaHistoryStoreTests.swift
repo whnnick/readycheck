@@ -19,7 +19,7 @@ final class QuotaHistoryStoreTests: XCTestCase {
         XCTAssertEqual(afterUnavailable, samples)
     }
 
-    func testReplacesSamplesInsideFiveMinuteBucket() async {
+    func testReplacesSamplesInsideOneMinuteBucket() async {
         let fileURL = temporaryFileURL()
         defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
         let store = QuotaHistoryStore(
@@ -28,14 +28,14 @@ final class QuotaHistoryStoreTests: XCTestCase {
         )
 
         _ = await store.record(makeSnapshot(at: 9_000, remaining: 0.8))
-        let samples = await store.record(makeSnapshot(at: 9_120, remaining: 0.7))
+        let samples = await store.record(makeSnapshot(at: 9_030, remaining: 0.7))
 
         XCTAssertEqual(samples.count, 1)
-        XCTAssertEqual(samples[0].recordedAt, Date(timeIntervalSince1970: 9_120))
+        XCTAssertEqual(samples[0].recordedAt, Date(timeIntervalSince1970: 9_030))
         XCTAssertEqual(samples[0].values[0].remainingRatio, 0.7)
     }
 
-    func testMinuteRefreshesStillAppendWhenCrossingFixedBucketBoundary() async {
+    func testMinuteRefreshesAppendInEachFixedMinuteBucket() async {
         let fileURL = temporaryFileURL()
         defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
         let store = QuotaHistoryStore(
@@ -48,8 +48,8 @@ final class QuotaHistoryStoreTests: XCTestCase {
         }
 
         let samples = await store.load()
-        XCTAssertEqual(samples.count, 2)
-        XCTAssertEqual(samples.map { Int($0.recordedAt.timeIntervalSince1970) }, [840, 960])
+        XCTAssertEqual(samples.count, 7)
+        XCTAssertEqual(samples.map { Int($0.recordedAt.timeIntervalSince1970) }, [600, 660, 720, 780, 840, 900, 960])
     }
 
     func testRetainsThirtyDaysAndPersistsToDisk() async {

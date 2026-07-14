@@ -51,7 +51,7 @@ public actor QuotaHistoryStore {
     public init(
         fileURL: URL,
         retention: TimeInterval = 30 * 24 * 60 * 60,
-        minimumSampleInterval: TimeInterval = 5 * 60,
+        minimumSampleInterval: TimeInterval = 60,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
         self.fileURL = fileURL
