@@ -22,6 +22,14 @@ const renderer = source("src/renderer.js");
 assert.match(renderer, /event\.stopPropagation\(\);\s*updatePrefs\(\{ widgetDisplayMode:/s);
 assert.match(renderer, /event\.target\.closest\("button, select, input"\)/);
 assert.match(renderer, /Country, region, or territory not supported/);
+assert.match(renderer, /state\.recoveryAction/);
+assert.match(renderer, /quotaRetryButton.*readyCheck\.refresh/s);
+assert.match(renderer, /quotaReconnectButton.*readyCheck\.beginOAuth/s);
+
+const rendererHTML = source("src/renderer.html");
+assert.equal(rendererHTML.includes('id="usageDashboard"'), true);
+assert.equal(rendererHTML.includes('id="quotaRecoveryActions"'), true);
+assert.match(rendererHTML, /根据本机记录的配额百分比变化统计/);
 
 const main = source("src/main.js");
 assert.match(main, /minimal:\s*\{\s*width:\s*330,\s*height:\s*220\s*\}/);

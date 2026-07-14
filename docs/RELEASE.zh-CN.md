@@ -14,6 +14,7 @@
 在 `.worktrees/readycheck-macos-mvp` 中运行：
 
 ```bash
+scripts/check_release_consistency.sh
 swift test
 git diff --check
 rg -n "0\\.1\\.<上一版>|ReadyCheck-0\\.1\\.<上一版>" README.md README.zh-CN.md Sources Tests scripts docs -S
@@ -45,29 +46,19 @@ shasum -a 256 ../../dist/ReadyCheck-<version>-macos.dmg
 
 ## 3. 发布公开仓库
 
-公开 `main` 发布只从 public sync 目录执行，不直接从开发工作区发布。同步前先清理上一次 public sync 的内容，但保留 `.git` 目录，避免旧构建缓存或旧产物因为 rsync exclude 规则残留：
+公开 `main` 发布只从 public sync 目录执行，不直接从开发工作区发布。先预览同步差异：
 
 ```bash
-find /private/tmp/readycheck-public-sync-20260629 -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+scripts/sync_public_repo.sh --dry-run
 ```
 
-在仓库根目录执行同步命令，并排除内部 agent 材料：
+确认差异后执行同步：
 
 ```bash
-rsync -a --delete \
-  --exclude .git \
-  --exclude .build \
-  --exclude dist \
-  --exclude apps/windows/node_modules \
-  --exclude marketing/remotion/node_modules \
-  --exclude marketing/remotion/out \
-  --exclude .worktrees \
-  --exclude .codex \
-  --exclude .agents \
-  --exclude AGENTS.md \
-  --exclude docs/superpowers \
-  .worktrees/readycheck-macos-mvp/ /private/tmp/readycheck-public-sync-20260629/
+scripts/sync_public_repo.sh --apply
 ```
+
+脚本会清理旧同步内容、排除内部 agent 与构建文件、执行敏感信息扫描和 `git diff --check`，但不会提交、打标签、推送或创建 Release。
 
 在 public sync 目录中运行：
 

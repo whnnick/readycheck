@@ -15,7 +15,9 @@ function parseUsagePayload(payload, refreshedAt = new Date()) {
   ].filter(Boolean);
 
   if (windows.length === 0) {
-    throw new Error("No displayable Codex quota windows.");
+    const error = new Error("No displayable Codex quota windows.");
+    error.code = "parserUnavailable";
+    throw error;
   }
 
   return windows;

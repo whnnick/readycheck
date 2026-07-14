@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { ReadyCheckState } = require("../src/services/app-state");
+const { ReadyCheckState, recoveryActionForStatus, statusForUsageError } = require("../src/services/app-state");
 
 class MemoryTokenStore {
   constructor() {
@@ -203,6 +203,17 @@ async function main() {
   assert.equal(refreshedAccessToken, refreshStore.token.accessToken);
   assert.equal(refreshedAfterTokenRefresh.accountEmail, "new@example.com");
   assert.equal(refreshedAfterTokenRefresh.status, "available");
+
+  assert.equal(recoveryActionForStatus("usageUnavailable", true), "retry");
+  assert.equal(recoveryActionForStatus("tokenRefreshFailed", true), "reconnect");
+  assert.equal(recoveryActionForStatus("authorizationRejected", true), "reconnect");
+  assert.equal(recoveryActionForStatus("parserUnavailable", true), "checkForUpdates");
+  assert.equal(recoveryActionForStatus("notConnected", false), "connect");
+  assert.equal(recoveryActionForStatus("authorizationFailed", true), "reconnect");
+  assert.equal(recoveryActionForStatus("authorizationFailed", false), "connect");
+  assert.equal(statusForUsageError({ code: "authorizationRejected" }), "authorizationRejected");
+  assert.equal(statusForUsageError({ code: "parserUnavailable" }), "parserUnavailable");
+  assert.equal(statusForUsageError(new Error("offline")), "usageUnavailable");
 }
 
 function jwt(payload) {

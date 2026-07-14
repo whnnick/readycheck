@@ -14,6 +14,7 @@ Use this flow for every user-visible ReadyCheck release. Do not publish from an 
 Run from `.worktrees/readycheck-macos-mvp`:
 
 ```bash
+scripts/check_release_consistency.sh
 swift test
 git diff --check
 rg -n "0\\.1\\.<previous>|ReadyCheck-0\\.1\\.<previous>" README.md README.zh-CN.md Sources Tests scripts docs -S
@@ -45,29 +46,19 @@ Commit the development worktree after these checks pass.
 
 ## 3. Publish The Public Repository
 
-Use the public sync directory, not the development worktree, for the public `main` release. Before syncing, clear the previous public sync contents while preserving its `.git` directory so stale build caches or old artifacts cannot survive an excluded rsync path:
+Use the public sync directory, not the development worktree, for the public `main` release. Preview the sync first:
 
 ```bash
-find /private/tmp/readycheck-public-sync-20260629 -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+scripts/sync_public_repo.sh --dry-run
 ```
 
-From the repository root, sync from the development worktree while excluding internal agent material:
+Apply the sync after reviewing the dry-run output:
 
 ```bash
-rsync -a --delete \
-  --exclude .git \
-  --exclude .build \
-  --exclude dist \
-  --exclude apps/windows/node_modules \
-  --exclude marketing/remotion/node_modules \
-  --exclude marketing/remotion/out \
-  --exclude .worktrees \
-  --exclude .codex \
-  --exclude .agents \
-  --exclude AGENTS.md \
-  --exclude docs/superpowers \
-  .worktrees/readycheck-macos-mvp/ /private/tmp/readycheck-public-sync-20260629/
+scripts/sync_public_repo.sh --apply
 ```
+
+The script clears stale sync contents, excludes internal agent and build files, scans for sensitive data, and runs `git diff --check`. It never commits, tags, pushes, or creates a release.
 
 In the public sync directory:
 

@@ -56,6 +56,22 @@ async function main() {
     () => unsafeResetClient.fetchResetCredits("access", "account-123"),
     /Unsafe reset credits endpoint/
   );
+
+  const unauthorizedClient = new CodexUsageClient({
+    fetchImpl: async () => ({ ok: false, status: 401 })
+  });
+  await assert.rejects(
+    () => unauthorizedClient.fetchUsage("access", "account-123"),
+    (error) => error.code === "authorizationRejected"
+  );
+
+  const offlineClient = new CodexUsageClient({
+    fetchImpl: async () => ({ ok: false, status: 503 })
+  });
+  await assert.rejects(
+    () => offlineClient.fetchUsage("access", "account-123"),
+    (error) => error.code === "usageRequestFailed"
+  );
 }
 
 main().then(

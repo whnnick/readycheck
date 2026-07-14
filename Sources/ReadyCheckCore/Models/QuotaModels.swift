@@ -63,6 +63,14 @@ public enum QuotaUrgency: String, Codable, Equatable, Sendable {
     }
 }
 
+public enum QuotaRecoveryAction: String, Codable, Equatable, Sendable {
+    case retry
+    case reconnect
+    case connect
+    case checkForUpdates
+    case none
+}
+
 public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
     private static let consistencyTolerance = 0.0001
 
@@ -186,5 +194,24 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
 
     public func isStale(now: Date) -> Bool {
         now >= staleAfter
+    }
+
+    public var recoveryAction: QuotaRecoveryAction {
+        if errors.contains("quota.error.oauthRequired") {
+            return .connect
+        }
+        if errors.contains("quota.error.tokenRefreshFailed")
+            || errors.contains("quota.error.accountIdUnavailable")
+            || errors.contains("quota.error.authorizationRejected") {
+            return .reconnect
+        }
+        if errors.contains("quota.error.parserUnavailable") {
+            return .checkForUpdates
+        }
+        if errors.contains("quota.error.endpointCalibrationRequired")
+            || errors.contains("quota.error.unsafeEndpoint") {
+            return .none
+        }
+        return errors.isEmpty ? .none : .retry
     }
 }

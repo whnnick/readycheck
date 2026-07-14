@@ -205,6 +205,34 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertEqual(snapshot.errors, ["quota.error.accountIdUnavailable"])
         XCTAssertEqual(snapshot.windows, [])
     }
+
+    func testProviderRequestsReauthenticationOnlyWhenUsageAuthorizationIsRejected() async throws {
+        let credentialStore = InMemoryCredentialStore()
+        let tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)
+        try await tokenStore.saveToken(
+            CodexOAuthToken(
+                accessToken: "access",
+                refreshToken: "refresh",
+                idToken: nil,
+                tokenType: "Bearer",
+                expiresAt: Date(timeIntervalSince1970: 4_600),
+                accountID: "account-123",
+                email: nil
+            )
+        )
+        let loader = QuotaRecordingHTTPDataLoader(data: Data(), statusCode: 401)
+        let provider = CodexOAuthQuotaProvider(
+            credentialStore: credentialStore,
+            resetCreditsEndpoint: nil,
+            quotaClient: CodexQuotaHTTPClient(loader: loader),
+            now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: .manual))
+
+        XCTAssertEqual(snapshot.errors, ["quota.error.authorizationRejected"])
+        XCTAssertEqual(snapshot.recoveryAction, .reconnect)
+    }
 }
 
 private actor QuotaRecordingHTTPDataLoader: HTTPDataLoading {

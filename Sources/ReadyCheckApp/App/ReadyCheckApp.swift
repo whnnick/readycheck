@@ -54,6 +54,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         showMainWindow()
         Task {
             await appModel.reloadCodexOAuthConnectionStatus()
+            await appModel.reloadQuotaHistory()
             await appModel.refresh(reason: .openedPanel)
             await appModel.checkForUpdates(isManual: false)
             appModel.restoreFloatingWidgetIfNeeded()
@@ -190,6 +191,7 @@ final class ReadyCheckAppModel {
         }
     }
     var snapshots: [ProviderQuotaSnapshot] = []
+    var quotaHistorySamples: [QuotaHistorySample] = []
     var isRefreshing = false
     var lastRefreshAt: Date?
     var codexOAuthStatus: CodexOAuthConnectionStatus = .notConnected
@@ -207,6 +209,9 @@ final class ReadyCheckAppModel {
 
     @ObservationIgnored
     private let updateChecker: GitHubReleaseUpdateChecker
+
+    @ObservationIgnored
+    private let quotaHistoryStore: QuotaHistoryStore
 
     @ObservationIgnored
     private var store: QuotaStore
@@ -227,6 +232,9 @@ final class ReadyCheckAppModel {
     private var pendingCodexOAuthSession: CodexOAuthSession?
 
     @ObservationIgnored
+    private var wasConnectedBeforePendingAuthorization = false
+
+    @ObservationIgnored
     private var oauthCallbackServer: OAuthLoopbackCallbackServer?
 
     @ObservationIgnored
@@ -235,11 +243,13 @@ final class ReadyCheckAppModel {
     init(
         credentialStore: any CredentialStore = KeychainCredentialStore(),
         codexOAuthClient: CodexOAuthClient = CodexOAuthClient(),
-        updateChecker: GitHubReleaseUpdateChecker = GitHubReleaseUpdateChecker()
+        updateChecker: GitHubReleaseUpdateChecker = GitHubReleaseUpdateChecker(),
+        quotaHistoryStore: QuotaHistoryStore? = nil
     ) {
         self.credentialStore = credentialStore
         self.codexOAuthClient = codexOAuthClient
         self.updateChecker = updateChecker
+        self.quotaHistoryStore = quotaHistoryStore ?? QuotaHistoryStore(fileURL: Self.defaultQuotaHistoryURL)
         self.store = QuotaStore(
             registry: ProviderRegistry(
                 configurations: ProviderConfiguration.defaults,
@@ -362,7 +372,7 @@ final class ReadyCheckAppModel {
         }
     }
 
-    func beginCodexOAuthConnection() -> URL? {
+    func beginCodexOAuthConnection(replacingExistingAuthorization: Bool = false) -> URL? {
         do {
             let authorizer = CodexOAuthAuthorizer(
                 client: codexOAuthClient,
@@ -370,10 +380,13 @@ final class ReadyCheckAppModel {
             )
             let session = try authorizer.begin()
             pendingCodexOAuthSession = session
+            wasConnectedBeforePendingAuthorization = replacingExistingAuthorization && codexOAuthStatus == .connected
             codexOAuthProviderEnabled = true
             codexOAuthStatus = .waitingForCallback
             codexOAuthStatusMessage = nil
-            codexOAuthLoginEmail = nil
+            if !wasConnectedBeforePendingAuthorization {
+                codexOAuthLoginEmail = nil
+            }
             startCodexOAuthCallbackServer()
             return session.authorizationURL
         } catch {
@@ -407,14 +420,18 @@ final class ReadyCheckAppModel {
             codexOAuthProviderEnabled = true
             codexOAuthStatus = .connected
             codexOAuthLoginEmail = token.loginEmail
+            wasConnectedBeforePendingAuthorization = false
             await refresh(reason: .manual)
         } catch {
             pendingCodexOAuthSession = nil
             codexOAuthCallbackURL = ""
             stopCodexOAuthCallbackServer()
-            codexOAuthStatus = .failed
+            codexOAuthStatus = wasConnectedBeforePendingAuthorization ? .connected : .failed
             codexOAuthStatusMessage = codexOAuthMessage(for: error)
-            codexOAuthLoginEmail = nil
+            if !wasConnectedBeforePendingAuthorization {
+                codexOAuthLoginEmail = nil
+            }
+            wasConnectedBeforePendingAuthorization = false
         }
     }
 
@@ -422,9 +439,12 @@ final class ReadyCheckAppModel {
         pendingCodexOAuthSession = nil
         codexOAuthCallbackURL = ""
         stopCodexOAuthCallbackServer()
-        codexOAuthStatus = .notConnected
+        codexOAuthStatus = wasConnectedBeforePendingAuthorization ? .connected : .notConnected
         codexOAuthStatusMessage = nil
-        codexOAuthLoginEmail = nil
+        if !wasConnectedBeforePendingAuthorization {
+            codexOAuthLoginEmail = nil
+        }
+        wasConnectedBeforePendingAuthorization = false
     }
 
     func disconnectCodexOAuth() async {
@@ -441,6 +461,7 @@ final class ReadyCheckAppModel {
             codexOAuthStatusMessage = nil
             codexOAuthLoginEmail = nil
             codexOAuthProviderEnabled = false
+            wasConnectedBeforePendingAuthorization = false
         } catch {
             codexOAuthStatus = .failed
             codexOAuthStatusMessage = codexOAuthMessage(for: error)
@@ -519,6 +540,13 @@ final class ReadyCheckAppModel {
 
         snapshots = await activeStore.snapshots
         lastRefreshAt = Date()
+        for snapshot in snapshots where snapshot.providerId == "codex-oauth" && snapshot.status == .available {
+            quotaHistorySamples = await quotaHistoryStore.record(snapshot)
+        }
+    }
+
+    func reloadQuotaHistory() async {
+        quotaHistorySamples = await quotaHistoryStore.load()
     }
 
     private func rebuildStoreIfConfigurationChanged(oldValue: Bool, newValue: Bool) {
@@ -533,5 +561,13 @@ final class ReadyCheckAppModel {
         storeGeneration += 1
         snapshots = []
         lastRefreshAt = nil
+    }
+
+    private static var defaultQuotaHistoryURL: URL {
+        let applicationSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support", isDirectory: true)
+        return applicationSupport
+            .appendingPathComponent("ReadyCheck", isDirectory: true)
+            .appendingPathComponent("quota-history.json")
     }
 }

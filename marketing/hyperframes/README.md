@@ -5,10 +5,12 @@ HyperFrames project for the GitHub README product preview GIF.
 ## Check
 
 ```bash
-npm run check
+scripts/verify_readme_preview.sh
 ```
 
-This runs HyperFrames lint, browser validation, and layout inspection.
+This runs HyperFrames lint, browser validation, layout inspection, GIF metadata checks, and sensitive-text checks. It also writes a six-frame contact sheet to the system temporary directory.
+
+The contact sheet must be inspected manually before publishing. Confirm that the main window, menu-bar summary, and widget stay in separate regions with no overlap, clipping, edge artifacts, unreadable text, or personal information.
 
 ## Render
 

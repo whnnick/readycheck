@@ -96,6 +96,9 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             )
         } catch CodexUsageParserError.noDisplayableWindows {
             return snapshot(date: date, error: "quota.error.parserUnavailable")
+        } catch CodexQuotaHTTPClientError.requestFailed(let statusCode)
+            where statusCode == 401 || statusCode == 403 {
+            return snapshot(date: date, error: "quota.error.authorizationRejected")
         } catch {
             return snapshot(date: date, error: "quota.error.requestFailed")
         }

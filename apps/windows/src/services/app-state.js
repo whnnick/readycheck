@@ -17,6 +17,7 @@ class ReadyCheckState {
     this.tokenStore = options.tokenStore || null;
     this.oauthClient = options.oauthClient || null;
     this.usageClient = options.usageClient || null;
+    this.historyStore = options.historyStore || null;
     this.oauthSession = null;
     this.connected = false;
     this.accountEmail = null;
@@ -24,6 +25,7 @@ class ReadyCheckState {
     this.isRefreshing = false;
     this.status = "notConnected";
     this.quota = buildUnavailableQuota();
+    this.quotaHistory = this.historyStore ? this.historyStore.load() : [];
   }
 
   snapshot() {
@@ -35,6 +37,8 @@ class ReadyCheckState {
       isRefreshing: this.isRefreshing,
       status: this.status,
       quota: this.quota,
+      quotaHistory: this.quotaHistory,
+      recoveryAction: recoveryActionForStatus(this.status, this.connected),
       safeRefresh: {
         endpoint: USAGE_ENDPOINT,
         allowed: isAllowedForRefresh(USAGE_ENDPOINT)
@@ -184,8 +188,11 @@ class ReadyCheckState {
         manualResetExpiresAt: manualResetExpirations[0] || null,
         windows
       };
-    } catch (_error) {
-      this.status = "usageUnavailable";
+      if (this.historyStore) {
+        this.quotaHistory = this.historyStore.record(this.quota, refreshedAt);
+      }
+    } catch (error) {
+      this.status = statusForUsageError(error);
       this.quota = buildUnavailableQuota();
     }
   }
@@ -201,6 +208,35 @@ class ReadyCheckState {
       return { manualResetCount: null, manualResetExpirations: [] };
     }
   }
+}
+
+function statusForUsageError(error) {
+  if (error && error.code === "authorizationRejected") {
+    return "authorizationRejected";
+  }
+  if (error && error.code === "parserUnavailable") {
+    return "parserUnavailable";
+  }
+  return "usageUnavailable";
+}
+
+function recoveryActionForStatus(status, connected) {
+  if (status === "authorizationFailed") {
+    return connected ? "reconnect" : "connect";
+  }
+  if (status === "tokenRefreshFailed" || status === "accountIdUnavailable" || status === "authorizationRejected") {
+    return "reconnect";
+  }
+  if (status === "parserUnavailable") {
+    return "checkForUpdates";
+  }
+  if (!connected || status === "notConnected") {
+    return "connect";
+  }
+  if (status === "usageUnavailable") {
+    return "retry";
+  }
+  return "none";
 }
 
 function buildUnavailableQuota() {
@@ -230,5 +266,7 @@ function buildUnavailableQuota() {
 }
 
 module.exports = {
-  ReadyCheckState
+  ReadyCheckState,
+  recoveryActionForStatus,
+  statusForUsageError
 };

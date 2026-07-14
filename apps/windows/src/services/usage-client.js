@@ -31,7 +31,9 @@ class CodexUsageClient {
       headers
     });
     if (!response.ok) {
-      throw new Error(`Codex usage request failed with status ${response.status}`);
+      const error = new Error(`Codex usage request failed with status ${response.status}`);
+      error.code = response.status === 401 || response.status === 403 ? "authorizationRejected" : "usageRequestFailed";
+      throw error;
     }
     return response.json();
   }

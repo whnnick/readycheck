@@ -2,6 +2,15 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class QuotaModelsTests: XCTestCase {
+    func testRecoveryActionMatchesFailureType() {
+        XCTAssertEqual(errorSnapshot("quota.error.requestFailed").recoveryAction, .retry)
+        XCTAssertEqual(errorSnapshot("quota.error.tokenRefreshFailed").recoveryAction, .reconnect)
+        XCTAssertEqual(errorSnapshot("quota.error.authorizationRejected").recoveryAction, .reconnect)
+        XCTAssertEqual(errorSnapshot("quota.error.oauthRequired").recoveryAction, .connect)
+        XCTAssertEqual(errorSnapshot("quota.error.parserUnavailable").recoveryAction, .checkForUpdates)
+        XCTAssertEqual(errorSnapshot("quota.error.unsafeEndpoint").recoveryAction, .none)
+    }
+
     func testRemainingRatioUsesRemainingOverLimit() throws {
         let window = QuotaWindow(
             id: "codex-5h",
@@ -249,4 +258,17 @@ final class QuotaModelsTests: XCTestCase {
             errors: []
         )
     }
+}
+
+private func errorSnapshot(_ error: String) -> ProviderQuotaSnapshot {
+    ProviderQuotaSnapshot(
+        providerId: "codex-oauth",
+        displayName: "Codex",
+        status: .unavailable,
+        source: .oauthAPI,
+        refreshedAt: Date(timeIntervalSince1970: 1_000),
+        staleAfter: Date(timeIntervalSince1970: 1_300),
+        windows: [],
+        errors: [error]
+    )
 }

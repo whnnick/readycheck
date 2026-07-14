@@ -41,6 +41,15 @@ Use this checklist before publishing a preview build or when validating a user-r
 1. Test or simulate a quota window below 25% remaining. Confirm the warning and red progress bar are visible.
 2. Disconnect the network and refresh. Confirm the app does not convert stale or failed data into a guessed percentage.
 3. Confirm stale quota snapshots are marked stale or unavailable instead of being shown as current.
+4. With a valid login and a temporary network or server failure, confirm **Try again** appears and can recover without signing in again.
+5. Simulate a rejected or unrefreshable authorization and confirm **Sign in again** appears; cancelling or failing replacement authorization must not delete a previously valid token.
+
+## Local Usage Trends
+
+1. Complete at least two successful refreshes more than five minutes apart and confirm the 24-hour dashboard plots both quota windows.
+2. Confirm 7-day and 30-day range switching does not affect the floating widget or trigger a network request.
+3. Confirm quota resets do not count as consumption and the UI describes values as percentage-point changes, not token usage.
+4. Inspect the local history payload and confirm it contains no email, account id, credential, or raw API response.
 
 ## Windows Preview Black-Box QA
 

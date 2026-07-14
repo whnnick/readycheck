@@ -63,6 +63,7 @@ final class LocalizationServiceTests: XCTestCase {
             "quota.error.unsafeEndpoint",
             "quota.error.tokenRefreshFailed",
             "quota.error.accountIdUnavailable",
+            "quota.error.authorizationRejected",
             "quota.error.parserUnavailable",
             "quota.error.requestFailed",
             "oauth.status.notConnected",

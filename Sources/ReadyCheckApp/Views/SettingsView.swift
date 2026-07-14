@@ -20,6 +20,14 @@ struct SettingsView: View {
                     quotaControls
                 }
 
+                GlassSurface(cornerRadius: 24) {
+                    RecentUsageView(
+                        samples: model.quotaHistorySamples,
+                        localization: model.localization,
+                        now: now
+                    )
+                }
+
                 HStack(alignment: .top, spacing: 14) {
                     GlassSurface(cornerRadius: 20) {
                         codexOAuthProviderControls
@@ -533,14 +541,74 @@ struct SettingsView: View {
                 .padding(.vertical, 8)
             } else {
                 ForEach(model.snapshots) { snapshot in
-                    QuotaCardView(
-                        snapshot: snapshot,
-                        localization: model.localization,
-                        now: now,
-                        displayMode: .full
-                    )
+                    VStack(alignment: .leading, spacing: 8) {
+                        QuotaCardView(
+                            snapshot: snapshot,
+                            localization: model.localization,
+                            now: now,
+                            displayMode: .full
+                        )
+
+                        quotaRecoveryActions(for: snapshot)
+                    }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func quotaRecoveryActions(for snapshot: ProviderQuotaSnapshot) -> some View {
+        switch snapshot.recoveryAction {
+        case .retry:
+            Button {
+                Task { await model.refresh(reason: .manual) }
+            } label: {
+                Label(model.localization.text("action.tryAgain"), systemImage: "arrow.clockwise")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+
+        case .reconnect:
+            Button {
+                if let url = model.beginCodexOAuthConnection(replacingExistingAuthorization: true) {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                Label(model.localization.text("action.reconnect"), systemImage: "person.badge.key.fill")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+
+        case .connect:
+            Button {
+                if let url = model.beginCodexOAuthConnection() {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                Label(model.localization.text("action.connectCodex"), systemImage: "key.horizontal")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+
+        case .checkForUpdates:
+            HStack(spacing: 8) {
+                Button {
+                    Task { await model.checkForUpdates(isManual: true) }
+                } label: {
+                    Label(model.localization.text("action.checkForUpdates"), systemImage: "arrow.triangle.2.circlepath")
+                }
+
+                Button {
+                    Task { await model.refresh(reason: .manual) }
+                } label: {
+                    Text(model.localization.text("action.tryAgain"))
+                }
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+
+        case .none:
+            EmptyView()
         }
     }
 

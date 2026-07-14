@@ -14,6 +14,7 @@ for (const relativePath of [
   "src/renderer.html",
   "src/widget.html",
   "src/services/app-state.js",
+  "src/services/history-store.js",
   "src/services/oauth.js",
   "src/services/token-store.js",
   "src/services/usage-client.js",
@@ -39,5 +40,6 @@ assert.equal(widgetHTML.includes('data-widget-mode-option="detailed"'), true);
 
 const rendererHTML = fs.readFileSync(path.join(appRoot, "src/renderer.html"), "utf8");
 assert.equal(rendererHTML.includes('id="oauthStatusText"'), true);
+assert.equal(rendererHTML.includes('id="usageDashboard"'), true);
 
 console.log("Windows smoke checks passed.");

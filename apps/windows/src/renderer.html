@@ -44,6 +44,30 @@
           <span id="lastRefresh">尚未刷新</span>
         </div>
         <div id="quotaContent"></div>
+        <div id="quotaRecoveryActions" class="recovery-actions" hidden>
+          <button id="quotaRetryButton" class="primary">重新尝试</button>
+          <button id="quotaReconnectButton" class="primary">重新登录</button>
+          <button id="quotaConnectButton" class="primary">连接 Codex</button>
+          <button id="quotaUpdateButton">检查更新</button>
+        </div>
+      </section>
+
+      <section class="usage-card glass">
+        <div class="section-heading usage-heading">
+          <div>
+            <h2>近期使用趋势</h2>
+            <p class="muted">根据本机记录的配额百分比变化统计，不是 Token 用量。</p>
+          </div>
+          <div class="usage-heading-actions">
+            <span class="local-badge">本地记录</span>
+            <div class="segmented-control" id="usageRange" aria-label="趋势时间范围">
+              <button data-usage-range="1" class="active">24 小时</button>
+              <button data-usage-range="7">7 天</button>
+              <button data-usage-range="30">30 天</button>
+            </div>
+          </div>
+        </div>
+        <div id="usageDashboard"></div>
       </section>
 
       <section class="settings-grid">

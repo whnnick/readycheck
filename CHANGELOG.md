@@ -4,6 +4,14 @@
 
 - Rebuild the GitHub README preview GIF with HyperFrames and real product screenshots for a clearer product showcase.
 
+## 0.1.62 - 2026-07-14
+
+- Add contextual quota recovery actions: retry temporary refresh failures, reconnect only when authorization is explicitly rejected or cannot be refreshed, and keep existing credentials until replacement authorization succeeds.
+- Add a local recent-usage dashboard for 24-hour, 7-day, and 30-day quota percentage trends without claiming token usage data.
+- Persist privacy-minimized quota history locally in five-minute buckets for up to 30 days; account identifiers, credentials, and raw API responses are never stored in history.
+- Keep the macOS and Windows recovery behavior, dashboard scope, and release version aligned.
+- Make the Windows packaging script publish to the same repository-level `dist` directory when run from a git worktree.
+
 ## 0.1.61 - 2026-07-03
 
 - Start the Windows desktop client under `apps/windows` with an Electron tray, main window, floating widget shell, local preferences, and fail-closed safe-refresh state.

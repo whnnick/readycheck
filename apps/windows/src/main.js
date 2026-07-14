@@ -5,6 +5,7 @@ const path = require("node:path");
 const { app, BrowserWindow, Menu, Tray, ipcMain, nativeImage, shell } = require("electron");
 const { CodexOAuthClient } = require("./services/oauth");
 const { PrefsStore } = require("./services/prefs-store");
+const { QuotaHistoryStore } = require("./services/history-store");
 const { ReadyCheckState } = require("./services/app-state");
 const { EncryptedTokenStore } = require("./services/token-store");
 const { CodexUsageClient } = require("./services/usage-client");
@@ -332,7 +333,8 @@ app.whenReady().then(async () => {
   readyState = new ReadyCheckState(prefsStore.load(), {
     tokenStore: new EncryptedTokenStore(userDataPath),
     oauthClient: new CodexOAuthClient(),
-    usageClient: new CodexUsageClient()
+    usageClient: new CodexUsageClient(),
+    historyStore: new QuotaHistoryStore(userDataPath)
   });
   registerIpc();
   await readyState.reloadConnectionStatus();
