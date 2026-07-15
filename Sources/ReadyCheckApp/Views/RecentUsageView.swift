@@ -1,4 +1,5 @@
 import Charts
+import Foundation
 import ReadyCheckCore
 import SwiftUI
 
@@ -31,6 +32,8 @@ struct RecentUsageView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedRange: Range = .day
     @State private var selectedWindowID = "codex-primary"
+    @State private var chartRevealProgress = 0.0
+    @State private var didRevealChart = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -82,24 +85,29 @@ struct RecentUsageView: View {
                     .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
                 }
 
-                if selectedPoints.count < 2 {
+                if selectedRangePoints.count < 2 {
                     collectingState
                 } else {
                     Text(chartTitle)
                         .font(.subheadline.weight(.semibold))
 
-                    Chart(buckets) { bucket in
+                    Chart(displayBuckets) { bucket in
                         BarMark(
-                            x: .value(localization.text("usage.time"), bucket.start, unit: axisUnit),
-                            y: .value(localization.text("usage.consumedPercent"), bucket.consumedRatio * 100)
+                            x: .value(localization.text("usage.time"), bucketKey(bucket)),
+                            y: .value(
+                                localization.text("usage.consumedPercent"),
+                                bucket.consumedRatio * 100 * chartRevealProgress
+                            ),
+                            width: .fixed(12)
                         )
                         .foregroundStyle(Color.accentColor.gradient)
                         .clipShape(RoundedRectangle(cornerRadius: 3))
                         .annotation(position: .top, alignment: .center) {
-                            if bucket.consumedRatio > 0, bucket == highestBucket {
-                                Text(String(format: "%.0f", bucket.consumedRatio * 100))
-                                    .font(.caption2.weight(.bold))
+                            if bucket.consumedRatio > 0 {
+                                Text(String(format: "%.0f%%", bucket.consumedRatio * 100))
+                                    .font(.system(size: 9, weight: .semibold))
                                     .foregroundStyle(.secondary)
+                                    .fixedSize()
                             }
                         }
                     }
@@ -115,17 +123,23 @@ struct RecentUsageView: View {
                         }
                     }
                     .chartXAxis {
-                        AxisMarks(values: .automatic(desiredCount: selectedRange == .day ? 5 : 4)) { value in
-                            AxisValueLabel(format: axisFormat)
+                        AxisMarks(values: xAxisKeys) { value in
+                            AxisValueLabel {
+                                if let key = value.as(String.self),
+                                   let date = bucketDateByKey[key] {
+                                    Text(date, format: axisFormat)
+                                }
+                            }
                         }
                     }
                     .chartPlotStyle { plotArea in
                         plotArea.background(Color.primary.opacity(0.025))
                     }
                     .frame(height: 178)
-                    .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: buckets)
+                    .animation(reduceMotion ? nil : .easeOut(duration: 0.28), value: samples)
+                    .onAppear(perform: revealChartOnce)
 
-                    if buckets.allSatisfy({ $0.consumedRatio == 0 }) {
+                    if displayBuckets.allSatisfy({ $0.consumedRatio == 0 }) {
                         Text(localization.text("usage.noConsumption"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -172,37 +186,67 @@ struct RecentUsageView: View {
         now.addingTimeInterval(-selectedRange.rawValue)
     }
 
+    private var selectedRangePoints: [(date: Date, ratio: Double)] {
+        selectedPoints.filter { $0.date >= aggregationRangeStart && $0.date <= now }
+    }
+
+    private var aggregationRangeEnd: Date {
+        QuotaUsageAggregation.alignedRangeEnd(
+            containing: now,
+            bucketInterval: selectedRange.bucketInterval
+        )
+    }
+
+    private var aggregationRangeStart: Date {
+        aggregationRangeEnd.addingTimeInterval(-selectedRange.rawValue)
+    }
+
     private var buckets: [QuotaUsageBucket] {
         guard let window = activeWindow else { return [] }
         return QuotaUsageAggregation.buckets(
             samples: providerSamples,
             providerID: "codex-oauth",
             windowID: window.id,
-            rangeStart: rangeStart,
-            rangeEnd: now,
+            rangeStart: aggregationRangeStart,
+            rangeEnd: aggregationRangeEnd,
             bucketInterval: selectedRange.bucketInterval
         )
     }
 
-    private var highestBucket: QuotaUsageBucket? {
-        buckets.max { $0.consumedRatio < $1.consumedRatio }
-    }
-
     private var chartMaximum: Double {
-        let highest = (buckets.map(\.consumedRatio).max() ?? 0) * 100
-        return max(5, ceil(highest / 5) * 5)
+        QuotaUsageAggregation.chartMaximumPercent(
+            for: displayBuckets.map { $0.consumedRatio * 100 }
+        )
     }
 
     private var yAxisValues: [Double] {
         [0, chartMaximum / 2, chartMaximum]
     }
 
-    private var axisUnit: Calendar.Component {
-        switch selectedRange {
-        case .day: .hour
-        case .week: .hour
-        case .month: .day
+    private var displayBuckets: [QuotaUsageBucket] {
+        QuotaUsageAggregation.observedBuckets(
+            buckets,
+            firstObservedAt: selectedRangePoints.first?.date
+        )
+    }
+
+    private var xAxisKeys: [String] {
+        guard !displayBuckets.isEmpty else { return [] }
+        let indexes = [0, displayBuckets.count / 2, displayBuckets.count - 1]
+        return indexes.reduce(into: []) { keys, index in
+            let key = bucketKey(displayBuckets[index])
+            if keys.last != key {
+                keys.append(key)
+            }
         }
+    }
+
+    private var bucketDateByKey: [String: Date] {
+        Dictionary(uniqueKeysWithValues: displayBuckets.map { (bucketKey($0), $0.start) })
+    }
+
+    private func bucketKey(_ bucket: QuotaUsageBucket) -> String {
+        String(Int(bucket.start.timeIntervalSince1970))
     }
 
     private var axisFormat: Date.FormatStyle {
@@ -262,11 +306,10 @@ struct RecentUsageView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(10)
-            .background(isSelected ? Color.accentColor.opacity(0.13) : Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
-            .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isSelected ? Color.accentColor : .clear, lineWidth: 1.25)
-            }
+            .background(
+                isSelected ? Color.primary.opacity(0.09) : Color.primary.opacity(0.05),
+                in: RoundedRectangle(cornerRadius: 8)
+            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(localization.text(window.labelKey)) \(localization.text("usage.selectWindow"))")
@@ -292,6 +335,22 @@ struct RecentUsageView: View {
         case .day: localization.text("usage.range.day")
         case .week: localization.text("usage.range.week")
         case .month: localization.text("usage.range.month")
+        }
+    }
+
+    private func revealChartOnce() {
+        guard !didRevealChart else { return }
+        didRevealChart = true
+
+        guard !reduceMotion else {
+            chartRevealProgress = 1
+            return
+        }
+
+        DispatchQueue.main.async {
+            withAnimation(.easeOut(duration: 0.55)) {
+                chartRevealProgress = 1
+            }
         }
     }
 }

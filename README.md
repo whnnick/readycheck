@@ -8,7 +8,7 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Status: `0.1.64` is an early macOS preview. Codex OAuth is the only supported provider in this release. A Windows portable preview package is available for Windows 10/11 testing.
+> Status: `0.1.65` is an early macOS preview. Codex OAuth is the only supported provider in this release. A Windows portable preview package is available for Windows 10/11 testing.
 
 ## What It Does
 
@@ -23,9 +23,9 @@ ReadyCheck fails closed: when quota data cannot be read or validated, it shows a
 
 ## Install
 
-Download `ReadyCheck-0.1.64-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
+Download `ReadyCheck-0.1.65-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
 
-For Windows 10/11 preview testing, download `ReadyCheck-0.1.64-windows-x64-portable.zip` from the same release, unzip it, and run `ReadyCheck.exe`.
+For Windows 10/11 preview testing, download `ReadyCheck-0.1.65-windows-x64-portable.zip` from the same release, unzip it, and run `ReadyCheck.exe`.
 
 The preview build is ad-hoc signed and not notarized. macOS may require you to confirm the first launch in **System Settings > Privacy & Security**. See [installation details](docs/INSTALL.md).
 
@@ -47,7 +47,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The DMG is written to `dist/ReadyCheck-0.1.64-macos.dmg`.
+The DMG is written to `dist/ReadyCheck-0.1.65-macos.dmg`.
 
 ## Windows Preview Development
 

@@ -24,6 +24,7 @@ rg -n "0\\.1\\.<上一版>|ReadyCheck-0\\.1\\.<上一版>" README.md README.zh-C
 
 ```bash
 scripts/package_dmg.sh
+scripts/package_windows_portable.sh
 ```
 
 `scripts/package_dmg.sh` 是标准本地打包入口。它会在写入当前版本 DMG 前自动清理 `dist` 中的旧 `ReadyCheck-*-macos.dmg`。
@@ -41,6 +42,7 @@ shasum -a 256 ../../dist/ReadyCheck-<version>-macos.dmg
 
 - `ReadyCheck.app`
 - `ReadyCheck-<version>-macos.dmg`
+- `windows/ReadyCheck-<version>-windows-x64-portable.zip`
 
 这些检查通过后，再提交开发工作区。
 
@@ -66,15 +68,18 @@ scripts/sync_public_repo.sh --apply
 swift test
 git diff --check
 scripts/package_dmg.sh
+scripts/package_windows_portable.sh
 find dist -maxdepth 1 -type f -o -type d
 hdiutil imageinfo dist/ReadyCheck-<version>-macos.dmg
 shasum -a 256 dist/ReadyCheck-<version>-macos.dmg
+unzip -t dist/windows/ReadyCheck-<version>-windows-x64-portable.zip
 ```
 
 public sync 的 `dist` 只能包含：
 
 - `ReadyCheck.app`
 - `ReadyCheck-<version>-macos.dmg`
+- `windows/ReadyCheck-<version>-windows-x64-portable.zip`
 
 然后提交、打标签、推送并创建 GitHub Release：
 
@@ -84,7 +89,7 @@ git commit -m "Update ReadyCheck macOS preview to <version>"
 git tag -a v<version> -m "ReadyCheck <version>"
 git push origin HEAD:main
 git push origin v<version>
-gh release create v<version> dist/ReadyCheck-<version>-macos.dmg --repo whnnick/readycheck --title "ReadyCheck <version>" --notes "<release notes>"
+gh release create v<version> dist/ReadyCheck-<version>-macos.dmg dist/windows/ReadyCheck-<version>-windows-x64-portable.zip --repo whnnick/readycheck --title "ReadyCheck <version>" --notes "<release notes>"
 ```
 
 如果本地网络无法稳定上传较大的 Windows zip，运行 GitHub Actions 里的 `Upload Windows Release Asset` 手动 workflow：

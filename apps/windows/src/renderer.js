@@ -42,6 +42,9 @@ const isWidget = document.body.dataset.surface === "widget";
 let currentState = null;
 let usageRangeDays = 1;
 let usageWindowID = "codex-primary";
+let usageChartHasAnimated = false;
+let usageChartContextKey = null;
+const previousUsageBarsByContext = new Map();
 const MAX_USAGE_ATTRIBUTABLE_GAP_MS = 10 * 60 * 1000;
 
 function render(state) {
@@ -129,6 +132,7 @@ function renderQuota(state) {
     const ratio = typeof window.remainingRatio === "number" ? window.remainingRatio : null;
     const percent = ratio === null ? "—" : `${Math.round(ratio * 100)}%`;
     const progress = ratio === null ? 0 : Math.min(Math.max(ratio, 0), 1) * 100;
+    const warning = quotaWarning(ratio, window.labelKey);
     rows.push(`
       <article class="quota-row">
         <div class="quota-row-heading">
@@ -139,6 +143,7 @@ function renderQuota(state) {
           <div class="progress-fill ${urgencyClass(ratio)}" style="width:${progress}%"></div>
         </div>
         <p>${formatDate(window.resetAt) || "等待连接后刷新"}</p>
+        ${warning ? `<p class="quota-warning ${urgencyClass(ratio)}">${warning}</p>` : ""}
       </article>
     `);
   }
@@ -169,6 +174,9 @@ function renderUsageDashboard(state) {
   }
 
   const now = Date.now();
+  const bucketSize = usageBucketSizeMs();
+  const chartRangeEnd = alignedUsageRangeEnd(now, bucketSize);
+  const chartRangeStart = chartRangeEnd - usageRangeDays * 24 * 60 * 60 * 1000;
   const cutoff = now - usageRangeDays * 24 * 60 * 60 * 1000;
   const series = historySeries(state.quotaHistory || []);
   if (series.length === 0) {
@@ -188,9 +196,17 @@ function renderUsageDashboard(state) {
     usageWindowID = availableSeries[0].windowID;
   }
   const selected = availableSeries.find((item) => item.windowID === usageWindowID) || availableSeries[0];
-  const selectedPoints = selected.points.filter((point) => point.timestamp >= cutoff);
+  const selectedPoints = selected.points.filter((point) => point.timestamp >= chartRangeStart && point.timestamp <= now);
   const latest = selected.points.at(-1);
-  const bars = usageBars(selected.points, cutoff, now, usageBucketSizeMs());
+  const allBars = usageBars(selected.points, chartRangeStart, chartRangeEnd, bucketSize);
+  const bars = observedUsageBars(allBars, selectedPoints[0] && selectedPoints[0].timestamp);
+  const shouldAnimateChart = selectedPoints.length >= 2 && !usageChartHasAnimated;
+  const chartContextKey = `${usageRangeDays}:${selected.windowID}`;
+  const shouldFadeChart = usageChartHasAnimated && usageChartContextKey !== chartContextKey;
+  const previousChart = previousUsageBarsByContext.get(chartContextKey) || { values: new Map(), maximum: null };
+  const chartMaximum = usageChartMaximum(bars.map((bar) => bar.consumedPercent));
+  const chartStart = bars[0] ? bars[0].start : cutoff;
+  const chartEnd = bars.at(-1) ? bars.at(-1).end : now;
   elements.usageDashboard.innerHTML = `
     <div class="usage-metrics">
       ${usageMetric("5 小时额度", fiveHour, cutoff)}
@@ -204,13 +220,30 @@ function renderUsageDashboard(state) {
       </div>
     ` : `
       <div class="usage-chart-wrap">
-        <div class="usage-chart-heading"><strong>${usageWindowLabel(selected)} · 每时段消耗</strong><span>悬停查看详情</span></div>
-        ${usageChart(bars, cutoff, now)}
+        <div class="usage-chart-heading"><strong>${usageWindowLabel(selected)} · 每时段消耗</strong><span>非零柱显示百分比</span></div>
+        ${usageChart(bars, chartStart, chartEnd, {
+          shouldAnimateChart,
+          shouldFadeChart,
+          previousValues: previousChart.values,
+          previousMaximum: previousChart.maximum,
+          maximum: chartMaximum
+        })}
         ${bars.every((bar) => bar.consumedPercent === 0) ? '<p class="usage-zero">该时间范围内未检测到额度下降。</p>' : ""}
         <p class="usage-explanation">${latest.ratio <= 0 ? "当前剩余 0% 不代表使用量为 0；零柱表示该时段未检测到新的额度下降。" : "统计本地成功刷新之间的额度下降，不代表 Token 数量；额度重置、恢复和长时间无数据不会计入消耗。"}</p>
       </div>
     `}
   `;
+  if (shouldAnimateChart) {
+    usageChartHasAnimated = true;
+  }
+  usageChartContextKey = chartContextKey;
+  previousUsageBarsByContext.set(
+    chartContextKey,
+    {
+      values: new Map(bars.map((bar) => [bar.start, bar.consumedPercent])),
+      maximum: chartMaximum
+    }
+  );
 }
 
 function historySeries(samples) {
@@ -262,6 +295,10 @@ function usageBucketSizeMs() {
   return 24 * 60 * 60 * 1000;
 }
 
+function alignedUsageRangeEnd(timestamp, bucketSize) {
+  return (Math.floor(timestamp / bucketSize) + 1) * bucketSize;
+}
+
 function usageBars(points, start, end, bucketSize) {
   const count = Math.ceil((end - start) / bucketSize);
   const bars = Array.from({ length: count }, (_, index) => ({
@@ -281,20 +318,44 @@ function usageBars(points, start, end, bucketSize) {
   return bars;
 }
 
-function usageChart(bars, start, end) {
+function observedUsageBars(bars, firstObservedAt) {
+  if (!Number.isFinite(firstObservedAt)) {
+    return [];
+  }
+  return bars.filter((bar) => bar.end > firstObservedAt);
+}
+
+function usageChart(bars, start, end, animation) {
   const width = 760;
   const height = 184;
   const padding = { top: 12, right: 12, bottom: 28, left: 32 };
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
-  const maximum = Math.max(5, Math.ceil(Math.max(...bars.map((bar) => bar.consumedPercent), 0) / 5) * 5);
-  const barWidth = Math.max(3, Math.min(22, (plotWidth / Math.max(bars.length, 1)) * 0.62));
+  const maximum = animation.maximum;
+  const barWidth = 12;
   const columns = bars.map((bar, index) => {
     const value = bar.consumedPercent;
     const barHeight = (value / maximum) * plotHeight;
     const x = padding.left + (index + 0.5) * (plotWidth / bars.length) - barWidth / 2;
     const y = padding.top + plotHeight - barHeight;
-    return `<rect class="chart-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barHeight.toFixed(1)}" rx="3"><title>${formatHistoryTime(bar.start)} - ${formatHistoryTime(bar.end)}：消耗 ${value.toFixed(1)} 个百分点</title></rect>`;
+    const previousValue = animation.previousValues.get(bar.start);
+    const shouldAnimateDelta = !animation.shouldAnimateChart
+      && !animation.shouldFadeChart
+      && value > 0
+      && value > (previousValue || 0);
+    const animationClass = animation.shouldAnimateChart ? " animate" : shouldAnimateDelta ? " delta" : "";
+    const previousHeightRatio = animation.previousMaximum
+      ? (previousValue || 0) / animation.previousMaximum
+      : 0;
+    const targetHeightRatio = value / maximum;
+    const startScale = shouldAnimateDelta && targetHeightRatio > 0
+      ? Math.max(0, previousHeightRatio / targetHeightRatio)
+      : 1;
+    const animationStyle = shouldAnimateDelta ? ` style="--bar-start-scale:${startScale.toFixed(4)}"` : "";
+    const valueLabel = value > 0
+      ? `<text class="chart-value" x="${(x + barWidth / 2).toFixed(1)}" y="${Math.max(8, y - 4).toFixed(1)}" text-anchor="middle">${Math.round(value)}%</text>`
+      : "";
+    return `<rect class="chart-bar${animationClass}"${animationStyle} x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth}" height="${barHeight.toFixed(1)}" rx="3"><title>${formatHistoryTime(bar.start)} - ${formatHistoryTime(bar.end)}：消耗 ${value.toFixed(1)} 个百分点</title></rect>${valueLabel}`;
   }).join("");
   const yLabels = [maximum, maximum / 2, 0].map((value, index) => {
     const y = padding.top + index * (plotHeight / 2);
@@ -304,9 +365,16 @@ function usageChart(bars, start, end) {
     const x = padding.left + ((timestamp - start) / Math.max(end - start, 1)) * plotWidth;
     return `<text class="chart-label" x="${x.toFixed(1)}" y="${height - 7}" text-anchor="middle">${formatUsageAxisTime(timestamp)}</text>`;
   }).join("");
-  return `<svg class="usage-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="近期额度消耗柱状图">
+  const chartClass = animation.shouldFadeChart ? "usage-chart switching" : "usage-chart";
+  return `<svg class="${chartClass}" viewBox="0 0 ${width} ${height}" role="img" aria-label="近期额度消耗柱状图">
     ${yLabels}${columns}${xLabels}
   </svg>`;
+}
+
+function usageChartMaximum(values) {
+  const highest = Math.max(...values, 0);
+  const headroom = Math.max(1, highest * 0.15);
+  return Math.max(5, Math.ceil((highest + headroom) / 5) * 5);
 }
 
 function usageWindowLabel(series) {
@@ -347,6 +415,9 @@ function urgencyClass(ratio) {
   if (ratio === null) {
     return "unknown";
   }
+  if (Math.round(ratio * 100) === 0) {
+    return "exhausted";
+  }
   if (ratio < 0.25) {
     return "critical";
   }
@@ -354,6 +425,20 @@ function urgencyClass(ratio) {
     return "warning";
   }
   return "normal";
+}
+
+function quotaWarning(ratio, labelKey) {
+  const urgency = urgencyClass(ratio);
+  if (!["warning", "critical", "exhausted"].includes(urgency)) {
+    return "";
+  }
+  if (isWidget && labelKey !== "quota.window.codex.5h") {
+    return "";
+  }
+  if (urgency === "exhausted") {
+    return "额度用尽，等待重置";
+  }
+  return urgency === "critical" ? "额度很低" : "额度偏低";
 }
 
 function oauthStatusText(state) {

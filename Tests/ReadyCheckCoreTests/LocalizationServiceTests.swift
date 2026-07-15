@@ -122,6 +122,7 @@ final class LocalizationServiceTests: XCTestCase {
             "quota.remaining",
             "quota.lowQuotaWarning",
             "quota.criticalQuotaWarning",
+            "quota.exhaustedWarning",
             "quota.resetAt",
             "quota.account",
             "quota.plan",

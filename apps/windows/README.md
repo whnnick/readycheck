@@ -48,7 +48,7 @@ From the repository root:
 scripts/package_windows_portable.sh
 ```
 
-The script writes `dist/windows/ReadyCheck-0.1.64-windows-x64-portable.zip`. Unzip it on Windows and run `ReadyCheck-win32-x64/ReadyCheck.exe`.
+The script writes `dist/windows/ReadyCheck-0.1.65-windows-x64-portable.zip`. Unzip it on Windows and run `ReadyCheck-win32-x64/ReadyCheck.exe`.
 
 This is a portable preview package, not an installer. It is intended for black-box testing before the signed Windows installer work starts.
 

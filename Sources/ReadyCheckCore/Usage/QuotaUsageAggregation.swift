@@ -15,6 +15,26 @@ public struct QuotaUsageBucket: Identifiable, Equatable, Sendable {
 }
 
 public enum QuotaUsageAggregation {
+    public static func alignedRangeEnd(containing date: Date, bucketInterval: TimeInterval) -> Date {
+        guard bucketInterval > 0 else { return date }
+        let bucket = floor(date.timeIntervalSince1970 / bucketInterval) + 1
+        return Date(timeIntervalSince1970: bucket * bucketInterval)
+    }
+
+    public static func chartMaximumPercent(for values: [Double]) -> Double {
+        let highest = max(0, values.max() ?? 0)
+        let headroom = max(1, highest * 0.15)
+        return max(5, ceil((highest + headroom) / 5) * 5)
+    }
+
+    public static func observedBuckets(
+        _ buckets: [QuotaUsageBucket],
+        firstObservedAt: Date?
+    ) -> [QuotaUsageBucket] {
+        guard let firstObservedAt else { return [] }
+        return buckets.filter { $0.end > firstObservedAt }
+    }
+
     public static func buckets(
         samples: [QuotaHistorySample],
         providerID: String,

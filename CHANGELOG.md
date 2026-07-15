@@ -4,6 +4,17 @@
 
 - Rebuild the GitHub README preview GIF with HyperFrames and real product screenshots for a clearer product showcase.
 
+## 0.1.65 - 2026-07-15
+
+- Distinguish exhausted quota from low quota with a clear waiting-for-reset message on macOS and Windows.
+- Animate recent-usage bars from zero only when the chart first appears; automatic refreshes no longer replay the animation.
+- Keep the chart on an explicit earlier-to-latest time axis and replace the blue selected-window outline with a quieter unified card state.
+- Keep bar width visually consistent across the 24-hour, 7-day, and 30-day ranges instead of stretching sparse history to fill each category.
+- Show a compact percentage label above every non-zero consumption bar instead of labeling only the highest bar.
+- Bring the Windows recent-usage chart into parity with macOS for observed-period layout, fixed bar width, one-time entry motion, percentage labels, and quieter selected cards.
+- Add headroom above the highest consumption bar on both platforms so the chart does not imply that the current top tick is a usage cap.
+- Animate only newly added or increased usage bars after refresh on both platforms; unchanged bars remain still, while range changes use a short chart fade.
+
 ## 0.1.64 - 2026-07-15
 
 - Replace the ambiguous remaining-quota line chart with a selectable 5-hour / 7-day consumption bar dashboard. Bars show detected quota decreases in percentage points and keep the current remaining percentage separate.

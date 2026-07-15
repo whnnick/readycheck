@@ -278,7 +278,9 @@ struct QuotaCardView: View {
             if shouldShowLowQuotaWarning(for: window, urgency: currentUrgency) {
                 Label(lowQuotaWarningText(for: currentUrgency), systemImage: "exclamationmark.triangle.fill")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(currentUrgency == .critical ? .red : .orange)
+                    .foregroundStyle(
+                        currentUrgency == .critical || currentUrgency == .exhausted ? .red : .orange
+                    )
                     .lineLimit(1)
             }
         }
@@ -376,6 +378,8 @@ struct QuotaCardView: View {
 
     private func progressTint(for progress: Double) -> Color {
         switch urgency(for: progress, isActive: true) {
+        case .exhausted:
+            .red
         case .critical:
             .red
         case .warning:
@@ -393,7 +397,7 @@ struct QuotaCardView: View {
     }
 
     private func shouldShowLowQuotaWarning(for window: QuotaWindow, urgency: QuotaUrgency) -> Bool {
-        guard urgency == .warning || urgency == .critical else { return false }
+        guard urgency == .warning || urgency == .critical || urgency == .exhausted else { return false }
         if displayMode == .full {
             return true
         }
@@ -401,9 +405,14 @@ struct QuotaCardView: View {
     }
 
     private func lowQuotaWarningText(for urgency: QuotaUrgency) -> String {
-        urgency == .critical
-            ? localization.text("quota.criticalQuotaWarning")
-            : localization.text("quota.lowQuotaWarning")
+        switch urgency {
+        case .exhausted:
+            localization.text("quota.exhaustedWarning")
+        case .critical:
+            localization.text("quota.criticalQuotaWarning")
+        default:
+            localization.text("quota.lowQuotaWarning")
+        }
     }
 }
 

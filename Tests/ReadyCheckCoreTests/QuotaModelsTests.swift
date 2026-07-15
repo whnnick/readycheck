@@ -30,6 +30,9 @@ final class QuotaModelsTests: XCTestCase {
 
     func testQuotaUrgencyUsesRemainingRatioThresholds() {
         XCTAssertEqual(QuotaUrgency(remainingRatio: nil), .unknown)
+        XCTAssertEqual(QuotaUrgency(remainingRatio: 0), .exhausted)
+        XCTAssertEqual(QuotaUrgency(remainingRatio: 0.004), .exhausted)
+        XCTAssertEqual(QuotaUrgency(remainingRatio: 0.005), .critical)
         XCTAssertEqual(QuotaUrgency(remainingRatio: 0.24), .critical)
         XCTAssertEqual(QuotaUrgency(remainingRatio: 0.25), .warning)
         XCTAssertEqual(QuotaUrgency(remainingRatio: 0.31), .warning)

@@ -228,13 +228,17 @@ button.usage-metric {
 
 button.usage-metric.selectable:hover,
 button.usage-metric.selectable:focus-visible {
-  border-color: rgba(96, 165, 250, 0.72);
-  background: rgba(30, 136, 229, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+button.usage-metric.selectable:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.72);
+  outline-offset: 2px;
 }
 
 button.usage-metric.selected {
-  border-color: var(--blue);
-  background: rgba(30, 136, 229, 0.16);
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.09);
 }
 
 .usage-metric small {
@@ -293,7 +297,18 @@ button.usage-metric.selected {
   fill: #2597fa;
   transform-box: fill-box;
   transform-origin: center bottom;
-  animation: usage-bar-enter 220ms ease-out both;
+}
+
+.chart-bar.animate {
+  animation: usage-bar-enter 550ms ease-out both;
+}
+
+.chart-bar.delta {
+  animation: usage-bar-delta 280ms ease-out both;
+}
+
+.usage-chart.switching {
+  animation: usage-chart-switch 180ms ease-out both;
 }
 
 .chart-bar:hover {
@@ -303,6 +318,12 @@ button.usage-metric.selected {
 .chart-label {
   fill: var(--muted);
   font-size: 11px;
+}
+
+.chart-value {
+  fill: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
 }
 
 .usage-zero {
@@ -317,12 +338,24 @@ button.usage-metric.selected {
 }
 
 @keyframes usage-bar-enter {
-  from { opacity: 0; transform: scaleY(0.15); }
+  from { opacity: 0; transform: scaleY(0); }
   to { opacity: 1; transform: scaleY(1); }
 }
 
+@keyframes usage-bar-delta {
+  from { transform: scaleY(var(--bar-start-scale)); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes usage-chart-switch {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .chart-bar {
+  .chart-bar.animate,
+  .chart-bar.delta,
+  .usage-chart.switching {
     animation: none;
   }
 }
@@ -385,8 +418,22 @@ button.usage-metric.selected {
   background: var(--red);
 }
 
+.progress-fill.exhausted {
+  background: var(--red);
+}
+
 .progress-fill.unknown {
   width: 0 !important;
+}
+
+.quota-warning {
+  font-weight: 650;
+  color: var(--orange);
+}
+
+.quota-warning.critical,
+.quota-warning.exhausted {
+  color: var(--red);
 }
 
 [data-surface="widget"] {

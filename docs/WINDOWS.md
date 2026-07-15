@@ -41,7 +41,7 @@ Build the Windows portable preview package:
 scripts/package_windows_portable.sh
 ```
 
-Output: `dist/windows/ReadyCheck-0.1.64-windows-x64-portable.zip`.
+Output: `dist/windows/ReadyCheck-0.1.65-windows-x64-portable.zip`.
 
 Windows validation still required:
 

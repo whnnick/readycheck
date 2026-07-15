@@ -44,11 +44,17 @@ public enum QuotaUrgency: String, Codable, Equatable, Sendable {
     case normal
     case warning
     case critical
+    case exhausted
     case unknown
 
     public init(remainingRatio: Double?) {
         guard let remainingRatio, remainingRatio.isFinite else {
             self = .unknown
+            return
+        }
+
+        if Int((remainingRatio * 100).rounded()) == 0 {
+            self = .exhausted
             return
         }
 
