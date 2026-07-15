@@ -275,7 +275,7 @@ struct QuotaCardView: View {
             }
 
             let currentUrgency = urgency(for: progress, isActive: showsProgress)
-            if shouldShowLowQuotaWarning(for: window, urgency: currentUrgency) {
+            if shouldShowLowQuotaWarning(urgency: currentUrgency) {
                 Label(lowQuotaWarningText(for: currentUrgency), systemImage: "exclamationmark.triangle.fill")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(
@@ -396,12 +396,8 @@ struct QuotaCardView: View {
         return QuotaUrgency(remainingRatio: progress)
     }
 
-    private func shouldShowLowQuotaWarning(for window: QuotaWindow, urgency: QuotaUrgency) -> Bool {
-        guard urgency == .warning || urgency == .critical || urgency == .exhausted else { return false }
-        if displayMode == .full {
-            return true
-        }
-        return window.labelKey == "quota.window.codex.5h"
+    private func shouldShowLowQuotaWarning(urgency: QuotaUrgency) -> Bool {
+        urgency.shouldDisplayWarning
     }
 
     private func lowQuotaWarningText(for urgency: QuotaUrgency) -> String {

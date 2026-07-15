@@ -27,7 +27,10 @@ assert.match(renderer, /quotaRetryButton.*readyCheck\.refresh/s);
 assert.match(renderer, /quotaReconnectButton.*readyCheck\.beginOAuth/s);
 assert.match(renderer, /Math\.round\(ratio \* 100\) === 0/);
 assert.match(renderer, /额度用尽，等待重置/);
+assert.match(renderer, /const warning = quotaWarning\(ratio\);/);
 assert.match(styles, /\.quota-warning\.critical,\s*\.quota-warning\.exhausted\s*\{[^}]*color:\s*var\(--red\);/s);
+assert.match(renderer, /class="quota-row-footer"/);
+assert.match(styles, /\.quota-row-footer\s*\{[^}]*display:\s*flex;[^}]*justify-content:\s*space-between;/s);
 
 const rendererHTML = source("src/renderer.html");
 assert.equal(rendererHTML.includes('id="usageDashboard"'), true);

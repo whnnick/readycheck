@@ -67,6 +67,15 @@ public enum QuotaUrgency: String, Codable, Equatable, Sendable {
             self = .normal
         }
     }
+
+    public var shouldDisplayWarning: Bool {
+        switch self {
+        case .warning, .critical, .exhausted:
+            true
+        case .normal, .unknown:
+            false
+        }
+    }
 }
 
 public enum QuotaRecoveryAction: String, Codable, Equatable, Sendable {

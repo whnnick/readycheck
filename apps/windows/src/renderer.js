@@ -132,7 +132,7 @@ function renderQuota(state) {
     const ratio = typeof window.remainingRatio === "number" ? window.remainingRatio : null;
     const percent = ratio === null ? "—" : `${Math.round(ratio * 100)}%`;
     const progress = ratio === null ? 0 : Math.min(Math.max(ratio, 0), 1) * 100;
-    const warning = quotaWarning(ratio, window.labelKey);
+    const warning = quotaWarning(ratio);
     rows.push(`
       <article class="quota-row">
         <div class="quota-row-heading">
@@ -142,8 +142,10 @@ function renderQuota(state) {
         <div class="progress-track">
           <div class="progress-fill ${urgencyClass(ratio)}" style="width:${progress}%"></div>
         </div>
-        <p>${formatDate(window.resetAt) || "等待连接后刷新"}</p>
-        ${warning ? `<p class="quota-warning ${urgencyClass(ratio)}">${warning}</p>` : ""}
+        <div class="quota-row-footer">
+          <p>${formatDate(window.resetAt) || "等待连接后刷新"}</p>
+          ${warning ? `<p class="quota-warning ${urgencyClass(ratio)}">${warning}</p>` : ""}
+        </div>
       </article>
     `);
   }
@@ -427,12 +429,9 @@ function urgencyClass(ratio) {
   return "normal";
 }
 
-function quotaWarning(ratio, labelKey) {
+function quotaWarning(ratio) {
   const urgency = urgencyClass(ratio);
   if (!["warning", "critical", "exhausted"].includes(urgency)) {
-    return "";
-  }
-  if (isWidget && labelKey !== "quota.window.codex.5h") {
     return "";
   }
   if (urgency === "exhausted") {

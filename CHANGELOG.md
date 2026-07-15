@@ -4,6 +4,10 @@
 
 - Rebuild the GitHub README preview GIF with HyperFrames and real product screenshots for a clearer product showcase.
 
+## 0.1.66 - 2026-07-15
+
+- Show low, critical, and exhausted quota reminders consistently in both minimal and detailed widgets on macOS and Windows.
+
 ## 0.1.65 - 2026-07-15
 
 - Distinguish exhausted quota from low quota with a clear waiting-for-reset message on macOS and Windows.

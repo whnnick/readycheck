@@ -429,11 +429,24 @@ button.usage-metric.selected {
 .quota-warning {
   font-weight: 650;
   color: var(--orange);
+  text-align: right;
 }
 
 .quota-warning.critical,
 .quota-warning.exhausted {
   color: var(--red);
+}
+
+.quota-row-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.quota-row-footer p {
+  min-width: 0;
 }
 
 [data-surface="widget"] {
