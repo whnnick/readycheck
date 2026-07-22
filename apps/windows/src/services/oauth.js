@@ -7,7 +7,7 @@ const OAUTH_CONFIG = {
   tokenURL: "https://auth.openai.com/oauth/token",
   clientID: "app_EMoamEEZ73f0CkXaXp7hrann",
   redirectURI: "http://localhost:1455/auth/callback",
-  scopes: ["openid", "email", "profile", "offline_access"]
+  scopes: ["openid", "profile", "email", "offline_access"]
 };
 
 class CodexOAuthClient {
@@ -61,7 +61,9 @@ class CodexOAuthClient {
     });
 
     if (!response.ok) {
-      throw new Error(`OAuth token request failed with status ${response.status}`);
+      const details = await parseOAuthErrorResponse(response);
+      const suffix = details.description || details.error;
+      throw new Error(`OAuth token request failed (HTTP ${response.status})${suffix ? `: ${suffix}` : "."}`);
     }
 
     const payload = await response.json();
@@ -88,10 +90,39 @@ function buildAuthorizationURL(config, state, challenge) {
   url.searchParams.set("state", state);
   url.searchParams.set("code_challenge", challenge);
   url.searchParams.set("code_challenge_method", "S256");
-  url.searchParams.set("prompt", "login");
   url.searchParams.set("id_token_add_organizations", "true");
   url.searchParams.set("codex_cli_simplified_flow", "true");
+  url.searchParams.set("originator", "codex_cli_rs");
   return url.toString();
+}
+
+async function parseOAuthErrorResponse(response) {
+  try {
+    const payload = await response.json();
+    if (typeof payload.error === "string") {
+      return {
+        error: normalizeOAuthErrorText(payload.error),
+        description: normalizeOAuthErrorText(payload.error_description || payload.message)
+      };
+    }
+    if (payload.error && typeof payload.error === "object") {
+      return {
+        error: normalizeOAuthErrorText(payload.error.code || payload.error.type),
+        description: normalizeOAuthErrorText(payload.error.message || payload.error_description)
+      };
+    }
+    return { error: null, description: normalizeOAuthErrorText(payload.error_description || payload.message) };
+  } catch (_error) {
+    return { error: null, description: null };
+  }
+}
+
+function normalizeOAuthErrorText(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized ? normalized.slice(0, 240) : null;
 }
 
 function parseOAuthCallback(callbackURL) {
@@ -111,11 +142,11 @@ function parseOAuthCallback(callbackURL) {
 
 async function completeOAuthCallback(callbackURL, session, client) {
   const callback = parseOAuthCallback(callbackURL);
-  if (callback.error) {
-    throw new Error(callback.errorDescription || callback.error);
-  }
   if (callback.state !== session.state) {
     throw new Error("OAuth state mismatch.");
+  }
+  if (callback.error) {
+    throw new Error(callback.errorDescription || callback.error);
   }
   if (!callback.code) {
     throw new Error("OAuth callback is missing an authorization code.");

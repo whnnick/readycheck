@@ -27,7 +27,7 @@ public struct CodexOAuthConfiguration: Equatable, Sendable {
         tokenURL: URL(string: "https://auth.openai.com/oauth/token")!,
         clientID: "app_EMoamEEZ73f0CkXaXp7hrann",
         redirectURI: "http://localhost:1455/auth/callback",
-        scopes: ["openid", "email", "profile", "offline_access"]
+        scopes: ["openid", "profile", "email", "offline_access"]
     )
 }
 
@@ -326,9 +326,9 @@ public struct CodexOAuthClient: Sendable {
             URLQueryItem(name: "state", value: state),
             URLQueryItem(name: "code_challenge", value: pkce.challenge),
             URLQueryItem(name: "code_challenge_method", value: "S256"),
-            URLQueryItem(name: "prompt", value: "login"),
             URLQueryItem(name: "id_token_add_organizations", value: "true"),
-            URLQueryItem(name: "codex_cli_simplified_flow", value: "true")
+            URLQueryItem(name: "codex_cli_simplified_flow", value: "true"),
+            URLQueryItem(name: "originator", value: "codex_cli_rs")
         ]
 
         guard let url = components?.url else {
@@ -374,10 +374,20 @@ public struct CodexOAuthClient: Sendable {
 
         let (data, response) = try await loader.data(for: request)
         guard response.statusCode == 200 else {
-            throw CodexOAuthError.tokenRequestFailed(statusCode: response.statusCode)
+            let details = OAuthErrorPayload.parse(data)
+            throw CodexOAuthError.tokenRequestFailed(
+                statusCode: response.statusCode,
+                error: details.error,
+                description: details.description
+            )
         }
 
-        let tokenResponse = try JSONDecoder().decode(CodexOAuthTokenResponse.self, from: data)
+        let tokenResponse: CodexOAuthTokenResponse
+        do {
+            tokenResponse = try JSONDecoder().decode(CodexOAuthTokenResponse.self, from: data)
+        } catch {
+            throw CodexOAuthError.invalidTokenResponse
+        }
         return CodexOAuthToken(
             accessToken: tokenResponse.accessToken,
             refreshToken: tokenResponse.refreshToken,
@@ -410,18 +420,29 @@ public struct CodexOAuthAuthorizer: Sendable {
         guard let callback = try OAuthCallbackParser.parse(callbackURL) else {
             throw CodexOAuthError.invalidCallbackURL
         }
-        if let error = callback.error {
-            throw CodexOAuthError.callbackFailed(error: error, description: callback.errorDescription)
-        }
         guard callback.state == session.state else {
             throw CodexOAuthError.stateMismatch
+        }
+        if let error = callback.error {
+            throw CodexOAuthError.callbackFailed(error: error, description: callback.errorDescription)
         }
         guard let code = callback.code, !code.isEmpty else {
             throw CodexOAuthError.missingAuthorizationCode
         }
 
         let token = try await client.exchangeCode(code, pkce: session.pkce)
-        try await tokenStore.saveToken(token)
+        do {
+            try await tokenStore.saveToken(token)
+        } catch let error as KeychainCredentialStoreError {
+            switch error {
+            case let .unexpectedStatus(status):
+                throw CodexOAuthError.credentialStorageFailed(statusCode: Int(status))
+            case .invalidCredentialData:
+                throw CodexOAuthError.credentialStorageFailed(statusCode: nil)
+            }
+        } catch {
+            throw CodexOAuthError.credentialStorageFailed(statusCode: nil)
+        }
         return token
     }
 
@@ -478,7 +499,9 @@ public enum CodexOAuthError: Error, Equatable, Sendable {
     case callbackFailed(error: String, description: String?)
     case stateMismatch
     case missingAuthorizationCode
-    case tokenRequestFailed(statusCode: Int)
+    case tokenRequestFailed(statusCode: Int, error: String?, description: String?)
+    case invalidTokenResponse
+    case credentialStorageFailed(statusCode: Int?)
 }
 
 public enum CodexQuotaHTTPClientError: Error, Equatable, Sendable {
@@ -499,6 +522,48 @@ private struct CodexOAuthTokenResponse: Decodable {
         case idToken = "id_token"
         case tokenType = "token_type"
         case expiresIn = "expires_in"
+    }
+}
+
+private struct OAuthErrorPayload {
+    let error: String?
+    let description: String?
+
+    static func parse(_ data: Data) -> OAuthErrorPayload {
+        guard let object = try? JSONSerialization.jsonObject(with: data),
+              let payload = object as? [String: Any]
+        else {
+            return OAuthErrorPayload(error: nil, description: nil)
+        }
+
+        if let error = payload["error"] as? String {
+            return OAuthErrorPayload(
+                error: normalized(error),
+                description: normalized(payload["error_description"] as? String ?? payload["message"] as? String)
+            )
+        }
+
+        if let error = payload["error"] as? [String: Any] {
+            return OAuthErrorPayload(
+                error: normalized(error["code"] as? String ?? error["type"] as? String),
+                description: normalized(error["message"] as? String ?? payload["error_description"] as? String)
+            )
+        }
+
+        return OAuthErrorPayload(
+            error: nil,
+            description: normalized(payload["error_description"] as? String ?? payload["message"] as? String)
+        )
+    }
+
+    private static func normalized(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let normalized = value
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        guard !normalized.isEmpty else { return nil }
+        return String(normalized.prefix(240))
     }
 }
 

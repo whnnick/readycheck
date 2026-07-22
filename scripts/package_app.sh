@@ -19,7 +19,22 @@ EXECUTABLE_TARGET="${MACOS_DIR}/ReadyCheckApp"
 ICONSET_DIR="${BUILD_DIR}/ReadyCheck.iconset"
 ICON_SOURCE="${BUILD_DIR}/ReadyCheckIcon1024.png"
 ICON_TARGET="${RESOURCES_DIR}/ReadyCheck.icns"
-VERSION="0.1.66"
+VERSION="0.1.71"
+PREVIEW_SIGNING_IDENTITY="ReadyCheck Preview Signing"
+
+resolve_signing_identity() {
+    if [[ -n "${READYCHECK_SIGNING_IDENTITY:-}" ]]; then
+        printf '%s' "${READYCHECK_SIGNING_IDENTITY}"
+        return
+    fi
+
+    if security find-identity -p codesigning -v 2>/dev/null | grep -Fq "\"${PREVIEW_SIGNING_IDENTITY}\""; then
+        printf '%s' "${PREVIEW_SIGNING_IDENTITY}"
+        return
+    fi
+
+    printf '%s' "-"
+}
 
 cd "${REPO_ROOT}"
 mkdir -p "${BUILD_DIR}/module-cache"
@@ -173,8 +188,20 @@ printf "APPL????" > "${CONTENTS_DIR}/PkgInfo"
 plutil -lint "${CONTENTS_DIR}/Info.plist"
 touch "${APP_DIR}" "${CONTENTS_DIR}" "${RESOURCES_DIR}"
 xattr -cr "${APP_DIR}"
-codesign --force --deep --sign - --no-strict "${APP_DIR}" >/dev/null
+SIGNING_IDENTITY="$(resolve_signing_identity)"
+if [[ "${SIGNING_IDENTITY}" == "-" ]]; then
+    if [[ "${READYCHECK_REQUIRE_STABLE_SIGNING:-0}" == "1" ]]; then
+        echo "Error: a stable signing identity is required, but none was found." >&2
+        echo "Install '${PREVIEW_SIGNING_IDENTITY}' or set READYCHECK_SIGNING_IDENTITY." >&2
+        exit 1
+    fi
+    echo "Warning: no stable signing identity found; using ad-hoc signing." >&2
+    codesign --force --deep --sign - --no-strict "${APP_DIR}" >/dev/null
+else
+    codesign --force --deep --sign "${SIGNING_IDENTITY}" --timestamp=none --no-strict "${APP_DIR}" >/dev/null
+fi
+codesign --verify --deep --strict "${APP_DIR}"
 xattr -cr "${APP_DIR}"
 find "${DIST_DIR}" -maxdepth 1 -type d -name "ReadyCheck*.app" ! -name "ReadyCheck.app" -exec rm -rf {} +
 
-echo "Packaged ${APP_DIR}"
+echo "Packaged ${APP_DIR} (signing identity: ${SIGNING_IDENTITY})"

@@ -17,13 +17,14 @@ final class CodexOAuthTests: XCTestCase {
         XCTAssertEqual(query["client_id"], "app_EMoamEEZ73f0CkXaXp7hrann")
         XCTAssertEqual(query["response_type"], "code")
         XCTAssertEqual(query["redirect_uri"], "http://localhost:1455/auth/callback")
-        XCTAssertEqual(query["scope"], "openid email profile offline_access")
+        XCTAssertEqual(query["scope"], "openid profile email offline_access")
         XCTAssertEqual(query["state"], "state-123")
         XCTAssertEqual(query["code_challenge"], "challenge")
         XCTAssertEqual(query["code_challenge_method"], "S256")
-        XCTAssertEqual(query["prompt"], "login")
+        XCTAssertNil(query["prompt"])
         XCTAssertEqual(query["id_token_add_organizations"], "true")
         XCTAssertEqual(query["codex_cli_simplified_flow"], "true")
+        XCTAssertEqual(query["originator"], "codex_cli_rs")
     }
 
     func testCallbackParserAcceptsManualCallbackURL() throws {
@@ -103,6 +104,38 @@ final class CodexOAuthTests: XCTestCase {
         XCTAssertEqual(token.expiresAt, Date(timeIntervalSince1970: 4_600))
     }
 
+    func testTokenExchangePreservesStructuredOAuthFailure() async throws {
+        let loader = RecordingHTTPDataLoader(
+            data: """
+            {
+              "error": {
+                "code": "invalid_grant",
+                "message": "Authorization code expired"
+              }
+            }
+            """.data(using: .utf8)!,
+            statusCode: 400
+        )
+        let client = CodexOAuthClient(loader: loader)
+
+        do {
+            _ = try await client.exchangeCode(
+                "expired-code",
+                pkce: OAuthPKCECodes(verifier: "verifier", challenge: "challenge")
+            )
+            XCTFail("Expected token request failure")
+        } catch {
+            XCTAssertEqual(
+                error as? CodexOAuthError,
+                .tokenRequestFailed(
+                    statusCode: 400,
+                    error: "invalid_grant",
+                    description: "Authorization code expired"
+                )
+            )
+        }
+    }
+
     func testAuthorizerCompletesCallbackAndStoresToken() async throws {
         let loader = RecordingHTTPDataLoader(
             data: """
@@ -136,6 +169,40 @@ final class CodexOAuthTests: XCTestCase {
         XCTAssertEqual(storedToken, token)
     }
 
+    func testAuthorizerClassifiesCredentialStorageFailure() async throws {
+        let loader = RecordingHTTPDataLoader(
+            data: """
+            {
+              "access_token": "access",
+              "refresh_token": "refresh",
+              "id_token": "id",
+              "token_type": "Bearer",
+              "expires_in": 3600
+            }
+            """.data(using: .utf8)!,
+            statusCode: 200
+        )
+        let authorizer = CodexOAuthAuthorizer(
+            client: CodexOAuthClient(loader: loader),
+            tokenStore: CodexOAuthTokenStore(credentialStore: FailingCredentialStore())
+        )
+        let session = CodexOAuthSession(
+            state: "state-123",
+            pkce: OAuthPKCECodes(verifier: "verifier", challenge: "challenge"),
+            authorizationURL: URL(string: "https://auth.openai.com/oauth/authorize")!
+        )
+
+        do {
+            _ = try await authorizer.complete(
+                callbackURL: "http://localhost:1455/auth/callback?code=code-123&state=state-123",
+                session: session
+            )
+            XCTFail("Expected credential storage failure")
+        } catch {
+            XCTAssertEqual(error as? CodexOAuthError, .credentialStorageFailed(statusCode: nil))
+        }
+    }
+
     func testAuthorizerRejectsCallbackStateMismatchBeforeNetwork() async throws {
         let loader = RecordingHTTPDataLoader(data: Data(), statusCode: 200)
         let credentialStore = InMemoryCredentialStore()
@@ -162,6 +229,29 @@ final class CodexOAuthTests: XCTestCase {
         let storedToken = try await tokenStore.loadToken()
         XCTAssertNil(request)
         XCTAssertNil(storedToken)
+    }
+
+    func testAuthorizerRejectsOAuthErrorWithMismatchedState() async throws {
+        let loader = RecordingHTTPDataLoader(data: Data(), statusCode: 200)
+        let authorizer = CodexOAuthAuthorizer(
+            client: CodexOAuthClient(loader: loader),
+            tokenStore: CodexOAuthTokenStore(credentialStore: InMemoryCredentialStore())
+        )
+        let session = CodexOAuthSession(
+            state: "expected-state",
+            pkce: OAuthPKCECodes(verifier: "verifier", challenge: "challenge"),
+            authorizationURL: URL(string: "https://auth.openai.com/oauth/authorize")!
+        )
+
+        do {
+            _ = try await authorizer.complete(
+                callbackURL: "http://localhost:1455/auth/callback?error=access_denied&state=wrong-state",
+                session: session
+            )
+            XCTFail("Expected state mismatch")
+        } catch {
+            XCTAssertEqual(error as? CodexOAuthError, .stateMismatch)
+        }
     }
 
     func testQuotaHTTPClientRejectsInferenceEndpointBeforeNetwork() async throws {
@@ -338,4 +428,18 @@ private actor RecordingHTTPDataLoader: HTTPDataLoading {
     func recordedRequestIfPresent() -> URLRequest? {
         request
     }
+}
+
+private struct FailingCredentialStore: CredentialStore {
+    func loadCredential(for key: CredentialKey) async throws -> String? { nil }
+
+    func saveCredential(_ credential: String, for key: CredentialKey) async throws {
+        throw TestCredentialError.unavailable
+    }
+
+    func removeCredential(for key: CredentialKey) async throws {}
+}
+
+private enum TestCredentialError: Error {
+    case unavailable
 }

@@ -13,7 +13,7 @@ Current preview:
 - Safe-refresh endpoint allow-list matching the macOS safety boundary.
 - Codex OAuth loopback callback flow.
 - Encrypted token storage through Electron `safeStorage`.
-- Read-only Codex usage fetch and parser for 5-hour / 7-day quota windows.
+- Read-only Codex usage fetch and parser with the current 7-day quota presented in the UI; retired windows remain parse-compatible.
 
 Not included yet:
 

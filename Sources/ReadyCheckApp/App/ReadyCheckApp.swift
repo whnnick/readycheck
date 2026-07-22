@@ -1,6 +1,8 @@
 import AppKit
 import Observation
+import OSLog
 import ReadyCheckCore
+import Security
 import SwiftUI
 
 enum CodexOAuthConnectionStatus: Equatable {
@@ -8,6 +10,7 @@ enum CodexOAuthConnectionStatus: Equatable {
     case waitingForCallback
     case exchanging
     case connected
+    case credentialStorageFailed
     case failed
 }
 
@@ -58,6 +61,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
             await appModel.refresh(reason: .openedPanel)
             await appModel.checkForUpdates(isManual: false)
             appModel.restoreFloatingWidgetIfNeeded()
+            appModel.restoreNotchStatusIfNeeded()
         }
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -148,6 +152,8 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
 @Observable
 final class ReadyCheckAppModel {
     private static let widgetAlwaysOnTopDefaultsKey = "ReadyCheck.widgetAlwaysOnTop.v1"
+    private static let notchStatusVisibleDefaultsKey = "ReadyCheck.notchStatusVisible.v1"
+    private static let oauthLogger = Logger(subsystem: "com.readycheck.app", category: "oauth")
 
     var language: AppLanguage = .zhCN
     var refreshInterval: TimeInterval = 60
@@ -173,6 +179,17 @@ final class ReadyCheckAppModel {
     var widgetDisplayMode: WidgetDisplayMode = WidgetDisplayModePreference.value() {
         didSet {
             WidgetDisplayModePreference.set(widgetDisplayMode)
+        }
+    }
+    var notchStatusVisible: Bool = UserDefaults.standard.bool(forKey: notchStatusVisibleDefaultsKey) {
+        didSet {
+            guard notchStatusVisible != oldValue else { return }
+            UserDefaults.standard.set(notchStatusVisible, forKey: Self.notchStatusVisibleDefaultsKey)
+            if notchStatusVisible {
+                notchWindowController.show(model: self)
+            } else {
+                notchWindowController.close()
+            }
         }
     }
     var mockProviderEnabled = false {
@@ -221,6 +238,9 @@ final class ReadyCheckAppModel {
 
     @ObservationIgnored
     private let floatingWindowController = FloatingWindowController()
+
+    @ObservationIgnored
+    private let notchWindowController = NotchWindowController()
 
     @ObservationIgnored
     private let aboutWindowController = AboutWindowController()
@@ -280,6 +300,15 @@ final class ReadyCheckAppModel {
     func restoreFloatingWidgetIfNeeded() {
         guard widgetVisible else { return }
         floatingWindowController.showAtDefaultPosition(model: self)
+    }
+
+    var notchStatusAvailable: Bool {
+        notchWindowController.isAvailable
+    }
+
+    func restoreNotchStatusIfNeeded() {
+        guard notchStatusVisible else { return }
+        notchWindowController.show(model: self)
     }
 
     func showFloatingWidget() {
@@ -366,7 +395,7 @@ final class ReadyCheckAppModel {
                 codexOAuthLoginEmail = nil
             }
         } catch {
-            codexOAuthStatus = .failed
+            codexOAuthStatus = isCredentialStorageError(error) ? .credentialStorageFailed : .failed
             codexOAuthStatusMessage = codexOAuthMessage(for: error)
             codexOAuthLoginEmail = nil
         }
@@ -423,10 +452,13 @@ final class ReadyCheckAppModel {
             wasConnectedBeforePendingAuthorization = false
             await refresh(reason: .manual)
         } catch {
+            Self.oauthLogger.error("OAuth authorization failed: \(self.oauthLogSummary(for: error), privacy: .public)")
             pendingCodexOAuthSession = nil
             codexOAuthCallbackURL = ""
             stopCodexOAuthCallbackServer()
-            codexOAuthStatus = wasConnectedBeforePendingAuthorization ? .connected : .failed
+            codexOAuthStatus = wasConnectedBeforePendingAuthorization
+                ? .connected
+                : (isCredentialStorageError(error) ? .credentialStorageFailed : .failed)
             codexOAuthStatusMessage = codexOAuthMessage(for: error)
             if !wasConnectedBeforePendingAuthorization {
                 codexOAuthLoginEmail = nil
@@ -463,7 +495,7 @@ final class ReadyCheckAppModel {
             codexOAuthProviderEnabled = false
             wasConnectedBeforePendingAuthorization = false
         } catch {
-            codexOAuthStatus = .failed
+            codexOAuthStatus = isCredentialStorageError(error) ? .credentialStorageFailed : .failed
             codexOAuthStatusMessage = codexOAuthMessage(for: error)
         }
     }
@@ -474,21 +506,29 @@ final class ReadyCheckAppModel {
         let server = OAuthLoopbackCallbackServer()
         do {
             try server.start(
+                onReady: { [weak self] in
+                    Task { @MainActor in
+                        guard self?.codexOAuthStatus == .waitingForCallback else { return }
+                        self?.codexOAuthStatusMessage = self?.localization.text("oauth.callback.listening")
+                    }
+                },
                 onCallback: { [weak self] callbackURL in
                     Task { @MainActor in
                         await self?.completeCodexOAuthConnection(callbackURL: callbackURL)
                     }
                 },
-                onFailure: { [weak self] _ in
+                onFailure: { [weak self] error in
                     Task { @MainActor in
                         guard self?.codexOAuthStatus == .waitingForCallback else { return }
+                        Self.oauthLogger.error("OAuth callback listener failed: \(String(describing: error), privacy: .public)")
                         self?.codexOAuthStatusMessage = self?.localization.text("oauth.callback.manualFallback")
                     }
                 }
             )
             oauthCallbackServer = server
-            codexOAuthStatusMessage = localization.text("oauth.callback.listening")
+            codexOAuthStatusMessage = localization.text("oauth.callback.starting")
         } catch {
+            Self.oauthLogger.error("OAuth callback listener could not start: \(String(describing: error), privacy: .public)")
             codexOAuthStatusMessage = localization.text("oauth.callback.manualFallback")
         }
     }
@@ -499,6 +539,19 @@ final class ReadyCheckAppModel {
     }
 
     private func codexOAuthMessage(for error: Error) -> String {
+        if error is URLError {
+            return localization.text("oauth.error.network")
+        }
+
+        if let keychainError = error as? KeychainCredentialStoreError {
+            switch keychainError {
+            case let .unexpectedStatus(status) where isLockedKeychainStatus(Int(status)):
+                return localization.text("oauth.error.keychainUnavailable")
+            case .unexpectedStatus, .invalidCredentialData:
+                return localization.text("oauth.error.credentialStorageFailed")
+            }
+        }
+
         guard let oauthError = error as? CodexOAuthError else {
             return localization.text("oauth.error.authorizationFailed")
         }
@@ -508,14 +561,95 @@ final class ReadyCheckAppModel {
             return localization.text("oauth.error.stateMismatch")
         case .missingAuthorizationCode, .invalidCallbackURL:
             return localization.text("oauth.error.invalidCallback")
-        case .callbackFailed:
-            return localization.text("oauth.error.callbackFailed")
-        case .tokenRequestFailed:
-            return localization.text("oauth.error.tokenExchangeFailed")
+        case let .callbackFailed(error, description):
+            guard let reason = oauthReason(error: error, description: description) else {
+                return localization.text("oauth.error.callbackFailed")
+            }
+            return String(format: localization.text("oauth.error.callbackFailedDetail"), reason)
+        case let .tokenRequestFailed(statusCode, error, description):
+            guard let reason = oauthReason(error: error, description: description) else {
+                return String(format: localization.text("oauth.error.tokenExchangeFailedStatus"), statusCode)
+            }
+            return String(format: localization.text("oauth.error.tokenExchangeFailedDetail"), statusCode, reason)
         case .unsafeOAuthEndpoint:
             return localization.text("oauth.error.unsafeEndpoint")
+        case .invalidTokenResponse:
+            return localization.text("oauth.error.invalidTokenResponse")
+        case let .credentialStorageFailed(statusCode):
+            if let statusCode, isLockedKeychainStatus(statusCode) {
+                return localization.text("oauth.error.keychainUnavailable")
+            }
+            guard let statusCode else {
+                return localization.text("oauth.error.credentialStorageFailed")
+            }
+            return String(format: localization.text("oauth.error.credentialStorageFailedStatus"), statusCode)
         case .pkceGenerationFailed, .stateGenerationFailed, .invalidAuthorizationURL, .invalidStoredToken:
             return localization.text("oauth.error.authorizationFailed")
+        }
+    }
+
+    private func oauthReason(error: String?, description: String?) -> String? {
+        let preferred = description?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let fallback = error?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let value = [preferred, fallback].compactMap({ $0 }).first(where: { !$0.isEmpty }) else {
+            return nil
+        }
+        let singleLine = value
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        return String(singleLine.prefix(240))
+    }
+
+    private func isLockedKeychainStatus(_ status: Int) -> Bool {
+        status == Int(errSecAuthFailed)
+            || status == Int(errSecInteractionNotAllowed)
+            || status == Int(errSecNotAvailable)
+    }
+
+    private func isCredentialStorageError(_ error: Error) -> Bool {
+        if error is KeychainCredentialStoreError {
+            return true
+        }
+        guard let oauthError = error as? CodexOAuthError else {
+            return false
+        }
+        if case .credentialStorageFailed = oauthError {
+            return true
+        }
+        return false
+    }
+
+    private func oauthLogSummary(for error: Error) -> String {
+        guard let oauthError = error as? CodexOAuthError else {
+            return error is URLError ? "network_error" : "unexpected_error"
+        }
+
+        switch oauthError {
+        case .callbackFailed:
+            return "callback_failed"
+        case let .tokenRequestFailed(statusCode, _, _):
+            return "token_request_failed:http_\(statusCode)"
+        case .stateMismatch:
+            return "state_mismatch"
+        case .missingAuthorizationCode:
+            return "missing_authorization_code"
+        case .invalidCallbackURL:
+            return "invalid_callback_url"
+        case .invalidTokenResponse:
+            return "invalid_token_response"
+        case let .credentialStorageFailed(statusCode):
+            return "credential_storage_failed:osstatus_\(statusCode.map(String.init) ?? "unknown")"
+        case .unsafeOAuthEndpoint:
+            return "unsafe_oauth_endpoint"
+        case .pkceGenerationFailed:
+            return "pkce_generation_failed"
+        case .stateGenerationFailed:
+            return "state_generation_failed"
+        case .invalidAuthorizationURL:
+            return "invalid_authorization_url"
+        case .invalidStoredToken:
+            return "invalid_stored_token"
         }
     }
 

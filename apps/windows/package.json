@@ -1,6 +1,6 @@
 {
   "name": "@readycheck/windows",
-  "version": "0.1.66",
+  "version": "0.1.71",
   "private": true,
   "description": "ReadyCheck Windows desktop client preview.",
   "main": "src/main.js",

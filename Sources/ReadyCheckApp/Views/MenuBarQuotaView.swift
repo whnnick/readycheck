@@ -142,6 +142,19 @@ struct MenuBarQuotaView: View {
                 }
                 .toggleStyle(.switch)
 
+                Toggle(isOn: $model.notchStatusVisible) {
+                    Label(localization.text("settings.notchStatus"), systemImage: "macbook")
+                }
+                .toggleStyle(.switch)
+                .disabled(!model.notchStatusAvailable)
+                .help(
+                    localization.text(
+                        model.notchStatusAvailable
+                            ? "settings.notchStatusHelp"
+                            : "settings.notchStatusUnavailable"
+                    )
+                )
+
                 HStack(spacing: 8) {
                     Label(localization.text("settings.widgetStyle"), systemImage: "rectangle.split.2x1")
                         .font(.caption.weight(.medium))

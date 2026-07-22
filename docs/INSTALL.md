@@ -11,7 +11,7 @@
 2. Open the disk image and drag `ReadyCheck.app` into Applications.
 3. Open ReadyCheck from Applications.
 
-The preview release is ad-hoc signed and not notarized. If macOS blocks the first launch, open **System Settings > Privacy & Security**, then select **Open Anyway** for ReadyCheck. This is a distribution limitation of the preview build, not an OAuth requirement.
+The preview release uses a stable self-signed ReadyCheck identity to preserve Keychain access across preview updates, but it is not Developer ID signed or notarized. If macOS blocks the first launch, open **System Settings > Privacy & Security**, then select **Open Anyway** for ReadyCheck. This is a distribution limitation of the preview build, not an OAuth requirement.
 
 ## Connect Your Account
 

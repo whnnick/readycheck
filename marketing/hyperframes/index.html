@@ -111,25 +111,252 @@
           0 0 72px rgba(10, 132, 255, 0.18);
       }
 
-      .main-shot img {
-        width: 100%;
-        height: 100%;
+      .window-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 54px;
+        padding: 0 22px;
+        background: #1f1f20;
+        color: #a7b0be;
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .traffic-light {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+      }
+
+      .traffic-light.red { background: #ff5f57; }
+      .traffic-light.yellow { background: #febc2e; }
+      .traffic-light.green { background: #28c840; }
+
+      .window-title {
+        margin-left: 8px;
+      }
+
+      .app-body {
+        display: grid;
+        gap: 18px;
+        height: calc(100% - 54px);
+        padding: 22px;
+        background: linear-gradient(150deg, #172234, #10151f 62%, #0d1119);
+      }
+
+      .app-panel {
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 24px;
+        background: rgba(28, 29, 31, 0.94);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+      }
+
+      .app-summary {
+        padding: 24px 28px;
+      }
+
+      .app-summary-row,
+      .quota-heading,
+      .quota-provider-row,
+      .usage-heading,
+      .main-quota-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .app-identity {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .app-icon {
+        width: 68px;
+        height: 68px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        background: linear-gradient(145deg, #38a8ff, #0677ff 72%);
+        box-shadow: 0 12px 34px rgba(10, 132, 255, 0.34);
+        font-size: 30px;
+        font-weight: 950;
+      }
+
+      .app-name {
+        font-size: 29px;
+        font-weight: 950;
+      }
+
+      .app-description {
+        margin-top: 5px;
+        color: #a7b0be;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .feature-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .feature-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 13px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.075);
+        color: #d9dee7;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .feature-switch {
+        width: 34px;
+        height: 19px;
+        padding: 3px;
+        border-radius: 99px;
+        background: #0a84ff;
+      }
+
+      .feature-switch::after {
         display: block;
-        object-fit: contain;
-        background: rgba(4, 7, 12, 0.90);
+        width: 13px;
+        height: 13px;
+        margin-left: 15px;
+        border-radius: 99px;
+        background: #dcecff;
+        content: "";
+      }
+
+      .summary-copy {
+        margin-left: auto;
+        color: #a7b0be;
+        font-size: 14px;
+        font-weight: 750;
+      }
+
+      .quota-panel {
+        padding: 20px 28px 24px;
+      }
+
+      .panel-title {
+        font-size: 22px;
+        font-weight: 950;
+      }
+
+      .panel-meta {
+        color: #8f98a6;
+        font-size: 14px;
+        font-weight: 750;
+      }
+
+      .quota-provider-row {
+        margin-top: 20px;
+      }
+
+      .provider-pill {
+        padding: 8px 17px;
+        border-radius: 999px;
+        background: #075da9;
+        font-size: 17px;
+        font-weight: 900;
+      }
+
+      .main-quota-row {
+        margin-top: 22px;
+        font-size: 21px;
+        font-weight: 900;
+      }
+
+      .main-quota-value {
+        color: #35e599;
+        font-size: 24px;
+      }
+
+      .main-quota-bar {
+        height: 10px;
+        margin-top: 12px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .main-quota-fill {
+        width: 72%;
+        height: 100%;
+        border-radius: inherit;
+        background: #35e599;
+        box-shadow: 0 0 20px rgba(53, 229, 153, 0.48);
+      }
+
+      .usage-panel {
+        min-height: 0;
+        padding: 20px 28px 24px;
+      }
+
+      .usage-tabs {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.32);
+      }
+
+      .usage-tab {
+        padding: 6px 12px;
+        border-radius: 7px;
+        color: #a7b0be;
+        font-size: 14px;
+        font-weight: 850;
+      }
+
+      .usage-tab.active {
+        background: #075da9;
+        color: white;
+      }
+
+      .usage-chart {
+        display: flex;
+        align-items: end;
+        gap: 16px;
+        height: 112px;
+        margin-top: 18px;
+        padding: 14px 18px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+        background: repeating-linear-gradient(to top, transparent 0 35px, rgba(255,255,255,0.07) 36px);
+      }
+
+      .usage-bar {
+        width: 24px;
+        border-radius: 6px 6px 0 0;
+        background: linear-gradient(#38a8ff, #087eff);
+      }
+
+      .usage-note {
+        margin-top: 12px;
+        color: #8f98a6;
+        font-size: 13px;
+        font-weight: 700;
       }
 
       .side-stack {
         position: absolute;
         right: 88px;
-        top: 184px;
+        top: 150px;
         z-index: 5;
         width: 520px;
         display: flex;
         flex-direction: column;
-        gap: 34px;
+        gap: 24px;
       }
 
+      .notch-card,
       .menu-card,
       .widget-card {
         border: 1px solid rgba(255, 255, 255, 0.15);
@@ -140,9 +367,72 @@
           inset 0 0 0 1px rgba(255, 255, 255, 0.05);
       }
 
+      .notch-card {
+        height: 172px;
+        padding: 24px 26px;
+      }
+
+      .notch-label {
+        color: #a7b0be;
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      .notch-shell {
+        position: relative;
+        width: 100%;
+        height: 104px;
+        margin-top: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 18px 18px 34px 34px;
+        background: #020305;
+        box-shadow:
+          inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+          0 18px 40px rgba(0, 0, 0, 0.42);
+      }
+
+      .notch-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 76px;
+        padding: 0 24px;
+      }
+
+      .notch-provider,
+      .notch-quota {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 21px;
+        font-weight: 900;
+      }
+
+      .notch-quota {
+        color: #35e599;
+      }
+
+      .notch-progress {
+        height: 6px;
+        margin: 0 24px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .notch-progress-fill {
+        width: 72%;
+        height: 100%;
+        border-radius: inherit;
+        background: #35e599;
+        box-shadow: 0 0 18px rgba(53, 229, 153, 0.64);
+        transform-origin: left center;
+      }
+
       .menu-card {
-        height: 264px;
-        padding: 32px;
+        height: 210px;
+        padding: 28px 30px;
       }
 
       .card-label {
@@ -185,7 +475,7 @@
       }
 
       .metric {
-        margin-top: 24px;
+        margin-top: 22px;
       }
 
       .metric-row {
@@ -211,20 +501,14 @@
         transform-origin: left center;
       }
 
-      .bar-fill.blue {
-        width: 88%;
-        background: #48d0f5;
-        box-shadow: 0 0 24px rgba(72, 208, 245, 0.52);
-      }
-
       .bar-fill.green {
-        width: 78%;
+        width: 72%;
         background: #35e599;
         box-shadow: 0 0 24px rgba(53, 229, 153, 0.52);
       }
 
       .widget-card {
-        height: 536px;
+        height: 396px;
         padding: 16px;
       }
 
@@ -272,10 +556,86 @@
       </div>
 
       <div class="main-shot">
-        <img src="assets/readycheck-main.png" alt="ReadyCheck 主界面截图" />
+        <div class="window-bar">
+          <span class="traffic-light red"></span>
+          <span class="traffic-light yellow"></span>
+          <span class="traffic-light green"></span>
+          <span class="window-title">ReadyCheck</span>
+        </div>
+        <div class="app-body">
+          <div class="app-panel app-summary">
+            <div class="app-summary-row">
+              <div class="app-identity">
+                <div class="app-icon">RC</div>
+                <div>
+                  <div class="app-name">ReadyCheck</div>
+                  <div class="app-description">Codex 配额状态与刷新控制</div>
+                </div>
+              </div>
+              <div class="status-pill"><span class="status-dot"></span>已连接</div>
+            </div>
+            <div class="feature-row">
+              <div class="feature-chip">显示 widget <span class="feature-switch"></span></div>
+              <div class="feature-chip">置顶 widget <span class="feature-switch"></span></div>
+              <div class="feature-chip">刘海状态 <span class="feature-switch"></span></div>
+              <div class="summary-copy">每 1 分钟安全刷新</div>
+            </div>
+          </div>
+
+          <div class="app-panel quota-panel">
+            <div class="quota-heading">
+              <div class="panel-title">额度</div>
+              <div class="panel-meta">刚刚刷新</div>
+            </div>
+            <div class="quota-provider-row">
+              <div class="provider-pill">Codex</div>
+              <div class="status-pill"><span class="status-dot"></span>可用</div>
+            </div>
+            <div class="main-quota-row">
+              <span>7 天额度</span>
+              <span class="main-quota-value">72%</span>
+            </div>
+            <div class="main-quota-bar"><div class="main-quota-fill"></div></div>
+          </div>
+
+          <div class="app-panel usage-panel">
+            <div class="usage-heading">
+              <div>
+                <div class="panel-title">近期额度消耗</div>
+                <div class="panel-meta" style="margin-top: 5px">本地记录 · 单位为百分点</div>
+              </div>
+              <div class="usage-tabs">
+                <span class="usage-tab active">24 小时</span>
+                <span class="usage-tab">7 天</span>
+                <span class="usage-tab">30 天</span>
+              </div>
+            </div>
+            <div class="usage-chart">
+              <span class="usage-bar" style="height: 28px"></span>
+              <span class="usage-bar" style="height: 52px"></span>
+              <span class="usage-bar" style="height: 34px"></span>
+              <span class="usage-bar" style="height: 76px"></span>
+              <span class="usage-bar" style="height: 46px"></span>
+              <span class="usage-bar" style="height: 88px"></span>
+              <span class="usage-bar" style="height: 62px"></span>
+            </div>
+            <div class="usage-note">只记录成功刷新之间的额度下降，不代表 Token 数量。</div>
+          </div>
+        </div>
       </div>
 
       <div class="side-stack">
+        <div class="notch-card">
+          <div class="notch-label">macOS 刘海实时状态</div>
+          <div class="notch-shell">
+            <div class="notch-content">
+              <div class="notch-provider"><span class="status-dot"></span><span>Codex</span></div>
+              <div class="notch-quota"><span>7 天</span><span>72%</span></div>
+            </div>
+            <div class="notch-progress"><div class="notch-progress-fill"></div></div>
+          </div>
+        </div>
+
         <div class="menu-card">
           <div class="card-label">
             <div>
@@ -285,11 +645,7 @@
             <div class="status-pill"><span class="status-dot"></span>自动刷新</div>
           </div>
           <div class="metric">
-            <div class="metric-row"><span>5 小时窗口</span><span>88%</span></div>
-            <div class="bar"><div class="bar-fill blue"></div></div>
-          </div>
-          <div class="metric">
-            <div class="metric-row"><span>7 天窗口</span><span>78%</span></div>
+            <div class="metric-row"><span>7 天额度</span><span>72%</span></div>
             <div class="bar"><div class="bar-fill green"></div></div>
           </div>
         </div>
@@ -308,6 +664,9 @@
       tl.to(".sweep", { opacity: 0, duration: 0.18 }, 1.58);
 
       tl.to(".main-shot", { y: -8, duration: 1.8, repeat: 2, yoyo: true, ease: "sine.inOut" }, 0.35);
+      tl.to(".notch-card", { y: -6, duration: 1.7, repeat: 2, yoyo: true, ease: "sine.inOut" }, 0.22);
+      tl.fromTo(".notch-progress-fill", { scaleX: 0.72 }, { scaleX: 1, duration: 1.1, ease: "power2.out" }, 0.28);
+      tl.to(".notch-quota", { opacity: 0.72, duration: 0.75, repeat: 5, yoyo: true, ease: "sine.inOut" }, 0.32);
       tl.to(".menu-card", { y: 7, duration: 1.6, repeat: 2, yoyo: true, ease: "sine.inOut" }, 0.28);
       tl.to(".widget-card", { y: -10, duration: 1.75, repeat: 2, yoyo: true, ease: "sine.inOut" }, 0.34);
       tl.to(".brand-dot", { scale: 1.28, opacity: 0.72, duration: 0.8, repeat: 4, yoyo: true, ease: "sine.inOut" }, 0.2);

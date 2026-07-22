@@ -11,7 +11,7 @@
 2. 打开磁盘映像，将 `ReadyCheck.app` 拖入“应用程序”。
 3. 从“应用程序”打开 ReadyCheck。
 
-当前预览版使用 ad-hoc 签名，尚未 notarization。若 macOS 首次阻止打开，请进入“系统设置 > 隐私与安全性”，为 ReadyCheck 选择“仍要打开”。这是预览发行的分发限制，与 OAuth 无关。
+当前预览版使用稳定的 ReadyCheck 自签名身份，以保持预览版升级后的 Keychain 访问，但尚未使用 Developer ID 签名或 notarization。若 macOS 首次阻止打开，请进入“系统设置 > 隐私与安全性”，为 ReadyCheck 选择“仍要打开”。这是预览发行的分发限制，与 OAuth 无关。
 
 ## 连接账号
 

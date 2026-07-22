@@ -29,13 +29,23 @@ scripts/package_windows_portable.sh
 
 `scripts/package_dmg.sh` 是标准本地打包入口。它会在写入当前版本 DMG 前自动清理 `dist` 中的旧 `ReadyCheck-*-macos.dmg`。
 
+发布包必须使用稳定签名身份。`scripts/package_app.sh` 会优先使用本机的 `ReadyCheck Preview Signing`，也可通过 `READYCHECK_SIGNING_IDENTITY` 指定其他身份。单独构建 App 时允许贡献者回退到 ad-hoc 签名，但 `scripts/package_dmg.sh` 找不到稳定身份时会直接失败，不会生成不可持续访问 Keychain 的发布 DMG。
+
 验证本地产物：
 
 ```bash
 find ../../dist -maxdepth 1 -type f -o -type d
-plutil -p ../../dist/ReadyCheck.app/Contents/Info.plist | rg "CFBundleShortVersionString|CFBundleVersion"
 hdiutil imageinfo ../../dist/ReadyCheck-<version>-macos.dmg
 shasum -a 256 ../../dist/ReadyCheck-<version>-macos.dmg
+```
+
+挂载 DMG 后验证其中的 App，不再验证复制到同步目录的中间 App：
+
+```bash
+plutil -p /Volumes/ReadyCheck/ReadyCheck.app/Contents/Info.plist | rg "CFBundleShortVersionString|CFBundleVersion"
+codesign --verify --deep --strict /Volumes/ReadyCheck/ReadyCheck.app
+codesign -dv --verbose=2 /Volumes/ReadyCheck/ReadyCheck.app
+codesign -dr - /Volumes/ReadyCheck/ReadyCheck.app
 ```
 
 根目录 `dist` 只能包含：
@@ -107,4 +117,4 @@ gh api repos/whnnick/readycheck/releases/latest --jq '{tag_name, name, draft, pr
 
 `tag_name` 必须是刚发布的版本。
 
-当前脚本使用 ad-hoc 签名。面向正式 Gatekeeper 分发还需要 Developer ID 签名、Hardened Runtime、notarization 和 stapling。
+预览签名身份只用于保持 Keychain 应用身份稳定，并不是 Developer ID 证书。面向正式 Gatekeeper 分发仍需要 Developer ID 签名、Hardened Runtime、notarization 和 stapling。

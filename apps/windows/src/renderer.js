@@ -116,6 +116,7 @@ function renderQuota(state) {
   const mode = state.prefs.widgetDisplayMode;
   const details = state.quota;
   const rows = [];
+  const visibleWindows = details.windows.filter((item) => !["quota.window.codex.5h", "quota.fiveHour"].includes(item.labelKey));
 
   if (!isWidget || mode === "detailed") {
     rows.push(`
@@ -128,7 +129,7 @@ function renderQuota(state) {
     `);
   }
 
-  for (const window of details.windows) {
+  for (const window of visibleWindows) {
     const ratio = typeof window.remainingRatio === "number" ? window.remainingRatio : null;
     const percent = ratio === null ? "—" : `${Math.round(ratio * 100)}%`;
     const progress = ratio === null ? 0 : Math.min(Math.max(ratio, 0), 1) * 100;
@@ -148,6 +149,10 @@ function renderQuota(state) {
         </div>
       </article>
     `);
+  }
+
+  if (visibleWindows.length === 0) {
+    rows.push('<p class="muted">当前 7 天额度暂不可用。</p>');
   }
 
   elements.quotaContent.innerHTML = rows.join("");
@@ -191,9 +196,18 @@ function renderUsageDashboard(state) {
     return;
   }
 
-  const fiveHour = series.find((item) => item.labelKey === "quota.window.codex.5h" || item.labelKey === "quota.fiveHour");
   const sevenDay = series.find((item) => item.labelKey === "quota.window.codex.7d" || item.labelKey === "quota.sevenDay");
-  const availableSeries = [fiveHour, sevenDay].filter(Boolean);
+  // Keep five-hour history on disk for forward compatibility, but do not present the retired window.
+  const availableSeries = [sevenDay].filter(Boolean);
+  if (availableSeries.length === 0) {
+    elements.usageDashboard.innerHTML = `
+      <div class="usage-empty">
+        <strong>正在收集 7 天额度记录</strong>
+        <p>完成两次成功刷新后，这里会展示检测到的额度消耗。</p>
+      </div>
+    `;
+    return;
+  }
   if (!availableSeries.some((item) => item.windowID === usageWindowID)) {
     usageWindowID = availableSeries[0].windowID;
   }
@@ -211,7 +225,6 @@ function renderUsageDashboard(state) {
   const chartEnd = bars.at(-1) ? bars.at(-1).end : now;
   elements.usageDashboard.innerHTML = `
     <div class="usage-metrics">
-      ${usageMetric("5 小时额度", fiveHour, cutoff)}
       ${usageMetric("7 天额度", sevenDay, cutoff)}
       <div class="usage-metric data-status"><span>数据状态</span><strong>最近记录 ${formatHistoryTime(latest.timestamp)}</strong><small>成功刷新后按 1 分钟采样</small></div>
     </div>

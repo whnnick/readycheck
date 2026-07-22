@@ -26,8 +26,9 @@ assert.equal(authorizationURL.searchParams.get("response_type"), "code");
 assert.equal(authorizationURL.searchParams.get("redirect_uri"), OAUTH_CONFIG.redirectURI);
 assert.equal(authorizationURL.searchParams.get("code_challenge_method"), "S256");
 assert.equal(authorizationURL.searchParams.get("state"), session.state);
-assert.equal(authorizationURL.searchParams.get("prompt"), "login");
+assert.equal(authorizationURL.searchParams.get("prompt"), null);
 assert.equal(authorizationURL.searchParams.get("codex_cli_simplified_flow"), "true");
+assert.equal(authorizationURL.searchParams.get("originator"), "codex_cli_rs");
 
 assert.deepEqual(parseOAuthCallback("http://localhost:1455/auth/callback?code=abc&state=xyz"), {
   code: "abc",
@@ -43,6 +44,26 @@ completeOAuthCallback(
 ).then(
   () => assert.fail("state mismatch should fail"),
   (error) => assert.match(error.message, /state mismatch/i)
+);
+
+completeOAuthCallback(
+  "http://localhost:1455/auth/callback?error=access_denied&state=wrong",
+  session,
+  { exchangeCode: async () => ({}) }
+).then(
+  () => assert.fail("OAuth errors with mismatched state should fail state validation"),
+  (error) => assert.match(error.message, /state mismatch/i)
+);
+
+new CodexOAuthClient({
+  fetchImpl: async () => ({
+    ok: false,
+    status: 400,
+    json: async () => ({ error: { code: "invalid_grant", message: "Authorization code expired" } })
+  })
+}).exchangeCode("expired-code", { verifier: "verifier" }).then(
+  () => assert.fail("token endpoint errors should fail"),
+  (error) => assert.match(error.message, /HTTP 400.*Authorization code expired/i)
 );
 
 function jwt(payload) {

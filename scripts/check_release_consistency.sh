@@ -7,9 +7,11 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${REPO_ROOT}"
 
 swift_version="$(sed -n 's/.*public static let version = "\([^"]*\)".*/\1/p' Sources/ReadyCheckCore/ReadyCheckCore.swift)"
+swift_test_version="$(sed -n 's/.*XCTAssertEqual(ReadyCheckCore.version, "\([^"]*\)").*/\1/p' Tests/ReadyCheckCoreTests/ScaffoldTests.swift)"
 app_version="$(sed -n 's/^VERSION="\([^"]*\)"/\1/p' scripts/package_app.sh)"
 dmg_version="$(sed -n 's/^VERSION="\([^"]*\)"/\1/p' scripts/package_dmg.sh)"
 windows_version="$(node -p "require('./apps/windows/package.json').version")"
+windows_lock_version="$(node -p "require('./apps/windows/package-lock.json').version")"
 
 if [[ -z "${swift_version}" ]]; then
     echo "Unable to read ReadyCheckCore.version" >&2
@@ -17,9 +19,11 @@ if [[ -z "${swift_version}" ]]; then
 fi
 
 for entry in \
+    "ScaffoldTests.swift:${swift_test_version}" \
     "package_app.sh:${app_version}" \
     "package_dmg.sh:${dmg_version}" \
-    "apps/windows/package.json:${windows_version}"; do
+    "apps/windows/package.json:${windows_version}" \
+    "apps/windows/package-lock.json:${windows_lock_version}"; do
     name="${entry%%:*}"
     value="${entry#*:}"
     if [[ "${value}" != "${swift_version}" ]]; then

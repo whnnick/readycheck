@@ -29,13 +29,23 @@ scripts/package_windows_portable.sh
 
 `scripts/package_dmg.sh` is the only standard local packaging entry point. It cleans old `ReadyCheck-*-macos.dmg` files from `dist` before writing the current DMG.
 
+Release builds must use a stable signing identity. `scripts/package_app.sh` prefers `ReadyCheck Preview Signing` when it exists, or the identity supplied through `READYCHECK_SIGNING_IDENTITY`. Standalone contributor app builds may fall back to ad-hoc signing, while `scripts/package_dmg.sh` fails instead of producing a release DMG without a stable identity.
+
 Validate the local artifact:
 
 ```bash
 find ../../dist -maxdepth 1 -type f -o -type d
-plutil -p ../../dist/ReadyCheck.app/Contents/Info.plist | rg "CFBundleShortVersionString|CFBundleVersion"
 hdiutil imageinfo ../../dist/ReadyCheck-<version>-macos.dmg
 shasum -a 256 ../../dist/ReadyCheck-<version>-macos.dmg
+```
+
+Mount the DMG and validate the app inside it, rather than a copied intermediate app:
+
+```bash
+plutil -p /Volumes/ReadyCheck/ReadyCheck.app/Contents/Info.plist | rg "CFBundleShortVersionString|CFBundleVersion"
+codesign --verify --deep --strict /Volumes/ReadyCheck/ReadyCheck.app
+codesign -dv --verbose=2 /Volumes/ReadyCheck/ReadyCheck.app
+codesign -dr - /Volumes/ReadyCheck/ReadyCheck.app
 ```
 
 The root `dist` directory must contain only:
@@ -107,4 +117,4 @@ gh api repos/whnnick/readycheck/releases/latest --jq '{tag_name, name, draft, pr
 
 `tag_name` must match the version just released.
 
-The current release script applies an ad-hoc signature. A production Gatekeeper-ready release additionally requires Developer ID signing, hardened runtime configuration, notarization, and stapling.
+The preview signing identity keeps local Keychain identity stable but is not a Developer ID certificate. A production Gatekeeper-ready release still requires Developer ID signing, hardened runtime configuration, notarization, and stapling.

@@ -16,11 +16,11 @@ struct SettingsView: View {
 
                 updateBanner
 
-                GlassSurface(cornerRadius: 24) {
+                GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
                     quotaControls
                 }
 
-                GlassSurface(cornerRadius: 24) {
+                GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
                     RecentUsageView(
                         samples: model.quotaHistorySamples,
                         localization: model.localization,
@@ -29,12 +29,12 @@ struct SettingsView: View {
                 }
 
                 HStack(alignment: .top, spacing: 14) {
-                    GlassSurface(cornerRadius: 20) {
+                    GlassSurface(cornerRadius: 20, renderingMode: .staticSurface) {
                         codexOAuthProviderControls
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
 
-                    GlassSurface(cornerRadius: 20) {
+                    GlassSurface(cornerRadius: 20, renderingMode: .staticSurface) {
                         generalControls
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -55,11 +55,6 @@ struct SettingsView: View {
                     endPoint: .bottomTrailing
                 )
 
-                Circle()
-                    .fill(Color.accentColor.opacity(0.18))
-                    .blur(radius: 44)
-                    .frame(width: 220, height: 220)
-                    .offset(x: 190, y: -220)
             }
             .ignoresSafeArea()
         }
@@ -73,7 +68,7 @@ struct SettingsView: View {
     }
 
     private var hero: some View {
-        GlassSurface(cornerRadius: 28) {
+        GlassSurface(cornerRadius: 28, renderingMode: .staticSurface) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .center, spacing: 14) {
                     Image(systemName: "gauge.with.dots.needle.67percent")
@@ -126,6 +121,8 @@ struct SettingsView: View {
                 .controlSize(.small)
 
                 widgetControls
+
+                notchControls
 
                 Divider()
 
@@ -227,6 +224,37 @@ struct SettingsView: View {
         .controlSize(.small)
     }
 
+    private var notchControls: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "macbook")
+                .imageScale(.medium)
+
+            Text(model.localization.text("settings.notchStatus"))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+
+            Toggle("", isOn: $model.notchStatusVisible)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .disabled(!model.notchStatusAvailable)
+
+            Text(
+                model.localization.text(
+                    model.notchStatusAvailable
+                        ? "settings.notchStatusHelp"
+                        : "settings.notchStatusUnavailable"
+                )
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+
+            Spacer(minLength: 0)
+        }
+        .controlSize(.small)
+        .help(model.localization.text("settings.notchStatusHelp"))
+    }
+
     private func widgetToggleControl(title: String, systemImage: String, isOn: Binding<Bool>) -> some View {
         HStack(spacing: 8) {
             Image(systemName: systemImage)
@@ -295,7 +323,7 @@ struct SettingsView: View {
     @ViewBuilder
     private var updateBanner: some View {
         if let update = model.visibleUpdate {
-            GlassSurface(cornerRadius: 18) {
+            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
                 HStack(spacing: 10) {
                     Image(systemName: "arrow.down.circle.fill")
                         .font(.title3)
@@ -622,6 +650,8 @@ struct SettingsView: View {
             model.localization.text("oauth.status.exchanging")
         case .connected:
             model.localization.text("oauth.status.connected")
+        case .credentialStorageFailed:
+            model.localization.text("oauth.status.credentialStorageFailed")
         case .failed:
             model.localization.text("oauth.status.failed")
         }
@@ -633,7 +663,7 @@ struct SettingsView: View {
             "checkmark.circle.fill"
         case .waitingForCallback, .exchanging:
             "clock.fill"
-        case .failed:
+        case .credentialStorageFailed, .failed:
             "exclamationmark.triangle.fill"
         case .notConnected:
             "circle"
@@ -646,7 +676,7 @@ struct SettingsView: View {
             .green
         case .waitingForCallback, .exchanging:
             .orange
-        case .failed:
+        case .credentialStorageFailed, .failed:
             .red
         case .notConnected:
             .secondary
@@ -654,7 +684,9 @@ struct SettingsView: View {
     }
 
     private var shouldShowConnectButton: Bool {
-        model.codexOAuthStatus == .notConnected || model.codexOAuthStatus == .failed
+        model.codexOAuthStatus == .notConnected
+            || model.codexOAuthStatus == .credentialStorageFailed
+            || model.codexOAuthStatus == .failed
     }
 
     private var shouldShowCancelAuthorizationButton: Bool {
@@ -662,7 +694,7 @@ struct SettingsView: View {
     }
 
     private var connectButtonTitle: String {
-        model.codexOAuthStatus == .failed
+        model.codexOAuthStatus == .credentialStorageFailed || model.codexOAuthStatus == .failed
             ? model.localization.text("action.retryAuthorization")
             : model.localization.text("action.connect")
     }
@@ -706,11 +738,12 @@ struct SettingsView: View {
     private func updateNowWhileVisible() async {
         while !Task.isCancelled {
             let currentNow = Date()
-            now = currentNow
 
             if model.shouldAutomaticallyRefresh(now: currentNow) {
                 await model.refresh(reason: .automatic)
                 now = Date()
+            } else if currentNow.timeIntervalSince(now) >= 30 {
+                now = currentNow
             }
 
             try? await Task.sleep(for: .seconds(1))

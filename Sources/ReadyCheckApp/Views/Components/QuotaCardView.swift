@@ -33,12 +33,16 @@ struct QuotaCardView: View {
         snapshot.isStale(now: now)
     }
 
+    private var visibleWindows: [QuotaWindow] {
+        snapshot.windows.filter(QuotaWindowPresentation.shouldShow)
+    }
+
     var body: some View {
         GlassSurface {
             VStack(alignment: .leading, spacing: 12) {
                 header
 
-                if snapshot.windows.isEmpty {
+                if visibleWindows.isEmpty {
                     errorContent
                 } else {
                     if showsDetails {
@@ -46,7 +50,7 @@ struct QuotaCardView: View {
                     }
 
                     VStack(spacing: 10) {
-                        ForEach(snapshot.windows) { window in
+                        ForEach(visibleWindows) { window in
                             windowRow(window)
                         }
                     }
@@ -217,7 +221,11 @@ struct QuotaCardView: View {
 
     private var errorContent: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if snapshot.errors.isEmpty {
+            if !snapshot.windows.isEmpty, visibleWindows.isEmpty {
+                Text(localization.text("quota.currentSevenDayUnavailable"))
+                    .font(.subheadline)
+                    .foregroundStyle(Color.primary.opacity(0.72))
+            } else if snapshot.errors.isEmpty {
                 Text(statusText)
                     .font(.subheadline)
                     .foregroundStyle(Color.primary.opacity(0.72))
@@ -291,6 +299,10 @@ struct QuotaCardView: View {
             return localization.text("status.stale")
         }
 
+        guard !visibleWindows.isEmpty else {
+            return localization.text("status.unavailable")
+        }
+
         return switch snapshot.status {
         case .available:
             localization.text("status.available")
@@ -319,6 +331,10 @@ struct QuotaCardView: View {
     private var statusColor: Color {
         if isStale {
             return .orange
+        }
+
+        guard !visibleWindows.isEmpty else {
+            return .secondary
         }
 
         return switch snapshot.status {

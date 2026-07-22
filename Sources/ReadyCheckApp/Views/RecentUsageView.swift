@@ -165,6 +165,7 @@ struct RecentUsageView: View {
         let values = providerSamples.flatMap(\.values)
         var seen = Set<String>()
         return values.compactMap { value in
+            guard QuotaWindowPresentation.shouldShow(labelKey: value.labelKey) else { return nil }
             guard seen.insert(value.windowID).inserted else { return nil }
             return UsageWindow(id: value.windowID, labelKey: value.labelKey)
         }

@@ -143,6 +143,20 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
+public enum QuotaWindowPresentation {
+    // Keep parsing and storing this window for compatibility in case Codex restores it.
+    public static let showsCodexFiveHour = false
+
+    public static func shouldShow(labelKey: String) -> Bool {
+        let retiredFiveHourKeys = ["quota.window.codex.5h", "quota.fiveHour"]
+        return showsCodexFiveHour || !retiredFiveHourKeys.contains(labelKey)
+    }
+
+    public static func shouldShow(_ window: QuotaWindow) -> Bool {
+        shouldShow(labelKey: window.labelKey)
+    }
+}
+
 public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
     public let planName: String?
     public let subscriptionRenewalAt: Date?

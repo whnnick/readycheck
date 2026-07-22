@@ -8,7 +8,7 @@
 
 方式 A：使用便携版 zip。
 
-1. 复制 `dist/windows/ReadyCheck-0.1.66-windows-x64-portable.zip` 到 Windows 电脑。
+1. 复制 `dist/windows/ReadyCheck-0.1.71-windows-x64-portable.zip` 到 Windows 电脑。
 2. 解压 zip。
 3. 运行 `ReadyCheck-win32-x64\ReadyCheck.exe`。
 
@@ -38,7 +38,7 @@ npm start
 2. 确认“显示 widget”默认开启，widget 完整位于屏幕内。
 3. 点击“连接”，在浏览器完成 Codex OAuth。
 4. 确认浏览器回到 `localhost:1455/auth/callback` 后，ReadyCheck 显示已连接账号邮箱。
-5. 点击“刷新”，确认显示 Codex 5 小时和 7 天额度。
+5. 点击“刷新”，确认显示当前 Codex 7 天额度。
 6. 切换极简 / 详细 widget，确认文字不竖排、不遮挡、不溢出。
 7. 关闭“置顶 widget”，确认普通窗口可以盖住 widget，且 widget 仍可拖动。
 8. 隐藏 widget 后重新打开一次，确认位置和“重置位置”一致。
@@ -56,5 +56,5 @@ npm start
 - `npm run check` 通过。
 - `npm run smoke` 通过。
 - OAuth 可以完成并恢复登录邮箱。
-- 刷新只显示已解析的 5 小时 / 7 天额度；不能解析时 fail-closed。
+- 刷新只显示已解析的当前 7 天额度；不能解析时 fail-closed。
 - widget 不影响桌面操作，且默认位置稳定。

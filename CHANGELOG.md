@@ -2,7 +2,40 @@
 
 ## Unreleased
 
+## 0.1.71 - 2026-07-22
+
+- Close the menu-bar panel when the user clicks an empty area or another app, so the panel remains dismissible even when menu-bar icons are crowded.
+- Refresh the GitHub README preview to feature the macOS notch quota status and the current seven-day quota model without exposing account information.
+
+- Fix the notch progress bar so normal 7-day quota uses the same green semantic color as the main quota progress bar instead of white.
+
+## 0.1.70 - 2026-07-22
+
+- Correct the current Codex quota presentation to show the remaining 7-day window and hide the discontinued 5-hour window across macOS and Windows.
+- Update the notch status strip, widgets, menu bar, and local usage dashboard to use the verified 7-day window while retaining 5-hour parser and history compatibility.
+
+## 0.1.69 - 2026-07-22
+
+- Add an optional macOS notch status strip aligned to the detected hardware notch, with the current 5-hour percentage, semantic progress color, click-to-open behavior, and automatic notch-screen detection.
+- Retire the discontinued Codex 7-day quota from macOS and Windows presentation while retaining parser and history compatibility for a possible future return.
+- Improve main-window scrolling by replacing repeated material blur composition with static glass surfaces and reducing full-page time updates from every second to every 30 seconds unless a refresh is due.
+- Keep the Windows package version aligned; the notch surface is intentionally macOS-only hardware integration.
+
+## 0.1.68 - 2026-07-18
+
+- Sign macOS preview packages with a stable local ReadyCheck identity when available, so rebuilt and upgraded preview apps retain the same Keychain application identity instead of inheriting a new ad-hoc identity.
+- Sign the release app in a temporary local staging directory and keep only the final DMG in `dist`, preventing synced-folder metadata from invalidating an intermediate app copy.
+- Build the DMG outside the synced `dist` directory and replace previous DMGs only after validation, preventing numbered conflict copies such as `macos 2.dmg`.
+- Label successful OAuth exchanges that cannot be stored as “Credential save failed” rather than the misleading “Authorization failed,” while keeping the recovery action available.
+- Keep the Windows package version aligned with the macOS preview release.
+
+## 0.1.67 - 2026-07-16
+
 - Rebuild the GitHub README preview GIF with HyperFrames and real product screenshots for a clearer product showcase.
+- Align the macOS and Windows Codex OAuth request with the current Codex CLI flow by removing forced sign-in and including the expected originator parameter.
+- Validate OAuth callback state before accepting provider errors, parse structured token failures, and keep user-facing diagnostics concise without logging credentials or callback data.
+- Distinguish network, invalid token response, and credential-storage failures; on macOS, direct users to unlock the login Keychain when authorization succeeds but credentials cannot be saved.
+- Report when the local OAuth callback listener is starting, listening, or unavailable instead of assuming it is ready immediately.
 
 ## 0.1.66 - 2026-07-15
 

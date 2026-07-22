@@ -7,6 +7,7 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private let openSettings: @MainActor () -> Void
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
+    private var outsideClickMonitor: Any?
 
     init(model: ReadyCheckAppModel, openSettings: @escaping @MainActor () -> Void) {
         self.model = model
@@ -21,6 +22,7 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
 
     func closePopover() {
         popover.performClose(nil)
+        stopOutsideClickMonitoring()
     }
 
     private func configureStatusItem() {
@@ -61,5 +63,28 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         }
 
         popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+        startOutsideClickMonitoring()
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        stopOutsideClickMonitoring()
+    }
+
+    private func startOutsideClickMonitoring() {
+        stopOutsideClickMonitoring()
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.leftMouseDown, .rightMouseDown]
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard self?.popover.isShown == true else { return }
+                self?.closePopover()
+            }
+        }
+    }
+
+    private func stopOutsideClickMonitoring() {
+        guard let outsideClickMonitor else { return }
+        NSEvent.removeMonitor(outsideClickMonitor)
+        self.outsideClickMonitor = nil
     }
 }

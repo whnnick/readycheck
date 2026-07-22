@@ -1,6 +1,6 @@
 ## Style Prompt
 
-ReadyCheck product promo preview for GitHub README. Use a dark macOS premium canvas, real product screenshots, restrained blue and green accents, liquid-glass depth, and clean product-focused motion. The result should feel like a polished desktop utility showcase, not a marketing splash screen.
+ReadyCheck product promo preview for GitHub README. Use a dark macOS premium canvas, an account-free representation of the real main interface, a real anonymous widget screenshot, restrained blue and green accents, liquid-glass depth, and clean product-focused motion. Feature the macOS notch quota status as a distinct module, using the same green, orange, and red quota semantics as the app. The result should feel like a polished desktop utility showcase, not a marketing splash screen.
 
 ## Colors
 
@@ -18,9 +18,9 @@ ReadyCheck product promo preview for GitHub README. Use a dark macOS premium can
 
 ## Motion
 
-- Product screenshots stay readable at all times.
+- Product UI stays readable at all times.
 - Use short entrance motion, subtle floating, and light sweeps.
-- Do not overlap the three product modules.
+- Do not overlap the main window, notch status, menu-bar summary, or desktop widget modules.
 
 ## What NOT to Do
 
