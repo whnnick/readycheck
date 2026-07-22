@@ -76,18 +76,7 @@ struct NotchStatusView: View {
     }
 
     private var statusColor: Color {
-        guard let snapshot, snapshot.canShowPercentages(now: now) else {
-            return model.isRefreshing ? .orange : .gray
-        }
-
-        let urgency = QuotaUrgency(remainingRatio: sevenDayRatio)
-        if urgency == .exhausted || urgency == .critical {
-            return .red
-        }
-        if urgency == .warning {
-            return .orange
-        }
-        return urgency == .normal ? .green : .gray
+        snapshot?.canShowPercentages(now: now) == true ? .green : .gray
     }
 
     private var sevenDayRatio: Double? {

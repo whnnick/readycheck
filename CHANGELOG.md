@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.72 - 2026-07-22
+
+- Make the dot beside Codex in the macOS notch a binary data-status indicator: green when current quota data is available and gray otherwise. Quota urgency remains represented only by the percentage and progress bar colors.
+- Keep the Windows package version aligned; notch status remains a macOS-only hardware integration.
+
 ## 0.1.71 - 2026-07-22
 
 - Close the menu-bar panel when the user clicks an empty area or another app, so the panel remains dismissible even when menu-bar icons are crowded.

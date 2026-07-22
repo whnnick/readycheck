@@ -29,7 +29,7 @@ if [[ -n "$(git -C "${SOURCE_ROOT}" status --porcelain)" ]]; then
     exit 1
 fi
 
-if [[ ! -d "${PUBLIC_SYNC_DIR}/.git" ]]; then
+if [[ ! -e "${PUBLIC_SYNC_DIR}/.git" ]]; then
     if [[ "${MODE}" == "--dry-run" ]]; then
         echo "Public sync worktree does not exist yet: ${PUBLIC_SYNC_DIR}"
         echo "--apply would fetch origin/main and initialize this temporary worktree."
