@@ -111,6 +111,11 @@ async function main() {
                 reset_at: 605800
               },
               manual_reset_count: 0
+            },
+            credits: {
+              has_credits: true,
+              unlimited: false,
+              balance: "3336.5"
             }
           };
         },
@@ -138,6 +143,8 @@ async function main() {
   assert.equal(refreshed.quota.plan, "Plus");
   assert.equal(refreshed.quota.manualResetCount, 1);
   assert.equal(refreshed.quota.manualResetExpiresAt, new Date("2026-07-31T20:38:12.468133Z").toISOString());
+  assert.equal(refreshed.quota.creditBalance, "3336.5");
+  assert.equal(refreshed.quota.creditsUnlimited, false);
   assert.equal(refreshed.quota.windows[0].labelKey, "quota.window.codex.5h");
   assert.equal(refreshed.quota.windows[0].remainingRatio, 0.8);
 

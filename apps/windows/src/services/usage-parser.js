@@ -48,7 +48,9 @@ function parseManualResetDetails(payload) {
       ["rate_limit", "manual_reset_expire_at"],
       ["rate_limit", "manual_reset_expirations"],
       ["rate_limit", "manual_resets", "expires_at"]
-    ])
+    ]),
+    creditBalance: creditBalanceFrom(root),
+    creditsUnlimited: creditsUnlimitedFrom(root)
   };
 }
 
@@ -108,6 +110,40 @@ function firstDateArray(root, paths) {
     }
   }
   return [];
+}
+
+function creditBalanceFrom(root) {
+  const credits = root && root.credits;
+  if (!credits || typeof credits !== "object" || Array.isArray(credits)) {
+    return null;
+  }
+
+  const value = credits.balance;
+  if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "") {
+    return null;
+  }
+
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric >= 0 ? String(numeric) : null;
+}
+
+function creditsUnlimitedFrom(root) {
+  const credits = root && root.credits;
+  if (!credits || typeof credits !== "object" || Array.isArray(credits)) {
+    return null;
+  }
+
+  const value = credits.unlimited;
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (value === 1 || value === "1" || String(value).toLowerCase() === "true") {
+    return true;
+  }
+  if (value === 0 || value === "0" || String(value).toLowerCase() === "false") {
+    return false;
+  }
+  return null;
 }
 
 function valueAtPath(root, path) {

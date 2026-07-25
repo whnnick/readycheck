@@ -171,6 +171,13 @@ struct QuotaCardView: View {
             label: localization.text("quota.manualResetCount"),
             value: manualResetCountText
         )
+
+        if let creditBalanceText {
+            inlineDetail(
+                label: localization.text("quota.codexCredits"),
+                value: creditBalanceText
+            )
+        }
     }
 
     private var displayPlanName: String {
@@ -200,6 +207,24 @@ struct QuotaCardView: View {
 
     private var manualResetExpirations: [Date] {
         snapshot.details?.manualResetExpirations ?? []
+    }
+
+    private var creditBalanceText: String? {
+        if snapshot.details?.creditsUnlimited == true {
+            return localization.text("quota.creditsUnlimited")
+        }
+
+        guard let rawBalance = nonEmpty(snapshot.details?.creditBalance),
+              let decimal = Decimal(string: rawBalance, locale: Locale(identifier: "en_US_POSIX"))
+        else {
+            return nil
+        }
+
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 3
+        return formatter.string(from: NSDecimalNumber(decimal: decimal)) ?? rawBalance
     }
 
     private func manualResetExpirationText(index: Int, date: Date) -> String {

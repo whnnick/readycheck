@@ -91,7 +91,9 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                     planName: CodexJWTClaims.planName(from: token.idToken),
                     subscriptionRenewalAt: CodexJWTClaims.subscriptionRenewalAt(from: token.idToken),
                     manualResetCount: usageDetails.manualResetCount,
-                    manualResetExpirations: usageDetails.manualResetExpirations
+                    manualResetExpirations: usageDetails.manualResetExpirations,
+                    creditBalance: usageDetails.creditBalance,
+                    creditsUnlimited: usageDetails.creditsUnlimited
                 )
             )
         } catch CodexUsageParserError.noDisplayableWindows {
@@ -131,7 +133,9 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             manualResetCount: resetCreditDetails.manualResetCount ?? usageDetails.manualResetCount,
             manualResetExpirations: resetCreditDetails.manualResetExpirations.isEmpty
                 ? usageDetails.manualResetExpirations
-                : resetCreditDetails.manualResetExpirations
+                : resetCreditDetails.manualResetExpirations,
+            creditBalance: usageDetails.creditBalance,
+            creditsUnlimited: usageDetails.creditsUnlimited
         )
     }
 

@@ -57,7 +57,9 @@ public struct CodexUsageParser: Sendable {
                     ["rate_limit", "manual_reset_expirations"],
                     ["rate_limit", "manual_resets", "expires_at"]
                 ]
-            )
+            ),
+            creditBalance: creditBalance(in: root),
+            creditsUnlimited: creditsUnlimited(in: root)
         )
     }
 
@@ -123,6 +125,61 @@ public struct CodexUsageParser: Sendable {
             }
         }
         return []
+    }
+
+    private func creditBalance(in root: [String: Any]) -> String? {
+        guard let credits = root["credits"] as? [String: Any],
+              let value = credits["balance"]
+        else {
+            return nil
+        }
+
+        let raw: String
+        if let string = value as? String {
+            raw = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else if let number = value as? NSNumber {
+            guard CFGetTypeID(number) != CFBooleanGetTypeID() else {
+                return nil
+            }
+            raw = number.stringValue
+        } else {
+            return nil
+        }
+
+        guard !raw.isEmpty,
+              let decimal = Decimal(string: raw, locale: Locale(identifier: "en_US_POSIX")),
+              decimal >= 0
+        else {
+            return nil
+        }
+
+        return NSDecimalNumber(decimal: decimal).stringValue
+    }
+
+    private func creditsUnlimited(in root: [String: Any]) -> Bool? {
+        guard let credits = root["credits"] as? [String: Any],
+              let value = credits["unlimited"]
+        else {
+            return nil
+        }
+
+        if let bool = value as? Bool {
+            return bool
+        }
+        if let number = value as? NSNumber {
+            return number.boolValue
+        }
+        if let string = value as? String {
+            switch string.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+            case "true", "1":
+                return true
+            case "false", "0":
+                return false
+            default:
+                return nil
+            }
+        }
+        return nil
     }
 
     private func value(in root: [String: Any], path: [String]) -> Any? {

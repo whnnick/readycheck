@@ -186,6 +186,8 @@ class ReadyCheckState {
         subscriptionRenewalAt: subscriptionRenewalAtFromToken(token.idToken),
         manualResetCount: resetCreditDetails.manualResetCount ?? resetDetails.manualResetCount ?? 0,
         manualResetExpiresAt: manualResetExpirations[0] || null,
+        creditBalance: resetDetails.creditBalance,
+        creditsUnlimited: resetDetails.creditsUnlimited,
         windows
       };
       if (this.historyStore) {
@@ -246,6 +248,8 @@ function buildUnavailableQuota() {
     subscriptionRenewalAt: null,
     manualResetCount: 0,
     manualResetExpiresAt: null,
+    creditBalance: null,
+    creditsUnlimited: null,
     windows: [
       {
         id: "codex-5h",

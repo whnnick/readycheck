@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.74 - 2026-07-25
+
+- Show the verified Codex credit balance or unlimited-credit state from the existing OAuth usage response in the main quota details and detailed widget.
+- Keep the compact widget, menu bar, and macOS notch focused on the current quota percentage, and keep the Windows client aligned.
+
 ## 0.1.73 - 2026-07-25
 
 - Correct the macOS notch availability dot: it is green only while verified Codex quota remains, and gray when quota is exhausted or current quota data is unavailable.

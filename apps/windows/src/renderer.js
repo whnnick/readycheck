@@ -119,11 +119,13 @@ function renderQuota(state) {
   const visibleWindows = details.windows.filter((item) => !["quota.window.codex.5h", "quota.fiveHour"].includes(item.labelKey));
 
   if (!isWidget || mode === "detailed") {
+    const creditsRow = codexCreditsText(details);
     rows.push(`
       <div class="details-grid">
         <span>${isWidget ? "套餐" : "套餐"}</span><strong>${details.plan || "未提供"}</strong>
         <span>${isWidget ? "续期" : "续期时间"}</span><strong>${formatDate(details.subscriptionRenewalAt) || "未提供"}</strong>
         <span>${isWidget ? "重置次数" : "主动重置次数"}</span><strong>${details.manualResetCount}</strong>
+        ${creditsRow ? `<span>Codex Credits</span><strong>${creditsRow}</strong>` : ""}
         <span>${isWidget ? "重置过期" : "主动重置过期时间（GMT+8）"}</span><strong>${formatDate(details.manualResetExpiresAt) || "未提供"}</strong>
       </div>
     `);
@@ -156,6 +158,21 @@ function renderQuota(state) {
   }
 
   elements.quotaContent.innerHTML = rows.join("");
+}
+
+function codexCreditsText(details) {
+  if (details.creditsUnlimited === true) {
+    return "无限";
+  }
+  if (details.creditBalance === null || details.creditBalance === undefined || details.creditBalance === "") {
+    return null;
+  }
+
+  const value = Number(details.creditBalance);
+  if (!Number.isFinite(value) || value < 0) {
+    return null;
+  }
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 }).format(value);
 }
 
 function renderRecoveryActions(state) {

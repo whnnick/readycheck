@@ -95,4 +95,40 @@ const emptyResetDetails = parseManualResetDetails({
 assert.equal(emptyResetDetails.manualResetCount, 0);
 assert.deepEqual(emptyResetDetails.manualResetExpirations, []);
 
+const codexCredits = parseManualResetDetails({
+  credits: {
+    has_credits: true,
+    unlimited: false,
+    balance: "3336.500"
+  }
+});
+assert.equal(codexCredits.creditBalance, "3336.5");
+assert.equal(codexCredits.creditsUnlimited, false);
+
+const zeroCodexCredits = parseManualResetDetails({
+  credits: {
+    unlimited: false,
+    balance: "0"
+  }
+});
+assert.equal(zeroCodexCredits.creditBalance, "0");
+assert.equal(zeroCodexCredits.creditsUnlimited, false);
+
+const unlimitedCodexCredits = parseManualResetDetails({
+  credits: {
+    unlimited: true
+  }
+});
+assert.equal(unlimitedCodexCredits.creditBalance, null);
+assert.equal(unlimitedCodexCredits.creditsUnlimited, true);
+
+const invalidCodexCredits = parseManualResetDetails({
+  credits: {
+    unlimited: false,
+    balance: "not-a-number"
+  }
+});
+assert.equal(invalidCodexCredits.creditBalance, null);
+assert.equal(invalidCodexCredits.creditsUnlimited, false);
+
 console.log("Windows usage-parser checks passed.");

@@ -157,4 +157,57 @@ final class CodexUsageParserTests: XCTestCase {
         XCTAssertEqual(details.manualResetCount, 0)
         XCTAssertEqual(details.manualResetExpirations, [])
     }
+
+    func testParserExtractsCodexCreditBalance() {
+        let parser = CodexUsageParser()
+        let data = Data(
+            """
+            {
+              "credits": {
+                "has_credits": true,
+                "unlimited": false,
+                "balance": "3336.500"
+              }
+            }
+            """.utf8
+        )
+
+        let details = parser.parseManualResetDetails(data)
+
+        XCTAssertEqual(details.creditBalance, "3336.5")
+        XCTAssertEqual(details.creditsUnlimited, false)
+    }
+
+    func testParserExtractsNumericAndUnlimitedCodexCredits() {
+        let parser = CodexUsageParser()
+        let numeric = parser.parseManualResetDetails(
+            Data(#"{"credits":{"unlimited":false,"balance":12.75}}"#.utf8)
+        )
+        let zero = parser.parseManualResetDetails(
+            Data(#"{"credits":{"unlimited":false,"balance":"0"}}"#.utf8)
+        )
+        let unlimited = parser.parseManualResetDetails(
+            Data(#"{"credits":{"unlimited":true}}"#.utf8)
+        )
+
+        XCTAssertEqual(numeric.creditBalance, "12.75")
+        XCTAssertEqual(numeric.creditsUnlimited, false)
+        XCTAssertEqual(zero.creditBalance, "0")
+        XCTAssertEqual(zero.creditsUnlimited, false)
+        XCTAssertNil(unlimited.creditBalance)
+        XCTAssertEqual(unlimited.creditsUnlimited, true)
+    }
+
+    func testParserIgnoresMissingOrInvalidCodexCreditBalance() {
+        let parser = CodexUsageParser()
+        let missing = parser.parseManualResetDetails(Data(#"{}"#.utf8))
+        let invalid = parser.parseManualResetDetails(
+            Data(#"{"credits":{"unlimited":false,"balance":"not-a-number"}}"#.utf8)
+        )
+
+        XCTAssertNil(missing.creditBalance)
+        XCTAssertNil(missing.creditsUnlimited)
+        XCTAssertNil(invalid.creditBalance)
+        XCTAssertEqual(invalid.creditsUnlimited, false)
+    }
 }

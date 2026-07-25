@@ -134,6 +134,11 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
                       },
                       "rate_limit_reset_credits": {
                         "available_count": 1
+                      },
+                      "credits": {
+                        "has_credits": true,
+                        "unlimited": false,
+                        "balance": "3336.5"
                       }
                     }
                     """.utf8
@@ -174,6 +179,8 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertEqual(requests[1].value(forHTTPHeaderField: "originator"), "Codex Desktop")
         XCTAssertEqual(snapshot.details?.manualResetCount, 1)
         XCTAssertEqual(snapshot.details?.manualResetExpirations.map { Int($0.timeIntervalSince1970) }, [1_785_530_292])
+        XCTAssertEqual(snapshot.details?.creditBalance, "3336.5")
+        XCTAssertEqual(snapshot.details?.creditsUnlimited, false)
     }
 
     func testProviderFailsClosedWithoutAccountID() async throws {

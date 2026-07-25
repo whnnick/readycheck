@@ -171,17 +171,23 @@ public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
     public let subscriptionRenewalAt: Date?
     public let manualResetCount: Int?
     public let manualResetExpirations: [Date]
+    public let creditBalance: String?
+    public let creditsUnlimited: Bool?
 
     public init(
         planName: String? = nil,
         subscriptionRenewalAt: Date? = nil,
         manualResetCount: Int? = nil,
-        manualResetExpirations: [Date] = []
+        manualResetExpirations: [Date] = [],
+        creditBalance: String? = nil,
+        creditsUnlimited: Bool? = nil
     ) {
         self.planName = planName
         self.subscriptionRenewalAt = subscriptionRenewalAt
         self.manualResetCount = manualResetCount
         self.manualResetExpirations = manualResetExpirations
+        self.creditBalance = creditBalance
+        self.creditsUnlimited = creditsUnlimited
     }
 }
 
