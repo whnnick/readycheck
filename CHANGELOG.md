@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.75 - 2026-07-25
+
+- Remove the redundant manual-reset count from the main quota details and detailed widget.
+- Show each available manual-reset expiration separately, with matching behavior on macOS and Windows.
+
 ## 0.1.74 - 2026-07-25
 
 - Show the verified Codex credit balance or unlimited-credit state from the existing OAuth usage response in the main quota details and detailed widget.

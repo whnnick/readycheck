@@ -167,11 +167,6 @@ struct QuotaCardView: View {
             value: subscriptionRenewalText
         )
 
-        inlineDetail(
-            label: localization.text("quota.manualResetCount"),
-            value: manualResetCountText
-        )
-
         if let creditBalanceText {
             inlineDetail(
                 label: localization.text("quota.codexCredits"),
@@ -194,15 +189,6 @@ struct QuotaCardView: View {
         }
 
         return dateText(for: date, forceFullDate: true)
-    }
-
-    private var manualResetCountText: String {
-        if let count = snapshot.details?.manualResetCount {
-            return "\(count)"
-        }
-
-        let expirations = manualResetExpirations
-        return "\(expirations.count)"
     }
 
     private var manualResetExpirations: [Date] {

@@ -186,6 +186,7 @@ class ReadyCheckState {
         subscriptionRenewalAt: subscriptionRenewalAtFromToken(token.idToken),
         manualResetCount: resetCreditDetails.manualResetCount ?? resetDetails.manualResetCount ?? 0,
         manualResetExpiresAt: manualResetExpirations[0] || null,
+        manualResetExpirations,
         creditBalance: resetDetails.creditBalance,
         creditsUnlimited: resetDetails.creditsUnlimited,
         windows
@@ -248,6 +249,7 @@ function buildUnavailableQuota() {
     subscriptionRenewalAt: null,
     manualResetCount: 0,
     manualResetExpiresAt: null,
+    manualResetExpirations: [],
     creditBalance: null,
     creditsUnlimited: null,
     windows: [

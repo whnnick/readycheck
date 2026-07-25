@@ -124,9 +124,8 @@ function renderQuota(state) {
       <div class="details-grid">
         <span>${isWidget ? "套餐" : "套餐"}</span><strong>${details.plan || "未提供"}</strong>
         <span>${isWidget ? "续期" : "续期时间"}</span><strong>${formatDate(details.subscriptionRenewalAt) || "未提供"}</strong>
-        <span>${isWidget ? "重置次数" : "主动重置次数"}</span><strong>${details.manualResetCount}</strong>
         ${creditsRow ? `<span>Codex Credits</span><strong>${creditsRow}</strong>` : ""}
-        <span>${isWidget ? "重置过期" : "主动重置过期时间（GMT+8）"}</span><strong>${formatDate(details.manualResetExpiresAt) || "未提供"}</strong>
+        ${manualResetExpirationRows(details)}
       </div>
     `);
   }
@@ -173,6 +172,22 @@ function codexCreditsText(details) {
     return null;
   }
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 }).format(value);
+}
+
+function manualResetExpirationRows(details) {
+  const expirations = Array.isArray(details.manualResetExpirations)
+    ? details.manualResetExpirations
+    : (details.manualResetExpiresAt ? [details.manualResetExpiresAt] : []);
+  const label = isWidget ? "重置过期" : "主动重置过期时间（GMT+8）";
+
+  if (expirations.length === 0) {
+    return `<span>${label}</span><strong>未提供</strong>`;
+  }
+
+  return expirations.map((expiration, index) => `
+    <span>${index === 0 ? label : ""}</span>
+    <strong>第 ${index + 1} 次 · ${formatDate(expiration) || "未提供"}</strong>
+  `).join("");
 }
 
 function renderRecoveryActions(state) {
