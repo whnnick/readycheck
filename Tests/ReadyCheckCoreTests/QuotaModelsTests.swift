@@ -49,6 +49,14 @@ final class QuotaModelsTests: XCTestCase {
         XCTAssertFalse(QuotaUrgency.unknown.shouldDisplayWarning)
     }
 
+    func testQuotaUrgencyReportsWhetherQuotaRemains() {
+        XCTAssertTrue(QuotaUrgency.normal.hasRemainingQuota)
+        XCTAssertTrue(QuotaUrgency.warning.hasRemainingQuota)
+        XCTAssertTrue(QuotaUrgency.critical.hasRemainingQuota)
+        XCTAssertFalse(QuotaUrgency.exhausted.hasRemainingQuota)
+        XCTAssertFalse(QuotaUrgency.unknown.hasRemainingQuota)
+    }
+
     func testInvalidWindowSuppressesRatioWhenLimitIsZero() {
         let window = QuotaWindow(
             id: "invalid",

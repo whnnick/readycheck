@@ -76,6 +76,15 @@ public enum QuotaUrgency: String, Codable, Equatable, Sendable {
             false
         }
     }
+
+    public var hasRemainingQuota: Bool {
+        switch self {
+        case .normal, .warning, .critical:
+            true
+        case .exhausted, .unknown:
+            false
+        }
+    }
 }
 
 public enum QuotaRecoveryAction: String, Codable, Equatable, Sendable {

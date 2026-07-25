@@ -76,7 +76,7 @@ struct NotchStatusView: View {
     }
 
     private var statusColor: Color {
-        snapshot?.canShowPercentages(now: now) == true ? .green : .gray
+        QuotaUrgency(remainingRatio: sevenDayRatio).hasRemainingQuota ? .green : .gray
     }
 
     private var sevenDayRatio: Double? {

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.73 - 2026-07-25
+
+- Correct the macOS notch availability dot: it is green only while verified Codex quota remains, and gray when quota is exhausted or current quota data is unavailable.
+- Add regression coverage for usable, exhausted, and unknown quota states, and keep the Windows package version aligned.
+
 ## 0.1.72 - 2026-07-22
 
 - Make the dot beside Codex in the macOS notch a binary data-status indicator: green when current quota data is available and gray otherwise. Quota urgency remains represented only by the percentage and progress bar colors.
