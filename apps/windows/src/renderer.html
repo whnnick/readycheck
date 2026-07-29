@@ -55,11 +55,11 @@
       <section class="usage-card glass">
         <div class="section-heading usage-heading">
           <div>
-            <h2>近期额度消耗</h2>
-            <p class="muted">柱形表示每个时段检测到的额度下降，单位为百分点。</p>
+            <h2 id="usageTitle">近期额度消耗</h2>
+            <p class="muted" id="usageDescription">柱形表示每个时段检测到的额度下降，单位为百分点。</p>
           </div>
           <div class="usage-heading-actions">
-            <span class="local-badge">本地记录</span>
+            <span class="local-badge" id="usageSourceBadge">本地记录</span>
             <div class="segmented-control" id="usageRange" aria-label="趋势时间范围">
               <button data-usage-range="1" class="active">24 小时</button>
               <button data-usage-range="7">7 天</button>

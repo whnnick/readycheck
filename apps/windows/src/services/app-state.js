@@ -17,6 +17,7 @@ class ReadyCheckState {
     this.tokenStore = options.tokenStore || null;
     this.oauthClient = options.oauthClient || null;
     this.usageClient = options.usageClient || null;
+    this.appServerClient = options.appServerClient || null;
     this.historyStore = options.historyStore || null;
     this.oauthSession = null;
     this.connected = false;
@@ -139,7 +140,7 @@ class ReadyCheckState {
   }
 
   async refreshConnectedQuota(refreshedAt) {
-    if (!this.tokenStore || !this.usageClient || !this.oauthClient) {
+    if (!this.tokenStore || !this.oauthClient) {
       this.status = "usageUnavailable";
       this.quota = buildUnavailableQuota();
       return;
@@ -162,6 +163,22 @@ class ReadyCheckState {
         this.quota = buildUnavailableQuota();
         return;
       }
+    }
+
+    const officialQuota = await this.fetchOfficialQuota(token, refreshedAt);
+    if (officialQuota) {
+      this.status = "available";
+      this.quota = officialQuota;
+      if (this.historyStore) {
+        this.quotaHistory = this.historyStore.record(this.quota, refreshedAt);
+      }
+      return;
+    }
+
+    if (!this.usageClient) {
+      this.status = "usageUnavailable";
+      this.quota = buildUnavailableQuota();
+      return;
     }
 
     const accountID = token.accountID || accountIDFromToken(token.accessToken);
@@ -189,6 +206,7 @@ class ReadyCheckState {
         manualResetExpirations,
         creditBalance: resetDetails.creditBalance,
         creditsUnlimited: resetDetails.creditsUnlimited,
+        tokenUsage: null,
         windows
       };
       if (this.historyStore) {
@@ -197,6 +215,48 @@ class ReadyCheckState {
     } catch (error) {
       this.status = statusForUsageError(error);
       this.quota = buildUnavailableQuota();
+    }
+  }
+
+  async fetchOfficialQuota(token, refreshedAt) {
+    if (!this.appServerClient || typeof this.appServerClient.readAccountSnapshot !== "function") {
+      return null;
+    }
+
+    try {
+      const snapshot = await this.appServerClient.readAccountSnapshot();
+      if (!sameAccountEmail(token.email, snapshot.email)) {
+        return null;
+      }
+      const windows = (snapshot.rateLimits || []).flatMap((limit) => [
+        makeOfficialWindow(limit.primary, `${limit.limitID}-primary`, "quota.window.codex.primary"),
+        makeOfficialWindow(limit.secondary, `${limit.limitID}-secondary`, "quota.window.codex.secondary")
+      ].filter(Boolean));
+      if (windows.length === 0) {
+        return null;
+      }
+
+      const defaultLimit = snapshot.rateLimits.find((limit) => limit.limitID === "codex")
+        || snapshot.rateLimits[0];
+      const manualResetExpirations = (snapshot.resetCredits || [])
+        .filter((credit) => !credit.status || credit.status === "available")
+        .map((credit) => credit.expiresAt)
+        .filter(Boolean)
+        .sort();
+      return {
+        provider: "Codex",
+        plan: defaultLimit.planName || snapshot.planName || planNameFromToken(token.idToken),
+        subscriptionRenewalAt: subscriptionRenewalAtFromToken(token.idToken),
+        manualResetCount: manualResetExpirations.length,
+        manualResetExpiresAt: manualResetExpirations[0] || null,
+        manualResetExpirations,
+        creditBalance: defaultLimit.hasCredits === false ? null : defaultLimit.creditBalance,
+        creditsUnlimited: defaultLimit.creditsUnlimited,
+        tokenUsage: snapshot.tokenUsage || null,
+        windows
+      };
+    } catch {
+      return null;
     }
   }
 
@@ -252,27 +312,51 @@ function buildUnavailableQuota() {
     manualResetExpirations: [],
     creditBalance: null,
     creditsUnlimited: null,
-    windows: [
-      {
-        id: "codex-5h",
-        labelKey: "quota.fiveHour",
-        remainingRatio: null,
-        resetAt: null,
-        status: "unavailable"
-      },
-      {
-        id: "codex-7d",
-        labelKey: "quota.sevenDay",
-        remainingRatio: null,
-        resetAt: null,
-        status: "unavailable"
-      }
-    ]
+    tokenUsage: null,
+    windows: []
   };
+}
+
+function sameAccountEmail(readyCheckEmail, appServerEmail) {
+  const expected = String(readyCheckEmail || "").trim().toLowerCase();
+  const actual = String(appServerEmail || "").trim().toLowerCase();
+  return Boolean(expected && actual && expected === actual);
+}
+
+function makeOfficialWindow(window, id, fallbackLabelKey) {
+  if (!window || !Number.isFinite(Number(window.usedPercent))) {
+    return null;
+  }
+  const used = Math.min(Math.max(Number(window.usedPercent), 0), 100);
+  return {
+    id,
+    labelKey: officialWindowLabel(window.durationMinutes, fallbackLabelKey),
+    kind: "rolling",
+    used,
+    limit: 100,
+    remaining: 100 - used,
+    remainingRatio: (100 - used) / 100,
+    unit: "percent",
+    resetAt: window.resetsAt || null,
+    confidence: "verified",
+    status: "available"
+  };
+}
+
+function officialWindowLabel(durationMinutes, fallback) {
+  if (Number(durationMinutes) === 300) {
+    return "quota.window.codex.5h";
+  }
+  if (Number(durationMinutes) === 10_080) {
+    return "quota.window.codex.7d";
+  }
+  return fallback;
 }
 
 module.exports = {
   ReadyCheckState,
+  makeOfficialWindow,
   recoveryActionForStatus,
+  sameAccountEmail,
   statusForUsageError
 };

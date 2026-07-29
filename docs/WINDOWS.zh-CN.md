@@ -40,7 +40,7 @@ npm run smoke
 scripts/package_windows_portable.sh
 ```
 
-输出：`dist/windows/ReadyCheck-0.1.71-windows-x64-portable.zip`。
+输出：`dist/windows/ReadyCheck-0.1.76-windows-x64-portable.zip`。
 
 仍需在 Windows 上验收：
 
@@ -50,5 +50,5 @@ scripts/package_windows_portable.sh
 - 置顶开关能改变窗口层级。
 - OAuth 未连接前刷新必须 fail-closed。
 - Codex OAuth 授权后账号状态应显示为已连接。
-- 授权后刷新应显示当前 7 天额度；低额度颜色与 macOS 版一致。
+- 授权后刷新应动态显示 Codex 返回且可验证的额度窗口；低额度颜色与 macOS 版一致。
 - token 文件不得以明文 JSON 保存。

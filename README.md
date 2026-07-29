@@ -8,16 +8,17 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Status: `0.1.75` is an early macOS preview. Codex OAuth is the only supported provider in this release. A Windows portable preview package is available for Windows 10/11 testing.
+> Status: `0.1.76` is an early macOS preview. Codex OAuth is the only supported provider in this release. A Windows portable preview package is available for Windows 10/11 testing.
 
 ## What It Does
 
-- Shows the current Codex 7-day quota window when the authorized usage response is parseable.
+- Shows the validated quota windows currently returned by Codex instead of assuming a fixed 5-hour or 7-day model.
 - Shows the Codex credit balance or unlimited-credit state in the main window and detailed widget when the authorized usage response provides it.
+- Uses the official local Codex app-server when available and signed in to the same account, including a 7/30/90-day account Token usage dashboard.
 - Provides a main window, menu-bar summary, and optional draggable desktop widget.
 - Adds an optional compact quota strip below the built-in display notch on supported Mac models.
 - Refreshes usage data manually or every 1, 3, or 5 minutes. Refreshes are read-only usage requests and do not call model inference endpoints.
-- Includes a local consumption dashboard for the 7-day quota window. It records detected quota decreases in percentage points, not token counts.
+- Keeps the local quota-decrease dashboard as a clearly labelled fallback when official Token history is unavailable.
 - Stores OAuth credentials in the macOS Keychain.
 - Supports Simplified Chinese and English.
 
@@ -25,9 +26,9 @@ ReadyCheck fails closed: when quota data cannot be read or validated, it shows a
 
 ## Install
 
-Download `ReadyCheck-0.1.75-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
+Download `ReadyCheck-0.1.76-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
 
-For Windows 10/11 preview testing, download `ReadyCheck-0.1.75-windows-x64-portable.zip` from the same release, unzip it, and run `ReadyCheck.exe`.
+For Windows 10/11 preview testing, download `ReadyCheck-0.1.76-windows-x64-portable.zip` from the same release, unzip it, and run `ReadyCheck.exe`.
 
 The preview build uses a stable self-signed ReadyCheck identity but is not Developer ID signed or notarized. macOS may require you to confirm the first launch in **System Settings > Privacy & Security**. See [installation details](docs/INSTALL.md).
 
@@ -49,7 +50,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The DMG is written to `dist/ReadyCheck-0.1.75-macos.dmg`.
+The DMG is written to `dist/ReadyCheck-0.1.76-macos.dmg`.
 
 ## Windows Preview Development
 
@@ -67,8 +68,8 @@ npm run dev
 
 ## Accuracy And Privacy
 
-- The app reads the authorized Codex usage endpoint only. It does not use a prompt or model invocation to infer quota.
-- The upstream usage response is an internal service interface and may change. ReadyCheck only displays quota percentages and credit information when its parser can validate the corresponding fields.
+- The app prefers the official local Codex app-server and otherwise reads the authorized Codex usage endpoint. Neither path sends a prompt or invokes a model.
+- Official app-server data is accepted only when its account email matches the ReadyCheck OAuth account. The fallback usage response is an internal service interface and may change, so ReadyCheck displays only validated fields.
 - OAuth tokens are stored in Keychain; do not put tokens, callback URLs, account IDs, or usage payloads in GitHub issues.
 - This project is not affiliated with or endorsed by OpenAI.
 

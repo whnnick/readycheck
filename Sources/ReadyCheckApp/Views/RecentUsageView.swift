@@ -26,6 +26,7 @@ struct RecentUsageView: View {
     }
 
     let samples: [QuotaHistorySample]
+    let tokenUsage: AccountTokenUsage?
     let localization: LocalizationService
     let now: Date
 
@@ -36,6 +37,18 @@ struct RecentUsageView: View {
     @State private var didRevealChart = false
 
     var body: some View {
+        if let tokenUsage {
+            AccountTokenUsageView(
+                usage: tokenUsage,
+                localization: localization,
+                now: now
+            )
+        } else {
+            localQuotaUsage
+        }
+    }
+
+    private var localQuotaUsage: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
                 Label(localization.text("usage.title"), systemImage: "chart.bar.xaxis")
@@ -354,4 +367,211 @@ struct RecentUsageView: View {
             }
         }
     }
+}
+
+private struct AccountTokenUsageView: View {
+    private enum Range: Int, CaseIterable, Identifiable {
+        case week = 7
+        case month = 30
+        case quarter = 90
+
+        var id: Int { rawValue }
+    }
+
+    private struct DatedBucket: Identifiable {
+        let date: Date
+        let tokens: Int64
+
+        var id: Date { date }
+    }
+
+    let usage: AccountTokenUsage
+    let localization: LocalizationService
+    let now: Date
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var selectedRange: Range = .month
+    @State private var revealProgress = 0.0
+    @State private var didReveal = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Label(localization.text("usage.tokenTitle"), systemImage: "chart.bar.xaxis")
+                    .font(.headline)
+
+                Text(localization.text("usage.officialRecord"))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.primary.opacity(0.07), in: Capsule())
+
+                Spacer()
+
+                Picker(localization.text("usage.range"), selection: $selectedRange) {
+                    ForEach(Range.allCases) { range in
+                        Text(rangeTitle(range)).tag(range)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 184)
+            }
+
+            Text(localization.text("usage.tokenSubtitle"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 10) {
+                summaryMetric(
+                    title: localization.text("usage.lifetimeTokens"),
+                    value: formattedTokenCount(usage.summary.lifetimeTokens)
+                )
+                summaryMetric(
+                    title: localization.text("usage.peakDailyTokens"),
+                    value: formattedTokenCount(usage.summary.peakDailyTokens)
+                )
+                summaryMetric(
+                    title: localization.text("usage.currentStreak"),
+                    value: streakText
+                )
+            }
+
+            if visibleBuckets.isEmpty {
+                ContentUnavailableView {
+                    Label(localization.text("usage.tokenEmptyTitle"), systemImage: "chart.bar.xaxis")
+                } description: {
+                    Text(localization.text("usage.tokenEmptyMessage"))
+                }
+                .frame(maxWidth: .infinity, minHeight: 150)
+            } else {
+                Text(localization.text("usage.dailyTokens"))
+                    .font(.subheadline.weight(.semibold))
+
+                Chart(visibleBuckets) { bucket in
+                    BarMark(
+                        x: .value(localization.text("usage.date"), bucket.date, unit: .day),
+                        y: .value(
+                            localization.text("usage.tokens"),
+                            Double(bucket.tokens) * revealProgress
+                        )
+                    )
+                    .foregroundStyle(Color.accentColor.gradient)
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
+                }
+                .chartYAxis {
+                    AxisMarks(position: .leading) { value in
+                        AxisGridLine()
+                        AxisValueLabel {
+                            if let amount = value.as(Double.self) {
+                                Text(Int64(amount).formatted(.number.notation(.compactName)))
+                            }
+                        }
+                    }
+                }
+                .chartXAxis {
+                    AxisMarks(values: .automatic(desiredCount: selectedRange == .week ? 7 : 5)) {
+                        AxisGridLine()
+                        AxisValueLabel(format: selectedRange == .week
+                            ? .dateTime.weekday(.abbreviated)
+                            : .dateTime.month().day())
+                    }
+                }
+                .chartPlotStyle { plotArea in
+                    plotArea.background(Color.primary.opacity(0.025))
+                }
+                .frame(height: 178)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.28), value: usage)
+                .onAppear(perform: revealOnce)
+
+                Text(localization.text("usage.tokenHelp"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+            }
+        }
+        .onChange(of: selectedRange) {
+            revealProgress = 1
+        }
+    }
+
+    private var datedBuckets: [DatedBucket] {
+        usage.dailyBuckets.compactMap { bucket in
+            guard let date = Self.bucketDateFormatter.date(from: bucket.startDate),
+                  bucket.tokens >= 0
+            else {
+                return nil
+            }
+            return DatedBucket(date: date, tokens: bucket.tokens)
+        }.sorted { $0.date < $1.date }
+    }
+
+    private var visibleBuckets: [DatedBucket] {
+        let calendar = Calendar(identifier: .gregorian)
+        let start = calendar.date(byAdding: .day, value: -(selectedRange.rawValue - 1), to: now) ?? now
+        return datedBuckets.filter { $0.date >= calendar.startOfDay(for: start) && $0.date <= now }
+    }
+
+    private var streakText: String {
+        guard let days = usage.summary.currentStreakDays else { return "--" }
+        return String(format: localization.text("usage.daysFormat"), days)
+    }
+
+    private func summaryMetric(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func formattedTokenCount(_ value: Int64?) -> String {
+        value?.formatted(.number.notation(.compactName)) ?? "--"
+    }
+
+    private func rangeTitle(_ range: Range) -> String {
+        switch range {
+        case .week:
+            localization.text("usage.range.week")
+        case .month:
+            localization.text("usage.range.month")
+        case .quarter:
+            localization.text("usage.range.quarter")
+        }
+    }
+
+    private func revealOnce() {
+        guard !didReveal else { return }
+        didReveal = true
+
+        guard !reduceMotion else {
+            revealProgress = 1
+            return
+        }
+
+        DispatchQueue.main.async {
+            withAnimation(.easeOut(duration: 0.55)) {
+                revealProgress = 1
+            }
+        }
+    }
+
+    private static let bucketDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 }

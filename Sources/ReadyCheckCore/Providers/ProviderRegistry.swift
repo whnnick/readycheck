@@ -10,6 +10,7 @@ public struct ProviderRegistry: Sendable {
     public init(
         configurations: [ProviderConfiguration],
         credentialStore: any CredentialStore = InMemoryCredentialStore(),
+        codexAppServerClient: (any CodexAppServerReading)? = nil,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
         self.init(
@@ -22,7 +23,11 @@ public struct ProviderRegistry: Sendable {
                 case .localCodex:
                     return LocalCodexProvider(sourceURLs: [], validation: .notValidated, now: now)
                 case .codexOAuth:
-                    return CodexOAuthQuotaProvider(credentialStore: credentialStore, now: now)
+                    return CodexOAuthQuotaProvider(
+                        credentialStore: credentialStore,
+                        appServerClient: codexAppServerClient,
+                        now: now
+                    )
                 }
             }
         )

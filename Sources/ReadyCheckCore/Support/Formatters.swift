@@ -25,6 +25,8 @@ public enum QuotaFormatters {
             "Cost API"
         case .oauthAPI:
             "OAuth API"
+        case .appServer:
+            "Codex App Server"
         case .manual:
             "Manual"
         }

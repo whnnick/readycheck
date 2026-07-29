@@ -21,6 +21,7 @@ final class QuotaFormattersTests: XCTestCase {
         XCTAssertEqual(QuotaFormatters.sourceText(.usageAPI), "Usage API")
         XCTAssertEqual(QuotaFormatters.sourceText(.costAPI), "Cost API")
         XCTAssertEqual(QuotaFormatters.sourceText(.oauthAPI), "OAuth API")
+        XCTAssertEqual(QuotaFormatters.sourceText(.appServer), "Codex App Server")
         XCTAssertEqual(QuotaFormatters.sourceText(.manual), "Manual")
     }
 }

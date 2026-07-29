@@ -29,8 +29,8 @@ struct NotchStatusView: View {
                         .fill(Color.white.opacity(0.16))
 
                     Capsule()
-                        .fill(quotaColor(sevenDayRatio).gradient)
-                        .frame(width: proxy.size.width * max(0, min(sevenDayRatio ?? 0, 1)))
+                        .fill(quotaColor(displayedRatio).gradient)
+                        .frame(width: proxy.size.width * max(0, min(displayedRatio ?? 0, 1)))
                 }
             }
             .frame(height: 3)
@@ -76,20 +76,37 @@ struct NotchStatusView: View {
     }
 
     private var statusColor: Color {
-        QuotaUrgency(remainingRatio: sevenDayRatio).hasRemainingQuota ? .green : .gray
+        QuotaUrgency(remainingRatio: displayedRatio).hasRemainingQuota ? .green : .gray
     }
 
-    private var sevenDayRatio: Double? {
+    private var displayedWindow: QuotaWindow? {
+        let windows = snapshot?.windows.filter(QuotaWindowPresentation.shouldShow) ?? []
+        return windows.first(where: { $0.labelKey == "quota.window.codex.7d" })
+            ?? windows.first
+    }
+
+    private var displayedRatio: Double? {
         guard snapshot?.canShowPercentages(now: now) == true else { return nil }
-        return snapshot?.windows.first(where: { $0.labelKey == "quota.window.codex.7d" })?.remainingRatio
+        return displayedWindow?.remainingRatio
+    }
+
+    private var displayedWindowLabel: String {
+        switch displayedWindow?.labelKey {
+        case "quota.window.codex.7d", "quota.sevenDay":
+            "7d"
+        case "quota.window.codex.5h", "quota.fiveHour":
+            "5h"
+        default:
+            "Limit"
+        }
     }
 
     private var quotaItem: some View {
         HStack(spacing: 4) {
-            Text("7d")
+            Text(displayedWindowLabel)
                 .foregroundStyle(.white.opacity(0.58))
-            Text(QuotaFormatters.percentageText(for: sevenDayRatio))
-                .foregroundStyle(quotaColor(sevenDayRatio))
+            Text(QuotaFormatters.percentageText(for: displayedRatio))
+                .foregroundStyle(quotaColor(displayedRatio))
         }
         .font(.system(size: 12, weight: .medium, design: .rounded))
         .monospacedDigit()

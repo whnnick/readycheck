@@ -30,6 +30,9 @@ const elements = {
   quotaReconnectButton: document.getElementById("quotaReconnectButton"),
   quotaConnectButton: document.getElementById("quotaConnectButton"),
   quotaUpdateButton: document.getElementById("quotaUpdateButton"),
+  usageTitle: document.getElementById("usageTitle"),
+  usageDescription: document.getElementById("usageDescription"),
+  usageSourceBadge: document.getElementById("usageSourceBadge"),
   usageDashboard: document.getElementById("usageDashboard"),
   usageRangeButtons: document.querySelectorAll("[data-usage-range]"),
   lastRefresh: document.getElementById("lastRefresh"),
@@ -44,6 +47,7 @@ let usageRangeDays = 1;
 let usageWindowID = "codex-primary";
 let usageChartHasAnimated = false;
 let usageChartContextKey = null;
+let usageDataMode = null;
 const previousUsageBarsByContext = new Map();
 const MAX_USAGE_ATTRIBUTABLE_GAP_MS = 10 * 60 * 1000;
 
@@ -116,7 +120,7 @@ function renderQuota(state) {
   const mode = state.prefs.widgetDisplayMode;
   const details = state.quota;
   const rows = [];
-  const visibleWindows = details.windows.filter((item) => !["quota.window.codex.5h", "quota.fiveHour"].includes(item.labelKey));
+  const visibleWindows = details.windows;
 
   if (!isWidget || mode === "detailed") {
     const creditsRow = codexCreditsText(details);
@@ -153,7 +157,7 @@ function renderQuota(state) {
   }
 
   if (visibleWindows.length === 0) {
-    rows.push('<p class="muted">当前 7 天额度暂不可用。</p>');
+    rows.push('<p class="muted">当前额度窗口暂不可用。</p>');
   }
 
   elements.quotaContent.innerHTML = rows.join("");
@@ -208,6 +212,12 @@ function renderUsageDashboard(state) {
     return;
   }
 
+  if (state.quota && state.quota.tokenUsage) {
+    renderOfficialTokenUsage(state.quota.tokenUsage);
+    return;
+  }
+
+  configureUsageMode("local");
   for (const button of elements.usageRangeButtons) {
     button.classList.toggle("active", Number(button.dataset.usageRange) === usageRangeDays);
   }
@@ -228,13 +238,11 @@ function renderUsageDashboard(state) {
     return;
   }
 
-  const sevenDay = series.find((item) => item.labelKey === "quota.window.codex.7d" || item.labelKey === "quota.sevenDay");
-  // Keep five-hour history on disk for forward compatibility, but do not present the retired window.
-  const availableSeries = [sevenDay].filter(Boolean);
+  const availableSeries = series;
   if (availableSeries.length === 0) {
     elements.usageDashboard.innerHTML = `
       <div class="usage-empty">
-        <strong>正在收集 7 天额度记录</strong>
+        <strong>正在收集额度记录</strong>
         <p>完成两次成功刷新后，这里会展示检测到的额度消耗。</p>
       </div>
     `;
@@ -255,9 +263,12 @@ function renderUsageDashboard(state) {
   const chartMaximum = usageChartMaximum(bars.map((bar) => bar.consumedPercent));
   const chartStart = bars[0] ? bars[0].start : cutoff;
   const chartEnd = bars.at(-1) ? bars.at(-1).end : now;
+  const metricCards = availableSeries.slice(0, 2).map((item) => (
+    usageMetric(usageWindowLabel(item), item, cutoff)
+  )).join("");
   elements.usageDashboard.innerHTML = `
     <div class="usage-metrics">
-      ${usageMetric("7 天额度", sevenDay, cutoff)}
+      ${metricCards}
       <div class="usage-metric data-status"><span>数据状态</span><strong>最近记录 ${formatHistoryTime(latest.timestamp)}</strong><small>成功刷新后按 1 分钟采样</small></div>
     </div>
     ${selectedPoints.length < 2 ? `
@@ -291,6 +302,135 @@ function renderUsageDashboard(state) {
       maximum: chartMaximum
     }
   );
+}
+
+function configureUsageMode(mode) {
+  if (usageDataMode === mode) {
+    return;
+  }
+  usageDataMode = mode;
+  usageChartHasAnimated = false;
+  usageChartContextKey = null;
+  previousUsageBarsByContext.clear();
+
+  const official = mode === "official";
+  const ranges = official
+    ? [[7, "7 天"], [30, "30 天"], [90, "90 天"]]
+    : [[1, "24 小时"], [7, "7 天"], [30, "30 天"]];
+  usageRangeDays = official ? 30 : 1;
+  elements.usageTitle.textContent = official ? "近期 Token 使用" : "近期额度消耗";
+  elements.usageDescription.textContent = official
+    ? "按天展示当前 Codex 账户的实际 Token 使用量。"
+    : "柱形表示每个时段检测到的额度下降，单位为百分点。";
+  elements.usageSourceBadge.textContent = official ? "Codex 官方数据" : "本地记录";
+  elements.usageSourceBadge.classList.toggle("official", official);
+  [...elements.usageRangeButtons].forEach((button, index) => {
+    button.dataset.usageRange = String(ranges[index][0]);
+    button.textContent = ranges[index][1];
+  });
+}
+
+function renderOfficialTokenUsage(tokenUsage) {
+  configureUsageMode("official");
+  for (const button of elements.usageRangeButtons) {
+    button.classList.toggle("active", Number(button.dataset.usageRange) === usageRangeDays);
+  }
+
+  const buckets = (tokenUsage.dailyBuckets || [])
+    .map((bucket) => ({
+      timestamp: new Date(`${bucket.startDate}T00:00:00`).getTime(),
+      date: bucket.startDate,
+      tokens: Number(bucket.tokens)
+    }))
+    .filter((bucket) => Number.isFinite(bucket.timestamp) && Number.isFinite(bucket.tokens))
+    .sort((left, right) => left.timestamp - right.timestamp)
+    .slice(-usageRangeDays);
+  const summary = tokenUsage.summary || {};
+  const contextKey = `official:${usageRangeDays}`;
+  const shouldAnimateChart = !usageChartHasAnimated;
+  const shouldFadeChart = usageChartHasAnimated && usageChartContextKey !== contextKey;
+
+  elements.usageDashboard.innerHTML = `
+    <div class="usage-metrics official-token-metrics">
+      ${tokenMetric("累计 Token", compactNumber(summary.lifetimeTokens))}
+      ${tokenMetric("单日峰值", compactNumber(summary.peakDailyTokens))}
+      ${tokenMetric("当前连续使用", `${Number(summary.currentStreakDays) || 0} 天`)}
+    </div>
+    ${buckets.length === 0 ? `
+      <div class="usage-empty">
+        <strong>暂无 Token 使用记录</strong>
+        <p>Codex 返回每日使用数据后会显示在这里。</p>
+      </div>
+    ` : `
+      <div class="usage-chart-wrap">
+        <div class="usage-chart-heading"><strong>每日 Token 使用</strong><span>${usageRangeDays} 天</span></div>
+        ${officialTokenChart(buckets, { shouldAnimateChart, shouldFadeChart })}
+        <p class="usage-explanation">数据由本机 Codex app-server 提供，不通过模型调用探测，不消耗模型额度。</p>
+      </div>
+    `}
+  `;
+  if (shouldAnimateChart && buckets.length > 0) {
+    usageChartHasAnimated = true;
+  }
+  usageChartContextKey = contextKey;
+}
+
+function tokenMetric(label, value) {
+  return `<div class="usage-metric"><span>${label}</span><strong>${value}</strong></div>`;
+}
+
+function officialTokenChart(buckets, animation) {
+  const width = 760;
+  const height = 184;
+  const padding = { top: 18, right: 12, bottom: 28, left: 48 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+  const maximum = niceTokenMaximum(buckets.map((bucket) => bucket.tokens));
+  const slotWidth = plotWidth / Math.max(buckets.length, 1);
+  const barWidth = Math.max(3, Math.min(14, slotWidth * 0.62));
+  const columns = buckets.map((bucket, index) => {
+    const barHeight = bucket.tokens <= 0 ? 0 : Math.max(1, (bucket.tokens / maximum) * plotHeight);
+    const x = padding.left + (index + 0.5) * slotWidth - barWidth / 2;
+    const y = padding.top + plotHeight - barHeight;
+    const animationClass = animation.shouldAnimateChart ? " animate" : "";
+    return `<rect class="chart-bar token${animationClass}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barHeight.toFixed(1)}" rx="${Math.min(3, barWidth / 2).toFixed(1)}"><title>${bucket.date}：${formatNumber(bucket.tokens)} Token</title></rect>`;
+  }).join("");
+  const yLabels = [maximum, maximum / 2, 0].map((value, index) => {
+    const y = padding.top + index * (plotHeight / 2);
+    return `<line class="chart-grid" x1="${padding.left}" y1="${y.toFixed(1)}" x2="${width - padding.right}" y2="${y.toFixed(1)}"></line><text class="chart-label" x="${padding.left - 7}" y="${(y + 4).toFixed(1)}" text-anchor="end">${compactNumber(value)}</text>`;
+  }).join("");
+  const dates = [buckets[0], buckets[Math.floor((buckets.length - 1) / 2)], buckets.at(-1)];
+  const xLabels = dates.map((bucket, index) => {
+    const x = padding.left + index * (plotWidth / 2);
+    return `<text class="chart-label" x="${x.toFixed(1)}" y="${height - 7}" text-anchor="${index === 0 ? "start" : index === 2 ? "end" : "middle"}">${formatTokenDate(bucket.timestamp)}</text>`;
+  }).join("");
+  const chartClass = animation.shouldFadeChart ? "usage-chart switching" : "usage-chart";
+  return `<svg class="${chartClass}" viewBox="0 0 ${width} ${height}" role="img" aria-label="近期 Token 使用柱状图">${yLabels}${columns}${xLabels}</svg>`;
+}
+
+function niceTokenMaximum(values) {
+  const highest = Math.max(...values, 0);
+  if (highest <= 0) {
+    return 1;
+  }
+  const magnitude = 10 ** Math.floor(Math.log10(highest));
+  return Math.ceil((highest * 1.12) / magnitude) * magnitude;
+}
+
+function compactNumber(value) {
+  const number = Number(value) || 0;
+  return new Intl.NumberFormat(undefined, {
+    notation: number >= 10_000 ? "compact" : "standard",
+    maximumFractionDigits: 1
+  }).format(number);
+}
+
+function formatNumber(value) {
+  return new Intl.NumberFormat().format(Number(value) || 0);
+}
+
+function formatTokenDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString([], { month: "numeric", day: "numeric" });
 }
 
 function historySeries(samples) {

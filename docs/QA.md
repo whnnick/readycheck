@@ -22,7 +22,7 @@ Use this checklist before publishing a preview build or when validating a user-r
 ## Safe Refresh And Accuracy
 
 1. Run a manual refresh and confirm no model inference endpoint is called.
-2. Confirm the main window shows the current Codex 7-day quota only when that window is parseable; the retired 5-hour quota is not presented.
+2. Confirm the main window shows every quota window currently returned and validated by Codex; no fixed 5-hour/7-day pair is assumed.
 3. Compare the displayed values with the visible Codex or ChatGPT usage source available to the tester.
 4. If the upstream response shape changes, ReadyCheck must show unavailable or hide percentages until parser tests are updated.
 5. With an expired token, confirm refresh succeeds after token refresh or fails closed without guessed percentages.
@@ -46,24 +46,25 @@ Use this checklist before publishing a preview build or when validating a user-r
 
 ## Local Quota Consumption
 
-1. Complete at least two successful refreshes more than one minute apart and confirm the 24-hour dashboard shows the 7-day consumption card.
-2. Confirm bars represent detected quota decreases in percentage points, while current remaining quota is shown separately.
-3. Confirm a reset or recovery does not create negative consumption, and a long refresh gap is not attributed to a bar.
-2. Confirm 7-day and 30-day range switching does not affect the floating widget or trigger a network request.
-3. Confirm quota resets do not count as consumption and the UI describes values as percentage-point changes, not token usage.
-4. Inspect the local history payload and confirm it contains no email, account id, credential, or raw API response.
+1. When official app-server Token usage is available for the same account, confirm the dashboard switches to actual 7/30/90-day Token totals and labels the source as official.
+2. Without official Token history, complete at least two successful refreshes more than one minute apart and confirm the local dashboard shows the available quota windows.
+3. Confirm local bars represent detected quota decreases in percentage points, while current remaining quota is shown separately.
+4. Confirm a reset or recovery does not create negative consumption, and a long refresh gap is not attributed to a bar.
+5. Confirm range switching does not affect the floating widget or trigger a network request.
+6. Inspect the local history payload and confirm it contains no email, account id, credential, or raw API response.
 
 ## Windows Preview Black-Box QA
 
 1. Run the `apps/windows` preview on Windows 10/11 and confirm the system tray icon, tray menu, main window, and desktop widget appear.
 2. Select **Connect**, complete Codex OAuth in the browser, and confirm the app receives the `localhost:1455/auth/callback` callback automatically.
-3. After authorization, confirm the account section shows the login email and refresh shows the current Codex 7-day quota window.
-4. Compare percentages and reset times with the visible Codex / ChatGPT usage source available to the tester. If they are clearly inconsistent, capture screenshots and timestamps, but do not publish tokens, account ids, or raw usage payloads.
-5. Disconnect the network and refresh. Confirm the Windows app does not show guessed quota; missing token, missing account id, request failure, or parser failure must show unavailable data.
-6. On first launch, after hiding and showing the widget, and after **Reset position**, the widget should return to the same lower-right default placement and stay fully inside the screen.
-7. With **Keep widget on top** disabled, normal app windows should cover the widget and the widget should remain draggable.
-8. Switch between Minimal and Detailed widget styles and confirm labels do not turn vertical, overlap, or overflow.
-9. Quit and relaunch the app. Confirm authorization state is restored and the token file is not readable plaintext JSON.
+3. After authorization, confirm the account section shows the login email and refresh shows the validated Codex quota windows.
+4. If Codex is installed and logged in to the same email, confirm the official Token dashboard appears; with another account or no Codex executable, confirm the read-only OAuth fallback still refreshes quota.
+5. Compare percentages and reset times with the visible Codex / ChatGPT usage source available to the tester. If they are clearly inconsistent, capture screenshots and timestamps, but do not publish tokens, account ids, or raw usage payloads.
+6. Disconnect the network and refresh. Confirm the Windows app does not show guessed quota; missing token, missing account id, request failure, or parser failure must show unavailable data.
+7. On first launch, after hiding and showing the widget, and after **Reset position**, the widget should return to the same lower-right default placement and stay fully inside the screen.
+8. With **Keep widget on top** disabled, normal app windows should cover the widget and the widget should remain draggable.
+9. Switch between Minimal and Detailed widget styles and confirm labels do not turn vertical, overlap, or overflow.
+10. Quit and relaunch the app. Confirm authorization state is restored and the token file is not readable plaintext JSON.
 
 ## Release Gate
 

@@ -41,7 +41,7 @@ Build the Windows portable preview package:
 scripts/package_windows_portable.sh
 ```
 
-Output: `dist/windows/ReadyCheck-0.1.71-windows-x64-portable.zip`.
+Output: `dist/windows/ReadyCheck-0.1.76-windows-x64-portable.zip`.
 
 Windows validation still required:
 
@@ -51,5 +51,5 @@ Windows validation still required:
 - Always-on-top toggle changes window level.
 - Refresh fails closed before OAuth is connected.
 - Codex OAuth completion updates the account state to connected.
-- After authorization, refresh shows the current 7-day quota window with the same low-quota colors as macOS.
+- After authorization, refresh shows the validated quota windows returned by Codex with the same low-quota colors as macOS.
 - The token file must not be stored as plaintext JSON.

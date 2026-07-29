@@ -8,7 +8,7 @@ Use this guide to validate the ReadyCheck Windows preview on Windows 10/11. Do n
 
 Option A: use the portable zip.
 
-1. Copy `dist/windows/ReadyCheck-0.1.71-windows-x64-portable.zip` to the Windows machine.
+1. Copy `dist/windows/ReadyCheck-0.1.76-windows-x64-portable.zip` to the Windows machine.
 2. Unzip it.
 3. Run `ReadyCheck-win32-x64\ReadyCheck.exe`.
 
@@ -38,11 +38,12 @@ There is no Windows installer yet; both the portable zip and source flow are pre
 2. Confirm **Show widget** defaults to on and the widget is fully inside the screen.
 3. Select **Connect** and complete Codex OAuth in the browser.
 4. After the browser returns to `localhost:1455/auth/callback`, confirm ReadyCheck shows the connected account email.
-5. Select **Refresh** and confirm the current Codex 7-day quota window appears.
-6. Switch between Minimal and Detailed widget styles and confirm text does not turn vertical, overlap, or overflow.
-7. Disable **Keep widget on top** and confirm normal windows can cover the widget while the widget remains draggable.
-8. Hide the widget and show it once; confirm the placement matches **Reset position**.
-9. Quit and relaunch the app; confirm the connected account state is restored.
+5. Select **Refresh** and confirm the validated quota windows currently returned by Codex appear.
+6. If Codex is installed and logged in to the same email, confirm the official 7/30/90-day Token dashboard appears. Otherwise confirm the local quota-decrease fallback remains clearly labelled.
+7. Switch between Minimal and Detailed widget styles and confirm text does not turn vertical, overlap, or overflow.
+8. Disable **Keep widget on top** and confirm normal windows can cover the widget while the widget remains draggable.
+9. Hide the widget and show it once; confirm the placement matches **Reset position**.
+10. Quit and relaunch the app; confirm the connected account state is restored.
 
 ## Failure Paths
 
@@ -56,5 +57,5 @@ There is no Windows installer yet; both the portable zip and source flow are pre
 - `npm run check` passes.
 - `npm run smoke` passes.
 - OAuth completes and restores the login email.
-- Refresh shows only the parsed current 7-day quota; parser failure fails closed.
+- Refresh shows only validated windows returned by Codex; parser failure fails closed.
 - The widget does not interfere with desktop operation and its default placement is stable.

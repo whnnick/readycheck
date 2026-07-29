@@ -385,6 +385,8 @@ struct QuotaCardView: View {
             localization.text("source.costAPI")
         case .oauthAPI:
             localization.text("source.oauthAPI")
+        case .appServer:
+            localization.text("source.appServer")
         case .manual:
             localization.text("source.manual")
         }

@@ -13,6 +13,7 @@ public enum ProviderSource: String, Codable, Equatable, Sendable {
     case usageAPI = "usage_api"
     case costAPI = "cost_api"
     case oauthAPI = "oauth_api"
+    case appServer = "app_server"
     case manual
 }
 
@@ -153,16 +154,58 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
 }
 
 public enum QuotaWindowPresentation {
-    // Keep parsing and storing this window for compatibility in case Codex restores it.
-    public static let showsCodexFiveHour = false
-
     public static func shouldShow(labelKey: String) -> Bool {
-        let retiredFiveHourKeys = ["quota.window.codex.5h", "quota.fiveHour"]
-        return showsCodexFiveHour || !retiredFiveHourKeys.contains(labelKey)
+        true
     }
 
     public static func shouldShow(_ window: QuotaWindow) -> Bool {
         shouldShow(labelKey: window.labelKey)
+    }
+}
+
+public struct AccountTokenUsageSummary: Codable, Equatable, Sendable {
+    public let lifetimeTokens: Int64?
+    public let peakDailyTokens: Int64?
+    public let longestRunningTurnSeconds: Int64?
+    public let currentStreakDays: Int64?
+    public let longestStreakDays: Int64?
+
+    public init(
+        lifetimeTokens: Int64? = nil,
+        peakDailyTokens: Int64? = nil,
+        longestRunningTurnSeconds: Int64? = nil,
+        currentStreakDays: Int64? = nil,
+        longestStreakDays: Int64? = nil
+    ) {
+        self.lifetimeTokens = lifetimeTokens
+        self.peakDailyTokens = peakDailyTokens
+        self.longestRunningTurnSeconds = longestRunningTurnSeconds
+        self.currentStreakDays = currentStreakDays
+        self.longestStreakDays = longestStreakDays
+    }
+}
+
+public struct AccountTokenUsageDailyBucket: Codable, Equatable, Sendable, Identifiable {
+    public var id: String { startDate }
+    public let startDate: String
+    public let tokens: Int64
+
+    public init(startDate: String, tokens: Int64) {
+        self.startDate = startDate
+        self.tokens = tokens
+    }
+}
+
+public struct AccountTokenUsage: Codable, Equatable, Sendable {
+    public let summary: AccountTokenUsageSummary
+    public let dailyBuckets: [AccountTokenUsageDailyBucket]
+
+    public init(
+        summary: AccountTokenUsageSummary,
+        dailyBuckets: [AccountTokenUsageDailyBucket]
+    ) {
+        self.summary = summary
+        self.dailyBuckets = dailyBuckets
     }
 }
 
@@ -173,6 +216,7 @@ public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
     public let manualResetExpirations: [Date]
     public let creditBalance: String?
     public let creditsUnlimited: Bool?
+    public let accountTokenUsage: AccountTokenUsage?
 
     public init(
         planName: String? = nil,
@@ -180,7 +224,8 @@ public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
         manualResetCount: Int? = nil,
         manualResetExpirations: [Date] = [],
         creditBalance: String? = nil,
-        creditsUnlimited: Bool? = nil
+        creditsUnlimited: Bool? = nil,
+        accountTokenUsage: AccountTokenUsage? = nil
     ) {
         self.planName = planName
         self.subscriptionRenewalAt = subscriptionRenewalAt
@@ -188,6 +233,7 @@ public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
         self.manualResetExpirations = manualResetExpirations
         self.creditBalance = creditBalance
         self.creditsUnlimited = creditsUnlimited
+        self.accountTokenUsage = accountTokenUsage
     }
 }
 

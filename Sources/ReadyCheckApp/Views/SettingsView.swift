@@ -23,6 +23,10 @@ struct SettingsView: View {
                 GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
                     RecentUsageView(
                         samples: model.quotaHistorySamples,
+                        tokenUsage: model.snapshots
+                            .first(where: { $0.providerId == "codex-oauth" })?
+                            .details?
+                            .accountTokenUsage,
                         localization: model.localization,
                         now: now
                     )
@@ -57,10 +61,6 @@ struct SettingsView: View {
 
             }
             .ignoresSafeArea()
-        }
-        .task {
-            await model.reloadCodexOAuthConnectionStatus()
-            await refreshQuotaIfConnected()
         }
         .task {
             await updateNowWhileVisible()
@@ -707,16 +707,6 @@ struct SettingsView: View {
         return model.localization.text("provider.codexOAuth.detail")
     }
 
-    @MainActor
-    private func refreshQuotaIfConnected() async {
-        now = Date()
-        guard model.codexOAuthStatus == .connected else { return }
-        guard model.snapshots.isEmpty || model.hasStaleSnapshots(now: now) else { return }
-
-        await model.refresh(reason: .openedPanel)
-        now = Date()
-    }
-
     private var refreshSummary: String {
         guard let lastRefreshAt = model.lastRefreshAt else {
             return model.localization.text("status.notUpdatedYet")
@@ -739,7 +729,7 @@ struct SettingsView: View {
         while !Task.isCancelled {
             let currentNow = Date()
 
-            if model.shouldAutomaticallyRefresh(now: currentNow) {
+            if model.lastRefreshAt != nil, model.shouldAutomaticallyRefresh(now: currentNow) {
                 await model.refresh(reason: .automatic)
                 now = Date()
             } else if currentNow.timeIntervalSince(now) >= 30 {

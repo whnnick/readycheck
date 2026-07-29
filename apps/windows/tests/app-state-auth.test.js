@@ -151,6 +151,72 @@ async function main() {
   assert.equal(refreshed.quota.windows[0].labelKey, "quota.window.codex.5h");
   assert.equal(refreshed.quota.windows[0].remainingRatio, 0.8);
 
+  let fallbackUsageCalled = false;
+  const officialState = new ReadyCheckState(
+    {
+      language: "zh-CN",
+      refreshIntervalMinutes: 1,
+      widgetVisible: true,
+      widgetAlwaysOnTop: true,
+      widgetDisplayMode: "minimal"
+    },
+    {
+      tokenStore: quotaStore,
+      oauthClient,
+      appServerClient: {
+        async readAccountSnapshot() {
+          return {
+            email: "USER@example.com",
+            planName: "plus",
+            rateLimits: [{
+              limitID: "codex",
+              limitName: "Codex",
+              primary: {
+                usedPercent: 25,
+                durationMinutes: 300,
+                resetsAt: "2026-07-29T10:00:00.000Z"
+              },
+              secondary: {
+                usedPercent: 40,
+                durationMinutes: 10_080,
+                resetsAt: "2026-08-04T10:00:00.000Z"
+              },
+              creditBalance: "9.5",
+              hasCredits: true,
+              creditsUnlimited: false,
+              planName: "plus"
+            }],
+            resetCredits: [{
+              status: "available",
+              expiresAt: "2026-08-12T10:00:00.000Z"
+            }],
+            tokenUsage: {
+              summary: {
+                lifetimeTokens: 123_456,
+                peakDailyTokens: 20_000,
+                currentStreakDays: 3
+              },
+              dailyBuckets: [{ startDate: "2026-07-28", tokens: 1_200 }]
+            }
+          };
+        }
+      },
+      usageClient: {
+        async fetchUsage() {
+          fallbackUsageCalled = true;
+          throw new Error("fallback must not run");
+        }
+      }
+    }
+  );
+  const official = await officialState.refresh();
+  assert.equal(fallbackUsageCalled, false);
+  assert.equal(official.status, "available");
+  assert.equal(official.quota.windows.length, 2);
+  assert.equal(official.quota.windows[0].labelKey, "quota.window.codex.5h");
+  assert.equal(official.quota.windows[1].labelKey, "quota.window.codex.7d");
+  assert.equal(official.quota.tokenUsage.summary.lifetimeTokens, 123_456);
+
   const refreshStore = new MemoryTokenStore();
   refreshStore.token = {
     accessToken: jwt({

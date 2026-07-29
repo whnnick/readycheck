@@ -8,6 +8,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
     private let oauthClient: CodexOAuthClient
     private let quotaClient: CodexQuotaHTTPClient
     private let usageParser: CodexUsageParser
+    private let appServerClient: (any CodexAppServerReading)?
     private let quotaEndpoint: URL?
     private let resetCreditsEndpoint: URL?
     private let now: @Sendable () -> Date
@@ -19,12 +20,14 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         oauthClient: CodexOAuthClient = CodexOAuthClient(),
         quotaClient: CodexQuotaHTTPClient = CodexQuotaHTTPClient(),
         usageParser: CodexUsageParser = CodexUsageParser(),
+        appServerClient: (any CodexAppServerReading)? = nil,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
         self.tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)
         self.oauthClient = oauthClient
         self.quotaClient = quotaClient
         self.usageParser = usageParser
+        self.appServerClient = appServerClient
         self.quotaEndpoint = quotaEndpoint
         self.resetCreditsEndpoint = resetCreditsEndpoint
         self.now = now
@@ -34,6 +37,26 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         let date = now()
         guard var token = try await tokenStore.loadToken() else {
             return snapshot(date: date, error: "quota.error.oauthRequired")
+        }
+
+        if token.expiresAt <= date {
+            do {
+                token = try await oauthClient.refreshToken(token.refreshToken)
+                try await tokenStore.saveToken(token)
+            } catch {
+                return snapshot(date: date, error: "quota.error.tokenRefreshFailed")
+            }
+        }
+
+        if let appServerClient,
+           let appServerSnapshot = try? await appServerClient.readAccountSnapshot(),
+           accountsMatch(token: token, snapshot: appServerSnapshot),
+           let officialSnapshot = makeOfficialSnapshot(
+               appServerSnapshot,
+               token: token,
+               refreshedAt: date
+           ) {
+            return officialSnapshot
         }
 
         guard let quotaEndpoint else {
@@ -51,15 +74,6 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 windows: [],
                 errors: ["quota.error.unsafeEndpoint"]
             )
-        }
-
-        if token.expiresAt <= date {
-            do {
-                token = try await oauthClient.refreshToken(token.refreshToken)
-                try await tokenStore.saveToken(token)
-            } catch {
-                return snapshot(date: date, error: "quota.error.tokenRefreshFailed")
-            }
         }
 
         guard let accountID = token.accountID ?? CodexJWTClaims.accountID(from: token.accessToken) else {
@@ -106,6 +120,103 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         }
     }
 
+    private func accountsMatch(
+        token: CodexOAuthToken,
+        snapshot: CodexAppServerAccountSnapshot
+    ) -> Bool {
+        guard let readyCheckEmail = token.loginEmail?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+              let appServerEmail = snapshot.email?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+              !readyCheckEmail.isEmpty,
+              !appServerEmail.isEmpty
+        else {
+            return false
+        }
+        return readyCheckEmail == appServerEmail
+    }
+
+    private func makeOfficialSnapshot(
+        _ appServerSnapshot: CodexAppServerAccountSnapshot,
+        token: CodexOAuthToken,
+        refreshedAt: Date
+    ) -> ProviderQuotaSnapshot? {
+        let windows = appServerSnapshot.rateLimits.flatMap { snapshot in
+            [
+                makeOfficialWindow(
+                    snapshot.primary,
+                    id: "\(snapshot.limitID)-primary",
+                    fallbackLabelKey: "quota.window.codex.primary"
+                ),
+                makeOfficialWindow(
+                    snapshot.secondary,
+                    id: "\(snapshot.limitID)-secondary",
+                    fallbackLabelKey: "quota.window.codex.secondary"
+                )
+            ].compactMap { $0 }
+        }
+        guard !windows.isEmpty else { return nil }
+
+        let defaultLimit = appServerSnapshot.rateLimits.first {
+            $0.limitID == "codex"
+        } ?? appServerSnapshot.rateLimits.first
+        let resetExpirations = appServerSnapshot.resetCredits.compactMap { credit -> Date? in
+            guard credit.status == nil || credit.status == "available" else { return nil }
+            return credit.expiresAt
+        }.sorted()
+
+        return ProviderQuotaSnapshot(
+            providerId: id,
+            displayName: displayName,
+            status: .available,
+            source: .appServer,
+            refreshedAt: refreshedAt,
+            staleAfter: refreshedAt.addingTimeInterval(300),
+            windows: windows,
+            errors: [],
+            details: ProviderQuotaDetails(
+                planName: defaultLimit?.planName
+                    ?? appServerSnapshot.planName
+                    ?? CodexJWTClaims.planName(from: token.idToken),
+                subscriptionRenewalAt: CodexJWTClaims.subscriptionRenewalAt(from: token.idToken),
+                manualResetCount: resetExpirations.count,
+                manualResetExpirations: resetExpirations,
+                creditBalance: defaultLimit?.hasCredits == false ? nil : defaultLimit?.creditBalance,
+                creditsUnlimited: defaultLimit?.creditsUnlimited,
+                accountTokenUsage: appServerSnapshot.tokenUsage
+            )
+        )
+    }
+
+    private func makeOfficialWindow(
+        _ window: CodexAppServerRateLimitWindow?,
+        id: String,
+        fallbackLabelKey: String
+    ) -> QuotaWindow? {
+        guard let window, window.usedPercent.isFinite else { return nil }
+        let used = min(max(window.usedPercent, 0), 100)
+        return QuotaWindow(
+            id: id,
+            labelKey: labelKey(durationMinutes: window.durationMinutes, fallback: fallbackLabelKey),
+            kind: .rolling,
+            used: used,
+            limit: 100,
+            remaining: 100 - used,
+            unit: .percent,
+            resetAt: window.resetsAt,
+            confidence: .verified
+        )
+    }
+
+    private func labelKey(durationMinutes: Int?, fallback: String) -> String {
+        switch durationMinutes {
+        case 300:
+            "quota.window.codex.5h"
+        case 10_080:
+            "quota.window.codex.7d"
+        default:
+            fallback
+        }
+    }
+
     private func mergedManualResetDetails(
         usagePayload: Data,
         accessToken: String,
@@ -135,7 +246,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 ? usageDetails.manualResetExpirations
                 : resetCreditDetails.manualResetExpirations,
             creditBalance: usageDetails.creditBalance,
-            creditsUnlimited: usageDetails.creditsUnlimited
+            creditsUnlimited: usageDetails.creditsUnlimited,
+            accountTokenUsage: usageDetails.accountTokenUsage
         )
     }
 

@@ -2,6 +2,80 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class CodexOAuthQuotaProviderTests: XCTestCase {
+    func testProviderPrefersMatchingOfficialAppServerSnapshot() async throws {
+        let credentialStore = InMemoryCredentialStore()
+        try await CodexOAuthTokenStore(credentialStore: credentialStore).saveToken(
+            CodexOAuthToken(
+                accessToken: "access",
+                refreshToken: "refresh",
+                idToken: nil,
+                tokenType: "Bearer",
+                expiresAt: Date(timeIntervalSince1970: 4_600),
+                accountID: nil,
+                email: "user@example.com"
+            )
+        )
+        let appServer = StubCodexAppServerReader(
+            snapshot: CodexAppServerAccountSnapshot(
+                email: "user@example.com",
+                planName: "plus",
+                rateLimits: [
+                    CodexAppServerRateLimitSnapshot(
+                        limitID: "codex",
+                        limitName: nil,
+                        primary: CodexAppServerRateLimitWindow(
+                            usedPercent: 25,
+                            durationMinutes: 300,
+                            resetsAt: Date(timeIntervalSince1970: 4_600)
+                        ),
+                        secondary: CodexAppServerRateLimitWindow(
+                            usedPercent: 40,
+                            durationMinutes: 10_080,
+                            resetsAt: Date(timeIntervalSince1970: 605_800)
+                        ),
+                        creditBalance: "12.5",
+                        hasCredits: true,
+                        creditsUnlimited: false,
+                        planName: "plus"
+                    )
+                ],
+                resetCredits: [
+                    CodexAppServerResetCredit(
+                        status: "available",
+                        expiresAt: Date(timeIntervalSince1970: 700_000)
+                    )
+                ],
+                tokenUsage: AccountTokenUsage(
+                    summary: AccountTokenUsageSummary(lifetimeTokens: 123_456),
+                    dailyBuckets: [
+                        AccountTokenUsageDailyBucket(startDate: "2026-07-29", tokens: 9_000)
+                    ]
+                )
+            )
+        )
+        let provider = CodexOAuthQuotaProvider(
+            credentialStore: credentialStore,
+            quotaEndpoint: nil,
+            appServerClient: appServer,
+            now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: .manual))
+
+        XCTAssertEqual(snapshot.status, .available)
+        XCTAssertEqual(snapshot.windows.map(\.labelKey), [
+            "quota.window.codex.5h",
+            "quota.window.codex.7d"
+        ])
+        XCTAssertEqual(snapshot.source, .appServer)
+        XCTAssertEqual(snapshot.windows.map(\.remainingRatio), [0.75, 0.6])
+        XCTAssertEqual(snapshot.details?.creditBalance, "12.5")
+        XCTAssertEqual(snapshot.details?.manualResetExpirations, [
+            Date(timeIntervalSince1970: 700_000)
+        ])
+        XCTAssertEqual(snapshot.details?.accountTokenUsage?.summary.lifetimeTokens, 123_456)
+    }
+
     func testProviderReturnsAuthorizationRequiredWithoutStoredToken() async throws {
         let provider = CodexOAuthQuotaProvider(
             credentialStore: InMemoryCredentialStore(),
@@ -239,6 +313,14 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
 
         XCTAssertEqual(snapshot.errors, ["quota.error.authorizationRejected"])
         XCTAssertEqual(snapshot.recoveryAction, .reconnect)
+    }
+}
+
+private struct StubCodexAppServerReader: CodexAppServerReading {
+    let snapshot: CodexAppServerAccountSnapshot
+
+    func readAccountSnapshot() async throws -> CodexAppServerAccountSnapshot {
+        snapshot
     }
 }
 

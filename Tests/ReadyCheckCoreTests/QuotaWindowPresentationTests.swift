@@ -6,9 +6,9 @@ final class QuotaWindowPresentationTests: XCTestCase {
         XCTAssertTrue(QuotaWindowPresentation.shouldShow(labelKey: "quota.window.codex.7d"))
     }
 
-    func testHidesRetiredFiveHourWindow() {
-        XCTAssertFalse(QuotaWindowPresentation.shouldShow(labelKey: "quota.window.codex.5h"))
-        XCTAssertFalse(QuotaWindowPresentation.shouldShow(labelKey: "quota.fiveHour"))
+    func testShowsFiveHourWindowWhenProviderReturnsIt() {
+        XCTAssertTrue(QuotaWindowPresentation.shouldShow(labelKey: "quota.window.codex.5h"))
+        XCTAssertTrue(QuotaWindowPresentation.shouldShow(labelKey: "quota.fiveHour"))
     }
 
     func testDoesNotHideOtherProviderWindows() {

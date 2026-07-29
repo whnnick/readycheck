@@ -231,6 +231,9 @@ final class ReadyCheckAppModel {
     private let quotaHistoryStore: QuotaHistoryStore
 
     @ObservationIgnored
+    private let codexAppServerClient: any CodexAppServerReading
+
+    @ObservationIgnored
     private var store: QuotaStore
 
     @ObservationIgnored
@@ -264,16 +267,19 @@ final class ReadyCheckAppModel {
         credentialStore: any CredentialStore = KeychainCredentialStore(),
         codexOAuthClient: CodexOAuthClient = CodexOAuthClient(),
         updateChecker: GitHubReleaseUpdateChecker = GitHubReleaseUpdateChecker(),
-        quotaHistoryStore: QuotaHistoryStore? = nil
+        quotaHistoryStore: QuotaHistoryStore? = nil,
+        codexAppServerClient: any CodexAppServerReading = CodexAppServerClient()
     ) {
         self.credentialStore = credentialStore
         self.codexOAuthClient = codexOAuthClient
         self.updateChecker = updateChecker
+        self.codexAppServerClient = codexAppServerClient
         self.quotaHistoryStore = quotaHistoryStore ?? QuotaHistoryStore(fileURL: Self.defaultQuotaHistoryURL)
         self.store = QuotaStore(
             registry: ProviderRegistry(
                 configurations: ProviderConfiguration.defaults,
-                credentialStore: credentialStore
+                credentialStore: credentialStore,
+                codexAppServerClient: codexAppServerClient
             )
         )
         self.floatingWindowController.onVisibilityChanged = { [weak self] isVisible in
@@ -689,7 +695,8 @@ final class ReadyCheckAppModel {
         store = QuotaStore(
             registry: ProviderRegistry(
                 configurations: providerConfigurations,
-                credentialStore: credentialStore
+                credentialStore: credentialStore,
+                codexAppServerClient: codexAppServerClient
             )
         )
         storeGeneration += 1

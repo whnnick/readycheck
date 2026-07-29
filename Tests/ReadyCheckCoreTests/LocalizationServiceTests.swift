@@ -129,6 +129,7 @@ final class LocalizationServiceTests: XCTestCase {
             "source.usageAPI",
             "source.costAPI",
             "source.oauthAPI",
+            "source.appServer",
             "source.manual",
             "confidence.verified",
             "confidence.estimated",

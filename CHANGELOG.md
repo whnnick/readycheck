@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.1.76 - 2026-07-29
+
+- Prefer the official local Codex app-server for quota windows, Credits, reset expirations, and account token usage when the installed Codex account matches ReadyCheck.
+- Fall back safely to the existing read-only OAuth usage endpoint when app-server is unavailable, incompatible, or signed in to another account.
+- Display validated quota windows dynamically instead of hard-coding a retired 5-hour or 7-day window.
+- Add an official 7/30/90-day Token usage dashboard on macOS and Windows while preserving the local quota-decrease dashboard as a fallback.
+- Make the macOS notch select an available quota window dynamically and keep Windows behavior aligned.
+- Read small app-server stdio responses immediately instead of waiting for the long-running process to exit.
+
 ## 0.1.75 - 2026-07-25
 
 - Remove the redundant manual-reset count from the main quota details and detailed widget.

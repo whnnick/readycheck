@@ -13,13 +13,14 @@ Current preview:
 - Safe-refresh endpoint allow-list matching the macOS safety boundary.
 - Codex OAuth loopback callback flow.
 - Encrypted token storage through Electron `safeStorage`.
-- Read-only Codex usage fetch and parser with the current 7-day quota presented in the UI; retired windows remain parse-compatible.
+- Official local Codex app-server integration when it is installed and signed in to the same ReadyCheck account.
+- Dynamic validated quota windows, official 7/30/90-day Token usage, and a read-only OAuth usage fallback.
 
 Not included yet:
 
 - Windows installer, signing, and auto-update.
 
-Quota refresh uses the same safety boundary as the macOS app: it reads the Codex usage endpoint and never calls model inference endpoints. Missing token, missing account id, request failure, or parser failure keeps quota values unavailable instead of guessing.
+Quota refresh uses the same safety boundary as the macOS app: it prefers local app-server data and otherwise reads the Codex usage endpoint. Neither path calls model inference endpoints. Missing token, account mismatch, request failure, or parser failure keeps quota values unavailable or uses the verified fallback instead of guessing.
 
 ## Development
 
@@ -48,7 +49,7 @@ From the repository root:
 scripts/package_windows_portable.sh
 ```
 
-The script writes `dist/windows/ReadyCheck-0.1.66-windows-x64-portable.zip`. Unzip it on Windows and run `ReadyCheck-win32-x64/ReadyCheck.exe`.
+The script writes `dist/windows/ReadyCheck-0.1.76-windows-x64-portable.zip`. Unzip it on Windows and run `ReadyCheck-win32-x64/ReadyCheck.exe`.
 
 This is a portable preview package, not an installer. It is intended for black-box testing before the signed Windows installer work starts.
 

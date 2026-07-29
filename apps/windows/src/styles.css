@@ -204,11 +204,20 @@ h2 {
   font-size: 12px;
 }
 
+.local-badge.official {
+  color: #66b7ff;
+  background: rgba(37, 151, 250, 0.14);
+}
+
 .usage-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 14px;
+}
+
+.usage-metrics.official-token-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .usage-metric {
@@ -297,6 +306,10 @@ button.usage-metric.selected {
   fill: #2597fa;
   transform-box: fill-box;
   transform-origin: center bottom;
+}
+
+.chart-bar.token {
+  fill: #2597fa;
 }
 
 .chart-bar.animate {

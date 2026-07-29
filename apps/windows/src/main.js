@@ -9,6 +9,7 @@ const { QuotaHistoryStore } = require("./services/history-store");
 const { ReadyCheckState } = require("./services/app-state");
 const { EncryptedTokenStore } = require("./services/token-store");
 const { CodexUsageClient } = require("./services/usage-client");
+const { CodexAppServerClient } = require("./services/codex-app-server");
 
 let mainWindow = null;
 let widgetWindow = null;
@@ -334,6 +335,7 @@ app.whenReady().then(async () => {
     tokenStore: new EncryptedTokenStore(userDataPath),
     oauthClient: new CodexOAuthClient(),
     usageClient: new CodexUsageClient(),
+    appServerClient: new CodexAppServerClient(),
     historyStore: new QuotaHistoryStore(userDataPath)
   });
   registerIpc();
