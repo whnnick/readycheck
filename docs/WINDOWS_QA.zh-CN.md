@@ -8,7 +8,7 @@
 
 方式 A：使用便携版 zip。
 
-1. 复制 `dist/windows/ReadyCheck-0.1.76-windows-x64-portable.zip` 到 Windows 电脑。
+1. 复制 `dist/windows/ReadyCheck-0.1.77-windows-x64-portable.zip` 到 Windows 电脑。
 2. 解压 zip。
 3. 运行 `ReadyCheck-win32-x64\ReadyCheck.exe`。
 

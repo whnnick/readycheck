@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.77 - 2026-07-30
+
+- Keep the menu-bar popover fully below the macOS menu bar so its header and rounded top edge are not clipped.
+
 ## 0.1.76 - 2026-07-29
 
 - Prefer the official local Codex app-server for quota windows, Credits, reset expirations, and account token usage when the installed Codex account matches ReadyCheck.

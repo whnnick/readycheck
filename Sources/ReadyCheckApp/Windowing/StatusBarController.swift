@@ -1,4 +1,5 @@
 import AppKit
+import ReadyCheckCore
 import SwiftUI
 
 @MainActor
@@ -63,7 +64,27 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         }
 
         popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+        DispatchQueue.main.async { [weak self] in
+            self?.keepPopoverInsideVisibleScreen()
+        }
         startOutsideClickMonitoring()
+    }
+
+    private func keepPopoverInsideVisibleScreen() {
+        guard popover.isShown,
+              let window = popover.contentViewController?.view.window,
+              let screen = window.screen
+        else {
+            return
+        }
+
+        let frame = FloatingWidgetPlacement.clampedFrame(
+            currentFrame: window.frame,
+            visibleFrame: screen.visibleFrame,
+            margin: 0
+        )
+        guard frame != window.frame else { return }
+        window.setFrame(frame, display: true)
     }
 
     func popoverDidClose(_ notification: Notification) {

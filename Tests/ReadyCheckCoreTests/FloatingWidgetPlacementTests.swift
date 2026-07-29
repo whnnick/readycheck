@@ -58,4 +58,17 @@ final class FloatingWidgetPlacementTests: XCTestCase {
         XCTAssertEqual(frame.maxX, visibleFrame.maxX)
         XCTAssertEqual(frame.minY, visibleFrame.minY)
     }
+
+    func testClampsFrameBelowMenuBarVisibleArea() {
+        let visibleFrame = CGRect(x: 0, y: 0, width: 1_710, height: 1_073)
+        let frame = FloatingWidgetPlacement.clampedFrame(
+            currentFrame: CGRect(x: 720, y: 687, width: 340, height: 420),
+            visibleFrame: visibleFrame,
+            margin: 0
+        )
+
+        XCTAssertEqual(frame.minX, 720)
+        XCTAssertEqual(frame.maxY, visibleFrame.maxY)
+        XCTAssertTrue(visibleFrame.contains(frame))
+    }
 }
