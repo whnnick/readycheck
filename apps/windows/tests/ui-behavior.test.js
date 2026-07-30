@@ -53,6 +53,7 @@ assert.match(renderer, /MAX_USAGE_ATTRIBUTABLE_GAP_MS/);
 assert.match(renderer, /const barWidth = 12;/);
 assert.match(renderer, /usageChartHasAnimated/);
 assert.match(renderer, /officialTokenChart/);
+assert.match(renderer, /<title>\$\{bucket\.date\}：\$\{formatNumber\(bucket\.tokens\)\} Token<\/title>/);
 assert.match(renderer, /previousUsageBarsByContext/);
 assert.match(renderer, /function alignedUsageRangeEnd\(timestamp, bucketSize\)/);
 assert.match(renderer, /shouldAnimateDelta/);

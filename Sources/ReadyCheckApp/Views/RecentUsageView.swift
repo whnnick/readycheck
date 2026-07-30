@@ -393,6 +393,7 @@ private struct AccountTokenUsageView: View {
     @State private var selectedRange: Range = .month
     @State private var revealProgress = 0.0
     @State private var didReveal = false
+    @State private var hoveredBucketID: Date?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -458,7 +459,24 @@ private struct AccountTokenUsageView: View {
                         )
                     )
                     .foregroundStyle(Color.accentColor.gradient)
+                    .opacity(hoveredBucketID == nil || hoveredBucketID == bucket.id ? 1 : 0.42)
                     .clipShape(RoundedRectangle(cornerRadius: 3))
+
+                    if hoveredBucketID == bucket.id {
+                        RuleMark(x: .value(localization.text("usage.date"), bucket.date, unit: .day))
+                            .foregroundStyle(Color.secondary.opacity(0.45))
+                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                            .annotation(
+                                position: .top,
+                                spacing: 6,
+                                overflowResolution: .init(
+                                    x: .fit(to: .chart),
+                                    y: .disabled
+                                )
+                            ) {
+                                tokenTooltip(for: bucket)
+                            }
+                    }
                 }
                 .chartYAxis {
                     AxisMarks(position: .leading) { value in
@@ -481,6 +499,25 @@ private struct AccountTokenUsageView: View {
                 .chartPlotStyle { plotArea in
                     plotArea.background(Color.primary.opacity(0.025))
                 }
+                .chartOverlay { proxy in
+                    GeometryReader { geometry in
+                        Rectangle()
+                            .fill(Color.primary.opacity(0.001))
+                            .contentShape(Rectangle())
+                            .onContinuousHover { phase in
+                                switch phase {
+                                case let .active(location):
+                                    updateHoveredBucket(
+                                        at: location,
+                                        proxy: proxy,
+                                        geometry: geometry
+                                    )
+                                case .ended:
+                                    hoveredBucketID = nil
+                                }
+                            }
+                    }
+                }
                 .frame(height: 178)
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.28), value: usage)
                 .onAppear(perform: revealOnce)
@@ -496,6 +533,10 @@ private struct AccountTokenUsageView: View {
         }
         .onChange(of: selectedRange) {
             revealProgress = 1
+            hoveredBucketID = nil
+        }
+        .onChange(of: usage) {
+            hoveredBucketID = nil
         }
     }
 
@@ -537,6 +578,69 @@ private struct AccountTokenUsageView: View {
 
     private func formattedTokenCount(_ value: Int64?) -> String {
         value?.formatted(.number.notation(.compactName)) ?? "--"
+    }
+
+    private func tokenTooltip(for bucket: DatedBucket) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(formattedBucketDate(bucket.date))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text("\(bucket.tokens.formatted(.number)) \(localization.text("usage.tokens"))")
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.primary.opacity(0.12))
+        }
+        .shadow(color: .black.opacity(0.16), radius: 8, y: 3)
+    }
+
+    private func formattedBucketDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: localization.language.rawValue)
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    private func updateHoveredBucket(
+        at location: CGPoint,
+        proxy: ChartProxy,
+        geometry: GeometryProxy
+    ) {
+        guard let plotFrame = proxy.plotFrame else {
+            hoveredBucketID = nil
+            return
+        }
+
+        let plotRect = geometry[plotFrame]
+        let plotX = location.x - plotRect.minX
+        guard plotX >= 0,
+              plotX <= plotRect.width,
+              let hoveredDate: Date = proxy.value(atX: plotX)
+        else {
+            hoveredBucketID = nil
+            return
+        }
+
+        guard let nearestBucket = visibleBuckets.min(by: {
+            abs($0.date.timeIntervalSince(hoveredDate))
+                < abs($1.date.timeIntervalSince(hoveredDate))
+        }),
+              abs(nearestBucket.date.timeIntervalSince(hoveredDate)) <= 12 * 3_600
+        else {
+            hoveredBucketID = nil
+            return
+        }
+
+        hoveredBucketID = nearestBucket.id
     }
 
     private func rangeTitle(_ range: Range) -> String {

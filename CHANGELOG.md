@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.78 - 2026-07-30
+
+- Show the exact date and Token count when hovering over a daily Token usage bar on macOS.
+- Keep the matching Windows bar tooltip behavior covered by UI regression checks.
+
 ## 0.1.77 - 2026-07-30
 
 - Keep the menu-bar popover fully below the macOS menu bar so its header and rounded top edge are not clipped.
