@@ -8,7 +8,7 @@
 
 方式 A：使用便携版 zip。
 
-1. 复制 `dist/windows/ReadyCheck-0.1.78-windows-x64-portable.zip` 到 Windows 电脑。
+1. 复制 `dist/windows/ReadyCheck-0.1.79-windows-x64-portable.zip` 到 Windows 电脑。
 2. 解压 zip。
 3. 运行 `ReadyCheck-win32-x64\ReadyCheck.exe`。
 
@@ -44,6 +44,8 @@ npm start
 8. 关闭“置顶 widget”，确认普通窗口可以盖住 widget，且 widget 仍可拖动。
 9. 隐藏 widget 后重新打开一次，确认位置和“重置位置”一致。
 10. 退出应用后重新启动，确认账号连接状态可以恢复。
+11. 确认主动重置额度进入到期前 72 小时后只提醒一次，刷新或重启后不会重复提醒。
+12. 确认额度耗尽后仅在 Credits 余额开始下降时提醒，每轮额度周期一次；额度恢复或进入新重置周期后可再次提醒。
 
 ## 异常路径
 

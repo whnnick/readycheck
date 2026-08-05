@@ -8,7 +8,7 @@ Use this guide to validate the ReadyCheck Windows preview on Windows 10/11. Do n
 
 Option A: use the portable zip.
 
-1. Copy `dist/windows/ReadyCheck-0.1.78-windows-x64-portable.zip` to the Windows machine.
+1. Copy `dist/windows/ReadyCheck-0.1.79-windows-x64-portable.zip` to the Windows machine.
 2. Unzip it.
 3. Run `ReadyCheck-win32-x64\ReadyCheck.exe`.
 
@@ -44,6 +44,8 @@ There is no Windows installer yet; both the portable zip and source flow are pre
 8. Disable **Keep widget on top** and confirm normal windows can cover the widget while the widget remains draggable.
 9. Hide the widget and show it once; confirm the placement matches **Reset position**.
 10. Quit and relaunch the app; confirm the connected account state is restored.
+11. Confirm a reset credit inside its final 72 hours notifies once and does not repeat after refresh or relaunch.
+12. Confirm exhausted quota notifies only after Credits decrease, once per quota cycle; quota recovery or a new reset cycle must re-arm the next reminder.
 
 ## Failure Paths
 

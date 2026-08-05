@@ -2,10 +2,11 @@
 
 const http = require("node:http");
 const path = require("node:path");
-const { app, BrowserWindow, Menu, Tray, ipcMain, nativeImage, shell } = require("electron");
+const { app, BrowserWindow, Menu, Notification, Tray, ipcMain, nativeImage, shell } = require("electron");
 const { CodexOAuthClient } = require("./services/oauth");
 const { PrefsStore } = require("./services/prefs-store");
 const { QuotaHistoryStore } = require("./services/history-store");
+const { QuotaReminderStore } = require("./services/reminder-store");
 const { ReadyCheckState } = require("./services/app-state");
 const { EncryptedTokenStore } = require("./services/token-store");
 const { CodexUsageClient } = require("./services/usage-client");
@@ -16,6 +17,7 @@ let widgetWindow = null;
 let tray = null;
 let prefsStore = null;
 let readyState = null;
+let reminderStore = null;
 let refreshTimer = null;
 let oauthCallbackServer = null;
 
@@ -219,8 +221,39 @@ async function refreshQuota() {
   readyState.isRefreshing = true;
   broadcastState();
   const snapshot = await readyState.refresh();
+  if (snapshot.status === "available" && reminderStore) {
+    deliverReminderNotifications(reminderStore.evaluate(snapshot.quota), snapshot.prefs.language);
+  }
   broadcastState();
   return snapshot;
+}
+
+function deliverReminderNotifications(events, language) {
+  if (!Notification.isSupported()) {
+    return;
+  }
+
+  for (const event of events) {
+    const notification = new Notification(reminderCopy(event, language));
+    notification.on("click", () => showMainWindow());
+    notification.show();
+  }
+}
+
+function reminderCopy(event, language) {
+  const isEnglish = language === "en";
+  if (event.type === "manualResetExpiring") {
+    const expiresAt = new Intl.DateTimeFormat(isEnglish ? "en-US" : "zh-CN", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }).format(new Date(event.expiresAt));
+    return isEnglish
+      ? { title: "Reset credit expires soon", body: `Reset ${event.index} expires within 3 days: ${expiresAt}` }
+      : { title: "重置卡即将到期", body: `第 ${event.index} 次重置额度将在 3 天内到期：${expiresAt}` };
+  }
+  return isEnglish
+    ? { title: "Codex Credits are now in use", body: "Your Codex quota is exhausted. Current usage is now consuming Credits." }
+    : { title: "已开始使用 Codex Credits", body: "Codex 额度已用尽，当前使用已开始消耗 Credits。" };
 }
 
 async function beginOAuth() {
@@ -331,6 +364,7 @@ app.whenReady().then(async () => {
 
   const userDataPath = app.getPath("userData");
   prefsStore = new PrefsStore(userDataPath);
+  reminderStore = new QuotaReminderStore(userDataPath);
   readyState = new ReadyCheckState(prefsStore.load(), {
     tokenStore: new EncryptedTokenStore(userDataPath),
     oauthClient: new CodexOAuthClient(),

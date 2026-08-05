@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.79 - 2026-08-05
+
+- Notify once when a manual reset credit enters its final three days before expiration.
+- Notify when verified Codex quota is exhausted and the Credits balance begins decreasing, once per exhausted quota cycle; restoring quota re-arms the next cycle.
+- Persist reminder state across launches and keep macOS and Windows behavior aligned without adding model requests.
+- Request macOS notification permission at launch when the user has not made a choice yet, instead of waiting until the first reminder event.
+
 ## 0.1.78 - 2026-07-30
 
 - Show the exact date and Token count when hovering over a daily Token usage bar on macOS.

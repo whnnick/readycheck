@@ -53,6 +53,15 @@ Use this checklist before publishing a preview build or when validating a user-r
 5. Confirm range switching does not affect the floating widget or trigger a network request.
 6. Inspect the local history payload and confirm it contains no email, account id, credential, or raw API response.
 
+## Quota And Credit Notifications
+
+1. With a manual reset expiration inside the next 72 hours, confirm ReadyCheck requests notification permission when needed and sends one expiration reminder.
+2. Refresh again and relaunch the app. Confirm the same expiration does not notify again.
+3. With verified quota exhausted, confirm an unchanged Credits balance does not notify; decrease the balance and confirm one Credits-usage reminder appears.
+4. Confirm later balance decreases in the same exhausted quota cycle do not repeat the reminder.
+5. Restore quota, or advance the verified quota reset cycle, then exhaust it and decrease Credits again. Confirm the next cycle can notify once.
+6. Deny system notification permission and confirm quota refresh remains usable without errors or model requests.
+
 ## Windows Preview Black-Box QA
 
 1. Run the `apps/windows` preview on Windows 10/11 and confirm the system tray icon, tray menu, main window, and desktop widget appear.
@@ -65,6 +74,7 @@ Use this checklist before publishing a preview build or when validating a user-r
 8. With **Keep widget on top** disabled, normal app windows should cover the widget and the widget should remain draggable.
 9. Switch between Minimal and Detailed widget styles and confirm labels do not turn vertical, overlap, or overflow.
 10. Quit and relaunch the app. Confirm authorization state is restored and the token file is not readable plaintext JSON.
+11. Repeat the notification cases above and confirm Windows system notifications follow the same one-per-expiration and one-per-exhausted-cycle rules.
 
 ## Release Gate
 

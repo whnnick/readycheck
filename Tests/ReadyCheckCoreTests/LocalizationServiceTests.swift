@@ -157,6 +157,10 @@ final class LocalizationServiceTests: XCTestCase {
             "quota.window.codex.7d",
             "quota.window.codex.primary",
             "quota.window.codex.secondary",
+            "notification.resetExpiry.title",
+            "notification.resetExpiry.body",
+            "notification.creditsStarted.title",
+            "notification.creditsStarted.body",
             "quota.window.claude.monthly",
             "quota.window.openai.monthly"
         ]

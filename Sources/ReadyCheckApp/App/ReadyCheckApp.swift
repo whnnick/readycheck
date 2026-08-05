@@ -56,6 +56,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         configureStatusBarItem()
         showMainWindow()
         Task {
+            await appModel.requestNotificationAuthorizationIfNeeded()
             await appModel.reloadCodexOAuthConnectionStatus()
             await appModel.reloadQuotaHistory()
             await appModel.refresh(reason: .openedPanel)
@@ -231,6 +232,12 @@ final class ReadyCheckAppModel {
     private let quotaHistoryStore: QuotaHistoryStore
 
     @ObservationIgnored
+    private let quotaReminderStore: QuotaReminderStore
+
+    @ObservationIgnored
+    private let quotaNotificationService: QuotaNotificationService
+
+    @ObservationIgnored
     private let codexAppServerClient: any CodexAppServerReading
 
     @ObservationIgnored
@@ -275,6 +282,8 @@ final class ReadyCheckAppModel {
         self.updateChecker = updateChecker
         self.codexAppServerClient = codexAppServerClient
         self.quotaHistoryStore = quotaHistoryStore ?? QuotaHistoryStore(fileURL: Self.defaultQuotaHistoryURL)
+        self.quotaReminderStore = QuotaReminderStore(fileURL: Self.defaultQuotaReminderURL)
+        self.quotaNotificationService = QuotaNotificationService()
         self.store = QuotaStore(
             registry: ProviderRegistry(
                 configurations: ProviderConfiguration.defaults,
@@ -315,6 +324,10 @@ final class ReadyCheckAppModel {
     func restoreNotchStatusIfNeeded() {
         guard notchStatusVisible else { return }
         notchWindowController.show(model: self)
+    }
+
+    func requestNotificationAuthorizationIfNeeded() async {
+        await quotaNotificationService.requestAuthorizationIfNeeded()
     }
 
     func showFloatingWidget() {
@@ -682,6 +695,8 @@ final class ReadyCheckAppModel {
         lastRefreshAt = Date()
         for snapshot in snapshots where snapshot.providerId == "codex-oauth" && snapshot.status == .available {
             quotaHistorySamples = await quotaHistoryStore.record(snapshot)
+            let reminderEvents = await quotaReminderStore.evaluate(snapshot)
+            await quotaNotificationService.deliver(reminderEvents, localization: localization)
         }
     }
 
@@ -710,5 +725,11 @@ final class ReadyCheckAppModel {
         return applicationSupport
             .appendingPathComponent("ReadyCheck", isDirectory: true)
             .appendingPathComponent("quota-history.json")
+    }
+
+    private static var defaultQuotaReminderURL: URL {
+        defaultQuotaHistoryURL
+            .deletingLastPathComponent()
+            .appendingPathComponent("quota-reminders.json")
     }
 }
