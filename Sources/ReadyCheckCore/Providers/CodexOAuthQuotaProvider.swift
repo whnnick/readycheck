@@ -12,6 +12,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
     private let quotaEndpoint: URL?
     private let resetCreditsEndpoint: URL?
     private let now: @Sendable () -> Date
+    private let supplementalRefreshGate = CodexSupplementalRefreshGate()
 
     public init(
         credentialStore: any CredentialStore,
@@ -35,6 +36,10 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
 
     public func fetchSnapshot(context: ProviderRefreshContext) async throws -> ProviderQuotaSnapshot {
         let date = now()
+        let shouldRefreshSupplementalDetails = await supplementalRefreshGate.shouldRefresh(
+            reason: context.reason,
+            now: date
+        )
         guard var token = try await tokenStore.loadToken() else {
             return snapshot(date: date, error: "quota.error.oauthRequired")
         }
@@ -48,7 +53,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             }
         }
 
-        if let appServerClient,
+        if shouldRefreshSupplementalDetails,
+           let appServerClient,
            let appServerSnapshot = try? await appServerClient.readAccountSnapshot(),
            accountsMatch(token: token, snapshot: appServerSnapshot),
            let officialSnapshot = makeOfficialSnapshot(
@@ -90,7 +96,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             let usageDetails = await mergedManualResetDetails(
                 usagePayload: payload,
                 accessToken: token.accessToken,
-                accountID: accountID
+                accountID: accountID,
+                shouldRefreshResetCredits: shouldRefreshSupplementalDetails
             )
             return ProviderQuotaSnapshot(
                 providerId: id,
@@ -177,7 +184,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                     ?? appServerSnapshot.planName
                     ?? CodexJWTClaims.planName(from: token.idToken),
                 subscriptionRenewalAt: CodexJWTClaims.subscriptionRenewalAt(from: token.idToken),
-                manualResetCount: resetExpirations.count,
+                manualResetCount: appServerSnapshot.manualResetCount,
                 manualResetExpirations: resetExpirations,
                 creditBalance: defaultLimit?.hasCredits == false ? nil : defaultLimit?.creditBalance,
                 creditsUnlimited: defaultLimit?.creditsUnlimited,
@@ -220,10 +227,11 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
     private func mergedManualResetDetails(
         usagePayload: Data,
         accessToken: String,
-        accountID: String
+        accountID: String,
+        shouldRefreshResetCredits: Bool
     ) async -> ProviderQuotaDetails {
         let usageDetails = usageParser.parseManualResetDetails(usagePayload)
-        guard let resetCreditsEndpoint else {
+        guard shouldRefreshResetCredits, let resetCreditsEndpoint else {
             return usageDetails
         }
 
@@ -262,5 +270,30 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             windows: [],
             errors: [error]
         )
+    }
+}
+
+actor CodexSupplementalRefreshGate {
+    private let automaticInterval: TimeInterval
+    private var lastAttemptAt: Date?
+
+    init(automaticInterval: TimeInterval = 15 * 60) {
+        self.automaticInterval = automaticInterval
+    }
+
+    func shouldRefresh(reason: RefreshReason, now: Date) -> Bool {
+        if reason == .manual {
+            lastAttemptAt = now
+            return true
+        }
+        guard let lastAttemptAt else {
+            self.lastAttemptAt = now
+            return true
+        }
+        guard now.timeIntervalSince(lastAttemptAt) >= automaticInterval else {
+            return false
+        }
+        self.lastAttemptAt = now
+        return true
     }
 }

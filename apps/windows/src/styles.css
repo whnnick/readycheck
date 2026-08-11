@@ -70,6 +70,7 @@ select:focus {
 .toolbar,
 .quota-card,
 .usage-card,
+.notification-history-card,
 .panel {
   border-radius: 16px;
   padding: 14px;
@@ -163,9 +164,126 @@ h2 {
 
 .quota-card,
 .usage-card,
+.notification-history-card,
 .panel {
   display: grid;
   gap: 12px;
+}
+
+.notification-history-heading {
+  align-items: center;
+}
+
+.notification-history-heading > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.notification-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-history-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.notification-history-row:first-child {
+  border-top: 0;
+}
+
+.notification-history-icon {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.08);
+  font-weight: 700;
+}
+
+.notification-history-icon.delivered,
+.notification-history-status.delivered {
+  color: var(--green);
+}
+
+.notification-history-icon.delivered {
+  background: rgba(57, 217, 107, 0.12);
+}
+
+.notification-history-icon.failed,
+.notification-history-status.failed {
+  color: var(--red);
+}
+
+.notification-history-icon.failed {
+  background: rgba(255, 77, 87, 0.12);
+}
+
+.notification-history-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.notification-history-copy span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.notification-history-status {
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.notification-history-empty {
+  display: grid;
+  gap: 3px;
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.notification-history-empty span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.notification-history-dialog {
+  width: min(620px, calc(100vw - 40px));
+  max-height: min(560px, calc(100vh - 40px));
+  padding: 18px;
+  color: var(--text);
+}
+
+.notification-history-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.notification-history-dialog header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.notification-history-dialog-list {
+  max-height: 420px;
+  overflow: auto;
+  margin-top: 12px;
 }
 
 .recovery-actions {

@@ -8,6 +8,7 @@ public struct CodexAppServerAccountSnapshot: Equatable, Sendable {
     public let email: String?
     public let planName: String?
     public let rateLimits: [CodexAppServerRateLimitSnapshot]
+    public let manualResetCount: Int?
     public let resetCredits: [CodexAppServerResetCredit]
     public let tokenUsage: AccountTokenUsage?
 
@@ -15,12 +16,14 @@ public struct CodexAppServerAccountSnapshot: Equatable, Sendable {
         email: String?,
         planName: String?,
         rateLimits: [CodexAppServerRateLimitSnapshot],
+        manualResetCount: Int? = nil,
         resetCredits: [CodexAppServerResetCredit],
         tokenUsage: AccountTokenUsage?
     ) {
         self.email = email
         self.planName = planName
         self.rateLimits = rateLimits
+        self.manualResetCount = manualResetCount
         self.resetCredits = resetCredits
         self.tokenUsage = tokenUsage
     }
@@ -121,6 +124,7 @@ public struct CodexAppServerClient: CodexAppServerReading {
         let candidates = [
             configured,
             URL(fileURLWithPath: "/Applications/Codex.app/Contents/Resources/codex"),
+            URL(fileURLWithPath: "/Applications/ChatGPT.app/Contents/Resources/codex"),
             homeDirectory.appendingPathComponent(".local/bin/codex"),
             URL(fileURLWithPath: "/opt/homebrew/bin/codex"),
             URL(fileURLWithPath: "/usr/local/bin/codex")
@@ -317,6 +321,7 @@ public enum CodexAppServerResponseParser {
             email: account.account?.email,
             planName: account.account?.planType,
             rateLimits: snapshots.map(mapRateLimit),
+            manualResetCount: limits.rateLimitResetCredits?.availableCount,
             resetCredits: limits.rateLimitResetCredits?.credits?.map {
                 CodexAppServerResetCredit(
                     status: $0.status,
@@ -383,7 +388,7 @@ private struct RateLimitsResponse: Decodable {
     }
 
     struct ResetCredits: Decodable {
-        let availableCount: Int
+        let availableCount: Int?
         let credits: [Credit]?
     }
 

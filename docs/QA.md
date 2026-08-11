@@ -56,11 +56,12 @@ Use this checklist before publishing a preview build or when validating a user-r
 ## Quota And Credit Notifications
 
 1. With a manual reset expiration inside the next 72 hours, confirm ReadyCheck requests notification permission when needed and sends one expiration reminder.
-2. Refresh again and relaunch the app. Confirm the same expiration does not notify again.
-3. With verified quota exhausted, confirm an unchanged Credits balance does not notify; decrease the balance and confirm one Credits-usage reminder appears.
-4. Confirm later balance decreases in the same exhausted quota cycle do not repeat the reminder.
-5. Restore quota, or advance the verified quota reset cycle, then exhaust it and decrease Credits again. Confirm the next cycle can notify once.
-6. Deny system notification permission and confirm quota refresh remains usable without errors or model requests.
+2. When reset-credit details are unavailable or rate limited, confirm ReadyCheck reports them as temporarily unavailable instead of zero and preserves any previously verified, unexpired expiration. Confirm an explicit `availableCount: 0` clears the previous result.
+3. Refresh again and relaunch the app. Confirm the same expiration does not notify again.
+4. With verified quota exhausted, confirm an unchanged Credits balance does not notify; decrease the balance and confirm one Credits-usage reminder appears.
+5. Confirm later balance decreases in the same exhausted quota cycle do not repeat the reminder.
+6. Restore quota, or advance the verified quota reset cycle, then exhaust it and decrease Credits again. Confirm the next cycle can notify once.
+7. Deny system notification permission and confirm quota refresh remains usable without errors or model requests.
 
 ## Windows Preview Black-Box QA
 

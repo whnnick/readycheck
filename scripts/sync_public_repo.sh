@@ -18,7 +18,8 @@ for command in git rg rsync; do
     fi
 done
 
-if [[ ! "${SOURCE_ROOT}" == */.worktrees/readycheck-macos-mvp ]]; then
+if [[ ! "${SOURCE_ROOT}" == */.worktrees/* ]] \
+    || ! git -C "${SOURCE_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "Run this script from the ReadyCheck development worktree." >&2
     echo "Detected source: ${SOURCE_ROOT}" >&2
     exit 1

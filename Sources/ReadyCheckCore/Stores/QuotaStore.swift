@@ -26,7 +26,10 @@ public actor QuotaStore {
         for provider in registry.providers {
             do {
                 let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: reason))
-                nextSnapshotByProvider[provider.id] = snapshot
+                nextSnapshotByProvider[provider.id] = preservingSupplementalDetails(
+                    in: snapshot,
+                    previous: snapshotByProvider[provider.id]
+                )
             } catch {
                 let now = Date()
                 nextSnapshotByProvider[provider.id] = ProviderQuotaSnapshot(
@@ -53,5 +56,32 @@ public actor QuotaStore {
         await withCheckedContinuation { continuation in
             refreshWaiters.append(continuation)
         }
+    }
+
+    private func preservingSupplementalDetails(
+        in snapshot: ProviderQuotaSnapshot,
+        previous: ProviderQuotaSnapshot?
+    ) -> ProviderQuotaSnapshot {
+        guard snapshot.status == .available,
+              let details = snapshot.details,
+              let previousDetails = previous?.details
+        else {
+            return snapshot
+        }
+
+        return ProviderQuotaSnapshot(
+            providerId: snapshot.providerId,
+            displayName: snapshot.displayName,
+            status: snapshot.status,
+            source: snapshot.source,
+            refreshedAt: snapshot.refreshedAt,
+            staleAfter: snapshot.staleAfter,
+            windows: snapshot.windows,
+            errors: snapshot.errors,
+            details: details.preservingSupplementalDetails(
+                from: previousDetails,
+                now: snapshot.refreshedAt
+            )
+        )
     }
 }

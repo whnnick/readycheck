@@ -58,6 +58,7 @@ const snapshot = normalizeAppServerResponses(
       }
     },
     rateLimitResetCredits: {
+      availableCount: 1,
       credits: [
         {
           status: "available",
@@ -84,11 +85,22 @@ assert.equal(snapshot.email, "user@example.com");
 assert.equal(snapshot.rateLimits.length, 1);
 assert.equal(snapshot.rateLimits[0].primary.durationMinutes, 300);
 assert.equal(snapshot.rateLimits[0].creditBalance, "15.5");
+assert.equal(snapshot.manualResetCount, 1);
 assert.equal(snapshot.resetCredits.length, 1);
 assert.equal(snapshot.tokenUsage.summary.lifetimeTokens, 123_456);
 assert.deepEqual(snapshot.tokenUsage.dailyBuckets, [
   { startDate: "2026-07-28", tokens: 1_234 }
 ]);
+
+const unavailableReset = normalizeAppServerResponses(
+  { account: { email: "user@example.com" } },
+  {
+    rateLimits: { limitId: "codex", primary: { usedPercent: 18 } },
+    rateLimitResetCredits: null
+  },
+  null
+);
+assert.equal(unavailableReset.manualResetCount, null);
 
 const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "readycheck-codex-"));
 const executablePath = path.join(temporaryDirectory, process.platform === "win32" ? "codex.exe" : "codex");

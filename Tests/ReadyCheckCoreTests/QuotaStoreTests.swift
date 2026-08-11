@@ -99,6 +99,39 @@ final class QuotaStoreTests: XCTestCase {
         let snapshotsAfterRefresh = await store.snapshots
         XCTAssertEqual(snapshotsAfterRefresh.map(\.displayName), ["First batch 2", "Second batch 2"])
     }
+
+    func testManualResetDetailsPreserveUnexpiredSuccessfulResultWhenNextRefreshIsUnavailable() {
+        let expiration = Date(timeIntervalSince1970: 10_000)
+        let previous = ProviderQuotaDetails(
+            manualResetCount: 1,
+            manualResetExpirations: [expiration]
+        )
+        let unavailable = ProviderQuotaDetails(manualResetCount: nil, manualResetExpirations: [])
+
+        let merged = unavailable.preservingSupplementalDetails(
+            from: previous,
+            now: Date(timeIntervalSince1970: 9_000)
+        )
+
+        XCTAssertEqual(merged.manualResetCount, 1)
+        XCTAssertEqual(merged.manualResetExpirations, [expiration])
+    }
+
+    func testManualResetDetailsClearOnlyWhenServerExplicitlyReturnsZero() {
+        let previous = ProviderQuotaDetails(
+            manualResetCount: 1,
+            manualResetExpirations: [Date(timeIntervalSince1970: 10_000)]
+        )
+        let zero = ProviderQuotaDetails(manualResetCount: 0, manualResetExpirations: [])
+
+        let merged = zero.preservingSupplementalDetails(
+            from: previous,
+            now: Date(timeIntervalSince1970: 9_000)
+        )
+
+        XCTAssertEqual(merged.manualResetCount, 0)
+        XCTAssertEqual(merged.manualResetExpirations, [])
+    }
 }
 
 private struct StaticQuotaProvider: QuotaProvider {

@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+## 0.1.83 - 2026-08-11
+
+- Add a local notification history with delivery status, attempt time, retry count, and reminder details on macOS and Windows.
+- Keep failed retries in one logical record and retain the latest 50 reminders instead of producing duplicate rows.
+- Migrate legacy reminder thresholds as explicitly unconfirmed records rather than claiming the operating system delivered them.
+
+## 0.1.82 - 2026-08-11
+
+- Persist verified future manual-reset expirations so 72/48/24/12-hour reminders continue when the official detail source temporarily omits reset data.
+- Mark a reminder threshold as delivered only after the operating system accepts the notification; failed deliveries remain eligible for retry.
+- Treat an explicit zero reset count as the only signal that clears a persisted reset expiration, with matching macOS and Windows behavior.
+
+## 0.1.81 - 2026-08-09
+
+- Remind for each still-available manual reset at 72, 48, 24, and 12 hours before expiration.
+- Deliver each threshold once across relaunches and stop later reminders after the reset is used.
+- Collapse thresholds missed while the app was closed into the single most urgent reminder instead of sending a burst.
+- Migrate the previous three-day reminder state without repeating the 72-hour notification, with matching macOS and Windows behavior.
+
+## 0.1.80 - 2026-08-06
+
+- Distinguish an explicit zero manual-reset balance from temporarily unavailable reset-credit details.
+- Preserve unexpired reset-credit expiration data when the official detail endpoint is temporarily rate limited.
+- Show a clear unavailable or missing-expiration state instead of reporting unknown reset data as zero on macOS and Windows.
+- Keep one-minute quota refreshes while limiting supplemental reset and Token-detail requests to every 15 minutes; manual refresh still forces a detail attempt.
+
 ## 0.1.79 - 2026-08-05
 
 - Notify once when a manual reset credit enters its final three days before expiration.

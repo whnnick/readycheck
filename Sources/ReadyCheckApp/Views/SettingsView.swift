@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Bindable var model: ReadyCheckAppModel
 
     @State private var now = Date()
+    @State private var isReminderHistoryPresented = false
 
     private let refreshIntervalOptions: [TimeInterval] = [60, 180, 300]
 
@@ -29,6 +30,14 @@ struct SettingsView: View {
                             .accountTokenUsage,
                         localization: model.localization,
                         now: now
+                    )
+                }
+
+                GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
+                    ReminderHistorySummaryView(
+                        records: model.reminderHistoryRecords,
+                        localization: model.localization,
+                        showAll: { isReminderHistoryPresented = true }
                     )
                 }
 
@@ -64,6 +73,12 @@ struct SettingsView: View {
         }
         .task {
             await updateNowWhileVisible()
+        }
+        .sheet(isPresented: $isReminderHistoryPresented) {
+            ReminderHistoryListView(
+                records: model.reminderHistoryRecords,
+                localization: model.localization
+            )
         }
     }
 

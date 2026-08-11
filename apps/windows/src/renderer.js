@@ -35,6 +35,16 @@ const elements = {
   usageSourceBadge: document.getElementById("usageSourceBadge"),
   usageDashboard: document.getElementById("usageDashboard"),
   usageRangeButtons: document.querySelectorAll("[data-usage-range]"),
+  notificationHistoryTitle: document.getElementById("notificationHistoryTitle"),
+  notificationHistorySubtitle: document.getElementById("notificationHistorySubtitle"),
+  notificationHistoryBadge: document.getElementById("notificationHistoryBadge"),
+  notificationHistoryList: document.getElementById("notificationHistoryList"),
+  notificationHistoryOpenButton: document.getElementById("notificationHistoryOpenButton"),
+  notificationHistoryDialog: document.getElementById("notificationHistoryDialog"),
+  notificationHistoryDialogTitle: document.getElementById("notificationHistoryDialogTitle"),
+  notificationHistoryDisclaimer: document.getElementById("notificationHistoryDisclaimer"),
+  notificationHistoryDialogList: document.getElementById("notificationHistoryDialogList"),
+  notificationHistoryCloseButton: document.getElementById("notificationHistoryCloseButton"),
   lastRefresh: document.getElementById("lastRefresh"),
   widgetLastRefresh: document.getElementById("widgetLastRefresh"),
   accountText: document.getElementById("accountText"),
@@ -110,6 +120,70 @@ function render(state) {
   renderQuota(state);
   renderRecoveryActions(state);
   renderUsageDashboard(state);
+  renderNotificationHistory(state);
+}
+
+function renderNotificationHistory(state) {
+  if (!elements.notificationHistoryList) {
+    return;
+  }
+  const isEnglish = state.prefs.language === "en";
+  const records = Array.isArray(state.reminderHistory) ? state.reminderHistory : [];
+  elements.notificationHistoryTitle.textContent = isEnglish ? "Notification history" : "通知记录";
+  elements.notificationHistorySubtitle.textContent = isEnglish
+    ? "Local delivery records for quota and Credit alerts."
+    : "记录本机额度与 Credits 提醒的投递结果。";
+  elements.notificationHistoryBadge.textContent = isEnglish ? "On this device" : "本机记录";
+  elements.notificationHistoryOpenButton.textContent = isEnglish ? "View all" : "查看全部";
+  elements.notificationHistoryOpenButton.hidden = records.length <= 3;
+  elements.notificationHistoryDialogTitle.textContent = elements.notificationHistoryTitle.textContent;
+  elements.notificationHistoryDisclaimer.textContent = isEnglish
+    ? "“Sent to system” means Windows accepted the notification; banner visibility still follows system notification settings."
+    : "“已交给系统”表示 Windows 已接收通知；横幅是否可见仍取决于系统通知设置。";
+  elements.notificationHistoryList.innerHTML = notificationHistoryMarkup(records.slice(0, 3), isEnglish);
+  elements.notificationHistoryDialogList.innerHTML = notificationHistoryMarkup(records, isEnglish);
+}
+
+function notificationHistoryMarkup(records, isEnglish) {
+  if (records.length === 0) {
+    return `<div class="notification-history-empty"><strong>${isEnglish ? "No notification records yet" : "暂无通知记录"}</strong><span>${isEnglish ? "Future reminder attempts will appear here with their delivery result." : "后续提醒会在这里显示尝试时间和投递结果。"}</span></div>`;
+  }
+  return records.map((record) => {
+    const status = notificationHistoryStatus(record.status, isEnglish);
+    const title = record.kind === "creditsStarted"
+      ? (isEnglish ? "Codex Credits started" : "已开始使用 Codex Credits")
+      : (record.resetIndex
+        ? (isEnglish
+          ? `Reset ${record.resetIndex} · ${record.leadHours || 0}-hour alert`
+          : `第 ${record.resetIndex} 次重置 · 提前 ${record.leadHours || 0} 小时`)
+        : (isEnglish
+          ? `Reset credit · ${record.leadHours || 0}-hour alert`
+          : `主动重置 · 提前 ${record.leadHours || 0} 小时`));
+    const expiry = record.expiresAt
+      ? `<span>${isEnglish ? "Expires" : "到期时间"} ${formatNotificationHistoryDate(record.expiresAt, isEnglish)}</span>`
+      : "";
+    const attempt = record.lastAttemptAt
+      ? `<span>${formatNotificationHistoryDate(record.lastAttemptAt, isEnglish)}${record.attemptCount > 1 ? ` · ${isEnglish ? `${record.attemptCount} attempts` : `尝试 ${record.attemptCount} 次`}` : ""}</span>`
+      : "";
+    return `<article class="notification-history-row"><span class="notification-history-icon ${record.status}">${status.icon}</span><div class="notification-history-copy"><strong>${title}</strong>${expiry}${attempt}</div><span class="notification-history-status ${record.status}">${status.label}</span></article>`;
+  }).join("");
+}
+
+function notificationHistoryStatus(status, isEnglish) {
+  if (status === "delivered") {
+    return { icon: "✓", label: isEnglish ? "Sent to system" : "已交给系统" };
+  }
+  if (status === "failed") {
+    return { icon: "!", label: isEnglish ? "Delivery failed" : "投递失败" };
+  }
+  return { icon: "?", label: isEnglish ? "Legacy status unknown" : "旧版状态不可确认" };
+}
+
+function formatNotificationHistoryDate(value, isEnglish) {
+  return new Intl.DateTimeFormat(isEnglish ? "en-US" : "zh-CN", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(new Date(value));
 }
 
 function renderQuota(state) {
@@ -182,15 +256,21 @@ function manualResetExpirationRows(details) {
   const expirations = Array.isArray(details.manualResetExpirations)
     ? details.manualResetExpirations
     : (details.manualResetExpiresAt ? [details.manualResetExpiresAt] : []);
+  const resetCount = Number.isInteger(details.manualResetCount)
+    ? details.manualResetCount
+    : (expirations.length > 0 ? expirations.length : null);
   const label = isWidget ? "重置过期" : "主动重置过期时间（GMT+8）";
 
-  if (expirations.length === 0) {
-    return `<span>${label}</span><strong>未提供</strong>`;
+  if (resetCount === null) {
+    return `<span>${label}</span><strong>暂时无法读取</strong>`;
+  }
+  if (resetCount === 0) {
+    return `<span>${label}</span><strong>暂无可用主动重置</strong>`;
   }
 
-  return expirations.map((expiration, index) => `
+  return Array.from({ length: resetCount }, (_, index) => `
     <span>${index === 0 ? label : ""}</span>
-    <strong>第 ${index + 1} 次 · ${formatDate(expiration) || "未提供"}</strong>
+    <strong>第 ${index + 1} 次 · ${expirations[index] ? formatDate(expirations[index]) : "过期时间暂不可用"}</strong>
   `).join("");
 }
 
@@ -677,6 +757,23 @@ function wireEvents() {
       if (!button || !button.dataset.usageWindow) return;
       usageWindowID = button.dataset.usageWindow;
       renderUsageDashboard(currentState);
+    });
+  }
+  if (elements.notificationHistoryOpenButton) {
+    elements.notificationHistoryOpenButton.addEventListener("click", () => {
+      elements.notificationHistoryDialog.showModal();
+    });
+  }
+  if (elements.notificationHistoryCloseButton) {
+    elements.notificationHistoryCloseButton.addEventListener("click", () => {
+      elements.notificationHistoryDialog.close();
+    });
+  }
+  if (elements.notificationHistoryDialog) {
+    elements.notificationHistoryDialog.addEventListener("click", (event) => {
+      if (event.target === elements.notificationHistoryDialog) {
+        elements.notificationHistoryDialog.close();
+      }
     });
   }
   if (elements.disconnectButton) {

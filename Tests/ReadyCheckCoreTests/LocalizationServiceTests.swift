@@ -161,6 +161,13 @@ final class LocalizationServiceTests: XCTestCase {
             "notification.resetExpiry.body",
             "notification.creditsStarted.title",
             "notification.creditsStarted.body",
+            "notification.history.title",
+            "notification.history.subtitle",
+            "notification.history.legacyResetTitle",
+            "notification.history.delivered",
+            "notification.history.failed",
+            "notification.history.legacyUnknown",
+            "notification.history.disclaimer",
             "quota.window.claude.monthly",
             "quota.window.openai.monthly"
         ]

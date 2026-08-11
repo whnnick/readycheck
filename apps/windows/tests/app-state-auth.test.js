@@ -1,7 +1,12 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { ReadyCheckState, recoveryActionForStatus, statusForUsageError } = require("../src/services/app-state");
+const {
+  ReadyCheckState,
+  preserveManualResetDetails,
+  recoveryActionForStatus,
+  statusForUsageError
+} = require("../src/services/app-state");
 
 class MemoryTokenStore {
   constructor() {
@@ -186,6 +191,7 @@ async function main() {
               creditsUnlimited: false,
               planName: "plus"
             }],
+            manualResetCount: 1,
             resetCredits: [{
               status: "available",
               expiresAt: "2026-08-12T10:00:00.000Z"
@@ -216,6 +222,7 @@ async function main() {
   assert.equal(official.quota.windows[0].labelKey, "quota.window.codex.5h");
   assert.equal(official.quota.windows[1].labelKey, "quota.window.codex.7d");
   assert.equal(official.quota.tokenUsage.summary.lifetimeTokens, 123_456);
+  assert.equal(official.quota.manualResetCount, 1);
 
   const refreshStore = new MemoryTokenStore();
   refreshStore.token = {
@@ -290,6 +297,28 @@ async function main() {
   assert.equal(statusForUsageError({ code: "authorizationRejected" }), "authorizationRejected");
   assert.equal(statusForUsageError({ code: "parserUnavailable" }), "parserUnavailable");
   assert.equal(statusForUsageError(new Error("offline")), "usageUnavailable");
+
+  const expiration = "2026-08-20T00:00:00.000Z";
+  const preserved = preserveManualResetDetails(
+    { manualResetCount: null, manualResetExpiresAt: null, manualResetExpirations: [] },
+    { manualResetCount: 1, manualResetExpiresAt: expiration, manualResetExpirations: [expiration] },
+    new Date("2026-08-06T00:00:00.000Z")
+  );
+  assert.equal(preserved.manualResetCount, 1);
+  assert.deepEqual(preserved.manualResetExpirations, [expiration]);
+
+  const cleared = preserveManualResetDetails(
+    { manualResetCount: 0, manualResetExpiresAt: null, manualResetExpirations: [] },
+    preserved,
+    new Date("2026-08-06T00:00:00.000Z")
+  );
+  assert.equal(cleared.manualResetCount, 0);
+  assert.deepEqual(cleared.manualResetExpirations, []);
+
+  const supplementalGateState = new ReadyCheckState({});
+  assert.equal(supplementalGateState.shouldRefreshSupplemental(new Date(1_000), false), true);
+  assert.equal(supplementalGateState.shouldRefreshSupplemental(new Date(61_000), false), false);
+  assert.equal(supplementalGateState.shouldRefreshSupplemental(new Date(62_000), true), true);
 }
 
 function jwt(payload) {

@@ -40,6 +40,8 @@ assert.match(styles, /\.quota-row-footer\s*\{[^}]*display:\s*flex;[^}]*justify-c
 const rendererHTML = source("src/renderer.html");
 assert.equal(rendererHTML.includes('id="usageDashboard"'), true);
 assert.equal(rendererHTML.includes('id="quotaRecoveryActions"'), true);
+assert.equal(rendererHTML.includes('id="notificationHistoryList"'), true);
+assert.equal(rendererHTML.includes('id="notificationHistoryDialog"'), true);
 assert.match(rendererHTML, /柱形表示每个时段检测到的额度下降/);
 assert.match(renderer, /function renderOfficialTokenUsage\(tokenUsage\)/);
 assert.match(renderer, /Codex 官方数据/);
@@ -67,6 +69,11 @@ assert.match(styles, /\.chart-bar\.animate\s*\{/);
 assert.match(styles, /\.chart-bar\.delta\s*\{/);
 assert.match(styles, /\.usage-chart\.switching\s*\{/);
 assert.match(styles, /button\.usage-metric\.selected\s*\{[^}]*border-color:\s*transparent;/s);
+assert.match(renderer, /function renderNotificationHistory\(state\)/);
+assert.match(renderer, /已交给系统/);
+assert.match(renderer, /旧版状态不可确认/);
+assert.match(renderer, /notificationHistoryDialog\.showModal\(\)/);
+assert.match(styles, /\.notification-history-row\s*\{[^}]*grid-template-columns:/s);
 
 const main = source("src/main.js");
 assert.match(main, /minimal:\s*\{\s*width:\s*330,\s*height:\s*220\s*\}/);
@@ -74,5 +81,6 @@ assert.match(main, /detailed:\s*\{\s*width:\s*350,\s*height:\s*360\s*\}/);
 assert.match(main, /previousPrefs\.widgetAlwaysOnTop !== prefs\.widgetAlwaysOnTop/);
 assert.match(main, /setAlwaysOnTop\(prefs\.widgetAlwaysOnTop,\s*prefs\.widgetAlwaysOnTop \? "floating" : "normal"\)/);
 assert.match(main, /!previousPrefs\.widgetVisible && prefs\.widgetVisible/);
+assert.match(main, /reminderHistory:\s*reminderStore \? reminderStore\.history\(\) : \[\]/);
 
 console.log("Windows UI behavior checks passed.");

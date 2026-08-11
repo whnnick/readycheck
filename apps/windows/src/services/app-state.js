@@ -27,6 +27,8 @@ class ReadyCheckState {
     this.status = "notConnected";
     this.quota = buildUnavailableQuota();
     this.quotaHistory = this.historyStore ? this.historyStore.load() : [];
+    this.lastSupplementalRefreshAt = null;
+    this.supplementalRefreshIntervalMs = 15 * 60 * 1000;
   }
 
   snapshot() {
@@ -114,7 +116,7 @@ class ReadyCheckState {
     return this.snapshot();
   }
 
-  async refresh() {
+  async refresh(options = {}) {
     this.isRefreshing = true;
 
     if (!isAllowedForRefresh(USAGE_ENDPOINT)) {
@@ -126,7 +128,10 @@ class ReadyCheckState {
     this.lastRefreshAt = new Date().toISOString();
     await this.reloadConnectionStatus();
     if (this.connected) {
-      await this.refreshConnectedQuota(new Date(this.lastRefreshAt));
+      await this.refreshConnectedQuota(
+        new Date(this.lastRefreshAt),
+        Boolean(options.forceSupplemental)
+      );
     } else {
       this.quota = buildUnavailableQuota();
     }
@@ -139,7 +144,7 @@ class ReadyCheckState {
     this.accountEmail = token ? token.email || null : null;
   }
 
-  async refreshConnectedQuota(refreshedAt) {
+  async refreshConnectedQuota(refreshedAt, forceSupplemental) {
     if (!this.tokenStore || !this.oauthClient) {
       this.status = "usageUnavailable";
       this.quota = buildUnavailableQuota();
@@ -165,10 +170,16 @@ class ReadyCheckState {
       }
     }
 
-    const officialQuota = await this.fetchOfficialQuota(token, refreshedAt);
+    const shouldRefreshSupplemental = this.shouldRefreshSupplemental(
+      refreshedAt,
+      forceSupplemental
+    );
+    const officialQuota = shouldRefreshSupplemental
+      ? await this.fetchOfficialQuota(token, refreshedAt)
+      : null;
     if (officialQuota) {
       this.status = "available";
-      this.quota = officialQuota;
+      this.quota = preserveManualResetDetails(officialQuota, this.quota, refreshedAt);
       if (this.historyStore) {
         this.quotaHistory = this.historyStore.record(this.quota, refreshedAt);
       }
@@ -192,12 +203,14 @@ class ReadyCheckState {
       const payload = await this.usageClient.fetchUsage(token.accessToken, accountID);
       const windows = parseUsagePayload(payload, refreshedAt);
       const resetDetails = parseManualResetDetails(payload);
-      const resetCreditDetails = await this.fetchResetCreditDetails(token.accessToken, accountID);
+      const resetCreditDetails = shouldRefreshSupplemental
+        ? await this.fetchResetCreditDetails(token.accessToken, accountID)
+        : { manualResetCount: null, manualResetExpirations: [] };
       const manualResetExpirations = resetCreditDetails.manualResetExpirations.length > 0
         ? resetCreditDetails.manualResetExpirations
         : resetDetails.manualResetExpirations;
       this.status = "available";
-      this.quota = {
+      this.quota = preserveManualResetDetails({
         provider: "Codex",
         plan: planNameFromToken(token.idToken),
         subscriptionRenewalAt: subscriptionRenewalAtFromToken(token.idToken),
@@ -208,7 +221,7 @@ class ReadyCheckState {
         creditsUnlimited: resetDetails.creditsUnlimited,
         tokenUsage: null,
         windows
-      };
+      }, this.quota, refreshedAt);
       if (this.historyStore) {
         this.quotaHistory = this.historyStore.record(this.quota, refreshedAt);
       }
@@ -247,7 +260,7 @@ class ReadyCheckState {
         provider: "Codex",
         plan: defaultLimit.planName || snapshot.planName || planNameFromToken(token.idToken),
         subscriptionRenewalAt: subscriptionRenewalAtFromToken(token.idToken),
-        manualResetCount: manualResetExpirations.length,
+        manualResetCount: snapshot.manualResetCount,
         manualResetExpiresAt: manualResetExpirations[0] || null,
         manualResetExpirations,
         creditBalance: defaultLimit.hasCredits === false ? null : defaultLimit.creditBalance,
@@ -271,6 +284,49 @@ class ReadyCheckState {
       return { manualResetCount: null, manualResetExpirations: [] };
     }
   }
+
+  shouldRefreshSupplemental(refreshedAt, force) {
+    if (force || this.lastSupplementalRefreshAt === null) {
+      this.lastSupplementalRefreshAt = refreshedAt.getTime();
+      return true;
+    }
+    if (refreshedAt.getTime() - this.lastSupplementalRefreshAt < this.supplementalRefreshIntervalMs) {
+      return false;
+    }
+    this.lastSupplementalRefreshAt = refreshedAt.getTime();
+    return true;
+  }
+}
+
+function preserveManualResetDetails(current, previous, refreshedAt) {
+  const now = refreshedAt.getTime();
+  const previousExpirations = Array.isArray(previous && previous.manualResetExpirations)
+    ? previous.manualResetExpirations.filter((value) => new Date(value).getTime() > now).sort()
+    : [];
+
+  if (current.manualResetCount === 0) {
+    return { ...current, tokenUsage: current.tokenUsage || previous.tokenUsage || null, manualResetExpiresAt: null, manualResetExpirations: [] };
+  }
+  if (current.manualResetExpirations.length > 0) {
+    return { ...current, tokenUsage: current.tokenUsage || previous.tokenUsage || null };
+  }
+  if (Number.isInteger(current.manualResetCount) && current.manualResetCount > 0) {
+    const expirations = previousExpirations.slice(0, current.manualResetCount);
+    return { ...current, tokenUsage: current.tokenUsage || previous.tokenUsage || null, manualResetExpiresAt: expirations[0] || null, manualResetExpirations: expirations };
+  }
+  if (previousExpirations.length > 0) {
+    return {
+      ...current,
+      tokenUsage: current.tokenUsage || previous.tokenUsage || null,
+      manualResetCount: Number.isInteger(previous.manualResetCount) ? previous.manualResetCount : previousExpirations.length,
+      manualResetExpiresAt: previousExpirations[0],
+      manualResetExpirations: previousExpirations
+    };
+  }
+  if (previous && previous.manualResetCount === 0) {
+    return { ...current, tokenUsage: current.tokenUsage || previous.tokenUsage || null, manualResetCount: 0, manualResetExpiresAt: null, manualResetExpirations: [] };
+  }
+  return { ...current, tokenUsage: current.tokenUsage || previous.tokenUsage || null };
 }
 
 function statusForUsageError(error) {
@@ -356,6 +412,7 @@ function officialWindowLabel(durationMinutes, fallback) {
 module.exports = {
   ReadyCheckState,
   makeOfficialWindow,
+  preserveManualResetDetails,
   recoveryActionForStatus,
   sameAccountEmail,
   statusForUsageError

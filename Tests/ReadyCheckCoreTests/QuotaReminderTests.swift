@@ -63,22 +63,136 @@ final class QuotaReminderTests: XCTestCase {
         XCTAssertEqual(nextCycle.events, [.creditsStarted])
     }
 
-    func testManualResetExpirationNotifiesOnceInsideThreeDayWindow() {
+    func testManualResetExpirationNotifiesAtEachThreshold() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
-        let soon = now.addingTimeInterval(71 * 60 * 60)
-        let later = now.addingTimeInterval(80 * 60 * 60)
-        let expired = now.addingTimeInterval(-60)
-        let quota = snapshot(
-            remaining: 0.5,
-            credits: "10",
-            expirations: [expired, soon, later]
-        )
+        let expiration = now.addingTimeInterval(73 * 60 * 60)
+        let quota = snapshot(remaining: 0.5, credits: "10", expirations: [expiration])
+
+        var result = evaluate(quota, now: now, state: QuotaReminderState())
+        XCTAssertEqual(result.events, [])
+
+        result = evaluate(quota, now: now.addingTimeInterval(2 * 60 * 60), state: result.state)
+        XCTAssertEqual(result.events, [
+            .manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 72)
+        ])
+
+        result = evaluate(quota, now: now.addingTimeInterval(26 * 60 * 60), state: result.state)
+        XCTAssertEqual(result.events, [
+            .manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 48)
+        ])
+
+        result = evaluate(quota, now: now.addingTimeInterval(50 * 60 * 60), state: result.state)
+        XCTAssertEqual(result.events, [
+            .manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 24)
+        ])
+
+        result = evaluate(quota, now: now.addingTimeInterval(62 * 60 * 60), state: result.state)
+        XCTAssertEqual(result.events, [
+            .manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 12)
+        ])
+
+        result = evaluate(quota, now: now.addingTimeInterval(63 * 60 * 60), state: result.state)
+        XCTAssertEqual(result.events, [])
+    }
+
+    func testManualResetReminderDoesNotBurstAfterMissingSeveralThresholds() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiration = now.addingTimeInterval(10 * 60 * 60)
+        let quota = snapshot(remaining: 0.5, credits: "10", expirations: [expiration])
 
         let first = evaluate(quota, now: now, state: QuotaReminderState())
-        XCTAssertEqual(first.events, [.manualResetExpiring(index: 2, expiresAt: soon)])
+        XCTAssertEqual(first.events, [
+            .manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 12)
+        ])
 
         let second = evaluate(quota, now: now.addingTimeInterval(60), state: first.state)
         XCTAssertEqual(second.events, [])
+    }
+
+    func testUsedManualResetStopsLaterThresholds() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiration = now.addingTimeInterval(71 * 60 * 60)
+        let first = evaluate(
+            snapshot(remaining: 0.5, credits: "10", expirations: [expiration]),
+            now: now,
+            state: QuotaReminderState()
+        )
+        XCTAssertEqual(first.events, [
+            .manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 72)
+        ])
+
+        let afterUse = evaluate(
+            snapshot(remaining: 0.5, credits: "10", expirations: [], manualResetCount: 0),
+            now: now.addingTimeInterval(24 * 60 * 60),
+            state: first.state
+        )
+        XCTAssertEqual(afterUse.events, [])
+    }
+
+    func testLegacyThreeDayReminderStateDoesNotRepeatAfterUpgrade() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiration = now.addingTimeInterval(71 * 60 * 60)
+        let timestamp = Int64(expiration.timeIntervalSince1970.rounded())
+        let legacyState = QuotaReminderState(notifiedManualResetExpirations: [timestamp])
+        let quota = snapshot(remaining: 0.5, credits: "10", expirations: [expiration])
+
+        let result = evaluate(quota, now: now, state: legacyState)
+
+        XCTAssertEqual(result.events, [])
+        XCTAssertEqual(result.state.notifiedManualResetExpirations, [])
+        XCTAssertTrue(result.state.notifiedManualResetThresholds?.contains("\(timestamp):72") == true)
+    }
+
+    func testKnownFutureExpirationSurvivesTemporarilyMissingResetPayload() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiration = now.addingTimeInterval(40 * 60 * 60)
+        let timestamp = Int64(expiration.timeIntervalSince1970.rounded())
+        let knownState = QuotaReminderState(knownManualResetExpirations: [timestamp])
+
+        let result = evaluate(
+            snapshot(remaining: 0.5, credits: "10", manualResetCount: nil),
+            now: now,
+            state: knownState
+        )
+
+        XCTAssertEqual(result.events, [
+            .manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 48)
+        ])
+        XCTAssertEqual(result.state.knownManualResetExpirations, [timestamp])
+    }
+
+    func testSmallExpirationTimestampDriftDoesNotRepeatThreshold() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let storedExpiration = now.addingTimeInterval(70 * 60 * 60)
+        let reportedExpiration = storedExpiration.addingTimeInterval(1)
+        let storedTimestamp = Int64(storedExpiration.timeIntervalSince1970.rounded())
+        let state = QuotaReminderState(
+            notifiedManualResetThresholds: ["\(storedTimestamp):72"]
+        )
+
+        let result = evaluate(
+            snapshot(remaining: 0.5, credits: "10", expirations: [reportedExpiration]),
+            now: now,
+            state: state
+        )
+
+        XCTAssertEqual(result.events, [])
+    }
+
+    func testExplicitZeroResetCountClearsKnownExpiration() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiration = now.addingTimeInterval(40 * 60 * 60)
+        let timestamp = Int64(expiration.timeIntervalSince1970.rounded())
+        let knownState = QuotaReminderState(knownManualResetExpirations: [timestamp])
+
+        let result = evaluate(
+            snapshot(remaining: 0.5, credits: "10", manualResetCount: 0),
+            now: now,
+            state: knownState
+        )
+
+        XCTAssertEqual(result.events, [])
+        XCTAssertEqual(result.state.knownManualResetExpirations, [])
     }
 
     func testUnavailableSnapshotDoesNotMutateCreditCycle() {
@@ -114,6 +228,87 @@ final class QuotaReminderTests: XCTestCase {
         XCTAssertEqual(reloadedEvents, [])
     }
 
+    func testStoreRetriesReminderUntilDeliveryIsConfirmed() async {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let fileURL = directory.appendingPathComponent("reminders.json")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiration = now.addingTimeInterval(40 * 60 * 60)
+        let quota = snapshot(remaining: 0.5, credits: "10", expirations: [expiration])
+        let store = QuotaReminderStore(fileURL: fileURL)
+
+        let first = await store.prepare(quota, now: now)
+        XCTAssertEqual(first.events, [
+            .manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 48)
+        ])
+        await store.commit(first, deliveredEvents: [])
+
+        let retry = await store.prepare(quota, now: now.addingTimeInterval(60))
+        XCTAssertEqual(retry.events, [
+            .manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 48)
+        ])
+        await store.commit(retry, deliveredEvents: retry.events)
+
+        let afterDelivery = await store.prepare(quota, now: now.addingTimeInterval(120))
+        XCTAssertEqual(afterDelivery.events, [])
+    }
+
+    func testStoreRecordsFailedAttemptThenConfirmedDelivery() async {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let fileURL = directory.appendingPathComponent("reminders.json")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiration = now.addingTimeInterval(40 * 60 * 60)
+        let quota = snapshot(remaining: 0.5, credits: "10", expirations: [expiration])
+        let store = QuotaReminderStore(fileURL: fileURL)
+
+        let failedBatch = await store.prepare(quota, now: now)
+        await store.commit(failedBatch, deliveredEvents: [], now: now)
+        var history = await store.history()
+        XCTAssertEqual(history.count, 1)
+        XCTAssertEqual(history[0].status, .failed)
+        XCTAssertEqual(history[0].attemptCount, 1)
+        XCTAssertNil(history[0].deliveredAt)
+
+        let deliveredAt = now.addingTimeInterval(60)
+        let retryBatch = await store.prepare(quota, now: deliveredAt)
+        await store.commit(retryBatch, deliveredEvents: retryBatch.events, now: deliveredAt)
+        history = await store.history()
+        XCTAssertEqual(history.count, 1)
+        XCTAssertEqual(history[0].status, .delivered)
+        XCTAssertEqual(history[0].attemptCount, 2)
+        XCTAssertEqual(history[0].deliveredAt, deliveredAt)
+    }
+
+    func testStoreMigratesLegacyThresholdsAsUnconfirmedHistory() async {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let fileURL = directory.appendingPathComponent("reminders.json")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let timestamp: Int64 = 1_800_200_000
+        let legacyState = QuotaReminderState(
+            notifiedManualResetThresholds: ["\(timestamp):48"]
+        )
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try? JSONEncoder().encode(legacyState).write(to: fileURL)
+
+        let history = await QuotaReminderStore(fileURL: fileURL).history()
+
+        XCTAssertEqual(history.count, 1)
+        XCTAssertEqual(history[0].status, .legacyUnknown)
+        XCTAssertEqual(history[0].leadHours, 48)
+        XCTAssertEqual(history[0].expiresAt, Date(timeIntervalSince1970: TimeInterval(timestamp)))
+        XCTAssertEqual(history[0].attemptCount, 0)
+        let persistedState = try? JSONDecoder().decode(
+            QuotaReminderState.self,
+            from: Data(contentsOf: fileURL)
+        )
+        XCTAssertEqual(persistedState?.notificationHistoryMigrationCompleted, true)
+        XCTAssertEqual(persistedState?.notificationHistory?.count, 1)
+    }
+
     private func evaluate(
         _ snapshot: ProviderQuotaSnapshot,
         now: Date,
@@ -126,6 +321,7 @@ final class QuotaReminderTests: XCTestCase {
         remaining: Double,
         credits: String?,
         expirations: [Date] = [],
+        manualResetCount: Int? = nil,
         status: ProviderStatus = .available,
         resetAt: Date? = nil
     ) -> ProviderQuotaSnapshot {
@@ -152,6 +348,7 @@ final class QuotaReminderTests: XCTestCase {
             ],
             errors: [],
             details: ProviderQuotaDetails(
+                manualResetCount: manualResetCount,
                 manualResetExpirations: expirations,
                 creditBalance: credits,
                 creditsUnlimited: false

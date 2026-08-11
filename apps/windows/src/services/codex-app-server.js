@@ -205,6 +205,11 @@ function normalizeAppServerResponses(accountResult, rateLimitsResult, usageResul
     email: stringOrNull(account.email),
     planName: stringOrNull(account.planType),
     rateLimits: snapshots.map(normalizeRateLimit),
+    manualResetCount: integerOrNull(
+      rateLimitsResult
+        && rateLimitsResult.rateLimitResetCredits
+        && rateLimitsResult.rateLimitResetCredits.availableCount
+    ),
     resetCredits: (Array.isArray(resetCredits) ? resetCredits : []).map((credit) => ({
       status: stringOrNull(credit && credit.status),
       expiresAt: epochISOString(credit && credit.expiresAt)
@@ -280,6 +285,14 @@ function stringOrNull(value) {
 
 function booleanOrNull(value) {
   return typeof value === "boolean" ? value : null;
+}
+
+function integerOrNull(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const numeric = Number(value);
+  return Number.isInteger(numeric) && numeric >= 0 ? numeric : null;
 }
 
 function numberOrZero(value) {

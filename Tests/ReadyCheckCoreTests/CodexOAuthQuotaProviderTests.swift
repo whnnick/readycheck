@@ -2,6 +2,21 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class CodexOAuthQuotaProviderTests: XCTestCase {
+    func testSupplementalRefreshGateThrottlesAutomaticRefreshButAllowsManualRefresh() async {
+        let gate = CodexSupplementalRefreshGate(automaticInterval: 900)
+        let start = Date(timeIntervalSince1970: 1_000)
+
+        let openedPanel = await gate.shouldRefresh(reason: .openedPanel, now: start)
+        let earlyAutomatic = await gate.shouldRefresh(reason: .automatic, now: start.addingTimeInterval(60))
+        let dueAutomatic = await gate.shouldRefresh(reason: .automatic, now: start.addingTimeInterval(900))
+        let manual = await gate.shouldRefresh(reason: .manual, now: start.addingTimeInterval(901))
+
+        XCTAssertTrue(openedPanel)
+        XCTAssertFalse(earlyAutomatic)
+        XCTAssertTrue(dueAutomatic)
+        XCTAssertTrue(manual)
+    }
+
     func testProviderPrefersMatchingOfficialAppServerSnapshot() async throws {
         let credentialStore = InMemoryCredentialStore()
         try await CodexOAuthTokenStore(credentialStore: credentialStore).saveToken(
@@ -39,6 +54,7 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
                         planName: "plus"
                     )
                 ],
+                manualResetCount: 1,
                 resetCredits: [
                     CodexAppServerResetCredit(
                         status: "available",
@@ -70,6 +86,7 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertEqual(snapshot.source, .appServer)
         XCTAssertEqual(snapshot.windows.map(\.remainingRatio), [0.75, 0.6])
         XCTAssertEqual(snapshot.details?.creditBalance, "12.5")
+        XCTAssertEqual(snapshot.details?.manualResetCount, 1)
         XCTAssertEqual(snapshot.details?.manualResetExpirations, [
             Date(timeIntervalSince1970: 700_000)
         ])

@@ -87,6 +87,7 @@ final class CodexAppServerClientTests: XCTestCase {
         XCTAssertEqual(snapshot.rateLimits[0].primary?.durationMinutes, 300)
         XCTAssertEqual(snapshot.rateLimits[0].secondary?.durationMinutes, 10_080)
         XCTAssertEqual(snapshot.rateLimits[0].creditBalance, "12.5")
+        XCTAssertEqual(snapshot.manualResetCount, 1)
         XCTAssertEqual(snapshot.resetCredits.count, 1)
         XCTAssertEqual(snapshot.tokenUsage?.summary.lifetimeTokens, 123_456)
         XCTAssertEqual(snapshot.tokenUsage?.dailyBuckets.map(\.tokens), [12_000, 9_000])
@@ -111,6 +112,27 @@ final class CodexAppServerClientTests: XCTestCase {
         )
 
         XCTAssertEqual(snapshot.rateLimits.map(\.limitID), ["codex", "codex_spark"])
+        XCTAssertNil(snapshot.manualResetCount)
+    }
+
+    func testParserDistinguishesZeroResetCreditsFromUnavailableDetails() throws {
+        let zero = try CodexAppServerResponseParser.parse(
+            accountData: Data(#"{"account":{"email":"user@example.com"}}"#.utf8),
+            rateLimitsData: Data(
+                #"{"rateLimits":{"limitId":"codex","primary":{"usedPercent":10}},"rateLimitResetCredits":{"availableCount":0,"credits":[]}}"#.utf8
+            ),
+            usageData: nil
+        )
+        let unavailable = try CodexAppServerResponseParser.parse(
+            accountData: Data(#"{"account":{"email":"user@example.com"}}"#.utf8),
+            rateLimitsData: Data(
+                #"{"rateLimits":{"limitId":"codex","primary":{"usedPercent":10}},"rateLimitResetCredits":null}"#.utf8
+            ),
+            usageData: nil
+        )
+
+        XCTAssertEqual(zero.manualResetCount, 0)
+        XCTAssertNil(unavailable.manualResetCount)
     }
 
     func testExecutableDiscoveryHonorsExplicitPath() throws {

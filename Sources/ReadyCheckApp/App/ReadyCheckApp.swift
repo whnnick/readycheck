@@ -59,6 +59,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
             await appModel.requestNotificationAuthorizationIfNeeded()
             await appModel.reloadCodexOAuthConnectionStatus()
             await appModel.reloadQuotaHistory()
+            await appModel.reloadReminderHistory()
             await appModel.refresh(reason: .openedPanel)
             await appModel.checkForUpdates(isManual: false)
             appModel.restoreFloatingWidgetIfNeeded()
@@ -210,6 +211,7 @@ final class ReadyCheckAppModel {
     }
     var snapshots: [ProviderQuotaSnapshot] = []
     var quotaHistorySamples: [QuotaHistorySample] = []
+    var reminderHistoryRecords: [QuotaReminderHistoryRecord] = []
     var isRefreshing = false
     var lastRefreshAt: Date?
     var codexOAuthStatus: CodexOAuthConnectionStatus = .notConnected
@@ -695,13 +697,22 @@ final class ReadyCheckAppModel {
         lastRefreshAt = Date()
         for snapshot in snapshots where snapshot.providerId == "codex-oauth" && snapshot.status == .available {
             quotaHistorySamples = await quotaHistoryStore.record(snapshot)
-            let reminderEvents = await quotaReminderStore.evaluate(snapshot)
-            await quotaNotificationService.deliver(reminderEvents, localization: localization)
+            let reminderBatch = await quotaReminderStore.prepare(snapshot)
+            let deliveredEvents = await quotaNotificationService.deliver(
+                reminderBatch.events,
+                localization: localization
+            )
+            await quotaReminderStore.commit(reminderBatch, deliveredEvents: deliveredEvents)
+            reminderHistoryRecords = await quotaReminderStore.history()
         }
     }
 
     func reloadQuotaHistory() async {
         quotaHistorySamples = await quotaHistoryStore.load()
+    }
+
+    func reloadReminderHistory() async {
+        reminderHistoryRecords = await quotaReminderStore.history()
     }
 
     private func rebuildStoreIfConfigurationChanged(oldValue: Bool, newValue: Bool) {

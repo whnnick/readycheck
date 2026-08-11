@@ -158,7 +158,7 @@ function buildTrayMenu() {
     { label: "ReadyCheck", enabled: false },
     { type: "separator" },
     { label: "Open", click: () => showMainWindow() },
-    { label: "Refresh", click: () => refreshQuota() },
+    { label: "Refresh", click: () => refreshQuota({ forceSupplemental: true }) },
     {
       label: readyState.prefs.widgetVisible ? "Hide widget" : "Show widget",
       click: () => updatePrefs({ widgetVisible: !readyState.prefs.widgetVisible })
@@ -179,13 +179,20 @@ function showMainWindow() {
 }
 
 function broadcastState() {
-  const snapshot = readyState.snapshot();
+  const snapshot = snapshotWithReminderHistory();
   for (const window of BrowserWindow.getAllWindows()) {
     window.webContents.send("readycheck:state", snapshot);
   }
   if (tray) {
     tray.setContextMenu(buildTrayMenu());
   }
+}
+
+function snapshotWithReminderHistory() {
+  return {
+    ...readyState.snapshot(),
+    reminderHistory: reminderStore ? reminderStore.history() : []
+  };
 }
 
 function updatePrefs(partial) {
@@ -214,30 +221,54 @@ function updatePrefs(partial) {
 
   scheduleRefresh();
   broadcastState();
-  return readyState.snapshot();
+  return snapshotWithReminderHistory();
 }
 
-async function refreshQuota() {
+async function refreshQuota(options = {}) {
   readyState.isRefreshing = true;
   broadcastState();
-  const snapshot = await readyState.refresh();
+  const snapshot = await readyState.refresh(options);
   if (snapshot.status === "available" && reminderStore) {
-    deliverReminderNotifications(reminderStore.evaluate(snapshot.quota), snapshot.prefs.language);
+    const reminderBatch = reminderStore.prepare(snapshot.quota);
+    const deliveredEvents = await deliverReminderNotifications(reminderBatch.events, snapshot.prefs.language);
+    reminderStore.commit(reminderBatch, deliveredEvents);
   }
   broadcastState();
   return snapshot;
 }
 
-function deliverReminderNotifications(events, language) {
+async function deliverReminderNotifications(events, language) {
   if (!Notification.isSupported()) {
-    return;
+    return [];
   }
 
+  const deliveredEvents = [];
   for (const event of events) {
-    const notification = new Notification(reminderCopy(event, language));
-    notification.on("click", () => showMainWindow());
-    notification.show();
+    const delivered = await new Promise((resolve) => {
+      const notification = new Notification(reminderCopy(event, language));
+      let settled = false;
+      const finish = (value) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        resolve(value);
+      };
+      notification.on("click", () => showMainWindow());
+      notification.once("show", () => finish(true));
+      notification.once("failed", () => finish(false));
+      try {
+        notification.show();
+      } catch {
+        finish(false);
+      }
+      setTimeout(() => finish(false), 3000);
+    });
+    if (delivered) {
+      deliveredEvents.push(event);
+    }
   }
+  return deliveredEvents;
 }
 
 function reminderCopy(event, language) {
@@ -248,8 +279,8 @@ function reminderCopy(event, language) {
       timeStyle: "short"
     }).format(new Date(event.expiresAt));
     return isEnglish
-      ? { title: "Reset credit expires soon", body: `Reset ${event.index} expires within 3 days: ${expiresAt}` }
-      : { title: "重置卡即将到期", body: `第 ${event.index} 次重置额度将在 3 天内到期：${expiresAt}` };
+      ? { title: "Reset credit expires soon", body: `Reset ${event.index} expires within ${event.leadHours} hours: ${expiresAt}` }
+      : { title: "重置卡即将到期", body: `第 ${event.index} 次重置额度将在 ${event.leadHours} 小时内到期：${expiresAt}` };
   }
   return isEnglish
     ? { title: "Codex Credits are now in use", body: "Your Codex quota is exhausted. Current usage is now consuming Credits." }
@@ -345,8 +376,8 @@ function scheduleRefresh() {
 }
 
 function registerIpc() {
-  ipcMain.handle("readycheck:get-state", () => readyState.snapshot());
-  ipcMain.handle("readycheck:refresh", () => refreshQuota());
+  ipcMain.handle("readycheck:get-state", () => snapshotWithReminderHistory());
+  ipcMain.handle("readycheck:refresh", () => refreshQuota({ forceSupplemental: true }));
   ipcMain.handle("readycheck:begin-oauth", () => beginOAuth());
   ipcMain.handle("readycheck:disconnect", () => disconnectAccount());
   ipcMain.handle("readycheck:update-prefs", (_event, partial) => updatePrefs(partial));
@@ -378,7 +409,7 @@ app.whenReady().then(async () => {
   createWidgetWindow();
   createTray();
   scheduleRefresh();
-  refreshQuota().catch(() => {});
+  refreshQuota({ forceSupplemental: true }).catch(() => {});
 });
 
 app.on("window-all-closed", () => {

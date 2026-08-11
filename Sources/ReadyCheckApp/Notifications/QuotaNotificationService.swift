@@ -1,9 +1,11 @@
 import Foundation
+import OSLog
 import ReadyCheckCore
 import UserNotifications
 
 @MainActor
 final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate {
+    private static let logger = Logger(subsystem: "com.readycheck.app", category: "quota-notifications")
     private let center: UNUserNotificationCenter
 
     override init() {
@@ -18,19 +20,25 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         _ = try? await center.requestAuthorization(options: [.alert, .sound])
     }
 
-    func deliver(_ events: [QuotaReminderEvent], localization: LocalizationService) async {
-        guard !events.isEmpty, await canDeliverNotifications() else { return }
+    func deliver(
+        _ events: [QuotaReminderEvent],
+        localization: LocalizationService
+    ) async -> [QuotaReminderEvent] {
+        guard !events.isEmpty, await canDeliverNotifications() else { return [] }
+
+        var deliveredEvents: [QuotaReminderEvent] = []
 
         for event in events {
             let content = UNMutableNotificationContent()
             content.sound = .default
 
             switch event {
-            case let .manualResetExpiring(index, expiresAt):
+            case let .manualResetExpiring(index, expiresAt, leadHours):
                 content.title = localization.text("notification.resetExpiry.title")
                 content.body = String(
                     format: localization.text("notification.resetExpiry.body"),
                     index,
+                    leadHours,
                     Self.dateFormatter(language: localization.language).string(from: expiresAt)
                 )
             case .creditsStarted:
@@ -43,8 +51,15 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
                 content: content,
                 trigger: nil
             )
-            try? await center.add(request)
+            do {
+                try await center.add(request)
+                deliveredEvents.append(event)
+            } catch {
+                Self.logger.error("Failed to add quota notification: \(String(describing: error), privacy: .public)")
+            }
         }
+
+        return deliveredEvents
     }
 
     private func canDeliverNotifications() async -> Bool {
@@ -66,8 +81,8 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
 
     private func identifier(for event: QuotaReminderEvent) -> String {
         switch event {
-        case let .manualResetExpiring(_, expiresAt):
-            return "readycheck.reset-expiry.\(Int64(expiresAt.timeIntervalSince1970.rounded()))"
+        case let .manualResetExpiring(_, expiresAt, leadHours):
+            return "readycheck.reset-expiry.\(Int64(expiresAt.timeIntervalSince1970.rounded())).\(leadHours)"
         case .creditsStarted:
             return "readycheck.credits-started.\(UUID().uuidString)"
         }

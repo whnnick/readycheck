@@ -85,16 +85,21 @@ struct QuotaCardView: View {
 
             if showsDetails {
                 VStack(alignment: .leading, spacing: 5) {
-                    if manualResetExpirations.isEmpty {
+                    if manualResetCount == nil {
                         inlineDetail(
                             label: localization.text("quota.manualResetExpires"),
-                            value: localization.text("quota.notProvided")
+                            value: localization.text("quota.manualResetUnavailable")
+                        )
+                    } else if manualResetCount == 0 {
+                        inlineDetail(
+                            label: localization.text("quota.manualResetExpires"),
+                            value: localization.text("quota.manualResetNone")
                         )
                     } else {
-                        ForEach(Array(manualResetExpirations.enumerated()), id: \.offset) { index, date in
+                        ForEach(0..<(manualResetCount ?? 0), id: \.self) { index in
                             inlineDetail(
                                 label: index == 0 ? localization.text("quota.manualResetExpires") : "",
-                                value: manualResetExpirationText(index: index, date: date)
+                                value: manualResetExpirationText(index: index)
                             )
                         }
                     }
@@ -195,6 +200,11 @@ struct QuotaCardView: View {
         snapshot.details?.manualResetExpirations ?? []
     }
 
+    private var manualResetCount: Int? {
+        snapshot.details?.manualResetCount
+            ?? (manualResetExpirations.isEmpty ? nil : manualResetExpirations.count)
+    }
+
     private var creditBalanceText: String? {
         if snapshot.details?.creditsUnlimited == true {
             return localization.text("quota.creditsUnlimited")
@@ -213,13 +223,15 @@ struct QuotaCardView: View {
         return formatter.string(from: NSDecimalNumber(decimal: decimal)) ?? rawBalance
     }
 
-    private func manualResetExpirationText(index: Int, date: Date) -> String {
+    private func manualResetExpirationText(index: Int) -> String {
         let prefix = "\(localization.text("quota.manualResetIndex")) \(index + 1) \(localization.text("quota.manualResetTimes"))"
-        let dateText = dateText(for: date, forceFullDate: true)
+        let expirationText = manualResetExpirations.indices.contains(index)
+            ? dateText(for: manualResetExpirations[index], forceFullDate: true)
+            : localization.text("quota.manualResetExpirationUnavailable")
         if displayMode == .widgetDetailed {
-            return "\(prefix)\n\(dateText)"
+            return "\(prefix)\n\(expirationText)"
         }
-        return "\(prefix) - \(dateText)"
+        return "\(prefix) - \(expirationText)"
     }
 
     private func nonEmpty(_ value: String?) -> String? {

@@ -235,6 +235,43 @@ public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
         self.creditsUnlimited = creditsUnlimited
         self.accountTokenUsage = accountTokenUsage
     }
+
+    func preservingSupplementalDetails(from previous: ProviderQuotaDetails, now: Date) -> ProviderQuotaDetails {
+        let previousExpirations = previous.manualResetExpirations.filter { $0 > now }.sorted()
+        let resolvedCount: Int?
+        let resolvedExpirations: [Date]
+
+        switch manualResetCount {
+        case 0:
+            resolvedCount = 0
+            resolvedExpirations = []
+        case let count? where !manualResetExpirations.isEmpty:
+            resolvedCount = count
+            resolvedExpirations = manualResetExpirations
+        case let count?:
+            resolvedCount = count
+            resolvedExpirations = Array(previousExpirations.prefix(count))
+        case nil where !previousExpirations.isEmpty:
+            resolvedCount = previous.manualResetCount ?? previousExpirations.count
+            resolvedExpirations = previousExpirations
+        case nil where previous.manualResetCount == 0:
+            resolvedCount = 0
+            resolvedExpirations = []
+        default:
+            resolvedCount = nil
+            resolvedExpirations = []
+        }
+
+        return ProviderQuotaDetails(
+            planName: planName,
+            subscriptionRenewalAt: subscriptionRenewalAt,
+            manualResetCount: resolvedCount,
+            manualResetExpirations: resolvedExpirations,
+            creditBalance: creditBalance,
+            creditsUnlimited: creditsUnlimited,
+            accountTokenUsage: accountTokenUsage ?? previous.accountTokenUsage
+        )
+    }
 }
 
 public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable {
