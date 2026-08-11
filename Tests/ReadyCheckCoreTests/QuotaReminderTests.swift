@@ -228,6 +228,34 @@ final class QuotaReminderTests: XCTestCase {
         XCTAssertEqual(reloadedEvents, [])
     }
 
+    func testStoreExposesVerifiedFutureResetExpirationsAcrossRelaunch() async {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let fileURL = directory.appendingPathComponent("reminders.json")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiration = now.addingTimeInterval(60 * 60 * 60)
+        let store = QuotaReminderStore(fileURL: fileURL)
+
+        _ = await store.evaluate(
+            snapshot(
+                remaining: 0.5,
+                credits: "10",
+                expirations: [expiration],
+                manualResetCount: 1
+            ),
+            now: now
+        )
+
+        let reloaded = QuotaReminderStore(fileURL: fileURL)
+        let known = await reloaded.knownManualResetExpirations(now: now.addingTimeInterval(60))
+        XCTAssertEqual(known, [expiration])
+
+        await reloaded.clearKnownManualResetExpirations()
+        let cleared = await reloaded.knownManualResetExpirations(now: now)
+        XCTAssertEqual(cleared, [])
+    }
+
     func testStoreRetriesReminderUntilDeliveryIsConfirmed() async {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

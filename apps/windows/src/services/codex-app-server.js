@@ -13,18 +13,41 @@ class CodexAppServerClient {
   }
 
   async readAccountSnapshot() {
-    const executablePath = this.executablePath || discoverCodexExecutable();
-    if (!executablePath) {
+    const snapshots = await this.readAccountSnapshots();
+    return snapshots[0];
+  }
+
+  async readAccountSnapshots() {
+    const executablePaths = this.executablePath
+      ? [this.executablePath]
+      : discoverCodexExecutables();
+    if (executablePaths.length === 0) {
       const error = new Error("Codex executable is unavailable.");
       error.code = "executableUnavailable";
       throw error;
     }
 
-    return readAppServerSnapshot(executablePath, this.timeoutMs);
+    const snapshots = [];
+    let lastError = null;
+    for (const executablePath of executablePaths) {
+      try {
+        snapshots.push(await readAppServerSnapshot(executablePath, this.timeoutMs));
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    if (snapshots.length === 0) {
+      throw lastError || newAppServerError("invalidResponse", "Codex app-server returned no data.");
+    }
+    return snapshots;
   }
 }
 
 function discoverCodexExecutable(options = {}) {
+  return discoverCodexExecutables(options)[0] || null;
+}
+
+function discoverCodexExecutables(options = {}) {
   const environment = options.environment || process.env;
   const homeDirectory = options.homeDirectory || os.homedir();
   const localAppData = environment.LOCALAPPDATA || "";
@@ -37,28 +60,37 @@ function discoverCodexExecutable(options = {}) {
     path.join(homeDirectory, ".local", "bin", "codex")
   ].filter(Boolean);
 
-  const directMatch = candidates.find(isExecutableFile);
-  if (directMatch) {
-    return directMatch;
+  const matches = candidates.filter(isExecutableFile);
+
+  if (!options.skipPathLookup) {
+    const command = process.platform === "win32" ? "where.exe" : "which";
+    const result = spawnSync(command, ["codex"], {
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 2_000
+    });
+    if (result.status === 0) {
+      matches.push(...String(result.stdout || "")
+        .split(/\r?\n/)
+        .map((value) => value.trim())
+        .filter(isExecutableFile));
+    }
   }
 
-  if (options.skipPathLookup) {
-    return null;
-  }
-
-  const command = process.platform === "win32" ? "where.exe" : "which";
-  const result = spawnSync(command, ["codex"], {
-    encoding: "utf8",
-    windowsHide: true,
-    timeout: 2_000
+  const resolved = new Set();
+  return matches.filter((candidate) => {
+    let key;
+    try {
+      key = fs.realpathSync(candidate);
+    } catch {
+      key = path.resolve(candidate);
+    }
+    if (resolved.has(key)) {
+      return false;
+    }
+    resolved.add(key);
+    return true;
   });
-  if (result.status !== 0) {
-    return null;
-  }
-  return String(result.stdout || "")
-    .split(/\r?\n/)
-    .map((value) => value.trim())
-    .find(isExecutableFile) || null;
 }
 
 function isExecutableFile(candidate) {
@@ -308,5 +340,6 @@ function newAppServerError(code, message) {
 module.exports = {
   CodexAppServerClient,
   discoverCodexExecutable,
+  discoverCodexExecutables,
   normalizeAppServerResponses
 };

@@ -93,6 +93,90 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertEqual(snapshot.details?.accountTokenUsage?.summary.lifetimeTokens, 123_456)
     }
 
+    func testProviderFillsMissingResetDetailsFromAnotherMatchingAppServer() async throws {
+        let credentialStore = InMemoryCredentialStore()
+        try await CodexOAuthTokenStore(credentialStore: credentialStore).saveToken(
+            CodexOAuthToken(
+                accessToken: "access",
+                refreshToken: "refresh",
+                idToken: nil,
+                tokenType: "Bearer",
+                expiresAt: Date(timeIntervalSince1970: 4_600),
+                accountID: nil,
+                email: "user@example.com"
+            )
+        )
+        let primary = CodexAppServerAccountSnapshot(
+            email: "user@example.com",
+            planName: "plus",
+            rateLimits: [
+                CodexAppServerRateLimitSnapshot(
+                    limitID: "codex",
+                    limitName: nil,
+                    primary: CodexAppServerRateLimitWindow(
+                        usedPercent: 25,
+                        durationMinutes: 10_080,
+                        resetsAt: Date(timeIntervalSince1970: 605_800)
+                    ),
+                    secondary: nil,
+                    creditBalance: "12.5",
+                    hasCredits: true,
+                    creditsUnlimited: false,
+                    planName: "plus"
+                )
+            ],
+            manualResetCount: nil,
+            resetCredits: [],
+            tokenUsage: nil
+        )
+        let supplemental = CodexAppServerAccountSnapshot(
+            email: "user@example.com",
+            planName: "plus",
+            rateLimits: [],
+            manualResetCount: 1,
+            resetCredits: [
+                CodexAppServerResetCredit(
+                    status: "available",
+                    expiresAt: Date(timeIntervalSince1970: 700_000)
+                )
+            ],
+            tokenUsage: nil
+        )
+        let otherAccount = CodexAppServerAccountSnapshot(
+            email: "other@example.com",
+            planName: "plus",
+            rateLimits: [],
+            manualResetCount: 2,
+            resetCredits: [
+                CodexAppServerResetCredit(
+                    status: "available",
+                    expiresAt: Date(timeIntervalSince1970: 800_000)
+                )
+            ],
+            tokenUsage: nil
+        )
+        let provider = CodexOAuthQuotaProvider(
+            credentialStore: credentialStore,
+            quotaEndpoint: nil,
+            appServerClient: StubCodexAppServerReader(
+                snapshots: [primary, otherAccount, supplemental]
+            ),
+            now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        let snapshot = try await provider.fetchSnapshot(
+            context: ProviderRefreshContext(reason: .manual)
+        )
+
+        XCTAssertEqual(snapshot.source, .appServer)
+        XCTAssertEqual(snapshot.windows.first?.remainingRatio, 0.75)
+        XCTAssertEqual(snapshot.details?.manualResetCount, 1)
+        XCTAssertEqual(
+            snapshot.details?.manualResetExpirations,
+            [Date(timeIntervalSince1970: 700_000)]
+        )
+    }
+
     func testProviderReturnsAuthorizationRequiredWithoutStoredToken() async throws {
         let provider = CodexOAuthQuotaProvider(
             credentialStore: InMemoryCredentialStore(),
@@ -334,10 +418,22 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
 }
 
 private struct StubCodexAppServerReader: CodexAppServerReading {
-    let snapshot: CodexAppServerAccountSnapshot
+    let snapshots: [CodexAppServerAccountSnapshot]
+
+    init(snapshot: CodexAppServerAccountSnapshot) {
+        self.snapshots = [snapshot]
+    }
+
+    init(snapshots: [CodexAppServerAccountSnapshot]) {
+        self.snapshots = snapshots
+    }
 
     func readAccountSnapshot() async throws -> CodexAppServerAccountSnapshot {
-        snapshot
+        snapshots[0]
+    }
+
+    func readAccountSnapshots() async throws -> [CodexAppServerAccountSnapshot] {
+        snapshots
     }
 }
 

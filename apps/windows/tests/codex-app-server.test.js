@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const {
   discoverCodexExecutable,
+  discoverCodexExecutables,
   normalizeAppServerResponses
 } = require("../src/services/codex-app-server");
 
@@ -111,6 +112,16 @@ assert.equal(discoverCodexExecutable({
   homeDirectory: temporaryDirectory,
   skipPathLookup: true
 }), executablePath);
+const localDirectory = path.join(temporaryDirectory, ".local", "bin");
+fs.mkdirSync(localDirectory, { recursive: true });
+const localExecutablePath = path.join(localDirectory, "codex");
+fs.writeFileSync(localExecutablePath, "");
+fs.chmodSync(localExecutablePath, 0o755);
+assert.deepEqual(discoverCodexExecutables({
+  environment: { READYCHECK_CODEX_PATH: executablePath },
+  homeDirectory: temporaryDirectory,
+  skipPathLookup: true
+}), [executablePath, localExecutablePath]);
 fs.rmSync(temporaryDirectory, { recursive: true, force: true });
 
 console.log("Windows Codex app-server checks passed.");

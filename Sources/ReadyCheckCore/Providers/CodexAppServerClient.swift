@@ -2,6 +2,13 @@ import Foundation
 
 public protocol CodexAppServerReading: Sendable {
     func readAccountSnapshot() async throws -> CodexAppServerAccountSnapshot
+    func readAccountSnapshots() async throws -> [CodexAppServerAccountSnapshot]
+}
+
+public extension CodexAppServerReading {
+    func readAccountSnapshots() async throws -> [CodexAppServerAccountSnapshot] {
+        [try await readAccountSnapshot()]
+    }
 }
 
 public struct CodexAppServerAccountSnapshot: Equatable, Sendable {
@@ -92,34 +99,69 @@ public enum CodexAppServerError: Error, Equatable {
 
 public struct CodexAppServerClient: CodexAppServerReading {
     private let executableURL: URL?
+    private let candidateExecutableURLs: [URL]?
     private let timeout: TimeInterval
 
-    public init(executableURL: URL? = nil, timeout: TimeInterval = 12) {
+    public init(
+        executableURL: URL? = nil,
+        candidateExecutableURLs: [URL]? = nil,
+        timeout: TimeInterval = 12
+    ) {
         self.executableURL = executableURL
+        self.candidateExecutableURLs = candidateExecutableURLs
         self.timeout = timeout
     }
 
     public func readAccountSnapshot() async throws -> CodexAppServerAccountSnapshot {
-        let executableURL = executableURL ?? Self.discoverExecutable()
-        guard let executableURL else {
+        guard let snapshot = try await readAccountSnapshots().first else {
+            throw CodexAppServerError.invalidResponse
+        }
+        return snapshot
+    }
+
+    public func readAccountSnapshots() async throws -> [CodexAppServerAccountSnapshot] {
+        let executableURLs = executableURL.map { [$0] }
+            ?? candidateExecutableURLs
+            ?? Self.discoverExecutables()
+        guard !executableURLs.isEmpty else {
             throw CodexAppServerError.executableUnavailable
         }
 
-        let payloads = try await CodexAppServerProcess(
-            executableURL: executableURL,
-            timeout: timeout
-        ).readPayloads()
-        return try CodexAppServerResponseParser.parse(
-            accountData: payloads.account,
-            rateLimitsData: payloads.rateLimits,
-            usageData: payloads.usage
-        )
+        var snapshots: [CodexAppServerAccountSnapshot] = []
+        var lastError: Error?
+        for executableURL in executableURLs {
+            do {
+                let payloads = try await CodexAppServerProcess(
+                    executableURL: executableURL,
+                    timeout: timeout
+                ).readPayloads()
+                snapshots.append(try CodexAppServerResponseParser.parse(
+                    accountData: payloads.account,
+                    rateLimitsData: payloads.rateLimits,
+                    usageData: payloads.usage
+                ))
+            } catch {
+                lastError = error
+            }
+        }
+
+        if snapshots.isEmpty {
+            throw lastError ?? CodexAppServerError.invalidResponse
+        }
+        return snapshots
     }
 
     public static func discoverExecutable(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
     ) -> URL? {
+        discoverExecutables(environment: environment, homeDirectory: homeDirectory).first
+    }
+
+    public static func discoverExecutables(
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+    ) -> [URL] {
         let configured = environment["READYCHECK_CODEX_PATH"].map(URL.init(fileURLWithPath:))
         let candidates = [
             configured,
@@ -130,7 +172,12 @@ public struct CodexAppServerClient: CodexAppServerReading {
             URL(fileURLWithPath: "/usr/local/bin/codex")
         ].compactMap { $0 }
 
-        return candidates.first { FileManager.default.isExecutableFile(atPath: $0.path) }
+        var resolvedPaths = Set<String>()
+        return candidates.filter { candidate in
+            guard FileManager.default.isExecutableFile(atPath: candidate.path) else { return false }
+            let resolvedPath = candidate.resolvingSymlinksInPath().standardizedFileURL.path
+            return resolvedPaths.insert(resolvedPath).inserted
+        }
     }
 }
 

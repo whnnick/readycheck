@@ -464,6 +464,9 @@ final class ReadyCheckAppModel {
                 tokenStore: CodexOAuthTokenStore(credentialStore: credentialStore)
             )
             let token = try await authorizer.complete(callbackURL: callback, session: session)
+            if normalizedEmail(codexOAuthLoginEmail) != normalizedEmail(token.loginEmail) {
+                await quotaReminderStore.clearKnownManualResetExpirations()
+            }
             pendingCodexOAuthSession = nil
             codexOAuthCallbackURL = ""
             stopCodexOAuthCallbackServer()
@@ -507,6 +510,7 @@ final class ReadyCheckAppModel {
                 tokenStore: CodexOAuthTokenStore(credentialStore: credentialStore)
             )
             try await authorizer.disconnect()
+            await quotaReminderStore.clearKnownManualResetExpirations()
             pendingCodexOAuthSession = nil
             codexOAuthCallbackURL = ""
             stopCodexOAuthCallbackServer()
@@ -693,8 +697,20 @@ final class ReadyCheckAppModel {
         await activeStore.refreshAll(reason: reason)
         guard activeStoreGeneration == storeGeneration else { return }
 
-        snapshots = await activeStore.snapshots
-        lastRefreshAt = Date()
+        let refreshCompletedAt = Date()
+        let knownManualResetExpirations = await quotaReminderStore.knownManualResetExpirations(
+            now: refreshCompletedAt
+        )
+        let refreshedSnapshots = await activeStore.snapshots
+        snapshots = refreshedSnapshots.map {
+            $0.providerId == "codex-oauth"
+                ? $0.preservingKnownManualResetExpirations(
+                    knownManualResetExpirations,
+                    now: refreshCompletedAt
+                )
+                : $0
+        }
+        lastRefreshAt = refreshCompletedAt
         for snapshot in snapshots where snapshot.providerId == "codex-oauth" && snapshot.status == .available {
             quotaHistorySamples = await quotaHistoryStore.record(snapshot)
             let reminderBatch = await quotaReminderStore.prepare(snapshot)
@@ -713,6 +729,11 @@ final class ReadyCheckAppModel {
 
     func reloadReminderHistory() async {
         reminderHistoryRecords = await quotaReminderStore.history()
+    }
+
+    private func normalizedEmail(_ email: String?) -> String? {
+        let normalized = email?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return normalized?.isEmpty == false ? normalized : nil
     }
 
     private func rebuildStoreIfConfigurationChanged(oldValue: Bool, newValue: Bool) {

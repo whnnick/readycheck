@@ -145,6 +145,33 @@ final class CodexAppServerClientTests: XCTestCase {
         XCTAssertEqual(discovered, executable)
     }
 
+    func testExecutableDiscoveryReturnsDistinctAvailableCandidates() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let configured = directory.appendingPathComponent("configured-codex")
+        let local = directory.appendingPathComponent(".local/bin/codex")
+        try FileManager.default.createDirectory(
+            at: local.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        defer { try? FileManager.default.removeItem(at: directory) }
+        for executable in [configured, local] {
+            try Data("#!/bin/sh\n".utf8).write(to: executable)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o755],
+                ofItemAtPath: executable.path
+            )
+        }
+
+        let discovered = CodexAppServerClient.discoverExecutables(
+            environment: ["READYCHECK_CODEX_PATH": configured.path],
+            homeDirectory: directory
+        )
+
+        XCTAssertEqual(discovered.first, configured)
+        XCTAssertTrue(discovered.contains(local))
+    }
+
     func testClientReadsSmallResponsesWithoutWaitingForProcessExit() async throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -176,5 +203,58 @@ final class CodexAppServerClientTests: XCTestCase {
         XCTAssertEqual(snapshot.email, "user@example.com")
         XCTAssertEqual(snapshot.rateLimits.first?.primary?.usedPercent, 10)
         XCTAssertEqual(snapshot.tokenUsage?.summary.lifetimeTokens, 100)
+    }
+
+    func testClientReadsEveryAvailableCandidate() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let first = try makeFakeCodexExecutable(
+            in: directory,
+            name: "first-codex",
+            resetCreditsJSON: "null"
+        )
+        let second = try makeFakeCodexExecutable(
+            in: directory,
+            name: "second-codex",
+            resetCreditsJSON: #"{"availableCount":1,"credits":[{"status":"available","expiresAt":1786558374}]}"#
+        )
+
+        let snapshots = try await CodexAppServerClient(
+            candidateExecutableURLs: [first, second],
+            timeout: 1
+        ).readAccountSnapshots()
+
+        XCTAssertEqual(snapshots.count, 2)
+        XCTAssertNil(snapshots[0].manualResetCount)
+        XCTAssertEqual(snapshots[1].manualResetCount, 1)
+        XCTAssertEqual(
+            snapshots[1].resetCredits.first?.expiresAt,
+            Date(timeIntervalSince1970: 1_786_558_374)
+        )
+    }
+
+    private func makeFakeCodexExecutable(
+        in directory: URL,
+        name: String,
+        resetCreditsJSON: String
+    ) throws -> URL {
+        let executable = directory.appendingPathComponent(name)
+        let script = """
+        #!/bin/sh
+        IFS= read -r initialize
+        printf '%s\\n' '{"id":1,"result":{}}'
+        IFS= read -r initialized
+        IFS= read -r account
+        IFS= read -r rate_limits
+        IFS= read -r usage
+        printf '%s\\n' '{"id":2,"result":{"account":{"email":"user@example.com","planType":"plus"}}}'
+        printf '%s\\n' '{"id":3,"result":{"rateLimits":{"limitId":"codex","primary":{"usedPercent":10}},"rateLimitResetCredits":\(resetCreditsJSON)}}'
+        printf '%s\\n' '{"id":4,"result":{"summary":{"lifetimeTokens":100},"dailyUsageBuckets":[]}}'
+        """
+        try Data(script.utf8).write(to: executable)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+        return executable
     }
 }

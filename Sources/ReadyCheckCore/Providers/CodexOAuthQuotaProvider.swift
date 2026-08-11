@@ -55,8 +55,11 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
 
         if shouldRefreshSupplementalDetails,
            let appServerClient,
-           let appServerSnapshot = try? await appServerClient.readAccountSnapshot(),
-           accountsMatch(token: token, snapshot: appServerSnapshot),
+           let appServerSnapshots = try? await appServerClient.readAccountSnapshots(),
+           let appServerSnapshot = mergedMatchingAppServerSnapshot(
+               appServerSnapshots,
+               token: token
+           ),
            let officialSnapshot = makeOfficialSnapshot(
                appServerSnapshot,
                token: token,
@@ -139,6 +142,35 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             return false
         }
         return readyCheckEmail == appServerEmail
+    }
+
+    private func mergedMatchingAppServerSnapshot(
+        _ snapshots: [CodexAppServerAccountSnapshot],
+        token: CodexOAuthToken
+    ) -> CodexAppServerAccountSnapshot? {
+        let matching = snapshots.filter { accountsMatch(token: token, snapshot: $0) }
+        guard var merged = matching.first else { return nil }
+
+        for candidate in matching.dropFirst() {
+            let shouldPreserveExplicitZero = merged.manualResetCount == 0
+            let resolvedCount = merged.manualResetCount ?? candidate.manualResetCount
+            let resolvedResetCredits: [CodexAppServerResetCredit]
+            if shouldPreserveExplicitZero || !merged.resetCredits.isEmpty {
+                resolvedResetCredits = merged.resetCredits
+            } else {
+                resolvedResetCredits = candidate.resetCredits
+            }
+
+            merged = CodexAppServerAccountSnapshot(
+                email: merged.email,
+                planName: merged.planName ?? candidate.planName,
+                rateLimits: merged.rateLimits.isEmpty ? candidate.rateLimits : merged.rateLimits,
+                manualResetCount: resolvedCount,
+                resetCredits: resolvedResetCredits,
+                tokenUsage: merged.tokenUsage ?? candidate.tokenUsage
+            )
+        }
+        return merged
     }
 
     private func makeOfficialSnapshot(

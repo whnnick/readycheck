@@ -144,6 +144,22 @@ class ReadyCheckState {
     this.accountEmail = token ? token.email || null : null;
   }
 
+  preserveKnownManualResetExpirations(expirations, now = new Date()) {
+    const verifiedFutureExpirations = (Array.isArray(expirations) ? expirations : [])
+      .filter((value) => new Date(value).getTime() > now.getTime())
+      .sort();
+    if (this.status !== "available" || verifiedFutureExpirations.length === 0) {
+      return this.snapshot();
+    }
+    this.quota = preserveManualResetDetails(this.quota, {
+      manualResetCount: verifiedFutureExpirations.length,
+      manualResetExpiresAt: verifiedFutureExpirations[0],
+      manualResetExpirations: verifiedFutureExpirations,
+      tokenUsage: null
+    }, now);
+    return this.snapshot();
+  }
+
   async refreshConnectedQuota(refreshedAt, forceSupplemental) {
     if (!this.tokenStore || !this.oauthClient) {
       this.status = "usageUnavailable";
@@ -214,7 +230,7 @@ class ReadyCheckState {
         provider: "Codex",
         plan: planNameFromToken(token.idToken),
         subscriptionRenewalAt: subscriptionRenewalAtFromToken(token.idToken),
-        manualResetCount: resetCreditDetails.manualResetCount ?? resetDetails.manualResetCount ?? 0,
+        manualResetCount: resetCreditDetails.manualResetCount ?? resetDetails.manualResetCount ?? null,
         manualResetExpiresAt: manualResetExpirations[0] || null,
         manualResetExpirations,
         creditBalance: resetDetails.creditBalance,
@@ -232,13 +248,19 @@ class ReadyCheckState {
   }
 
   async fetchOfficialQuota(token, refreshedAt) {
-    if (!this.appServerClient || typeof this.appServerClient.readAccountSnapshot !== "function") {
+    if (!this.appServerClient
+      || (typeof this.appServerClient.readAccountSnapshot !== "function"
+        && typeof this.appServerClient.readAccountSnapshots !== "function")) {
       return null;
     }
 
     try {
-      const snapshot = await this.appServerClient.readAccountSnapshot();
-      if (!sameAccountEmail(token.email, snapshot.email)) {
+      const snapshots = typeof this.appServerClient.readAccountSnapshots === "function"
+        ? await this.appServerClient.readAccountSnapshots()
+        : [await this.appServerClient.readAccountSnapshot()];
+      const matchingSnapshots = snapshots.filter((snapshot) => sameAccountEmail(token.email, snapshot.email));
+      const snapshot = mergeAppServerSnapshots(matchingSnapshots);
+      if (!snapshot) {
         return null;
       }
       const windows = (snapshot.rateLimits || []).flatMap((limit) => [
@@ -329,6 +351,29 @@ function preserveManualResetDetails(current, previous, refreshedAt) {
   return { ...current, tokenUsage: current.tokenUsage || previous.tokenUsage || null };
 }
 
+function mergeAppServerSnapshots(snapshots) {
+  if (!Array.isArray(snapshots) || snapshots.length === 0) {
+    return null;
+  }
+  return snapshots.slice(1).reduce((merged, candidate) => {
+    const preserveExplicitZero = merged.manualResetCount === 0;
+    return {
+      ...merged,
+      planName: merged.planName || candidate.planName || null,
+      rateLimits: Array.isArray(merged.rateLimits) && merged.rateLimits.length > 0
+        ? merged.rateLimits
+        : candidate.rateLimits,
+      manualResetCount: Number.isInteger(merged.manualResetCount)
+        ? merged.manualResetCount
+        : candidate.manualResetCount,
+      resetCredits: preserveExplicitZero || (Array.isArray(merged.resetCredits) && merged.resetCredits.length > 0)
+        ? merged.resetCredits
+        : candidate.resetCredits,
+      tokenUsage: merged.tokenUsage || candidate.tokenUsage || null
+    };
+  }, snapshots[0]);
+}
+
 function statusForUsageError(error) {
   if (error && error.code === "authorizationRejected") {
     return "authorizationRejected";
@@ -363,7 +408,7 @@ function buildUnavailableQuota() {
     provider: "Codex",
     plan: null,
     subscriptionRenewalAt: null,
-    manualResetCount: 0,
+    manualResetCount: null,
     manualResetExpiresAt: null,
     manualResetExpirations: [],
     creditBalance: null,
@@ -412,6 +457,7 @@ function officialWindowLabel(durationMinutes, fallback) {
 module.exports = {
   ReadyCheckState,
   makeOfficialWindow,
+  mergeAppServerSnapshots,
   preserveManualResetDetails,
   recoveryActionForStatus,
   sameAccountEmail,

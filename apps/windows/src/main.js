@@ -227,14 +227,17 @@ function updatePrefs(partial) {
 async function refreshQuota(options = {}) {
   readyState.isRefreshing = true;
   broadcastState();
-  const snapshot = await readyState.refresh(options);
+  let snapshot = await readyState.refresh(options);
   if (snapshot.status === "available" && reminderStore) {
+    snapshot = readyState.preserveKnownManualResetExpirations(
+      reminderStore.knownManualResetExpirations()
+    );
     const reminderBatch = reminderStore.prepare(snapshot.quota);
     const deliveredEvents = await deliverReminderNotifications(reminderBatch.events, snapshot.prefs.language);
     reminderStore.commit(reminderBatch, deliveredEvents);
   }
   broadcastState();
-  return snapshot;
+  return readyState.snapshot();
 }
 
 async function deliverReminderNotifications(events, language) {
@@ -302,6 +305,9 @@ async function beginOAuth() {
 
 async function disconnectAccount() {
   const snapshot = await readyState.disconnect();
+  if (reminderStore) {
+    reminderStore.clearKnownManualResetExpirations();
+  }
   broadcastState();
   return snapshot;
 }
@@ -321,7 +327,12 @@ function startOAuthCallbackServer() {
       }
 
       try {
+        const previousAccountEmail = readyState.accountEmail;
         await readyState.completeOAuth(requestURL.toString());
+        if (reminderStore
+          && normalizedEmail(previousAccountEmail) !== normalizedEmail(readyState.accountEmail)) {
+          reminderStore.clearKnownManualResetExpirations();
+        }
         broadcastState();
         response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
         response.end(buildOAuthResultPage("ReadyCheck 授权完成，可以回到应用。"));
@@ -362,6 +373,11 @@ function escapeHTML(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function normalizedEmail(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized || null;
 }
 
 function scheduleRefresh() {

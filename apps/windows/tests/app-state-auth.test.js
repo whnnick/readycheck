@@ -224,6 +224,62 @@ async function main() {
   assert.equal(official.quota.tokenUsage.summary.lifetimeTokens, 123_456);
   assert.equal(official.quota.manualResetCount, 1);
 
+  const multiSourceState = new ReadyCheckState(
+    {
+      language: "zh-CN",
+      refreshIntervalMinutes: 1,
+      widgetVisible: true,
+      widgetAlwaysOnTop: true,
+      widgetDisplayMode: "minimal"
+    },
+    {
+      tokenStore: quotaStore,
+      oauthClient,
+      appServerClient: {
+        async readAccountSnapshots() {
+          return [
+            {
+              email: "user@example.com",
+              planName: "plus",
+              rateLimits: [{
+                limitID: "codex",
+                primary: { usedPercent: 25, durationMinutes: 10_080, resetsAt: null },
+                secondary: null,
+                creditBalance: "9.5",
+                hasCredits: true,
+                creditsUnlimited: false,
+                planName: "plus"
+              }],
+              manualResetCount: null,
+              resetCredits: [],
+              tokenUsage: null
+            },
+            {
+              email: "other@example.com",
+              planName: "plus",
+              rateLimits: [],
+              manualResetCount: 2,
+              resetCredits: [{ status: "available", expiresAt: "2026-08-15T10:00:00.000Z" }],
+              tokenUsage: null
+            },
+            {
+              email: "USER@example.com",
+              planName: "plus",
+              rateLimits: [],
+              manualResetCount: 1,
+              resetCredits: [{ status: "available", expiresAt: "2026-08-12T10:00:00.000Z" }],
+              tokenUsage: null
+            }
+          ];
+        }
+      }
+    }
+  );
+  const multiSource = await multiSourceState.refresh();
+  assert.equal(multiSource.status, "available");
+  assert.equal(multiSource.quota.manualResetCount, 1);
+  assert.deepEqual(multiSource.quota.manualResetExpirations, ["2026-08-12T10:00:00.000Z"]);
+
   const refreshStore = new MemoryTokenStore();
   refreshStore.token = {
     accessToken: jwt({
@@ -314,6 +370,20 @@ async function main() {
   );
   assert.equal(cleared.manualResetCount, 0);
   assert.deepEqual(cleared.manualResetExpirations, []);
+
+  const persistedFallbackState = new ReadyCheckState({});
+  persistedFallbackState.status = "available";
+  persistedFallbackState.quota = {
+    ...persistedFallbackState.quota,
+    manualResetCount: null,
+    manualResetExpirations: []
+  };
+  const persistedFallback = persistedFallbackState.preserveKnownManualResetExpirations(
+    [expiration],
+    new Date("2026-08-06T00:00:00.000Z")
+  );
+  assert.equal(persistedFallback.quota.manualResetCount, 1);
+  assert.deepEqual(persistedFallback.quota.manualResetExpirations, [expiration]);
 
   const supplementalGateState = new ReadyCheckState({});
   assert.equal(supplementalGateState.shouldRefreshSupplemental(new Date(1_000), false), true);

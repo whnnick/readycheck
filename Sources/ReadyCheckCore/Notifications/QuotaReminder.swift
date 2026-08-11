@@ -375,6 +375,22 @@ public actor QuotaReminderStore {
         return normalizedState.notificationHistory ?? []
     }
 
+    public func knownManualResetExpirations(now: Date = Date()) -> [Date] {
+        let nowTimestamp = Int64(now.timeIntervalSince1970.rounded())
+        return deduplicatedKnownExpirations(
+            migrateHistoryIfNeeded(load()),
+            nowTimestamp: nowTimestamp
+        ).map { Date(timeIntervalSince1970: TimeInterval($0)) }
+    }
+
+    public func clearKnownManualResetExpirations() {
+        var state = migrateHistoryIfNeeded(load())
+        state.knownManualResetExpirations = []
+        state.notifiedManualResetExpirations = []
+        state.notifiedManualResetThresholds = []
+        save(state)
+    }
+
     private func migratedThresholds(from state: QuotaReminderState) -> [String] {
         var thresholds = Set(state.notifiedManualResetThresholds ?? [])
         for timestamp in state.notifiedManualResetExpirations {
@@ -384,6 +400,18 @@ public actor QuotaReminderStore {
             ))
         }
         return Array(thresholds)
+    }
+
+    private func deduplicatedKnownExpirations(
+        _ state: QuotaReminderState,
+        nowTimestamp: Int64
+    ) -> [Int64] {
+        let migratedExpirations = migratedThresholds(from: state).compactMap {
+            QuotaReminderEvaluator.expirationTimestampForPersistence(from: $0)
+        }
+        return Array(Set((state.knownManualResetExpirations ?? []) + migratedExpirations))
+            .filter { $0 >= nowTimestamp }
+            .sorted()
     }
 
     private func load() -> QuotaReminderState {

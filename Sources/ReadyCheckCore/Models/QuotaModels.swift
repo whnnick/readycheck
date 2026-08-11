@@ -342,3 +342,34 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
         return errors.isEmpty ? .none : .retry
     }
 }
+
+public extension ProviderQuotaSnapshot {
+    func preservingKnownManualResetExpirations(
+        _ knownExpirations: [Date],
+        now: Date
+    ) -> ProviderQuotaSnapshot {
+        let verifiedFutureExpirations = knownExpirations.filter { $0 > now }.sorted()
+        guard status == .available,
+              !verifiedFutureExpirations.isEmpty,
+              let details
+        else {
+            return self
+        }
+
+        let fallback = ProviderQuotaDetails(
+            manualResetCount: verifiedFutureExpirations.count,
+            manualResetExpirations: verifiedFutureExpirations
+        )
+        return ProviderQuotaSnapshot(
+            providerId: providerId,
+            displayName: displayName,
+            status: status,
+            source: source,
+            refreshedAt: refreshedAt,
+            staleAfter: staleAfter,
+            windows: windows,
+            errors: errors,
+            details: details.preservingSupplementalDetails(from: fallback, now: now)
+        )
+    }
+}

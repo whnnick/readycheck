@@ -128,6 +128,12 @@ store.evaluate(quota(0.2, "10"), now);
 store.evaluate(quota(0, "10"), now);
 assert.deepEqual(store.evaluate(quota(0, "9.5"), now), [{ type: "creditsStarted" }]);
 assert.deepEqual(new QuotaReminderStore(directory).evaluate(quota(0, "9"), now), []);
+const persistedExpiration = new Date(now.getTime() + 60 * 60 * 60 * 1000).toISOString();
+store.evaluate(quota(0.5, "10", [persistedExpiration], null, 1), now);
+const reloadedStore = new QuotaReminderStore(directory);
+assert.deepEqual(reloadedStore.knownManualResetExpirations(now), [persistedExpiration]);
+reloadedStore.clearKnownManualResetExpirations();
+assert.deepEqual(reloadedStore.knownManualResetExpirations(now), []);
 fs.rmSync(directory, { recursive: true, force: true });
 
 const deliveryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "readycheck-reminder-delivery-"));

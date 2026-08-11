@@ -63,6 +63,25 @@ class QuotaReminderStore {
     return migratedState.notificationHistory;
   }
 
+  knownManualResetExpirations(now = new Date()) {
+    const state = migrateHistoryIfNeeded(this.load());
+    const nowMs = now.getTime();
+    return deduplicatedExpirationTimestamps(
+      state.knownManualResetExpirations.concat(
+        migratedThresholds(state).map(expirationTimestampFromKey)
+      ),
+      nowMs
+    ).map((timestamp) => new Date(timestamp).toISOString());
+  }
+
+  clearKnownManualResetExpirations() {
+    const state = migrateHistoryIfNeeded(this.load());
+    state.knownManualResetExpirations = [];
+    state.notifiedManualResetExpirations = [];
+    state.notifiedManualResetThresholds = [];
+    this.save(state);
+  }
+
   load() {
     try {
       return normalizeState(JSON.parse(fs.readFileSync(this.filePath, "utf8")));

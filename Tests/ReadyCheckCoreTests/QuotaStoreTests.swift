@@ -132,6 +132,50 @@ final class QuotaStoreTests: XCTestCase {
         XCTAssertEqual(merged.manualResetCount, 0)
         XCTAssertEqual(merged.manualResetExpirations, [])
     }
+
+    func testSnapshotUsesPersistedVerifiedExpirationWhenCurrentDetailsAreUnavailable() {
+        let now = Date(timeIntervalSince1970: 9_000)
+        let expiration = Date(timeIntervalSince1970: 10_000)
+        let snapshot = ProviderQuotaSnapshot(
+            providerId: "codex-oauth",
+            displayName: "Codex",
+            status: .available,
+            source: .appServer,
+            refreshedAt: now,
+            staleAfter: now.addingTimeInterval(300),
+            windows: [],
+            errors: [],
+            details: ProviderQuotaDetails(manualResetCount: nil)
+        )
+
+        let merged = snapshot.preservingKnownManualResetExpirations([expiration], now: now)
+
+        XCTAssertEqual(merged.details?.manualResetCount, 1)
+        XCTAssertEqual(merged.details?.manualResetExpirations, [expiration])
+    }
+
+    func testSnapshotExplicitZeroOverridesPersistedVerifiedExpiration() {
+        let now = Date(timeIntervalSince1970: 9_000)
+        let snapshot = ProviderQuotaSnapshot(
+            providerId: "codex-oauth",
+            displayName: "Codex",
+            status: .available,
+            source: .appServer,
+            refreshedAt: now,
+            staleAfter: now.addingTimeInterval(300),
+            windows: [],
+            errors: [],
+            details: ProviderQuotaDetails(manualResetCount: 0)
+        )
+
+        let merged = snapshot.preservingKnownManualResetExpirations(
+            [Date(timeIntervalSince1970: 10_000)],
+            now: now
+        )
+
+        XCTAssertEqual(merged.details?.manualResetCount, 0)
+        XCTAssertEqual(merged.details?.manualResetExpirations, [])
+    }
 }
 
 private struct StaticQuotaProvider: QuotaProvider {

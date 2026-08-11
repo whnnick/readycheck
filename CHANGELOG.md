@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.84 - 2026-08-11
+
+- Read every available local Codex app-server candidate and fill missing reset-credit details only from another matching account.
+- Reuse a previously verified future reset expiration across relaunches when current official sources temporarily omit the detail, while explicit zero still clears it.
+- Keep macOS and Windows behavior aligned when reset-credit details are temporarily unavailable or rate limited.
+
 ## 0.1.83 - 2026-08-11
 
 - Add a local notification history with delivery status, attempt time, retry count, and reminder details on macOS and Windows.
