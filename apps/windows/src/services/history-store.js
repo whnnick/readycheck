@@ -57,6 +57,7 @@ function makeSample(quota, recordedAt) {
     .map((window) => ({
       windowID: String(window.id),
       labelKey: String(window.labelKey),
+      displayLabel: typeof window.displayLabel === "string" ? window.displayLabel : null,
       remainingRatio: Math.min(Math.max(Number(window.remainingRatio), 0), 1),
       resetAt: window.resetAt || null
     }));
@@ -82,6 +83,7 @@ function normalizeSamples(input, now) {
         .map((value) => ({
           windowID: String(value.windowID),
           labelKey: String(value.labelKey),
+          displayLabel: typeof value.displayLabel === "string" ? value.displayLabel : null,
           remainingRatio: Math.min(Math.max(Number(value.remainingRatio), 0), 1),
           resetAt: value.resetAt || null
         }));

@@ -59,6 +59,7 @@ public struct QuotaReminderState: Codable, Equatable, Sendable {
     public var creditExhaustionCycleKey: String?
     public var notificationHistory: [QuotaReminderHistoryRecord]?
     public var notificationHistoryMigrationCompleted: Bool?
+    public var notificationDeliveryVerificationVersion: Int?
 
     public init(
         notifiedManualResetExpirations: [Int64] = [],
@@ -68,7 +69,8 @@ public struct QuotaReminderState: Codable, Equatable, Sendable {
         creditsReminderSentForCurrentExhaustion: Bool = false,
         creditExhaustionCycleKey: String? = nil,
         notificationHistory: [QuotaReminderHistoryRecord]? = nil,
-        notificationHistoryMigrationCompleted: Bool? = nil
+        notificationHistoryMigrationCompleted: Bool? = nil,
+        notificationDeliveryVerificationVersion: Int? = nil
     ) {
         self.notifiedManualResetExpirations = notifiedManualResetExpirations
         self.notifiedManualResetThresholds = notifiedManualResetThresholds
@@ -78,6 +80,7 @@ public struct QuotaReminderState: Codable, Equatable, Sendable {
         self.creditExhaustionCycleKey = creditExhaustionCycleKey
         self.notificationHistory = notificationHistory
         self.notificationHistoryMigrationCompleted = notificationHistoryMigrationCompleted
+        self.notificationDeliveryVerificationVersion = notificationDeliveryVerificationVersion
     }
 }
 
@@ -424,33 +427,45 @@ public actor QuotaReminderStore {
     }
 
     private func migrateHistoryIfNeeded(_ input: QuotaReminderState) -> QuotaReminderState {
-        guard input.notificationHistoryMigrationCompleted != true else { return input }
-
         var state = input
-        var history = state.notificationHistory ?? []
-        let existingIDs = Set(history.map(\.id))
+        if state.notificationHistoryMigrationCompleted != true {
+            var history = state.notificationHistory ?? []
+            let existingIDs = Set(history.map(\.id))
 
-        for key in migratedThresholds(from: state) {
-            let parts = key.split(separator: ":", maxSplits: 1)
-            guard parts.count == 2,
-                  let timestamp = Int64(parts[0]),
-                  let leadHours = Int(parts[1])
-            else {
-                continue
+            for key in migratedThresholds(from: state) {
+                let parts = key.split(separator: ":", maxSplits: 1)
+                guard parts.count == 2,
+                      let timestamp = Int64(parts[0]),
+                      let leadHours = Int(parts[1])
+                else {
+                    continue
+                }
+                let id = "legacy-reset:\(timestamp):\(leadHours)"
+                guard !existingIDs.contains(id) else { continue }
+                history.append(QuotaReminderHistoryRecord(
+                    id: id,
+                    kind: .manualResetExpiring,
+                    status: .legacyUnknown,
+                    expiresAt: Date(timeIntervalSince1970: TimeInterval(timestamp)),
+                    leadHours: leadHours
+                ))
             }
-            let id = "legacy-reset:\(timestamp):\(leadHours)"
-            guard !existingIDs.contains(id) else { continue }
-            history.append(QuotaReminderHistoryRecord(
-                id: id,
-                kind: .manualResetExpiring,
-                status: .legacyUnknown,
-                expiresAt: Date(timeIntervalSince1970: TimeInterval(timestamp)),
-                leadHours: leadHours
-            ))
+
+            state.notificationHistory = prunedHistory(history)
+            state.notificationHistoryMigrationCompleted = true
         }
 
-        state.notificationHistory = prunedHistory(history)
-        state.notificationHistoryMigrationCompleted = true
+        if (state.notificationDeliveryVerificationVersion ?? 0) < 1 {
+            state.notificationHistory = (state.notificationHistory ?? []).map { record in
+                guard record.status == .delivered else { return record }
+                var migrated = record
+                migrated.status = .legacyUnknown
+                migrated.deliveredAt = nil
+                return migrated
+            }
+            state.notificationDeliveryVerificationVersion = 1
+        }
+
         return state
     }
 

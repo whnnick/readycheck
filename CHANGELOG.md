@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.1.86 - 2026-08-23
+
+- Preserve official multi-bucket labels and server-classified limit states across macOS and Windows.
+- Distinguish exhausted quota, depleted Credits, and workspace or member usage limits instead of showing a generic available state.
+- Describe the official local Codex interface as the preferred source and the read-only OAuth endpoint as the compatibility fallback.
+
+## 0.1.85 - 2026-08-12
+
+- Verify macOS reminder delivery by finding the exact notification in Notification Center before recording success.
+- Add notification readiness, a test notification, and a direct system notification-settings action to the macOS preferences UI.
+- Reclassify pre-0.1.85 delivery records as unconfirmed instead of presenting API acceptance as verified delivery.
+- Add matching test-notification and notification-settings actions to the Windows preview.
+
 ## 0.1.84 - 2026-08-11
 
 - Read every available local Codex app-server candidate and fill missing reset-credit details only from another matching account.

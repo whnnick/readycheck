@@ -39,6 +39,11 @@ final class LocalizationServiceTests: XCTestCase {
             "settings.updates",
             "settings.widget",
             "settings.widgetStyle",
+            "quota.limit.rateLimitReached",
+            "quota.limit.ownerCreditsDepleted",
+            "quota.limit.memberCreditsDepleted",
+            "quota.limit.ownerUsageLimitReached",
+            "quota.limit.memberUsageLimitReached",
             "widgetStyle.minimal",
             "widgetStyle.detailed",
             "dashboard.subtitle",
@@ -168,6 +173,15 @@ final class LocalizationServiceTests: XCTestCase {
             "notification.history.failed",
             "notification.history.legacyUnknown",
             "notification.history.disclaimer",
+            "notification.settings.ready",
+            "notification.settings.denied",
+            "notification.settings.help",
+            "notification.settings.open",
+            "notification.test.action",
+            "notification.test.delivered",
+            "notification.test.failed",
+            "notification.test.title",
+            "notification.test.body",
             "quota.window.claude.monthly",
             "quota.window.openai.monthly"
         ]
@@ -210,7 +224,7 @@ final class LocalizationServiceTests: XCTestCase {
         XCTAssertEqual(service.text("quota.remaining"), "剩余")
         XCTAssertEqual(service.text("quota.plan"), "套餐")
         XCTAssertEqual(service.text("quota.manualResetCount"), "主动重置次数")
-        XCTAssertEqual(service.text("quota.codexCredits"), "Codex Credits")
+        XCTAssertEqual(service.text("quota.codexCredits"), "Credits 余额")
         XCTAssertEqual(service.text("quota.creditsUnlimited"), "无限")
         XCTAssertEqual(service.text("quota.dataSource"), "来源")
         XCTAssertEqual(service.text("quota.validUntil"), "有效期")

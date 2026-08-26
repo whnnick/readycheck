@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld("readyCheck", {
   updatePrefs: (prefs) => ipcRenderer.invoke("readycheck:update-prefs", prefs),
   showMainWindow: () => ipcRenderer.invoke("readycheck:show-main-window"),
   resetWidgetPosition: () => ipcRenderer.invoke("readycheck:reset-widget-position"),
+  testNotification: () => ipcRenderer.invoke("readycheck:test-notification"),
+  openNotificationSettings: () => ipcRenderer.invoke("readycheck:open-notification-settings"),
   openReleasePage: () => ipcRenderer.invoke("readycheck:open-release-page"),
   onState: (callback) => {
     const listener = (_event, state) => callback(state);

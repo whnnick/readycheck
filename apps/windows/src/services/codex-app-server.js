@@ -259,7 +259,8 @@ function normalizeRateLimit(snapshot) {
     creditBalance: stringOrNull(snapshot && snapshot.credits && snapshot.credits.balance),
     hasCredits: booleanOrNull(snapshot && snapshot.credits && snapshot.credits.hasCredits),
     creditsUnlimited: booleanOrNull(snapshot && snapshot.credits && snapshot.credits.unlimited),
-    planName: stringOrNull(snapshot && snapshot.planType)
+    planName: stringOrNull(snapshot && snapshot.planType),
+    reachedStateCode: stringOrNull(snapshot && snapshot.rateLimitReachedType)
   };
 }
 

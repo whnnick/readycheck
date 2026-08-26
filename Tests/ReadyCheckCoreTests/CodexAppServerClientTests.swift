@@ -12,6 +12,7 @@ final class CodexAppServerClientTests: XCTestCase {
                 {
                   "rateLimits": {
                     "limitId": "codex",
+                    "limitName": "Codex shared allowance",
                     "primary": {
                       "usedPercent": 24,
                       "windowDurationMins": 300,
@@ -27,11 +28,13 @@ final class CodexAppServerClientTests: XCTestCase {
                       "unlimited": false,
                       "balance": "12.5"
                     },
-                    "planType": "plus"
+                    "planType": "plus",
+                    "rateLimitReachedType": "workspace_member_usage_limit_reached"
                   },
                   "rateLimitsByLimitId": {
                     "codex": {
                       "limitId": "codex",
+                      "limitName": "Codex shared allowance",
                       "primary": {
                         "usedPercent": 24,
                         "windowDurationMins": 300,
@@ -47,7 +50,8 @@ final class CodexAppServerClientTests: XCTestCase {
                         "unlimited": false,
                         "balance": "12.5"
                       },
-                      "planType": "plus"
+                      "planType": "plus",
+                      "rateLimitReachedType": "workspace_member_usage_limit_reached"
                     }
                   },
                   "rateLimitResetCredits": {
@@ -86,6 +90,11 @@ final class CodexAppServerClientTests: XCTestCase {
         XCTAssertEqual(snapshot.rateLimits.count, 1)
         XCTAssertEqual(snapshot.rateLimits[0].primary?.durationMinutes, 300)
         XCTAssertEqual(snapshot.rateLimits[0].secondary?.durationMinutes, 10_080)
+        XCTAssertEqual(snapshot.rateLimits[0].limitName, "Codex shared allowance")
+        XCTAssertEqual(
+            snapshot.rateLimits[0].reachedStateCode,
+            "workspace_member_usage_limit_reached"
+        )
         XCTAssertEqual(snapshot.rateLimits[0].creditBalance, "12.5")
         XCTAssertEqual(snapshot.manualResetCount, 1)
         XCTAssertEqual(snapshot.resetCredits.count, 1)

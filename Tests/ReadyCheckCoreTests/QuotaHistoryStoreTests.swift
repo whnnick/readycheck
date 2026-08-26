@@ -14,6 +14,7 @@ final class QuotaHistoryStoreTests: XCTestCase {
 
         XCTAssertEqual(samples.count, 1)
         XCTAssertEqual(samples[0].values.map(\.remainingRatio), [0.7, 0.8])
+        XCTAssertEqual(samples[0].values.first?.displayLabel, "Codex allowance")
         let unavailable = makeSnapshot(at: 9_100, remaining: 0.6, status: .unavailable)
         let afterUnavailable = await store.record(unavailable)
         XCTAssertEqual(afterUnavailable, samples)
@@ -66,6 +67,40 @@ final class QuotaHistoryStoreTests: XCTestCase {
         XCTAssertEqual(reloaded[0].values[0].remainingRatio, 0.6)
     }
 
+    func testLoadsHistoryWrittenBeforeDisplayLabelsWereAdded() async throws {
+        let fileURL = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try Data(
+            """
+            [{
+              "providerID": "codex-oauth",
+              "recordedAt": -978298200,
+              "values": [{
+                "windowID": "codex-primary",
+                "labelKey": "quota.window.codex.7d",
+                "remainingRatio": 0.75,
+                "resetAt": null
+              }]
+            }]
+            """.utf8
+        ).write(to: fileURL)
+        let store = QuotaHistoryStore(
+            fileURL: fileURL,
+            retention: 10_000,
+            now: { Date(timeIntervalSince1970: 10_000) }
+        )
+
+        let samples = await store.load()
+
+        let sample = try XCTUnwrap(samples.first)
+        let value = try XCTUnwrap(sample.values.first)
+        XCTAssertNil(value.displayLabel)
+    }
+
     private func temporaryFileURL() -> URL {
         FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -89,6 +124,7 @@ final class QuotaHistoryStoreTests: XCTestCase {
                 QuotaWindow(
                     id: "codex-primary",
                     labelKey: "quota.window.codex.5h",
+                    displayLabel: "Codex allowance",
                     kind: .rolling,
                     used: (1 - remaining) * 100,
                     limit: 100,

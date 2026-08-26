@@ -78,6 +78,8 @@
           </div>
           <div class="notification-history-actions">
             <span class="local-badge" id="notificationHistoryBadge">本机记录</span>
+            <button id="notificationTestButton">测试通知</button>
+            <button id="notificationSettingsButton">通知设置</button>
             <button id="notificationHistoryOpenButton" hidden>查看全部</button>
           </div>
         </div>
@@ -123,7 +125,7 @@
         <h2 id="notificationHistoryDialogTitle">通知记录</h2>
         <button id="notificationHistoryCloseButton">关闭</button>
       </header>
-      <p class="muted" id="notificationHistoryDisclaimer">“已交给系统”表示操作系统已接收通知；横幅是否可见仍取决于系统通知设置。</p>
+      <p class="muted" id="notificationHistoryDisclaimer">“Windows 已显示”表示 Electron 收到系统 show 事件；横幅停留时间仍取决于 Windows 通知设置。</p>
       <div id="notificationHistoryDialogList" class="notification-history-dialog-list"></div>
     </dialog>
     <script src="./renderer.js"></script>

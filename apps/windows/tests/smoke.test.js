@@ -42,6 +42,7 @@ const rendererHTML = fs.readFileSync(path.join(appRoot, "src/renderer.html"), "u
 assert.equal(rendererHTML.includes('id="oauthStatusText"'), true);
 assert.equal(rendererHTML.includes('id="usageDashboard"'), true);
 assert.equal(rendererHTML.includes('id="notificationHistoryList"'), true);
+assert.equal(rendererHTML.includes('id="notificationTestButton"'), true);
 assert.equal(rendererHTML.includes('id="notificationHistoryDialog"'), true);
 
 console.log("Windows smoke checks passed.");

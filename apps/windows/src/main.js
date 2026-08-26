@@ -274,6 +274,34 @@ async function deliverReminderNotifications(events, language) {
   return deliveredEvents;
 }
 
+async function deliverTestNotification(language) {
+  if (!Notification.isSupported()) {
+    return { delivered: false, supported: false };
+  }
+  const isEnglish = language === "en";
+  const delivered = await new Promise((resolve) => {
+    const notification = new Notification(isEnglish
+      ? { title: "ReadyCheck notifications are working", body: "Windows displayed this test notification." }
+      : { title: "ReadyCheck 通知正常", body: "Windows 已显示这条测试通知。" });
+    let settled = false;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+    notification.on("click", () => showMainWindow());
+    notification.once("show", () => finish(true));
+    notification.once("failed", () => finish(false));
+    try {
+      notification.show();
+    } catch {
+      finish(false);
+    }
+    setTimeout(() => finish(false), 3000);
+  });
+  return { delivered, supported: true };
+}
+
 function reminderCopy(event, language) {
   const isEnglish = language === "en";
   if (event.type === "manualResetExpiring") {
@@ -399,6 +427,10 @@ function registerIpc() {
   ipcMain.handle("readycheck:update-prefs", (_event, partial) => updatePrefs(partial));
   ipcMain.handle("readycheck:show-main-window", () => showMainWindow());
   ipcMain.handle("readycheck:reset-widget-position", () => placeWidgetNearBottomRight());
+  ipcMain.handle("readycheck:test-notification", () => deliverTestNotification(readyState.prefs.language));
+  ipcMain.handle("readycheck:open-notification-settings", () => {
+    shell.openExternal("ms-settings:notifications");
+  });
   ipcMain.handle("readycheck:open-release-page", () => {
     shell.openExternal("https://github.com/whnnick/readycheck/releases/latest");
   });

@@ -57,6 +57,7 @@ public struct CodexAppServerRateLimitSnapshot: Equatable, Sendable {
     public let hasCredits: Bool?
     public let creditsUnlimited: Bool?
     public let planName: String?
+    public let reachedStateCode: String?
 
     public init(
         limitID: String,
@@ -66,7 +67,8 @@ public struct CodexAppServerRateLimitSnapshot: Equatable, Sendable {
         creditBalance: String?,
         hasCredits: Bool?,
         creditsUnlimited: Bool?,
-        planName: String?
+        planName: String?,
+        reachedStateCode: String? = nil
     ) {
         self.limitID = limitID
         self.limitName = limitName
@@ -76,6 +78,7 @@ public struct CodexAppServerRateLimitSnapshot: Equatable, Sendable {
         self.hasCredits = hasCredits
         self.creditsUnlimited = creditsUnlimited
         self.planName = planName
+        self.reachedStateCode = reachedStateCode
     }
 }
 
@@ -401,7 +404,8 @@ public enum CodexAppServerResponseParser {
             creditBalance: snapshot.credits?.balance,
             hasCredits: snapshot.credits?.hasCredits,
             creditsUnlimited: snapshot.credits?.unlimited,
-            planName: snapshot.planType
+            planName: snapshot.planType,
+            reachedStateCode: snapshot.rateLimitReachedType
         )
     }
 
@@ -452,6 +456,7 @@ private struct RateLimitResponseSnapshot: Decodable {
     let secondary: RateLimitResponseWindow?
     let credits: Credits?
     let planType: String?
+    let rateLimitReachedType: String?
 
     enum CodingKeys: String, CodingKey {
         case limitID = "limitId"
@@ -460,6 +465,7 @@ private struct RateLimitResponseSnapshot: Decodable {
         case secondary
         case credits
         case planType
+        case rateLimitReachedType
     }
 
     struct Credits: Decodable {

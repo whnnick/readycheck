@@ -10,7 +10,7 @@ const directory = fs.mkdtempSync(path.join(os.tmpdir(), "readycheck-history-"));
 const store = new QuotaHistoryStore(directory);
 const quota = {
   windows: [
-    { id: "codex-5h", labelKey: "quota.window.codex.5h", remainingRatio: 0.8, resetAt: null, status: "available" },
+    { id: "codex-5h", labelKey: "quota.window.codex.5h", displayLabel: "Codex allowance", remainingRatio: 0.8, resetAt: null, status: "available" },
     { id: "codex-7d", labelKey: "quota.window.codex.7d", remainingRatio: 0.7, resetAt: null, status: "available" }
   ]
 };
@@ -24,6 +24,7 @@ quota.windows[0].remainingRatio = 0.75;
 const replacement = store.record(quota, new Date("2026-07-14T00:00:30.000Z"));
 assert.equal(replacement.length, 1, "samples inside one minute should share one bucket");
 assert.equal(replacement[0].values[0].remainingRatio, 0.75);
+assert.equal(replacement[0].values[0].displayLabel, "Codex allowance");
 
 const appended = store.record(quota, new Date("2026-07-14T00:01:00.000Z"));
 assert.equal(appended.length, 2);

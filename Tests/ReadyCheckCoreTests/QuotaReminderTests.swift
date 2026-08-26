@@ -337,6 +337,35 @@ final class QuotaReminderTests: XCTestCase {
         XCTAssertEqual(persistedState?.notificationHistory?.count, 1)
     }
 
+    func testStoreDoesNotClaimOldDeliveryWasVerified() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let fileURL = directory.appendingPathComponent("reminders.json")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let oldRecord = QuotaReminderHistoryRecord(
+            id: "reset:123:24",
+            kind: .manualResetExpiring,
+            status: .delivered,
+            lastAttemptAt: Date(timeIntervalSince1970: 100),
+            deliveredAt: Date(timeIntervalSince1970: 100),
+            expiresAt: Date(timeIntervalSince1970: 123),
+            leadHours: 24,
+            resetIndex: 1,
+            attemptCount: 1
+        )
+        let oldState = QuotaReminderState(
+            notificationHistory: [oldRecord],
+            notificationHistoryMigrationCompleted: true
+        )
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try JSONEncoder().encode(oldState).write(to: fileURL)
+
+        let history = await QuotaReminderStore(fileURL: fileURL).history()
+
+        XCTAssertEqual(history.first?.status, .legacyUnknown)
+        XCTAssertNil(history.first?.deliveredAt)
+    }
+
     private func evaluate(
         _ snapshot: ProviderQuotaSnapshot,
         now: Date,

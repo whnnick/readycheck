@@ -37,6 +37,10 @@ struct QuotaCardView: View {
         snapshot.windows.filter(QuotaWindowPresentation.shouldShow)
     }
 
+    private var firstLimitStateWindowID: String? {
+        visibleWindows.first(where: { limitStateText($0.limitStateCode) != nil })?.id
+    }
+
     var body: some View {
         GlassSurface {
             VStack(alignment: .leading, spacing: 12) {
@@ -270,7 +274,7 @@ struct QuotaCardView: View {
 
         return VStack(alignment: .leading, spacing: 7) {
             HStack(alignment: .firstTextBaseline) {
-                Text(localization.text(window.labelKey))
+                Text(windowTitle(window))
                     .font(.headline.weight(.semibold))
                     .lineLimit(1)
 
@@ -306,7 +310,13 @@ struct QuotaCardView: View {
             }
 
             let currentUrgency = urgency(for: progress, isActive: showsProgress)
-            if shouldShowLowQuotaWarning(urgency: currentUrgency) {
+            if window.id == firstLimitStateWindowID,
+               let limitStateText = limitStateText(window.limitStateCode) {
+                Label(limitStateText, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.red)
+                    .lineLimit(2)
+            } else if shouldShowLowQuotaWarning(urgency: currentUrgency) {
                 Label(lowQuotaWarningText(for: currentUrgency), systemImage: "exclamationmark.triangle.fill")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(
@@ -324,6 +334,10 @@ struct QuotaCardView: View {
 
         guard !visibleWindows.isEmpty else {
             return localization.text("status.unavailable")
+        }
+
+        if let stateText = visibleWindows.lazy.compactMap({ limitStateText($0.limitStateCode) }).first {
+            return stateText
         }
 
         return switch snapshot.status {
@@ -360,6 +374,10 @@ struct QuotaCardView: View {
             return .secondary
         }
 
+        if visibleWindows.contains(where: { limitStateText($0.limitStateCode) != nil }) {
+            return .red
+        }
+
         return switch snapshot.status {
         case .available:
             .green
@@ -369,6 +387,29 @@ struct QuotaCardView: View {
             .secondary
         case .error:
             .red
+        }
+    }
+
+    private func windowTitle(_ window: QuotaWindow) -> String {
+        if let displayLabel = window.displayLabel?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !displayLabel.isEmpty {
+            if window.labelKey == "quota.window.codex.secondary" {
+                return "\(displayLabel) · \(localization.text("quota.window.secondarySuffix"))"
+            }
+            return displayLabel
+        }
+        return localization.text(window.labelKey)
+    }
+
+    private func limitStateText(_ code: String?) -> String? {
+        guard let code else { return nil }
+        return switch code {
+        case "rate_limit_reached": localization.text("quota.limit.rateLimitReached")
+        case "workspace_owner_credits_depleted": localization.text("quota.limit.ownerCreditsDepleted")
+        case "workspace_member_credits_depleted": localization.text("quota.limit.memberCreditsDepleted")
+        case "workspace_owner_usage_limit_reached": localization.text("quota.limit.ownerUsageLimitReached")
+        case "workspace_member_usage_limit_reached": localization.text("quota.limit.memberUsageLimitReached")
+        default: localization.text("quota.limit.reached")
         }
     }
 

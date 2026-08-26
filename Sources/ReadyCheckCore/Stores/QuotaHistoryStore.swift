@@ -3,12 +3,20 @@ import Foundation
 public struct QuotaHistoryValue: Codable, Equatable, Sendable {
     public let windowID: String
     public let labelKey: String
+    public let displayLabel: String?
     public let remainingRatio: Double
     public let resetAt: Date?
 
-    public init(windowID: String, labelKey: String, remainingRatio: Double, resetAt: Date?) {
+    public init(
+        windowID: String,
+        labelKey: String,
+        displayLabel: String? = nil,
+        remainingRatio: Double,
+        resetAt: Date?
+    ) {
         self.windowID = windowID
         self.labelKey = labelKey
+        self.displayLabel = displayLabel
         self.remainingRatio = remainingRatio
         self.resetAt = resetAt
     }
@@ -33,6 +41,7 @@ public struct QuotaHistorySample: Identifiable, Codable, Equatable, Sendable {
             return QuotaHistoryValue(
                 windowID: window.id,
                 labelKey: window.labelKey,
+                displayLabel: window.displayLabel,
                 remainingRatio: ratio,
                 resetAt: window.resetAt
             )

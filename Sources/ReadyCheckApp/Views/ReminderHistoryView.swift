@@ -32,6 +32,11 @@ struct ReminderHistorySummaryView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
+            Text(localization.text("notification.history.disclaimer"))
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
+
             if records.isEmpty {
                 ReminderHistoryEmptyView(localization: localization)
             } else {

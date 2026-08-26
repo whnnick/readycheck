@@ -20,6 +20,7 @@ const snapshot = normalizeAppServerResponses(
   {
     rateLimits: {
       limitId: "codex",
+      limitName: "Codex shared allowance",
       primary: {
         usedPercent: 18,
         windowDurationMins: 300,
@@ -35,11 +36,13 @@ const snapshot = normalizeAppServerResponses(
         unlimited: false,
         balance: "15.5"
       },
-      planType: "plus"
+      planType: "plus",
+      rateLimitReachedType: "workspace_member_usage_limit_reached"
     },
     rateLimitsByLimitId: {
       codex: {
         limitId: "codex",
+        limitName: "Codex shared allowance",
         primary: {
           usedPercent: 18,
           windowDurationMins: 300,
@@ -55,7 +58,8 @@ const snapshot = normalizeAppServerResponses(
           unlimited: false,
           balance: "15.5"
         },
-        planType: "plus"
+        planType: "plus",
+        rateLimitReachedType: "workspace_member_usage_limit_reached"
       }
     },
     rateLimitResetCredits: {
@@ -86,6 +90,8 @@ assert.equal(snapshot.email, "user@example.com");
 assert.equal(snapshot.rateLimits.length, 1);
 assert.equal(snapshot.rateLimits[0].primary.durationMinutes, 300);
 assert.equal(snapshot.rateLimits[0].creditBalance, "15.5");
+assert.equal(snapshot.rateLimits[0].limitName, "Codex shared allowance");
+assert.equal(snapshot.rateLimits[0].reachedStateCode, "workspace_member_usage_limit_reached");
 assert.equal(snapshot.manualResetCount, 1);
 assert.equal(snapshot.resetCredits.length, 1);
 assert.equal(snapshot.tokenUsage.summary.lifetimeTokens, 123_456);

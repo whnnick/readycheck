@@ -3,10 +3,24 @@
 const assert = require("node:assert/strict");
 const {
   ReadyCheckState,
+  makeOfficialWindow,
   preserveManualResetDetails,
   recoveryActionForStatus,
   statusForUsageError
 } = require("../src/services/app-state");
+
+const namedWindow = makeOfficialWindow(
+  { usedPercent: 20, durationMinutes: 1_440, resetsAt: null },
+  "codex-other-primary",
+  "quota.window.codex.primary",
+  {
+    limitID: "codex_other",
+    limitName: "Workspace allowance",
+    reachedStateCode: "workspace_member_usage_limit_reached"
+  }
+);
+assert.equal(namedWindow.displayLabel, "Workspace allowance");
+assert.equal(namedWindow.limitStateCode, "workspace_member_usage_limit_reached");
 
 class MemoryTokenStore {
   constructor() {

@@ -40,6 +40,8 @@ const elements = {
   notificationHistoryBadge: document.getElementById("notificationHistoryBadge"),
   notificationHistoryList: document.getElementById("notificationHistoryList"),
   notificationHistoryOpenButton: document.getElementById("notificationHistoryOpenButton"),
+  notificationTestButton: document.getElementById("notificationTestButton"),
+  notificationSettingsButton: document.getElementById("notificationSettingsButton"),
   notificationHistoryDialog: document.getElementById("notificationHistoryDialog"),
   notificationHistoryDialogTitle: document.getElementById("notificationHistoryDialogTitle"),
   notificationHistoryDisclaimer: document.getElementById("notificationHistoryDisclaimer"),
@@ -135,11 +137,13 @@ function renderNotificationHistory(state) {
     : "记录本机额度与 Credits 提醒的投递结果。";
   elements.notificationHistoryBadge.textContent = isEnglish ? "On this device" : "本机记录";
   elements.notificationHistoryOpenButton.textContent = isEnglish ? "View all" : "查看全部";
+  elements.notificationTestButton.textContent = isEnglish ? "Test notification" : "测试通知";
+  elements.notificationSettingsButton.textContent = isEnglish ? "Notification settings" : "通知设置";
   elements.notificationHistoryOpenButton.hidden = records.length <= 3;
   elements.notificationHistoryDialogTitle.textContent = elements.notificationHistoryTitle.textContent;
   elements.notificationHistoryDisclaimer.textContent = isEnglish
-    ? "“Sent to system” means Windows accepted the notification; banner visibility still follows system notification settings."
-    : "“已交给系统”表示 Windows 已接收通知；横幅是否可见仍取决于系统通知设置。";
+    ? "“Shown by Windows” means Electron received the system show event; banner duration still follows Windows notification settings."
+    : "“Windows 已显示”表示 Electron 收到系统 show 事件；横幅停留时间仍取决于 Windows 通知设置。";
   elements.notificationHistoryList.innerHTML = notificationHistoryMarkup(records.slice(0, 3), isEnglish);
   elements.notificationHistoryDialogList.innerHTML = notificationHistoryMarkup(records, isEnglish);
 }
@@ -171,7 +175,7 @@ function notificationHistoryMarkup(records, isEnglish) {
 
 function notificationHistoryStatus(status, isEnglish) {
   if (status === "delivered") {
-    return { icon: "✓", label: isEnglish ? "Sent to system" : "已交给系统" };
+    return { icon: "✓", label: isEnglish ? "Shown by Windows" : "Windows 已显示" };
   }
   if (status === "failed") {
     return { icon: "!", label: isEnglish ? "Delivery failed" : "投递失败" };
@@ -195,6 +199,7 @@ function renderQuota(state) {
   const details = state.quota;
   const rows = [];
   const visibleWindows = details.windows;
+  const firstLimitStateWindowID = visibleWindows.find((window) => limitStateText(window.limitStateCode))?.id || null;
 
   if (!isWidget || mode === "detailed") {
     const creditsRow = codexCreditsText(details);
@@ -202,7 +207,7 @@ function renderQuota(state) {
       <div class="details-grid">
         <span>${isWidget ? "套餐" : "套餐"}</span><strong>${details.plan || "未提供"}</strong>
         <span>${isWidget ? "续期" : "续期时间"}</span><strong>${formatDate(details.subscriptionRenewalAt) || "未提供"}</strong>
-        ${creditsRow ? `<span>Codex Credits</span><strong>${creditsRow}</strong>` : ""}
+        ${creditsRow ? `<span>Credits 余额</span><strong>${creditsRow}</strong>` : ""}
         ${manualResetExpirationRows(details)}
       </div>
     `);
@@ -212,11 +217,14 @@ function renderQuota(state) {
     const ratio = typeof window.remainingRatio === "number" ? window.remainingRatio : null;
     const percent = ratio === null ? "—" : `${Math.round(ratio * 100)}%`;
     const progress = ratio === null ? 0 : Math.min(Math.max(ratio, 0), 1) * 100;
-    const warning = quotaWarning(ratio);
+    const serverWarning = window.id === firstLimitStateWindowID ? limitStateText(window.limitStateCode) : null;
+    const warning = serverWarning || quotaWarning(ratio);
+    const warningClass = serverWarning ? "critical" : urgencyClass(ratio);
+    const windowLabel = displayWindowLabel(window);
     rows.push(`
       <article class="quota-row">
         <div class="quota-row-heading">
-          <strong>${labels[window.labelKey] || window.labelKey}</strong>
+          <strong>${windowLabel}</strong>
           <span>${percent}</span>
         </div>
         <div class="progress-track">
@@ -224,7 +232,7 @@ function renderQuota(state) {
         </div>
         <div class="quota-row-footer">
           <p>${formatDate(window.resetAt) || "等待连接后刷新"}</p>
-          ${warning ? `<p class="quota-warning ${urgencyClass(ratio)}">${warning}</p>` : ""}
+          ${warning ? `<p class="quota-warning ${warningClass}">${warning}</p>` : ""}
         </div>
       </article>
     `);
@@ -519,7 +527,12 @@ function historySeries(samples) {
     for (const value of sample.values || []) {
       const key = value.windowID;
       if (!grouped.has(key)) {
-        grouped.set(key, { windowID: key, labelKey: value.labelKey, points: [] });
+        grouped.set(key, {
+          windowID: key,
+          labelKey: value.labelKey,
+          displayLabel: value.displayLabel || null,
+          points: []
+        });
       }
       grouped.get(key).points.push({ timestamp: new Date(sample.recordedAt).getTime(), ratio: value.remainingRatio });
     }
@@ -645,6 +658,12 @@ function usageChartMaximum(values) {
 }
 
 function usageWindowLabel(series) {
+  if (series.displayLabel) {
+    const label = series.labelKey === "quota.window.codex.secondary"
+      ? `${series.displayLabel} · 次级`
+      : series.displayLabel;
+    return escapeHTML(label);
+  }
   return labels[series.labelKey] || series.labelKey;
 }
 
@@ -705,6 +724,34 @@ function quotaWarning(ratio) {
   return urgency === "critical" ? "额度很低" : "额度偏低";
 }
 
+function displayWindowLabel(window) {
+  const base = typeof window.displayLabel === "string" ? window.displayLabel.trim() : "";
+  if (base) {
+    return escapeHTML(window.labelKey === "quota.window.codex.secondary" ? `${base} · 次级` : base);
+  }
+  return labels[window.labelKey] || window.labelKey;
+}
+
+function escapeHTML(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function limitStateText(code) {
+  const messages = {
+    rate_limit_reached: "额度用尽，等待重置",
+    workspace_owner_credits_depleted: "工作区 Credits 已用尽",
+    workspace_member_credits_depleted: "可用 Credits 已用尽",
+    workspace_owner_usage_limit_reached: "工作区已达到使用上限",
+    workspace_member_usage_limit_reached: "成员已达到使用上限"
+  };
+  return code ? (messages[code] || "已达到使用上限") : "";
+}
+
 function oauthStatusText(state) {
   if (state.status === "authorizing") {
     return "已打开浏览器授权页。若页面提示 Country, region, or territory not supported，说明当前网络或账号地区不被 OpenAI OAuth 接受，ReadyCheck 无法绕过，请更换受支持的网络环境后重试。";
@@ -763,6 +810,21 @@ function wireEvents() {
     elements.notificationHistoryOpenButton.addEventListener("click", () => {
       elements.notificationHistoryDialog.showModal();
     });
+  }
+  if (elements.notificationTestButton) {
+    elements.notificationTestButton.addEventListener("click", async () => {
+      const isEnglish = currentState && currentState.prefs.language === "en";
+      elements.notificationTestButton.disabled = true;
+      elements.notificationTestButton.textContent = isEnglish ? "Testing..." : "测试中…";
+      const result = await window.readyCheck.testNotification();
+      elements.notificationTestButton.textContent = result.delivered
+        ? (isEnglish ? "Delivered" : "推送成功")
+        : (isEnglish ? "Check settings" : "检查设置");
+      elements.notificationTestButton.disabled = false;
+    });
+  }
+  if (elements.notificationSettingsButton) {
+    elements.notificationSettingsButton.addEventListener("click", () => window.readyCheck.openNotificationSettings());
   }
   if (elements.notificationHistoryCloseButton) {
     elements.notificationHistoryCloseButton.addEventListener("click", () => {

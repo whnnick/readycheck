@@ -183,12 +183,18 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 makeOfficialWindow(
                     snapshot.primary,
                     id: "\(snapshot.limitID)-primary",
-                    fallbackLabelKey: "quota.window.codex.primary"
+                    fallbackLabelKey: "quota.window.codex.primary",
+                    limitName: snapshot.limitName,
+                    limitID: snapshot.limitID,
+                    limitStateCode: snapshot.reachedStateCode
                 ),
                 makeOfficialWindow(
                     snapshot.secondary,
                     id: "\(snapshot.limitID)-secondary",
-                    fallbackLabelKey: "quota.window.codex.secondary"
+                    fallbackLabelKey: "quota.window.codex.secondary",
+                    limitName: snapshot.limitName,
+                    limitID: snapshot.limitID,
+                    limitStateCode: snapshot.reachedStateCode
                 )
             ].compactMap { $0 }
         }
@@ -228,13 +234,23 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
     private func makeOfficialWindow(
         _ window: CodexAppServerRateLimitWindow?,
         id: String,
-        fallbackLabelKey: String
+        fallbackLabelKey: String,
+        limitName: String?,
+        limitID: String,
+        limitStateCode: String?
     ) -> QuotaWindow? {
         guard let window, window.usedPercent.isFinite else { return nil }
         let used = min(max(window.usedPercent, 0), 100)
+        let labelKey = labelKey(durationMinutes: window.durationMinutes, fallback: fallbackLabelKey)
         return QuotaWindow(
             id: id,
-            labelKey: labelKey(durationMinutes: window.durationMinutes, fallback: fallbackLabelKey),
+            labelKey: labelKey,
+            displayLabel: officialDisplayLabel(
+                limitName,
+                limitID: limitID,
+                usesFallbackLabel: labelKey == fallbackLabelKey
+            ),
+            limitStateCode: limitStateCode,
             kind: .rolling,
             used: used,
             limit: 100,
@@ -243,6 +259,21 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             resetAt: window.resetsAt,
             confidence: .verified
         )
+    }
+
+    private func officialDisplayLabel(
+        _ limitName: String?,
+        limitID: String,
+        usesFallbackLabel: Bool
+    ) -> String? {
+        guard usesFallbackLabel,
+              let value = limitName?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty,
+              value.caseInsensitiveCompare(limitID) != .orderedSame
+        else {
+            return nil
+        }
+        return value
     }
 
     private func labelKey(durationMinutes: Int?, fallback: String) -> String {

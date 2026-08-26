@@ -23,6 +23,7 @@ struct RecentUsageView: View {
     private struct UsageWindow: Identifiable, Equatable {
         let id: String
         let labelKey: String
+        let displayLabel: String?
     }
 
     let samples: [QuotaHistorySample]
@@ -180,7 +181,11 @@ struct RecentUsageView: View {
         return values.compactMap { value in
             guard QuotaWindowPresentation.shouldShow(labelKey: value.labelKey) else { return nil }
             guard seen.insert(value.windowID).inserted else { return nil }
-            return UsageWindow(id: value.windowID, labelKey: value.labelKey)
+            return UsageWindow(
+                id: value.windowID,
+                labelKey: value.labelKey,
+                displayLabel: value.displayLabel
+            )
         }
     }
 
@@ -282,7 +287,7 @@ struct RecentUsageView: View {
 
     private var chartTitle: String {
         guard let window = activeWindow else { return "" }
-        return "\(localization.text(window.labelKey)) · \(localization.text("usage.barTitle"))"
+        return "\(usageWindowTitle(window)) · \(localization.text("usage.barTitle"))"
     }
 
     private var collectingState: some View {
@@ -303,7 +308,7 @@ struct RecentUsageView: View {
             selectedWindowID = window.id
         } label: {
             VStack(alignment: .leading, spacing: 3) {
-                Text(localization.text(window.labelKey))
+                Text(usageWindowTitle(window))
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
                 Text(consumed.map { String(format: localization.text("usage.consumedFormat"), $0 * 100) } ?? localization.text("usage.collecting"))
@@ -326,7 +331,18 @@ struct RecentUsageView: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(localization.text(window.labelKey)) \(localization.text("usage.selectWindow"))")
+        .accessibilityLabel("\(usageWindowTitle(window)) \(localization.text("usage.selectWindow"))")
+    }
+
+    private func usageWindowTitle(_ window: UsageWindow) -> String {
+        if let displayLabel = window.displayLabel?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !displayLabel.isEmpty {
+            if window.labelKey == "quota.window.codex.secondary" {
+                return "\(displayLabel) · \(localization.text("quota.window.secondarySuffix"))"
+            }
+            return displayLabel
+        }
+        return localization.text(window.labelKey)
     }
 
     private func consumedRatio(windowID: String) -> Double? {

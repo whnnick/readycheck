@@ -317,7 +317,77 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
+            Divider()
+
+            notificationControls
+
+            Divider()
+
             updateControls
+        }
+    }
+
+    private var notificationControls: some View {
+        preferenceSection(titleKey: "settings.notifications", systemImage: "bell.badge") {
+            Label(notificationReadinessText, systemImage: notificationReadinessIcon)
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(notificationReadinessColor)
+
+            HStack(spacing: 8) {
+                Button {
+                    Task { await model.sendTestNotification() }
+                } label: {
+                    Label(testNotificationButtonText, systemImage: "bell.and.waves.left.and.right")
+                        .lineLimit(1)
+                }
+                .disabled(model.testNotificationResult == .sending)
+
+                Button(model.localization.text("notification.settings.open")) {
+                    model.openNotificationSettings()
+                }
+                .lineLimit(1)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+
+            Text(model.localization.text("notification.settings.help"))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var notificationReadinessText: String {
+        switch model.notificationReadiness {
+        case .checking: model.localization.text("notification.settings.checking")
+        case .ready: model.localization.text("notification.settings.ready")
+        case .alertsDisabled: model.localization.text("notification.settings.alertsDisabled")
+        case .denied: model.localization.text("notification.settings.denied")
+        }
+    }
+
+    private var notificationReadinessIcon: String {
+        switch model.notificationReadiness {
+        case .checking: "clock"
+        case .ready: "checkmark.circle.fill"
+        case .alertsDisabled, .denied: "exclamationmark.triangle.fill"
+        }
+    }
+
+    private var notificationReadinessColor: Color {
+        switch model.notificationReadiness {
+        case .checking: .secondary
+        case .ready: .green
+        case .alertsDisabled, .denied: .orange
+        }
+    }
+
+    private var testNotificationButtonText: String {
+        switch model.testNotificationResult {
+        case .idle: model.localization.text("notification.test.action")
+        case .sending: model.localization.text("notification.test.sending")
+        case .delivered: model.localization.text("notification.test.delivered")
+        case .failed: model.localization.text("notification.test.failed")
         }
     }
 

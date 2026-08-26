@@ -74,6 +74,10 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         return true
     }
 
+    func applicationDidBecomeActive(_ notification: Notification) {
+        Task { await appModel.reloadNotificationReadiness() }
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }
@@ -212,6 +216,8 @@ final class ReadyCheckAppModel {
     var snapshots: [ProviderQuotaSnapshot] = []
     var quotaHistorySamples: [QuotaHistorySample] = []
     var reminderHistoryRecords: [QuotaReminderHistoryRecord] = []
+    var notificationReadiness: NotificationReadiness = .checking
+    var testNotificationResult: TestNotificationResult = .idle
     var isRefreshing = false
     var lastRefreshAt: Date?
     var codexOAuthStatus: CodexOAuthConnectionStatus = .notConnected
@@ -330,6 +336,29 @@ final class ReadyCheckAppModel {
 
     func requestNotificationAuthorizationIfNeeded() async {
         await quotaNotificationService.requestAuthorizationIfNeeded()
+        notificationReadiness = await quotaNotificationService.readiness()
+    }
+
+    func reloadNotificationReadiness() async {
+        notificationReadiness = await quotaNotificationService.readiness()
+    }
+
+    func sendTestNotification() async {
+        testNotificationResult = .sending
+        let delivered = await quotaNotificationService.sendTestNotification(localization: localization)
+        notificationReadiness = await quotaNotificationService.readiness()
+        testNotificationResult = delivered ? .delivered : .failed
+    }
+
+    func openNotificationSettings() {
+        let urls = [
+            "x-apple.systempreferences:com.apple.Notifications-Settings.extension?bundleId=com.readycheck.app",
+            "x-apple.systempreferences:com.apple.preference.notifications"
+        ]
+        for value in urls {
+            guard let url = URL(string: value), NSWorkspace.shared.open(url) else { continue }
+            return
+        }
     }
 
     func showFloatingWidget() {

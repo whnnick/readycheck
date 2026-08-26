@@ -3,6 +3,20 @@ import OSLog
 import ReadyCheckCore
 import UserNotifications
 
+enum NotificationReadiness: Equatable {
+    case checking
+    case ready
+    case alertsDisabled
+    case denied
+}
+
+enum TestNotificationResult: Equatable {
+    case idle
+    case sending
+    case delivered
+    case failed
+}
+
 @MainActor
 final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate {
     private static let logger = Logger(subsystem: "com.readycheck.app", category: "quota-notifications")
@@ -18,6 +32,35 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         let settings = await center.notificationSettings()
         guard settings.authorizationStatus == .notDetermined else { return }
         _ = try? await center.requestAuthorization(options: [.alert, .sound])
+    }
+
+    func readiness() async -> NotificationReadiness {
+        let settings = await center.notificationSettings()
+        switch settings.authorizationStatus {
+        case .authorized, .provisional:
+            return settings.alertSetting == .enabled ? .ready : .alertsDisabled
+        case .notDetermined:
+            return .checking
+        case .denied:
+            return .denied
+        @unknown default:
+            return .denied
+        }
+    }
+
+    func sendTestNotification(localization: LocalizationService) async -> Bool {
+        guard await canDeliverNotifications() else { return false }
+
+        let content = UNMutableNotificationContent()
+        content.title = localization.text("notification.test.title")
+        content.body = localization.text("notification.test.body")
+        content.sound = .default
+        let request = UNNotificationRequest(
+            identifier: "readycheck.test.\(UUID().uuidString)",
+            content: content,
+            trigger: nil
+        )
+        return await addAndVerify(request)
     }
 
     func deliver(
@@ -51,11 +94,8 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
                 content: content,
                 trigger: nil
             )
-            do {
-                try await center.add(request)
+            if await addAndVerify(request) {
                 deliveredEvents.append(event)
-            } catch {
-                Self.logger.error("Failed to add quota notification: \(String(describing: error), privacy: .public)")
             }
         }
 
@@ -76,6 +116,34 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
             return false
         @unknown default:
             return false
+        }
+    }
+
+    private func addAndVerify(_ request: UNNotificationRequest) async -> Bool {
+        do {
+            try await center.add(request)
+        } catch {
+            Self.logger.error("Failed to add quota notification: \(String(describing: error), privacy: .public)")
+            return false
+        }
+
+        for delay in [150, 350, 700, 1_200] {
+            try? await Task.sleep(for: .milliseconds(delay))
+            let identifiers = await deliveredNotificationIdentifiers()
+            if identifiers.contains(request.identifier) {
+                return true
+            }
+        }
+
+        Self.logger.error("Notification was accepted but not found in Notification Center: \(request.identifier, privacy: .public)")
+        return false
+    }
+
+    private func deliveredNotificationIdentifiers() async -> Set<String> {
+        await withCheckedContinuation { continuation in
+            center.getDeliveredNotifications { notifications in
+                continuation.resume(returning: Set(notifications.map { $0.request.identifier }))
+            }
         }
     }
 

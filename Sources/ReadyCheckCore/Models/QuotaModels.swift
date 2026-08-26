@@ -101,6 +101,8 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
 
     public let id: String
     public let labelKey: String
+    public let displayLabel: String?
+    public let limitStateCode: String?
     public let kind: QuotaWindowKind
     public let used: Double
     public let limit: Double
@@ -112,6 +114,8 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
     public init(
         id: String,
         labelKey: String,
+        displayLabel: String? = nil,
+        limitStateCode: String? = nil,
         kind: QuotaWindowKind,
         used: Double,
         limit: Double,
@@ -122,6 +126,8 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
     ) {
         self.id = id
         self.labelKey = labelKey
+        self.displayLabel = displayLabel
+        self.limitStateCode = limitStateCode
         self.kind = kind
         self.used = used
         self.limit = limit

@@ -264,8 +264,8 @@ class ReadyCheckState {
         return null;
       }
       const windows = (snapshot.rateLimits || []).flatMap((limit) => [
-        makeOfficialWindow(limit.primary, `${limit.limitID}-primary`, "quota.window.codex.primary"),
-        makeOfficialWindow(limit.secondary, `${limit.limitID}-secondary`, "quota.window.codex.secondary")
+        makeOfficialWindow(limit.primary, `${limit.limitID}-primary`, "quota.window.codex.primary", limit),
+        makeOfficialWindow(limit.secondary, `${limit.limitID}-secondary`, "quota.window.codex.secondary", limit)
       ].filter(Boolean));
       if (windows.length === 0) {
         return null;
@@ -424,14 +424,23 @@ function sameAccountEmail(readyCheckEmail, appServerEmail) {
   return Boolean(expected && actual && expected === actual);
 }
 
-function makeOfficialWindow(window, id, fallbackLabelKey) {
+function makeOfficialWindow(window, id, fallbackLabelKey, limit = {}) {
   if (!window || !Number.isFinite(Number(window.usedPercent))) {
     return null;
   }
   const used = Math.min(Math.max(Number(window.usedPercent), 0), 100);
+  const labelKey = officialWindowLabel(window.durationMinutes, fallbackLabelKey);
+  const limitName = typeof limit.limitName === "string" ? limit.limitName.trim() : "";
+  const displayLabel = labelKey === fallbackLabelKey
+    && limitName
+    && limitName.toLowerCase() !== String(limit.limitID || "").toLowerCase()
+    ? limitName
+    : null;
   return {
     id,
-    labelKey: officialWindowLabel(window.durationMinutes, fallbackLabelKey),
+    labelKey,
+    displayLabel,
+    limitStateCode: limit.reachedStateCode || null,
     kind: "rolling",
     used,
     limit: 100,
