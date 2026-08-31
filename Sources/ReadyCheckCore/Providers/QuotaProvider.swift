@@ -4,6 +4,7 @@ public enum RefreshReason: Equatable, Sendable {
     case automatic
     case manual
     case openedPanel
+    case serverEvent
 }
 
 public struct ProviderRefreshContext: Equatable, Sendable {

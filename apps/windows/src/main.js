@@ -10,7 +10,7 @@ const { QuotaReminderStore } = require("./services/reminder-store");
 const { ReadyCheckState } = require("./services/app-state");
 const { EncryptedTokenStore } = require("./services/token-store");
 const { CodexUsageClient } = require("./services/usage-client");
-const { CodexAppServerClient } = require("./services/codex-app-server");
+const { CodexAppServerClient, CodexAppServerRateLimitMonitor } = require("./services/codex-app-server");
 
 let mainWindow = null;
 let widgetWindow = null;
@@ -19,6 +19,8 @@ let prefsStore = null;
 let readyState = null;
 let reminderStore = null;
 let refreshTimer = null;
+let rateLimitEventTimer = null;
+let rateLimitMonitor = null;
 let oauthCallbackServer = null;
 
 const isWindows = process.platform === "win32";
@@ -419,6 +421,21 @@ function scheduleRefresh() {
   }, intervalMs);
 }
 
+function scheduleRateLimitEventRefresh() {
+  if (rateLimitEventTimer) {
+    clearTimeout(rateLimitEventTimer);
+  }
+  rateLimitEventTimer = setTimeout(() => {
+    rateLimitEventTimer = null;
+    if (!readyState) return;
+    if (readyState.isRefreshing) {
+      scheduleRateLimitEventRefresh();
+      return;
+    }
+    refreshQuota({ forceSupplemental: true }).catch(() => {});
+  }, 350);
+}
+
 function registerIpc() {
   ipcMain.handle("readycheck:get-state", () => snapshotWithReminderHistory());
   ipcMain.handle("readycheck:refresh", () => refreshQuota({ forceSupplemental: true }));
@@ -457,6 +474,8 @@ app.whenReady().then(async () => {
   createWidgetWindow();
   createTray();
   scheduleRefresh();
+  rateLimitMonitor = new CodexAppServerRateLimitMonitor();
+  rateLimitMonitor.start(scheduleRateLimitEventRefresh);
   refreshQuota({ forceSupplemental: true }).catch(() => {});
 });
 
@@ -468,5 +487,9 @@ app.on("before-quit", () => {
   if (refreshTimer) {
     clearInterval(refreshTimer);
   }
+  if (rateLimitEventTimer) {
+    clearTimeout(rateLimitEventTimer);
+  }
+  rateLimitMonitor?.stop();
   stopOAuthCallbackServer();
 });

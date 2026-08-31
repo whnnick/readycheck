@@ -61,6 +61,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
             await appModel.reloadQuotaHistory()
             await appModel.reloadReminderHistory()
             await appModel.refresh(reason: .openedPanel)
+            appModel.startRateLimitMonitoring()
             await appModel.checkForUpdates(isManual: false)
             appModel.restoreFloatingWidgetIfNeeded()
             appModel.restoreNotchStatusIfNeeded()
@@ -80,6 +81,10 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        appModel.stopRateLimitMonitoring()
     }
 
     private func configureStatusBarItem() {
@@ -249,6 +254,9 @@ final class ReadyCheckAppModel {
     private let codexAppServerClient: any CodexAppServerReading
 
     @ObservationIgnored
+    private let rateLimitMonitor: CodexAppServerRateLimitMonitor
+
+    @ObservationIgnored
     private var store: QuotaStore
 
     @ObservationIgnored
@@ -278,17 +286,22 @@ final class ReadyCheckAppModel {
     @ObservationIgnored
     private var isSyncingWidgetVisibilityFromWindow = false
 
+    @ObservationIgnored
+    private var rateLimitEventRefreshTask: Task<Void, Never>?
+
     init(
         credentialStore: any CredentialStore = KeychainCredentialStore(),
         codexOAuthClient: CodexOAuthClient = CodexOAuthClient(),
         updateChecker: GitHubReleaseUpdateChecker = GitHubReleaseUpdateChecker(),
         quotaHistoryStore: QuotaHistoryStore? = nil,
-        codexAppServerClient: any CodexAppServerReading = CodexAppServerClient()
+        codexAppServerClient: any CodexAppServerReading = CodexAppServerClient(),
+        rateLimitMonitor: CodexAppServerRateLimitMonitor = CodexAppServerRateLimitMonitor()
     ) {
         self.credentialStore = credentialStore
         self.codexOAuthClient = codexOAuthClient
         self.updateChecker = updateChecker
         self.codexAppServerClient = codexAppServerClient
+        self.rateLimitMonitor = rateLimitMonitor
         self.quotaHistoryStore = quotaHistoryStore ?? QuotaHistoryStore(fileURL: Self.defaultQuotaHistoryURL)
         self.quotaReminderStore = QuotaReminderStore(fileURL: Self.defaultQuotaReminderURL)
         self.quotaNotificationService = QuotaNotificationService()
@@ -712,6 +725,39 @@ final class ReadyCheckAppModel {
 
         let scheduler = RefreshScheduler(policy: RefreshPolicy(interval: refreshInterval))
         return scheduler.shouldRefresh(lastRefresh: lastRefreshAt, now: now, reason: .automatic)
+    }
+
+    func startRateLimitMonitoring() {
+        rateLimitMonitor.start { [weak self] in
+            Task { @MainActor in
+                self?.scheduleRateLimitEventRefresh()
+            }
+        }
+    }
+
+    func stopRateLimitMonitoring() {
+        rateLimitMonitor.stop()
+        rateLimitEventRefreshTask?.cancel()
+        rateLimitEventRefreshTask = nil
+    }
+
+    private func scheduleRateLimitEventRefresh() {
+        guard rateLimitEventRefreshTask == nil else { return }
+        rateLimitEventRefreshTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            guard !Task.isCancelled else {
+                rateLimitEventRefreshTask = nil
+                return
+            }
+            while isRefreshing, !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+            if !Task.isCancelled {
+                await refresh(reason: .serverEvent)
+            }
+            rateLimitEventRefreshTask = nil
+        }
     }
 
     func refresh(reason: RefreshReason) async {

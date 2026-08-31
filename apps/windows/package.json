@@ -1,6 +1,6 @@
 {
   "name": "@readycheck/windows",
-  "version": "0.1.86",
+  "version": "0.1.87",
   "private": true,
   "description": "ReadyCheck Windows desktop client preview.",
   "main": "src/main.js",
@@ -9,7 +9,7 @@
     "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node --check src/services/app-state.js && node --check src/services/codex-app-server.js && node --check src/services/history-store.js && node --check src/services/reminder-store.js && node --check src/services/oauth.js && node --check src/services/prefs-store.js && node --check src/services/safe-refresh.js && node --check src/services/token-store.js && node --check src/services/usage-client.js && node --check src/services/usage-parser.js && node tests/safe-refresh.test.js && node tests/oauth.test.js && node tests/codex-app-server.test.js && node tests/app-state-auth.test.js && node tests/history-store.test.js && node tests/reminder-store.test.js && node tests/usage-parser.test.js && node tests/usage-client.test.js",
     "smoke": "node tests/smoke.test.js",
     "smoke:ui": "node tests/ui-behavior.test.js",
-    "package:win": "electron-packager . ReadyCheck --platform=win32 --arch=x64 --out=../../dist/windows --overwrite --asar --prune=true --ignore='^tests($|/)'"
+    "package:win": "electron-packager . ReadyCheck --platform=win32 --arch=x64 --out=../../dist/windows --overwrite --asar --prune=true --ignore='^/(tests|node_modules)($|/)'"
   },
   "devDependencies": {
     "@electron/packager": "^18.3.6",

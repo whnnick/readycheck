@@ -8,7 +8,7 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Status: `0.1.86` is an early macOS preview. Codex OAuth is the only supported provider in this release. A Windows portable preview package is available for Windows 10/11 testing.
+> Status: `0.1.87` is an early macOS preview. Codex OAuth is the only supported provider in this release. A Windows portable preview package is available for Windows 10/11 testing.
 
 ## What It Does
 
@@ -17,7 +17,7 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
 - Uses the official local Codex app-server when available and signed in to the same account, including a 7/30/90-day account Token usage dashboard.
 - Provides a main window, menu-bar summary, and optional draggable desktop widget.
 - Adds an optional compact quota strip below the built-in display notch on supported Mac models.
-- Refreshes usage data manually or every 1, 3, or 5 minutes. Refreshes are read-only usage requests and do not call model inference endpoints.
+- Refreshes promptly when the official local Codex app-server reports a quota change, while retaining manual and 1, 3, or 5 minute read-only refreshes as a fallback. These refreshes do not call model inference endpoints.
 - Sends system reminders for an unused reset credit at 72, 48, 24, and 12 hours before expiration, or when exhausted quota begins consuming Codex Credits again.
 - Keeps the local quota-decrease dashboard as a clearly labelled fallback when official Token history is unavailable.
 - Stores OAuth credentials in the macOS Keychain.
@@ -27,9 +27,9 @@ ReadyCheck fails closed: when quota data cannot be read or validated, it shows a
 
 ## Install
 
-Download `ReadyCheck-0.1.86-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
+Download `ReadyCheck-0.1.87-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
 
-For Windows 10/11 preview testing, download `ReadyCheck-0.1.86-windows-x64-portable.zip` from the same release, unzip it, and run `ReadyCheck.exe`.
+For Windows 10/11 preview testing, download `ReadyCheck-0.1.87-windows-x64-portable.zip` from the same release, unzip it, and run `ReadyCheck.exe`.
 
 The preview build uses a stable self-signed ReadyCheck identity but is not Developer ID signed or notarized. macOS may require you to confirm the first launch in **System Settings > Privacy & Security**. See [installation details](docs/INSTALL.md).
 
@@ -51,7 +51,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The DMG is written to `dist/ReadyCheck-0.1.86-macos.dmg`.
+The DMG is written to `dist/ReadyCheck-0.1.87-macos.dmg`.
 
 ## Windows Preview Development
 

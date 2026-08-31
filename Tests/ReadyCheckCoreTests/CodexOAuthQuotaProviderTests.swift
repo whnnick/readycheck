@@ -10,11 +10,13 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         let earlyAutomatic = await gate.shouldRefresh(reason: .automatic, now: start.addingTimeInterval(60))
         let dueAutomatic = await gate.shouldRefresh(reason: .automatic, now: start.addingTimeInterval(900))
         let manual = await gate.shouldRefresh(reason: .manual, now: start.addingTimeInterval(901))
+        let serverEvent = await gate.shouldRefresh(reason: .serverEvent, now: start.addingTimeInterval(902))
 
         XCTAssertTrue(openedPanel)
         XCTAssertFalse(earlyAutomatic)
         XCTAssertTrue(dueAutomatic)
         XCTAssertTrue(manual)
+        XCTAssertTrue(serverEvent)
     }
 
     func testProviderPrefersMatchingOfficialAppServerSnapshot() async throws {

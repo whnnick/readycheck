@@ -43,6 +43,123 @@ class CodexAppServerClient {
   }
 }
 
+class CodexAppServerRateLimitMonitor {
+  constructor(options = {}) {
+    this.executablePath = options.executablePath || null;
+    this.reconnectDelayMs = options.reconnectDelayMs || 30_000;
+    this.spawnProcess = options.spawnProcess || spawn;
+    this.processHandle = null;
+    this.reconnectTimer = null;
+    this.running = false;
+    this.onRateLimitsUpdated = null;
+  }
+
+  start(onRateLimitsUpdated) {
+    if (this.running) {
+      return;
+    }
+    this.running = true;
+    this.onRateLimitsUpdated = onRateLimitsUpdated;
+    this.launch();
+  }
+
+  stop() {
+    this.running = false;
+    this.onRateLimitsUpdated = null;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    const child = this.processHandle;
+    this.processHandle = null;
+    if (child && !child.killed) {
+      child.kill();
+    }
+  }
+
+  launch() {
+    if (!this.running || this.processHandle) {
+      return;
+    }
+    const executablePath = this.executablePath || discoverCodexExecutable();
+    if (!executablePath) {
+      this.scheduleReconnect();
+      return;
+    }
+
+    let child;
+    try {
+      child = this.spawnProcess(executablePath, ["app-server", "--stdio"], {
+        stdio: ["pipe", "pipe", "ignore"],
+        windowsHide: true
+      });
+    } catch {
+      this.scheduleReconnect();
+      return;
+    }
+    this.processHandle = child;
+    let buffer = "";
+    let finished = false;
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      if (this.processHandle === child) {
+        this.processHandle = null;
+      }
+      this.scheduleReconnect();
+    };
+    const send = (message) => {
+      if (child.stdin && !child.stdin.destroyed) {
+        child.stdin.write(`${JSON.stringify(message)}\n`);
+      }
+    };
+
+    child.once("error", finish);
+    child.once("close", finish);
+    child.stdout.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => {
+      buffer += chunk;
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop() || "";
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const message = JSON.parse(line);
+          if (Number(message && message.id) === 1) {
+            send({ method: "initialized", params: {} });
+          } else if (message && message.method === "account/rateLimits/updated") {
+            this.onRateLimitsUpdated?.();
+          }
+        } catch {
+          // Ignore unrelated or malformed app-server output.
+        }
+      }
+    });
+    send({
+      method: "initialize",
+      id: 1,
+      params: {
+        clientInfo: {
+          name: "readycheck",
+          title: "ReadyCheck",
+          version
+        }
+      }
+    });
+  }
+
+  scheduleReconnect() {
+    if (!this.running || this.reconnectTimer) {
+      return;
+    }
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.launch();
+    }, this.reconnectDelayMs);
+  }
+}
+
 function discoverCodexExecutable(options = {}) {
   return discoverCodexExecutables(options)[0] || null;
 }
@@ -340,6 +457,7 @@ function newAppServerError(code, message) {
 
 module.exports = {
   CodexAppServerClient,
+  CodexAppServerRateLimitMonitor,
   discoverCodexExecutable,
   discoverCodexExecutables,
   normalizeAppServerResponses

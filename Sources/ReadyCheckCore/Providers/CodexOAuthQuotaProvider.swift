@@ -345,7 +345,7 @@ actor CodexSupplementalRefreshGate {
     }
 
     func shouldRefresh(reason: RefreshReason, now: Date) -> Bool {
-        if reason == .manual {
+        if reason == .manual || reason == .serverEvent {
             lastAttemptAt = now
             return true
         }

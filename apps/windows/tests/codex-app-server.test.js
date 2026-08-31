@@ -4,11 +4,43 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { EventEmitter } = require("node:events");
+const { PassThrough } = require("node:stream");
 const {
+  CodexAppServerRateLimitMonitor,
   discoverCodexExecutable,
   discoverCodexExecutables,
   normalizeAppServerResponses
 } = require("../src/services/codex-app-server");
+
+async function testRateLimitMonitor() {
+  const child = new EventEmitter();
+  child.stdin = new PassThrough();
+  child.stdout = new PassThrough();
+  child.killed = false;
+  child.kill = () => {
+    child.killed = true;
+  };
+
+  let eventCount = 0;
+  const monitor = new CodexAppServerRateLimitMonitor({
+    executablePath: "fake-codex",
+    reconnectDelayMs: 10_000,
+    spawnProcess: () => child
+  });
+  monitor.start(() => {
+    eventCount += 1;
+  });
+
+  child.stdout.write('{"id":1,"result":{}}\n');
+  child.stdout.write('{"method":"account/updated","params":{}}\n');
+  child.stdout.write('{"method":"account/rateLimits/updated","params":{}}\n');
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(eventCount, 1);
+  monitor.stop();
+  assert.equal(child.killed, true);
+}
 
 const snapshot = normalizeAppServerResponses(
   {
@@ -131,3 +163,8 @@ assert.deepEqual(discoverCodexExecutables({
 fs.rmSync(temporaryDirectory, { recursive: true, force: true });
 
 console.log("Windows Codex app-server checks passed.");
+
+testRateLimitMonitor().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

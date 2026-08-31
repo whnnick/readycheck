@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.87 - 2026-08-31
+
+- Refresh quota data promptly when the official Codex app-server emits `account/rateLimits/updated`, with matching macOS and Windows behavior.
+- Keep the existing one-minute polling schedule as a compatibility and reconnection fallback.
+- Debounce event bursts and wait for an active refresh to finish before reading official quota data again, without invoking model inference.
+- Exclude tests and build-only Node dependencies from the Windows portable runtime archive.
+
 ## 0.1.86 - 2026-08-23
 
 - Preserve official multi-bucket labels and server-classified limit states across macOS and Windows.

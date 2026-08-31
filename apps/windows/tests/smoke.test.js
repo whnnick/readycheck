@@ -32,6 +32,7 @@ const packageJSON = JSON.parse(fs.readFileSync(path.join(appRoot, "package.json"
 assert.equal(packageJSON.main, "src/main.js");
 assert.equal(typeof packageJSON.scripts.start, "string");
 assert.equal(typeof packageJSON.scripts.check, "string");
+assert.equal(packageJSON.scripts["package:win"].includes("^/(tests|node_modules)"), true);
 
 const widgetHTML = fs.readFileSync(path.join(appRoot, "src/widget.html"), "utf8");
 assert.equal(widgetHTML.includes("<select"), false, "widget should not use native select controls");

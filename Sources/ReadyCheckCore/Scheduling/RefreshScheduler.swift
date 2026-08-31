@@ -39,7 +39,7 @@ public struct RefreshScheduler: Equatable, Sendable {
     }
 
     public func shouldRefresh(lastRefresh: Date?, now: Date, reason: RefreshReason) -> Bool {
-        if reason == .manual || reason == .openedPanel {
+        if reason == .manual || reason == .openedPanel || reason == .serverEvent {
             return true
         }
         guard let lastRefresh else {

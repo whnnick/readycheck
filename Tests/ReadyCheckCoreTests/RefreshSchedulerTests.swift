@@ -28,6 +28,14 @@ final class RefreshSchedulerTests: XCTestCase {
         XCTAssertTrue(scheduler.shouldRefresh(lastRefresh: lastRefresh, now: now, reason: .openedPanel))
     }
 
+    func testServerEventRefreshIsAlwaysAllowedBeforeInterval() {
+        let scheduler = RefreshScheduler(policy: RefreshPolicy(interval: 60))
+        let lastRefresh = Date(timeIntervalSince1970: 100)
+        let now = Date(timeIntervalSince1970: 110)
+
+        XCTAssertTrue(scheduler.shouldRefresh(lastRefresh: lastRefresh, now: now, reason: .serverEvent))
+    }
+
     func testAutomaticRefreshWaitsForInterval() {
         let scheduler = RefreshScheduler(policy: RefreshPolicy(interval: 60))
         let lastRefresh = Date(timeIntervalSince1970: 100)
