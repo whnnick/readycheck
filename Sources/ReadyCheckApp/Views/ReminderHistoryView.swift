@@ -118,6 +118,13 @@ private struct ReminderHistoryRow: View {
                         .foregroundStyle(.secondary)
                 }
 
+                if record.status == .legacyUnknown {
+                    Text(localization.text("notification.history.legacyExplanation"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 HStack(spacing: 6) {
                     if let timestamp = record.lastAttemptAt {
                         Text(Self.dateFormatter(language: localization.language).string(from: timestamp))
@@ -135,6 +142,7 @@ private struct ReminderHistoryRow: View {
 
             Text(statusText)
                 .font(.caption.weight(.semibold))
+                .fixedSize(horizontal: true, vertical: false)
                 .foregroundStyle(statusColor)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)

@@ -4,6 +4,13 @@
 
 Use this checklist before publishing a preview build or when validating a user-reported regression. Do not paste tokens, callback URLs, account IDs, or raw usage payloads into public issues.
 
+## 0.1.88 Historical Notification Regression
+
+- Legacy records show "Past delivery unverified" with an explanation of missing evidence, not delivery success or a reset-credit reading failure.
+- Current reset expirations and past reminders remain distinct; old notifications do not determine currently available credits.
+- Verify wrapping and status visibility in both languages, in the summary and full history.
+- Automated coverage: localization completeness, legacy history migration, and Windows UI smoke. Native Windows visual acceptance still requires a Windows machine.
+
 ## macOS Installation And Update
 
 1. Install the latest DMG on a Mac that does not already have ReadyCheck running.

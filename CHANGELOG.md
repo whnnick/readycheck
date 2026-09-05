@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.88 - 2026-09-05
+
+- Clarify historical notification records on macOS and Windows: unverified past delivery does not mean reset credits could not be read.
+- Explain missing delivery evidence without changing historical outcomes, reset-credit data, or reminder scheduling.
+
 ## 0.1.87 - 2026-08-31
 
 - Refresh quota data promptly when the official Codex app-server emits `account/rateLimits/updated`, with matching macOS and Windows behavior.

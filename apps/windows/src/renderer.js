@@ -169,7 +169,10 @@ function notificationHistoryMarkup(records, isEnglish) {
     const attempt = record.lastAttemptAt
       ? `<span>${formatNotificationHistoryDate(record.lastAttemptAt, isEnglish)}${record.attemptCount > 1 ? ` · ${isEnglish ? `${record.attemptCount} attempts` : `尝试 ${record.attemptCount} 次`}` : ""}</span>`
       : "";
-    return `<article class="notification-history-row"><span class="notification-history-icon ${record.status}">${status.icon}</span><div class="notification-history-copy"><strong>${title}</strong>${expiry}${attempt}</div><span class="notification-history-status ${record.status}">${status.label}</span></article>`;
+    const explanation = record.status === "legacyUnknown"
+      ? `<span>${isEnglish ? "The older app did not save delivery evidence. This does not indicate a reset-credit reading failure." : "旧版未保存送达凭证，不代表重置读取失败。"}</span>`
+      : "";
+    return `<article class="notification-history-row"><span class="notification-history-icon ${record.status}">${status.icon}</span><div class="notification-history-copy"><strong>${title}</strong>${expiry}${explanation}${attempt}</div><span class="notification-history-status ${record.status}">${status.label}</span></article>`;
   }).join("");
 }
 
@@ -180,7 +183,7 @@ function notificationHistoryStatus(status, isEnglish) {
   if (status === "failed") {
     return { icon: "!", label: isEnglish ? "Delivery failed" : "投递失败" };
   }
-  return { icon: "?", label: isEnglish ? "Legacy status unknown" : "旧版状态不可确认" };
+  return { icon: "?", label: isEnglish ? "Past delivery unverified" : "历史送达未验证" };
 }
 
 function formatNotificationHistoryDate(value, isEnglish) {

@@ -77,7 +77,9 @@ assert.match(styles, /button\.usage-metric\.selected\s*\{[^}]*border-color:\s*tr
 assert.match(renderer, /function renderNotificationHistory\(state\)/);
 assert.match(renderer, /Windows 已显示/);
 assert.match(renderer, /testNotification\(\)/);
-assert.match(renderer, /旧版状态不可确认/);
+assert.match(renderer, /历史送达未验证/);
+assert.match(renderer, /旧版未保存送达凭证，不代表重置读取失败/);
+assert.match(renderer, /record.status === "legacyUnknown"/);
 assert.match(renderer, /notificationHistoryDialog\.showModal\(\)/);
 assert.match(styles, /\.notification-history-row\s*\{[^}]*grid-template-columns:/s);
 
