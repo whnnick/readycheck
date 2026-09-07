@@ -81,8 +81,7 @@ struct NotchStatusView: View {
 
     private var displayedWindow: QuotaWindow? {
         let windows = snapshot?.windows.filter(QuotaWindowPresentation.shouldShow) ?? []
-        return windows.first(where: { $0.labelKey == "quota.window.codex.7d" })
-            ?? windows.first
+        return windows.first { model.notchQuotaSelection.matches(labelKey: $0.labelKey) }
     }
 
     private var displayedRatio: Double? {
@@ -91,14 +90,7 @@ struct NotchStatusView: View {
     }
 
     private var displayedWindowLabel: String {
-        switch displayedWindow?.labelKey {
-        case "quota.window.codex.7d", "quota.sevenDay":
-            "7d"
-        case "quota.window.codex.5h", "quota.fiveHour":
-            "5h"
-        default:
-            "Limit"
-        }
+        model.notchQuotaSelection.shortLabel
     }
 
     private var quotaItem: some View {

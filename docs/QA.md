@@ -4,6 +4,13 @@
 
 Use this checklist before publishing a preview build or when validating a user-reported regression. Do not paste tokens, callback URLs, account IDs, or raw usage payloads into public issues.
 
+## 0.1.89 Notch Quota Selection
+
+- Verified: 164 Swift tests passed, covering the seven-day default, persistence, and exact window matching. Windows check, smoke, and UI smoke passed before packaging.
+- Native check: both options fit beside the notch toggle; selecting five-hour updates the control. Installed version is 0.1.89.
+- Remaining acceptance: compare the notch value with the selected window, switch back to seven-day, verify persistence after relaunch, missing-window behavior, and English layout.
+- Windows only receives the synchronized version, not notch support. No quota fetching, polling, or notification behavior is changed.
+
 ## 0.1.88 Historical Notification Regression
 
 - Legacy records show "Past delivery unverified" with an explanation of missing evidence, not delivery success or a reset-credit reading failure.

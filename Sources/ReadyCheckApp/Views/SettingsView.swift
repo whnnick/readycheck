@@ -240,6 +240,7 @@ struct SettingsView: View {
     }
 
     private var notchControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
         HStack(spacing: 10) {
             Image(systemName: "macbook")
                 .imageScale(.medium)
@@ -253,6 +254,18 @@ struct SettingsView: View {
                 .toggleStyle(.switch)
                 .disabled(!model.notchStatusAvailable)
 
+            Picker(model.localization.text("settings.notchQuota"), selection: $model.notchQuotaSelection) {
+                ForEach(NotchQuotaSelection.allCases, id: \.self) { selection in
+                    Text(model.localization.text(selection.labelKey)).tag(selection)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .frame(width: 200)
+            .disabled(!model.notchStatusAvailable)
+
+            Spacer(minLength: 0)
+        }
             Text(
                 model.localization.text(
                     model.notchStatusAvailable
@@ -262,9 +275,7 @@ struct SettingsView: View {
             )
             .font(.caption)
             .foregroundStyle(.secondary)
-            .lineLimit(1)
-
-            Spacer(minLength: 0)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .controlSize(.small)
         .help(model.localization.text("settings.notchStatusHelp"))

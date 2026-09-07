@@ -192,6 +192,9 @@ final class ReadyCheckAppModel {
             WidgetDisplayModePreference.set(widgetDisplayMode)
         }
     }
+    var notchQuotaSelection = NotchQuotaSelection.value() {
+        didSet { notchQuotaSelection.persist() }
+    }
     var notchStatusVisible: Bool = UserDefaults.standard.bool(forKey: notchStatusVisibleDefaultsKey) {
         didSet {
             guard notchStatusVisible != oldValue else { return }

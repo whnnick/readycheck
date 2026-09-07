@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.89 - 2026-09-06
+
+- Add a persistent 5-hour / 7-day quota selector beside the macOS notch toggle. The selected window drives its label, percentage, progress color, and availability dot.
+- Keep 7-day as the default; show unavailable data instead of silently substituting another quota window.
+- Windows version synchronized; notch remains macOS-only.
+
 ## 0.1.88 - 2026-09-05
 
 - Clarify historical notification records on macOS and Windows: unverified past delivery does not mean reset credits could not be read.
