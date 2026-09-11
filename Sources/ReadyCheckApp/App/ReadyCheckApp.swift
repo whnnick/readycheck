@@ -57,9 +57,9 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         showMainWindow()
         Task {
             await appModel.requestNotificationAuthorizationIfNeeded()
-            await appModel.reloadCodexOAuthConnectionStatus()
             await appModel.reloadQuotaHistory()
             await appModel.reloadReminderHistory()
+            await appModel.reloadCodexOAuthConnectionStatus()
             await appModel.refresh(reason: .openedPanel)
             appModel.startRateLimitMonitoring()
             await appModel.checkForUpdates(isManual: false)
@@ -223,6 +223,10 @@ final class ReadyCheckAppModel {
     }
     var snapshots: [ProviderQuotaSnapshot] = []
     var quotaHistorySamples: [QuotaHistorySample] = []
+    var recoveryReminderRequest: QuotaRecoveryRequest?
+    var recoveryReminderSaveFailed = false
+    var isUpdatingRecoveryReminder = false
+    private var recoveryReminderAccount: String?
     var reminderHistoryRecords: [QuotaReminderHistoryRecord] = []
     var notificationReadiness: NotificationReadiness = .checking
     var testNotificationResult: TestNotificationResult = .idle
@@ -448,6 +452,31 @@ final class ReadyCheckAppModel {
         isSyncingWidgetVisibilityFromWindow = false
     }
 
+    var isRetryingCredentialRead = false
+
+    func retryCredentialRead() async {
+        guard !isRetryingCredentialRead else { return }
+        isRetryingCredentialRead = true
+        defer { isRetryingCredentialRead = false }
+        do {
+            let tokenStore = CodexOAuthTokenStore(credentialStore: KeychainCredentialStore(allowsInteraction: true))
+            if let token = try await tokenStore.loadToken() {
+                codexOAuthStatus = .connected
+                codexOAuthStatusMessage = nil
+                codexOAuthLoginEmail = token.loginEmail
+                await updateRecoveryReminderAccount(token.accountID)
+                await refresh(reason: .manual)
+            } else {
+                codexOAuthStatus = .notConnected
+                codexOAuthStatusMessage = nil
+                codexOAuthLoginEmail = nil
+            }
+        } catch {
+            codexOAuthStatus = .credentialStorageFailed
+            codexOAuthStatusMessage = codexOAuthMessage(for: error)
+        }
+    }
+
     func reloadCodexOAuthConnectionStatus() async {
         do {
             let tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)
@@ -455,6 +484,7 @@ final class ReadyCheckAppModel {
                 codexOAuthStatus = .connected
                 codexOAuthStatusMessage = nil
                 codexOAuthLoginEmail = token.loginEmail
+                await updateRecoveryReminderAccount(token.accountID)
             } else if !isCodexOAuthCallbackInputVisible {
                 codexOAuthStatus = .notConnected
                 codexOAuthStatusMessage = nil
@@ -511,6 +541,7 @@ final class ReadyCheckAppModel {
             let token = try await authorizer.complete(callbackURL: callback, session: session)
             if normalizedEmail(codexOAuthLoginEmail) != normalizedEmail(token.loginEmail) {
                 await quotaReminderStore.clearKnownManualResetExpirations()
+                await cancelRecoveryReminder()
             }
             pendingCodexOAuthSession = nil
             codexOAuthCallbackURL = ""
@@ -518,6 +549,7 @@ final class ReadyCheckAppModel {
             codexOAuthProviderEnabled = true
             codexOAuthStatus = .connected
             codexOAuthLoginEmail = token.loginEmail
+            await updateRecoveryReminderAccount(token.accountID)
             wasConnectedBeforePendingAuthorization = false
             await refresh(reason: .manual)
         } catch {
@@ -556,6 +588,8 @@ final class ReadyCheckAppModel {
             )
             try await authorizer.disconnect()
             await quotaReminderStore.clearKnownManualResetExpirations()
+            await cancelRecoveryReminder()
+            recoveryReminderAccount = nil
             pendingCodexOAuthSession = nil
             codexOAuthCallbackURL = ""
             stopCodexOAuthCallbackServer()
@@ -791,13 +825,14 @@ final class ReadyCheckAppModel {
         lastRefreshAt = refreshCompletedAt
         for snapshot in snapshots where snapshot.providerId == "codex-oauth" && snapshot.status == .available {
             quotaHistorySamples = await quotaHistoryStore.record(snapshot)
-            let reminderBatch = await quotaReminderStore.prepare(snapshot)
+            let reminderBatch = await quotaReminderStore.prepare(snapshot, account: recoveryReminderAccount)
             let deliveredEvents = await quotaNotificationService.deliver(
                 reminderBatch.events,
                 localization: localization
             )
             await quotaReminderStore.commit(reminderBatch, deliveredEvents: deliveredEvents)
             reminderHistoryRecords = await quotaReminderStore.history()
+            recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
         }
     }
 
@@ -807,6 +842,38 @@ final class ReadyCheckAppModel {
 
     func reloadReminderHistory() async {
         reminderHistoryRecords = await quotaReminderStore.history()
+        recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
+    }
+
+    private func updateRecoveryReminderAccount(_ account: String?) async {
+        recoveryReminderAccount = account
+        if let request = await quotaReminderStore.recoveryRequest(), request.account != account {
+            await cancelRecoveryReminder()
+        }
+    }
+
+    func canArmRecoveryReminder(_ snapshot: ProviderQuotaSnapshot, now: Date) -> Bool {
+        codexOAuthStatus == .connected && recoveryReminderAccount?.isEmpty == false
+            && QuotaRecoveryRequest.canArm(snapshot, now: now)
+    }
+
+    func armRecoveryReminder() async {
+        guard !isUpdatingRecoveryReminder, !isRefreshing,
+              let snapshot = snapshots.first(where: { $0.providerId == "codex-oauth" }),
+              canArmRecoveryReminder(snapshot, now: Date()),
+              let account = recoveryReminderAccount else { return }
+        isUpdatingRecoveryReminder = true
+        defer { isUpdatingRecoveryReminder = false }
+        let request = QuotaRecoveryRequest(account: account, snapshot: snapshot)
+        recoveryReminderSaveFailed = !(await quotaReminderStore.setRecoveryRequest(request))
+        recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
+        await quotaNotificationService.requestAuthorizationIfNeeded()
+        notificationReadiness = await quotaNotificationService.readiness()
+    }
+
+    func cancelRecoveryReminder() async {
+        recoveryReminderSaveFailed = !(await quotaReminderStore.setRecoveryRequest(nil))
+        recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
     }
 
     private func normalizedEmail(_ email: String?) -> String? {

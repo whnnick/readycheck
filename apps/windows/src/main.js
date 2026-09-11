@@ -283,8 +283,8 @@ async function deliverTestNotification(language) {
   const isEnglish = language === "en";
   const delivered = await new Promise((resolve) => {
     const notification = new Notification(isEnglish
-      ? { title: "ReadyCheck notifications are working", body: "Windows displayed this test notification." }
-      : { title: "ReadyCheck 通知正常", body: "Windows 已显示这条测试通知。" });
+      ? { title: "ReadyCheck test notification", body: "If you can see this alert, desktop notifications are visible." }
+      : { title: "ReadyCheck 测试通知", body: "看到这条提醒，表示桌面通知可以显示。" });
     let settled = false;
     const finish = (value) => {
       if (settled) return;

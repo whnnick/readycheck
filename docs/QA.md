@@ -4,6 +4,48 @@
 
 Use this checklist before publishing a preview build or when validating a user-reported regression. Do not paste tokens, callback URLs, account IDs, or raw usage payloads into public issues.
 
+## 0.1.91 Quota recovery reminders
+
+Product requirement: opt in after quota exhaustion, then receive one notification when fresh verified data confirms recovery. Entry points and usage are in the [README](../README.md#quota-recovery-reminders-macos-0191).
+
+| Requirement | Status | Evidence / acceptance |
+| --- | --- | --- |
+| Main-window and menu-bar opt-in; cancellation | Implemented | Shared SwiftUI control; shown only for verified zero quota, with pending state and notification-settings recovery |
+| Confirm actual recovery | Automated | Every originally tracked window must remain present; all current windows must have verified remaining quota and no reported limit state; reject stale, missing, estimated, failed, older or same-time snapshots |
+| Persist and deliver once | Automated | Reopen store, retry failures under one request ID, commit success, preserve cancellation/new request during in-flight commit |
+| Account isolation and write failures | Implemented / automated core | Match account ID, clear on account change/disconnect, report write failure; live account-switch acceptance remains pending |
+| Bilingual UI | Implemented | Chinese and English labels, pending explanation, cancellation, notification history |
+| Windows recovery reminder | Not implemented | Shared version number only |
+
+Validation: 174 Swift tests passed, including six recovery tests. Full OAuth loopback tests require localhost permission outside the restricted sandbox. Version-reference and whitespace checks passed.
+
+Local package: the standard DMG script succeeded using the stable preview signing identity. Synthetic-data UI acceptance used the actual quota card and recovery control with a test model: both languages showed the enable/wait/cancel states correctly at menu-bar width. This did not access a live account or send system notifications.
+
+Installed-package verification on 2026-09-11: after Retry reading restored the existing Keychain credential, a full quit/relaunch automatically restored the account, live quota and official Token history without another retry.
+
+Real-environment acceptance before release:
+
+1. With an actually exhausted account, enable the reminder from each entry point; cancel, rearm and restart the final installed app.
+2. Verify no reminder while only one of several windows recovers, or while offline/asleep. After resume, refresh must confirm recovery before sending.
+3. On actual recovery, inspect notification-center delivery and history, confirm no repeat on later refresh/relaunch, and visually check foreground/background banners under the user's notification settings.
+4. Switch accounts or disconnect with a pending request; verify it cannot notify for another account.
+5. Repeat with notifications denied, then enabled. Confirm the settings action and retry behavior.
+
+Preview limitation: final installed-package end-to-end quota recovery and system notification acceptance remain pending; local tests and synthetic UI checks do not establish real delivery. This limitation is disclosed for the 0.1.91 preview release. The installed 0.1.91 app launches; upgrading can require a Keychain access confirmation via Retry reading.
+
+## 0.1.90 Notification Visibility
+
+- Follow-up repair: background reads now return an authentication error instead of waiting indefinitely; history loads and an explicit read-retry button is available. 168 tests passed.
+- The final repaired build recovered account/quota after explicit retry. On 2026-09-07, quitting and relaunching that same installation restored account, quota, and official Token history without another retry. The local startup blocker is resolved; first access after an upgrade may still require system Keychain confirmation. Silent upgrades on all machines are not guaranteed.
+
+- Historical issue: the original build stalled in Keychain SecItemCopyMatching and was rolled back to 0.1.89. The repair above passed local recovery and relaunch acceptance. Public delivery still requires the standard Release workflow.
+- 166 Swift tests and Windows check/smoke/UI smoke passed. Native status copy and the test notification's Notification Center record were verified; persistent banners still await user-approved configuration and visual verification.
+
+- Native inspection found temporary alerts and notification suppression during screen sharing. These can explain missed alerts, but do not prove suppression of a particular past notification.
+- Automated coverage includes persistent, temporary, no style, disabled alerts, provisional authorization, and denied authorization.
+- Native acceptance: with user approval select persistent alerts and visually verify a test remains visible; check foreground, background, and Focus without changing global privacy settings.
+- Keep one alert per Credits consumption episode; do not repeatedly resend delivered notifications merely because visibility is unknown.
+
 ## 0.1.89 Notch Quota Selection
 
 - Verified: 164 Swift tests passed, covering the seven-day default, persistence, and exact window matching. Windows check, smoke, and UI smoke passed before packaging.

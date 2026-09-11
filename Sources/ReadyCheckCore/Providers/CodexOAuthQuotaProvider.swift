@@ -40,7 +40,13 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             reason: context.reason,
             now: date
         )
-        guard var token = try await tokenStore.loadToken() else {
+        let storedToken: CodexOAuthToken?
+        do {
+            storedToken = try await tokenStore.loadToken()
+        } catch is KeychainCredentialStoreError {
+            return snapshot(date: date, error: "oauth.error.keychainUnavailable")
+        }
+        guard var token = storedToken else {
             return snapshot(date: date, error: "quota.error.oauthRequired")
         }
 

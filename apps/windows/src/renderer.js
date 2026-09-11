@@ -821,7 +821,7 @@ function wireEvents() {
       elements.notificationTestButton.textContent = isEnglish ? "Testing..." : "测试中…";
       const result = await window.readyCheck.testNotification();
       elements.notificationTestButton.textContent = result.delivered
-        ? (isEnglish ? "Delivered" : "推送成功")
+        ? (isEnglish ? "Windows reported shown" : "Windows 已报告显示")
         : (isEnglish ? "Check settings" : "检查设置");
       elements.notificationTestButton.disabled = false;
     });

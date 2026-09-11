@@ -3,11 +3,13 @@ import Foundation
 public enum QuotaReminderEvent: Equatable, Hashable, Sendable {
     case manualResetExpiring(index: Int, expiresAt: Date, leadHours: Int)
     case creditsStarted
+    case quotaRecovered(requestID: String)
 }
 
 public enum QuotaReminderHistoryKind: String, Codable, Equatable, Sendable {
     case manualResetExpiring
     case creditsStarted
+    case quotaRecovered
 }
 
 public enum QuotaReminderDeliveryStatus: String, Codable, Equatable, Sendable {
@@ -51,6 +53,7 @@ public struct QuotaReminderHistoryRecord: Codable, Equatable, Identifiable, Send
 }
 
 public struct QuotaReminderState: Codable, Equatable, Sendable {
+    public var recoveryRequest: QuotaRecoveryRequest?
     public var notifiedManualResetExpirations: [Int64]
     public var notifiedManualResetThresholds: [String]?
     public var knownManualResetExpirations: [Int64]?
@@ -116,7 +119,8 @@ public enum QuotaReminderEvaluator {
     public static func evaluate(
         snapshot: ProviderQuotaSnapshot,
         now: Date,
-        state originalState: QuotaReminderState
+        state originalState: QuotaReminderState,
+        account: String? = nil
     ) -> QuotaReminderEvaluation {
         guard snapshot.status == .available else {
             return QuotaReminderEvaluation(state: originalState, events: [])
@@ -124,6 +128,11 @@ public enum QuotaReminderEvaluator {
 
         var state = originalState
         var events: [QuotaReminderEvent] = []
+        if let request = state.recoveryRequest,
+           request.isRecovered(snapshot, account: account, now: now) {
+            events.append(.quotaRecovered(requestID: request.id))
+            state.recoveryRequest = nil
+        }
         let nowTimestamp = Int64(now.timeIntervalSince1970.rounded())
         var notifiedThresholds = Set(
             (state.notifiedManualResetThresholds ?? []).filter {
@@ -312,13 +321,15 @@ public actor QuotaReminderStore {
 
     public func prepare(
         _ snapshot: ProviderQuotaSnapshot,
-        now: Date = Date()
+        now: Date = Date(),
+        account: String? = nil
     ) -> QuotaReminderDeliveryBatch {
         let previousState = migrateHistoryIfNeeded(load())
         let evaluation = QuotaReminderEvaluator.evaluate(
             snapshot: snapshot,
             now: now,
-            state: previousState
+            state: previousState,
+            account: account
         )
         return QuotaReminderDeliveryBatch(
             previousState: previousState,
@@ -347,6 +358,8 @@ public actor QuotaReminderStore {
                     + previousThresholds.filter {
                         QuotaReminderEvaluator.thresholdMatchesExpiration($0, timestamp: timestamp)
                     }
+            case .quotaRecovered:
+                state.recoveryRequest = previousState.recoveryRequest
             case .creditsStarted:
                 state.previousCreditBalance = previousState.previousCreditBalance
                 state.creditsReminderSentForCurrentExhaustion = previousState.creditsReminderSentForCurrentExhaustion
@@ -364,8 +377,25 @@ public actor QuotaReminderStore {
             )
         }
 
+        // A user may cancel or replace a request while system delivery is awaiting confirmation.
+        let currentRequest = load().recoveryRequest
+        if currentRequest?.id != batch.previousState.recoveryRequest?.id {
+            state.recoveryRequest = currentRequest
+        }
         state.notifiedManualResetThresholds = Array(Set(state.notifiedManualResetThresholds ?? [])).sorted()
         save(state)
+    }
+
+    public func recoveryRequest() -> QuotaRecoveryRequest? {
+        load().recoveryRequest
+    }
+
+    @discardableResult
+    public func setRecoveryRequest(_ request: QuotaRecoveryRequest?) -> Bool {
+        var state = migrateHistoryIfNeeded(load())
+        state.recoveryRequest = request
+        save(state)
+        return load().recoveryRequest == request
     }
 
     public func history() -> [QuotaReminderHistoryRecord] {
@@ -497,6 +527,12 @@ public actor QuotaReminderStore {
             expiresAt = expiration
             leadHours = hours
             resetIndex = index
+        case let .quotaRecovered(requestID):
+            recordID = "recovery:\(requestID)"
+            kind = .quotaRecovered
+            expiresAt = nil
+            leadHours = nil
+            resetIndex = nil
         case .creditsStarted:
             recordID = "credits:\(cycleKey ?? "unknown")"
             kind = .creditsStarted

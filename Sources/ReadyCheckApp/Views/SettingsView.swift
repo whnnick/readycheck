@@ -372,6 +372,7 @@ struct SettingsView: View {
         switch model.notificationReadiness {
         case .checking: model.localization.text("notification.settings.checking")
         case .ready: model.localization.text("notification.settings.ready")
+        case .temporary: model.localization.text("notification.settings.temporary")
         case .alertsDisabled: model.localization.text("notification.settings.alertsDisabled")
         case .denied: model.localization.text("notification.settings.denied")
         }
@@ -381,7 +382,7 @@ struct SettingsView: View {
         switch model.notificationReadiness {
         case .checking: "clock"
         case .ready: "checkmark.circle.fill"
-        case .alertsDisabled, .denied: "exclamationmark.triangle.fill"
+        case .temporary, .alertsDisabled, .denied: "exclamationmark.triangle.fill"
         }
     }
 
@@ -389,7 +390,7 @@ struct SettingsView: View {
         switch model.notificationReadiness {
         case .checking: .secondary
         case .ready: .green
-        case .alertsDisabled, .denied: .orange
+        case .temporary, .alertsDisabled, .denied: .orange
         }
     }
 
@@ -559,10 +560,13 @@ struct SettingsView: View {
 
                 if shouldShowConnectButton {
                     Button(connectButtonTitle) {
-                        if let url = model.beginCodexOAuthConnection() {
+                        if model.codexOAuthStatus == .credentialStorageFailed {
+                            Task { await model.retryCredentialRead() }
+                        } else if let url = model.beginCodexOAuthConnection() {
                             NSWorkspace.shared.open(url)
                         }
                     }
+                    .disabled(model.isRetryingCredentialRead)
                 }
 
                 if shouldShowCancelAuthorizationButton {
@@ -672,6 +676,7 @@ struct SettingsView: View {
                             now: now,
                             displayMode: .full
                         )
+                        QuotaRecoveryReminderView(model: model, snapshot: snapshot, now: now)
 
                         quotaRecoveryActions(for: snapshot)
                     }
@@ -790,7 +795,10 @@ struct SettingsView: View {
     }
 
     private var connectButtonTitle: String {
-        model.codexOAuthStatus == .credentialStorageFailed || model.codexOAuthStatus == .failed
+        if model.codexOAuthStatus == .credentialStorageFailed {
+            return model.localization.text("oauth.retryCredentialRead")
+        }
+        return model.codexOAuthStatus == .failed
             ? model.localization.text("action.retryAuthorization")
             : model.localization.text("action.connect")
     }

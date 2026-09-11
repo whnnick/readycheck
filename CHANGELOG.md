@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.1.91 - 2026-09-11
+
+- macOS: opt in to a one-time quota recovery notification from the main window or menu bar. Wait for verified remaining quota in every tracked window; persist requests, support cancellation, retry failed delivery, and isolate accounts.
+- Windows: version synchronized; recovery reminders are not implemented in this preview.
+
+## 0.1.90 - 2026-09-07
+
+- Serialize Keychain operations and disable authentication UI only during background legacy-Keychain reads, restoring the process flag afterward. Preserve history loading and provide an explicit credential-read retry instead of forcing OAuth again.
+
+- Distinguish persistent, temporary, and disabled macOS alerts using the actual notification style; recommend persistent alerts for Credits reminders.
+- Retain foreground notifications in Notification Center as well as requesting banners and sound.
+- Clarify macOS and Windows test-notification messages: system delivery evidence is not proof that the user saw a banner. Focus, sharing, and sleep settings remain respected.
+
 ## 0.1.89 - 2026-09-06
 
 - Add a persistent 5-hour / 7-day quota selector beside the macOS notch toggle. The selected window drives its label, percentage, progress color, and availability dot.

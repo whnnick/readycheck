@@ -175,6 +175,7 @@ final class LocalizationServiceTests: XCTestCase {
             "notification.history.legacyExplanation",
             "notification.history.disclaimer",
             "notification.settings.ready",
+            "notification.settings.temporary",
             "notification.settings.denied",
             "notification.settings.help",
             "notification.settings.open",

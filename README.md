@@ -8,7 +8,7 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Status: `0.1.89` is an early macOS preview. Codex OAuth is the only supported provider in this release. A Windows portable preview package is available for Windows 10/11 testing.
+> Status: `0.1.91` is an early preview. Codex OAuth is the only supported provider. Recovery reminders are macOS-only; a Windows 10/11 portable preview is also available.
 
 ## What It Does
 
@@ -25,11 +25,17 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
 
 ReadyCheck fails closed: when quota data cannot be read or validated, it shows an unavailable state instead of estimating a percentage.
 
+## Quota recovery reminders (macOS 0.1.91)
+
+When verified quota reaches zero, choose **Notify when quota returns** in the main window or menu bar. Keep ReadyCheck running: it notifies once after fresh data confirms remaining quota in all tracked windows and no reported limit state. You can cancel at any time; requests survive restarts and are cleared when switching accounts or disconnecting. System notification settings still apply.
+
+Windows only shares the version number for this feature. See the [feature and black-box checklist](docs/QA.md#0191-quota-recovery-reminders).
+
 ## Install
 
-Download `ReadyCheck-0.1.89-macos.dmg` from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
+Download the published macOS DMG from the [latest release](https://github.com/whnnick/readycheck/releases/latest), open the DMG, and drag `ReadyCheck.app` to Applications.
 
-For Windows 10/11 preview testing, download `ReadyCheck-0.1.89-windows-x64-portable.zip` from the same release, unzip it, and run `ReadyCheck.exe`.
+For Windows 10/11 preview testing, download the published Windows portable ZIP from the same release, unzip it, and run `ReadyCheck.exe`.
 
 The preview build uses a stable self-signed ReadyCheck identity but is not Developer ID signed or notarized. macOS may require you to confirm the first launch in **System Settings > Privacy & Security**. See [installation details](docs/INSTALL.md).
 
@@ -51,7 +57,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The DMG is written to `dist/ReadyCheck-0.1.89-macos.dmg`.
+The development DMG is written to `dist/ReadyCheck-0.1.91-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.91-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 

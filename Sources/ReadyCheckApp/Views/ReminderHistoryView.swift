@@ -165,6 +165,8 @@ private struct ReminderHistoryRow: View {
                 resetIndex,
                 record.leadHours ?? 0
             )
+        case .quotaRecovered:
+            return localization.text("notification.recovered.title")
         case .creditsStarted:
             return localization.text("notification.history.creditsTitle")
         }

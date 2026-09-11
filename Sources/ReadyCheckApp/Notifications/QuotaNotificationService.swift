@@ -3,13 +3,6 @@ import OSLog
 import ReadyCheckCore
 import UserNotifications
 
-enum NotificationReadiness: Equatable {
-    case checking
-    case ready
-    case alertsDisabled
-    case denied
-}
-
 enum TestNotificationResult: Equatable {
     case idle
     case sending
@@ -36,16 +29,11 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
 
     func readiness() async -> NotificationReadiness {
         let settings = await center.notificationSettings()
-        switch settings.authorizationStatus {
-        case .authorized, .provisional:
-            return settings.alertSetting == .enabled ? .ready : .alertsDisabled
-        case .notDetermined:
-            return .checking
-        case .denied:
-            return .denied
-        @unknown default:
-            return .denied
-        }
+        return NotificationReadiness.evaluate(
+            authorization: settings.authorizationStatus,
+            alerts: settings.alertSetting,
+            style: settings.alertStyle
+        )
     }
 
     func sendTestNotification(localization: LocalizationService) async -> Bool {
@@ -72,6 +60,11 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         var deliveredEvents: [QuotaReminderEvent] = []
 
         for event in events {
+            if case .quotaRecovered = event,
+               await deliveredNotificationIdentifiers().contains(identifier(for: event)) {
+                deliveredEvents.append(event)
+                continue
+            }
             let content = UNMutableNotificationContent()
             content.sound = .default
 
@@ -84,6 +77,9 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
                     leadHours,
                     Self.dateFormatter(language: localization.language).string(from: expiresAt)
                 )
+            case .quotaRecovered:
+                content.title = localization.text("notification.recovered.title")
+                content.body = localization.text("notification.recovered.body")
             case .creditsStarted:
                 content.title = localization.text("notification.creditsStarted.title")
                 content.body = localization.text("notification.creditsStarted.body")
@@ -151,6 +147,8 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         switch event {
         case let .manualResetExpiring(_, expiresAt, leadHours):
             return "readycheck.reset-expiry.\(Int64(expiresAt.timeIntervalSince1970.rounded())).\(leadHours)"
+        case let .quotaRecovered(requestID):
+            return "readycheck.recovered.\(requestID)"
         case .creditsStarted:
             return "readycheck.credits-started.\(UUID().uuidString)"
         }
@@ -169,6 +167,6 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([.banner, .sound])
+        completionHandler([.banner, .list, .sound])
     }
 }
