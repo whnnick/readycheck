@@ -8,7 +8,7 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 开发版本：`0.1.93`（尚未公开发布）。目前仅支持 Codex OAuth；恢复提醒仅支持 macOS。
+> 当前预览版：[`0.1.93`](https://github.com/whnnick/readycheck/releases/tag/v0.1.93)。目前仅支持 Codex OAuth；恢复提醒仅支持 macOS。
 
 ## 可以做什么
 

@@ -8,7 +8,7 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Development version: `0.1.93` (not yet published). Codex OAuth is the only supported provider. Recovery reminders are macOS-only.
+> Current preview: [`0.1.93`](https://github.com/whnnick/readycheck/releases/tag/v0.1.93). Codex OAuth is the only supported provider. Recovery reminders are macOS-only.
 
 ## What It Does
 
