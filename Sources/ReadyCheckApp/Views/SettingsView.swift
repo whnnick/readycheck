@@ -348,7 +348,7 @@ struct SettingsView: View {
                 Button {
                     Task { await model.sendTestNotification() }
                 } label: {
-                    Label(testNotificationButtonText, systemImage: "bell.and.waves.left.and.right")
+                    Label(model.localization.text(model.testNotificationResult == .sending ? "notification.test.sending" : "notification.test.action"), systemImage: "bell.and.waves.left.and.right")
                         .lineLimit(1)
                 }
                 .disabled(model.testNotificationResult == .sending)
@@ -360,6 +360,12 @@ struct SettingsView: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+
+            if model.testNotificationResult == .delivered || model.testNotificationResult == .failed {
+                Text(testNotificationButtonText)
+                    .font(.caption)
+                    .foregroundStyle(model.testNotificationResult == .failed ? Color.orange : Color.secondary)
+            }
 
             Text(model.localization.text("notification.settings.help"))
                 .font(.footnote)
@@ -676,12 +682,12 @@ struct SettingsView: View {
                             now: now,
                             displayMode: .full
                         )
-                        QuotaRecoveryReminderView(model: model, snapshot: snapshot, now: now)
 
                         quotaRecoveryActions(for: snapshot)
                     }
                 }
             }
+            QuotaRecoveryReminderView(model: model, now: now)
         }
     }
 

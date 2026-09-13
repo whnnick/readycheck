@@ -4,6 +4,16 @@ import XCTest
 final class LocalizationServiceTests: XCTestCase {
     func testEnglishAndChineseContainRequiredKeys() {
         let requiredKeys = [
+            "recovery.automatic",
+            "recovery.monitoring",
+            "recovery.waiting",
+            "recovery.off",
+            "recovery.connect",
+            "recovery.credentials",
+            "recovery.dataUnavailable",
+            "recovery.deliveryFailed",
+            "recovery.automaticHelp",
+            "recovery.blocked",
             "app.name",
             "action.refresh",
             "action.pinWidget",

@@ -8,7 +8,7 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 当前版本：`0.1.91` 早期预览版。目前仅支持 Codex OAuth；恢复提醒仅支持 macOS，同时提供 Windows 10/11 便携预览包。
+> 开发版本：`0.1.93`（尚未公开发布）。目前仅支持 Codex OAuth；恢复提醒仅支持 macOS。
 
 ## 可以做什么
 
@@ -25,11 +25,13 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
 
 ReadyCheck 采用保守策略：无法安全读取或验证额度数据时，显示不可用，而不会猜测百分比。
 
-## 额度恢复提醒（macOS 0.1.91）
+## 额度恢复自动提醒（macOS 0.1.93）
 
-确认额度耗尽后，在主窗口或菜单栏点击 **额度恢复后提醒我**。保持 ReadyCheck 运行，读取到所有关注窗口均有剩余额度且没有已报告的限制状态后提醒一次。支持随时取消和重启保留；切换账号或断开连接会清除请求。通知仍遵循系统设置。
+**额度恢复自动提醒** 默认开启，始终显示在主窗口和菜单栏的额度区域下方。任一已观察窗口的剩余额度回升就提醒，无需先耗尽，也无需等待其他窗口恢复。正常消耗和重复刷新不提醒，首次读取只建立基线。请保持 ReadyCheck 运行；未观察到的历史恢复不会补发通知。
 
-本次恢复提醒仅支持 macOS；Windows 同步版本号。参见[功能与黑盒验收清单](docs/QA.zh-CN.md#0191-额度恢复提醒)。
+关闭开关会停止监听并取消当前等待。开关与等待状态在重启后保留，切换账号会清除旧账号的等待。连接、数据或投递异常会就地说明；系统通知关闭时提供设置入口。“测试通知”按钮在测试后仍可点击，结果单独显示。
+
+本次恢复提醒仅支持 macOS；Windows 同步版本号。参见[功能与黑盒验收清单](docs/QA.zh-CN.md#0193-自动恢复提醒交互)。
 
 ## 安装
 
@@ -57,7 +59,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.91-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.91-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.93-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.93-windows-x64-portable.zip`。
 
 ## Windows 预览版开发
 

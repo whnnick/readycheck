@@ -27,10 +27,11 @@ struct MenuBarQuotaView: View {
                             now: now,
                             displayMode: .compact
                         )
-                        QuotaRecoveryReminderView(model: model, snapshot: snapshot, now: now)
                     }
                 }
             }
+
+            QuotaRecoveryReminderView(model: model, now: now)
 
             footer
         }

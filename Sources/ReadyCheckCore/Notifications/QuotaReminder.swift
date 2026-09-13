@@ -54,6 +54,9 @@ public struct QuotaReminderHistoryRecord: Codable, Equatable, Identifiable, Send
 
 public struct QuotaReminderState: Codable, Equatable, Sendable {
     public var recoveryRequest: QuotaRecoveryRequest?
+    public var automaticRecoveryEnabled: Bool?
+    public var recoveryRevision: Int?
+    public var isAutomaticRecoveryEnabled: Bool { automaticRecoveryEnabled ?? true }
     public var notifiedManualResetExpirations: [Int64]
     public var notifiedManualResetThresholds: [String]?
     public var knownManualResetExpirations: [Int64]?
@@ -128,10 +131,26 @@ public enum QuotaReminderEvaluator {
 
         var state = originalState
         var events: [QuotaReminderEvent] = []
+        if !state.isAutomaticRecoveryEnabled {
+            state.recoveryRequest = nil
+        } else if let account, !account.isEmpty {
+            if let request = state.recoveryRequest, request.account != account {
+                state.recoveryRequest = nil
+            }
+            if state.recoveryRequest == nil, QuotaRecoveryRequest.canArm(snapshot, now: now) {
+                state.recoveryRequest = QuotaRecoveryRequest(account: account, snapshot: snapshot)
+            }
+        }
         if let request = state.recoveryRequest,
            request.isRecovered(snapshot, account: account, now: now) {
             events.append(.quotaRecovered(requestID: request.id))
-            state.recoveryRequest = nil
+            state.recoveryRequest = QuotaRecoveryRequest.canArm(snapshot, now: now)
+                ? QuotaRecoveryRequest(account: request.account, snapshot: snapshot) : nil
+        } else if let request = state.recoveryRequest,
+                  account == request.account,
+                  snapshot.refreshedAt > request.observedAt,
+                  QuotaRecoveryRequest.canArm(snapshot, now: now) {
+            state.recoveryRequest = QuotaRecoveryRequest(account: request.account, snapshot: snapshot)
         }
         let nowTimestamp = Int64(now.timeIntervalSince1970.rounded())
         var notifiedThresholds = Set(
@@ -378,9 +397,12 @@ public actor QuotaReminderStore {
         }
 
         // A user may cancel or replace a request while system delivery is awaiting confirmation.
-        let currentRequest = load().recoveryRequest
-        if currentRequest?.id != batch.previousState.recoveryRequest?.id {
-            state.recoveryRequest = currentRequest
+        let currentState = load()
+        if currentState.recoveryRevision != batch.previousState.recoveryRevision
+            || currentState.recoveryRequest?.id != batch.previousState.recoveryRequest?.id {
+            state.recoveryRequest = currentState.recoveryRequest
+            state.automaticRecoveryEnabled = currentState.automaticRecoveryEnabled
+            state.recoveryRevision = currentState.recoveryRevision
         }
         state.notifiedManualResetThresholds = Array(Set(state.notifiedManualResetThresholds ?? [])).sorted()
         save(state)
@@ -390,10 +412,30 @@ public actor QuotaReminderStore {
         load().recoveryRequest
     }
 
+    public func automaticRecoveryEnabled() -> Bool {
+        load().isAutomaticRecoveryEnabled
+    }
+
+    public func isRecoveryRequestActive(_ id: String) -> Bool {
+        let state = load()
+        return state.isAutomaticRecoveryEnabled && state.recoveryRequest?.id == id
+    }
+
+    @discardableResult
+    public func setAutomaticRecoveryEnabled(_ enabled: Bool) -> Bool {
+        var state = migrateHistoryIfNeeded(load())
+        state.automaticRecoveryEnabled = enabled
+        state.recoveryRevision = (state.recoveryRevision ?? 0) + 1
+        if !enabled { state.recoveryRequest = nil }
+        save(state)
+        return load() == state
+    }
+
     @discardableResult
     public func setRecoveryRequest(_ request: QuotaRecoveryRequest?) -> Bool {
         var state = migrateHistoryIfNeeded(load())
         state.recoveryRequest = request
+        state.recoveryRevision = (state.recoveryRevision ?? 0) + 1
         save(state)
         return load().recoveryRequest == request
     }

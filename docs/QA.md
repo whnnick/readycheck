@@ -4,9 +4,37 @@
 
 Use this checklist before publishing a preview build or when validating a user-reported regression. Do not paste tokens, callback URLs, account IDs, or raw usage payloads into public issues.
 
+## 0.1.93 Automatic recovery interaction
+
+Requirement: notify on verified increases even before exhaustion. See [usage](../README.md#automatic-quota-recovery-reminders-macos-0193).
+
+Implemented and tested: partial recovery, independent windows, consumption, repeated refreshes, invalid data, account isolation, persistence, retries and cancellation. Full suite: 180 tests passed. Windows only updates version metadata. Real nonzero recovery and visible persistent alerts remain pending; tests do not prove banner visibility. No public release is included.
+
+## 0.1.92 Automatic recovery interaction
+
+Requirement: users should not need to discover a temporary button at zero quota. See [automatic recovery reminders](../README.md#automatic-quota-recovery-reminders-macos-0192).
+
+| Requirement | Status and evidence |
+| --- | --- |
+| Always-visible switch; default on | Implemented in main-window quota section and menu bar, independent of quota availability |
+| Automatic exhaustion/recovery cycles | Tested across consecutive cycles; no notification without observed exhaustion |
+| Off cancels waits and survives restart | Tested with store reload, failed delivery, and in-flight refresh/toggle races |
+| Accurate state explanations | Monitoring, waiting, off, disconnected, credential/data unavailable, notification restrictions and failed delivery |
+| Test notification remains actionable | Test button stays available; result is displayed separately |
+| Bilingual narrow-layout acceptance | Actual SwiftUI control with a synthetic model: monitoring, waiting, offline, blocked and off states inspected at 306-point content width |
+| Windows | Version only; automatic recovery remains macOS-only |
+
+Validation: 179 Swift tests passed, including 11 recovery tests; version and whitespace checks passed. Standard stable-signature DMG build succeeded. Real quota recovery and visible system-banner delivery remain pending; synthetic UI and state tests do not prove banner visibility. No public release is part of this change.
+
+Manual acceptance: confirm the installed switch remains visible with healthy quota and while disconnected; disable/restart/enable; observe an actual exhaustion and recovery; confirm one history entry and no repeat on subsequent refresh. Turning monitoring off cancels future delivery, but cannot retract a notification already submitted to macOS. Windows testing is limited to the unchanged version metadata.
+
+Installed 0.1.92 acceptance: verified the DMG signature and installed-binary match. The switch remained visible during Keychain recovery and with nonzero quota; after retrying Keychain access, the real UI showed monitoring. A subsequent full quit/relaunch restored the account and enabled switch without another credential retry. Windows version smoke checks also passed.
+
+During that run, real quota subsequently reached exhaustion and the installed app automatically entered the waiting state without clicking a reminder action. Recovery delivery itself is still pending.
+
 ## 0.1.91 Quota recovery reminders
 
-Product requirement: opt in after quota exhaustion, then receive one notification when fresh verified data confirms recovery. Entry points and usage are in the [README](../README.md#quota-recovery-reminders-macos-0191).
+Historical 0.1.91 requirement: opt in after quota exhaustion, then receive one notification when fresh verified data confirms recovery. Superseded by the [current automatic flow](../README.md#automatic-quota-recovery-reminders-macos-0192).
 
 | Requirement | Status | Evidence / acceptance |
 | --- | --- | --- |

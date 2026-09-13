@@ -1,6 +1,16 @@
 # Changelog
 
+## 0.1.93 - 2026-09-13
+
+- Fixed macOS recovery alerts to detect increases from partially consumed quota, including independent window recovery. Consumption and unchanged refreshes do not notify. Windows version metadata only.
+
 ## Unreleased
+
+## 0.1.92 - 2026-09-11
+
+- macOS: replace the hidden, one-time recovery action with an always-visible switch, enabled by default. Observe exhaustion automatically and notify once per recovery cycle without repeated setup.
+- Persist the switch, cancel pending waits when disabled, protect against in-flight refreshes restoring cancelled requests, and explain monitoring, connection, stale data, notification settings and failed delivery beside the control.
+- Keep the notification test action available after a test, show results separately, and clarify the system-notification settings link. Windows only shares the version number.
 
 ## 0.1.91 - 2026-09-11
 

@@ -53,13 +53,18 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
 
     func deliver(
         _ events: [QuotaReminderEvent],
-        localization: LocalizationService
+        localization: LocalizationService,
+        reminderStore: QuotaReminderStore
     ) async -> [QuotaReminderEvent] {
         guard !events.isEmpty, await canDeliverNotifications() else { return [] }
 
         var deliveredEvents: [QuotaReminderEvent] = []
 
         for event in events {
+            if case let .quotaRecovered(requestID) = event,
+               !(await reminderStore.isRecoveryRequestActive(requestID)) {
+                continue
+            }
             if case .quotaRecovered = event,
                await deliveredNotificationIdentifiers().contains(identifier(for: event)) {
                 deliveredEvents.append(event)

@@ -224,6 +224,7 @@ final class ReadyCheckAppModel {
     var snapshots: [ProviderQuotaSnapshot] = []
     var quotaHistorySamples: [QuotaHistorySample] = []
     var recoveryReminderRequest: QuotaRecoveryRequest?
+    var automaticRecoveryEnabled = true
     var recoveryReminderSaveFailed = false
     var isUpdatingRecoveryReminder = false
     private var recoveryReminderAccount: String?
@@ -828,12 +829,14 @@ final class ReadyCheckAppModel {
             let reminderBatch = await quotaReminderStore.prepare(snapshot, account: recoveryReminderAccount)
             let deliveredEvents = await quotaNotificationService.deliver(
                 reminderBatch.events,
-                localization: localization
+                localization: localization,
+                reminderStore: quotaReminderStore
             )
             await quotaReminderStore.commit(reminderBatch, deliveredEvents: deliveredEvents)
             reminderHistoryRecords = await quotaReminderStore.history()
             recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
         }
+        await reloadNotificationReadiness()
     }
 
     func reloadQuotaHistory() async {
@@ -843,6 +846,7 @@ final class ReadyCheckAppModel {
     func reloadReminderHistory() async {
         reminderHistoryRecords = await quotaReminderStore.history()
         recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
+        automaticRecoveryEnabled = await quotaReminderStore.automaticRecoveryEnabled()
     }
 
     private func updateRecoveryReminderAccount(_ account: String?) async {
@@ -852,23 +856,36 @@ final class ReadyCheckAppModel {
         }
     }
 
-    func canArmRecoveryReminder(_ snapshot: ProviderQuotaSnapshot, now: Date) -> Bool {
-        codexOAuthStatus == .connected && recoveryReminderAccount?.isEmpty == false
-            && QuotaRecoveryRequest.canArm(snapshot, now: now)
-    }
-
-    func armRecoveryReminder() async {
-        guard !isUpdatingRecoveryReminder, !isRefreshing,
-              let snapshot = snapshots.first(where: { $0.providerId == "codex-oauth" }),
-              canArmRecoveryReminder(snapshot, now: Date()),
-              let account = recoveryReminderAccount else { return }
+    func setAutomaticRecoveryEnabled(_ enabled: Bool) async {
+        guard !isUpdatingRecoveryReminder else { return }
         isUpdatingRecoveryReminder = true
         defer { isUpdatingRecoveryReminder = false }
-        let request = QuotaRecoveryRequest(account: account, snapshot: snapshot)
-        recoveryReminderSaveFailed = !(await quotaReminderStore.setRecoveryRequest(request))
+        recoveryReminderSaveFailed = !(await quotaReminderStore.setAutomaticRecoveryEnabled(enabled))
+        automaticRecoveryEnabled = await quotaReminderStore.automaticRecoveryEnabled()
         recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
-        await quotaNotificationService.requestAuthorizationIfNeeded()
-        notificationReadiness = await quotaNotificationService.readiness()
+        if enabled && !recoveryReminderSaveFailed {
+            await requestNotificationAuthorizationIfNeeded()
+            await refresh(reason: .manual)
+        }
+    }
+
+    func recoveryStatusKey(now: Date) -> String {
+        if !automaticRecoveryEnabled { return "recovery.off" }
+        if codexOAuthStatus == .credentialStorageFailed { return "recovery.credentials" }
+        if codexOAuthStatus != .connected { return "recovery.connect" }
+        guard recoveryReminderAccount?.isEmpty == false,
+              let snapshot = snapshots.first(where: { $0.providerId == "codex-oauth" }),
+              snapshot.status == .available, !snapshot.isStale(now: now),
+              !snapshot.windows.isEmpty,
+              snapshot.windows.allSatisfy({ $0.confidence == .verified && $0.remainingRatio != nil })
+        else { return "recovery.dataUnavailable" }
+        if let request = recoveryReminderRequest {
+            if reminderHistoryRecords.contains(where: { $0.id == "recovery:\(request.id)" && $0.status == .failed }) {
+                return "recovery.deliveryFailed"
+            }
+            return "recovery.waiting"
+        }
+        return "recovery.monitoring"
     }
 
     func cancelRecoveryReminder() async {

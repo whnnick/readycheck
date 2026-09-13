@@ -3,44 +3,52 @@ import SwiftUI
 
 struct QuotaRecoveryReminderView: View {
     @Bindable var model: ReadyCheckAppModel
-    let snapshot: ProviderQuotaSnapshot
     let now: Date
 
+    private var notificationsBlocked: Bool {
+        model.notificationReadiness == .denied || model.notificationReadiness == .alertsDisabled
+    }
+
     var body: some View {
-        if snapshot.providerId == "codex-oauth" {
-            VStack(alignment: .leading, spacing: 5) {
-                if model.recoveryReminderRequest != nil {
-                    Label(model.localization.text("recovery.waiting"), systemImage: "bell.badge")
+        VStack(alignment: .leading, spacing: 7) {
+            Toggle(isOn: Binding(
+                get: { model.automaticRecoveryEnabled },
+                set: { enabled in Task { await model.setAutomaticRecoveryEnabled(enabled) } }
+            )) {
+                Text(model.localization.text("recovery.automatic"))
+                    .font(.subheadline.weight(.medium))
+            }
+            .toggleStyle(.switch)
+            .disabled(model.isUpdatingRecoveryReminder)
+
+            Text(model.localization.text(model.recoveryStatusKey(now: now)))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if model.automaticRecoveryEnabled {
+                Text(model.localization.text("recovery.automaticHelp"))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if notificationsBlocked {
+                    Label(model.localization.text("recovery.blocked"), systemImage: "bell.slash")
                         .font(.caption)
-                    Button(model.localization.text("recovery.cancel")) {
-                        Task { await model.cancelRecoveryReminder() }
-                    }
-                    .disabled(model.isUpdatingRecoveryReminder)
-                    Text(model.localization.text("recovery.help"))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.orange)
                         .fixedSize(horizontal: false, vertical: true)
-                    if model.notificationReadiness == .denied || model.notificationReadiness == .alertsDisabled {
-                        Button(model.localization.text("recovery.notificationsDisabled")) {
-                            model.openNotificationSettings()
-                        }
+                    Button(model.localization.text("recovery.notificationsDisabled")) {
+                        model.openNotificationSettings()
                     }
-                } else if model.canArmRecoveryReminder(snapshot, now: now) {
-                    Button {
-                        Task { await model.armRecoveryReminder() }
-                    } label: {
-                        Label(model.localization.text("recovery.arm"), systemImage: "bell")
-                    }
-                    .disabled(model.isRefreshing || model.isUpdatingRecoveryReminder)
-                }
-                if model.recoveryReminderSaveFailed {
-                    Text(model.localization.text("recovery.saveFailed"))
-                        .font(.caption)
-                        .foregroundStyle(.red)
+                    .buttonStyle(.bordered)
                 }
             }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
+            if model.recoveryReminderSaveFailed {
+                Text(model.localization.text("recovery.saveFailed"))
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
         }
+        .controlSize(.small)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

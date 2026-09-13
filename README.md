@@ -8,7 +8,7 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Status: `0.1.91` is an early preview. Codex OAuth is the only supported provider. Recovery reminders are macOS-only; a Windows 10/11 portable preview is also available.
+> Development version: `0.1.93` (not yet published). Codex OAuth is the only supported provider. Recovery reminders are macOS-only.
 
 ## What It Does
 
@@ -25,11 +25,13 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
 
 ReadyCheck fails closed: when quota data cannot be read or validated, it shows an unavailable state instead of estimating a percentage.
 
-## Quota recovery reminders (macOS 0.1.91)
+## Automatic quota recovery reminders (macOS 0.1.93)
 
-When verified quota reaches zero, choose **Notify when quota returns** in the main window or menu bar. Keep ReadyCheck running: it notifies once after fresh data confirms remaining quota in all tracked windows and no reported limit state. You can cancel at any time; requests survive restarts and are cleared when switching accounts or disconnecting. System notification settings still apply.
+**Automatic recovery alerts** is on by default and always visible below quota in the main window and menu bar. A verified increase in any tracked window sends an alert, even before exhaustion. Consumption and unchanged refreshes do not notify. The first snapshot establishes a baseline. Keep ReadyCheck running; unobserved past recoveries are not replayed.
 
-Windows only shares the version number for this feature. See the [feature and black-box checklist](docs/QA.md#0191-quota-recovery-reminders).
+Turn the switch off to stop monitoring and cancel the current wait. The setting and active wait survive restarts; account changes discard the old account's wait. The control explains connection, data and delivery problems and links to system notification settings when alerts are disabled. The notification test button remains available after a test, with its result displayed separately.
+
+Windows only shares the version number for this feature. See the [feature and black-box checklist](docs/QA.md#0193-automatic-recovery-interaction).
 
 ## Install
 
@@ -57,7 +59,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.91-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.91-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.93-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.93-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 
