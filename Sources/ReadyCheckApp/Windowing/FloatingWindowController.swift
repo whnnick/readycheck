@@ -8,6 +8,26 @@ final class FloatingWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     var onVisibilityChanged: ((Bool) -> Void)?
 
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(screenParametersDidChange),
+            name: NSApplication.didChangeScreenParametersNotification, object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func screenParametersDidChange() {
+        guard let window, window.isVisible,
+              let screen = targetScreen(for: window, savedFrame: window.frame)
+        else { return }
+        clampInsideTargetScreen(window, visibleFrame: screen.visibleFrame)
+        persistFrame(window.frame)
+    }
+
     func show(model: ReadyCheckAppModel) {
         if let window {
             show(window)

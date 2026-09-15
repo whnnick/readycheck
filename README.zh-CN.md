@@ -8,9 +8,11 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 当前预览版：[`0.1.93`](https://github.com/whnnick/readycheck/releases/tag/v0.1.93)。目前仅支持 Codex OAuth；恢复提醒仅支持 macOS。
+> 当前预览版：[`0.1.94`](https://github.com/whnnick/readycheck/releases/tag/v0.1.94)。目前仅支持 Codex OAuth；恢复提醒仅支持 macOS。
 
 ## 可以做什么
+
+预览版 **0.1.94**：唤醒刷新和悬浮窗屏幕变化恢复。参见[验收状态](docs/QA.zh-CN.md#0194-唤醒与屏幕变化恢复)。
 
 - 根据 Codex 当前实际返回动态展示经过验证的额度窗口，不预设固定为 5 小时或 7 天。
 - 当已授权的用量数据提供对应字段时，在主窗口和详细 Widget 中显示 Credits 余额或无限额度状态。
@@ -25,7 +27,7 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
 
 ReadyCheck 采用保守策略：无法安全读取或验证额度数据时，显示不可用，而不会猜测百分比。
 
-## 额度恢复自动提醒（macOS 0.1.93）
+## 额度恢复自动提醒（macOS 0.1.94）
 
 **额度恢复自动提醒** 默认开启，始终显示在主窗口和菜单栏的额度区域下方。任一已观察窗口的剩余额度回升就提醒，无需先耗尽，也无需等待其他窗口恢复。正常消耗和重复刷新不提醒，首次读取只建立基线。请保持 ReadyCheck 运行；未观察到的历史恢复不会补发通知。
 
@@ -59,7 +61,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.93-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.93-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.94-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.94-windows-x64-portable.zip`。
 
 ## Windows 预览版开发
 

@@ -52,6 +52,9 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self, selector: #selector(systemDidWake), name: NSWorkspace.didWakeNotification, object: nil
+        )
         configureMainMenu()
         configureStatusBarItem()
         showMainWindow()
@@ -84,7 +87,12 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
         appModel.stopRateLimitMonitoring()
+    }
+
+    @objc private func systemDidWake() {
+        appModel.refreshAfterWake()
     }
 
     private func configureStatusBarItem() {
@@ -796,6 +804,12 @@ final class ReadyCheckAppModel {
             }
             rateLimitEventRefreshTask = nil
         }
+    }
+
+    func refreshAfterWake() {
+        rateLimitMonitor.stop()
+        startRateLimitMonitoring()
+        scheduleRateLimitEventRefresh()
     }
 
     func refresh(reason: RefreshReason) async {

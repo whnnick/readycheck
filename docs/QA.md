@@ -1,5 +1,13 @@
 # Real-World QA Checklist
 
+## 0.1.94 macOS wake and display recovery
+
+Validation: 181 Swift tests pass on macOS 27.0; version consistency, whitespace and added-content sensitive-data scans pass. Preview-signed app installed and binary matched. Startup and live quota refresh verified after Retry reading restored Keychain access; automatic recovery monitoring and persistent notifications remain enabled.
+
+Requirements: refresh quota/reminders after wake; keep visible floating widgets on an available display. See [product overview](../README.md#what-it-does).
+
+Implemented: workspace wake observer, event reconnect and coalesced refresh queue; display-change observer, frame clamping and persistence. Geometry regression covers removal of a negative-coordinate display and repeated clamping. Hidden widgets stay hidden. Pending real-environment acceptance: sleep/wake with network recovery, unplug/replug displays, resolution changes and notification visibility. This preview is published with these acceptance checks outstanding; it does not claim full hardware validation. Windows only changes version metadata.
+
 [中文](QA.zh-CN.md) | English
 
 Use this checklist before publishing a preview build or when validating a user-reported regression. Do not paste tokens, callback URLs, account IDs, or raw usage payloads into public issues.

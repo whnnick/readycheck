@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.94 - 2026-09-15
+
+- macOS wake reconnects quota events and queues a fresh quota/reminder check, coalescing with pending event refreshes.
+- Visible floating widgets are clamped to an available screen after display changes without activating the app or reopening hidden widgets.
+- Windows version metadata only.
+
 ## 0.1.93 - 2026-09-13
 
 - Fixed macOS recovery alerts to detect increases from partially consumed quota, including independent window recovery. Consumption and unchanged refreshes do not notify. Windows version metadata only.

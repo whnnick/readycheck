@@ -3,6 +3,15 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class FloatingWidgetPlacementTests: XCTestCase {
+    func testDisconnectedDisplayFrameMovesInsideRemainingScreen() {
+        let screen = CGRect(x: 0, y: 40, width: 1440, height: 860)
+        let result = FloatingWidgetPlacement.clampedFrame(
+            currentFrame: CGRect(x: -1800, y: 200, width: 376, height: 420), visibleFrame: screen)
+        XCTAssertTrue(screen.contains(result))
+        XCTAssertEqual(result.origin, CGPoint(x: 0, y: 200))
+        XCTAssertEqual(FloatingWidgetPlacement.clampedFrame(currentFrame: result, visibleFrame: screen), result)
+    }
+
     func testPlacesWidgetNearBottomTrailingWithMargin() {
         let frame = FloatingWidgetPlacement.frame(
             preferredSize: CGSize(width: 376, height: 360),

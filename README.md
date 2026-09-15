@@ -8,9 +8,11 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Current preview: [`0.1.93`](https://github.com/whnnick/readycheck/releases/tag/v0.1.93). Codex OAuth is the only supported provider. Recovery reminders are macOS-only.
+> Current preview: [`0.1.94`](https://github.com/whnnick/readycheck/releases/tag/v0.1.94). Codex OAuth is the only supported provider. Recovery reminders are macOS-only.
 
 ## What It Does
+
+Preview **0.1.94**, with wake refresh and floating-widget display recovery. See [acceptance status](docs/QA.md#0194-macos-wake-and-display-recovery).
 
 - Shows the validated quota windows currently returned by Codex instead of assuming a fixed 5-hour or 7-day model.
 - Shows the Credits balance or unlimited-credit state in the main window and detailed widget when the authorized usage response provides it.
@@ -25,7 +27,7 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
 
 ReadyCheck fails closed: when quota data cannot be read or validated, it shows an unavailable state instead of estimating a percentage.
 
-## Automatic quota recovery reminders (macOS 0.1.93)
+## Automatic quota recovery reminders (macOS 0.1.94)
 
 **Automatic recovery alerts** is on by default and always visible below quota in the main window and menu bar. A verified increase in any tracked window sends an alert, even before exhaustion. Consumption and unchanged refreshes do not notify. The first snapshot establishes a baseline. Keep ReadyCheck running; unobserved past recoveries are not replayed.
 
@@ -59,7 +61,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.93-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.93-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.94-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.94-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 

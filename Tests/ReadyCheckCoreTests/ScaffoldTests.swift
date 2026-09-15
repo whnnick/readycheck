@@ -3,6 +3,6 @@ import XCTest
 
 final class ScaffoldTests: XCTestCase {
     func testCoreVersionIsDefined() {
-        XCTAssertEqual(ReadyCheckCore.version, "0.1.93")
+        XCTAssertEqual(ReadyCheckCore.version, "0.1.94")
     }
 }
