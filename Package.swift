@@ -25,6 +25,11 @@ let package = Package(
             dependencies: ["ReadyCheckCore"],
             path: "Tests/ReadyCheckCoreTests",
             exclude: ["Fixtures/LocalCodex/README.md"]
+        ),
+        .testTarget(
+            name: "ReadyCheckAppTests",
+            dependencies: ["ReadyCheckApp", "ReadyCheckCore"],
+            path: "Tests/ReadyCheckAppTests"
         )
     ]
 )

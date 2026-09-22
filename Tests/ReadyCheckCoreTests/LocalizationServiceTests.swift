@@ -180,6 +180,8 @@ final class LocalizationServiceTests: XCTestCase {
             "notification.history.subtitle",
             "notification.history.legacyResetTitle",
             "notification.history.delivered",
+            "notification.history.withdrawn",
+            "notification.history.withdrawalPending",
             "notification.history.failed",
             "notification.history.legacyUnknown",
             "notification.history.legacyExplanation",

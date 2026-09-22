@@ -7,14 +7,22 @@ public struct QuotaRecoveryRequest: Codable, Equatable, Sendable {
     public let observedAt: Date
     public var remainingByWindow: [String: Double]?
 
-    public init(account: String, snapshot: ProviderQuotaSnapshot) {
-        id = UUID().uuidString
+    public init(id: String = UUID().uuidString, account: String, snapshot: ProviderQuotaSnapshot) {
+        self.id = id
         self.account = account
         windowIDs = snapshot.windows.map(\.id)
         observedAt = snapshot.refreshedAt
         remainingByWindow = Dictionary(uniqueKeysWithValues: snapshot.windows.compactMap { window in
             window.remainingRatio.map { (window.id, $0) }
         })
+    }
+
+    init(id: String, copying request: QuotaRecoveryRequest) {
+        self.id = id
+        account = request.account
+        windowIDs = request.windowIDs
+        observedAt = request.observedAt
+        remainingByWindow = request.remainingByWindow
     }
 
     public static func canArm(_ snapshot: ProviderQuotaSnapshot, now: Date) -> Bool {
@@ -31,6 +39,18 @@ public struct QuotaRecoveryRequest: Codable, Equatable, Sendable {
                 return remainingByWindow == nil && ($0.remainingRatio ?? 0) > 0
             }
             return ($0.remainingRatio ?? 0) > previous + 0.000001
+        }
+    }
+
+    public func hasConsumption(_ snapshot: ProviderQuotaSnapshot, account: String?, now: Date) -> Bool {
+        guard account == self.account, Self.isVerified(snapshot, now: now),
+              snapshot.refreshedAt > observedAt, let remainingByWindow
+        else { return false }
+        return snapshot.windows.contains { window in
+            guard let previous = remainingByWindow[window.id], let current = window.remainingRatio else {
+                return false
+            }
+            return current < previous - 0.000001
         }
     }
 

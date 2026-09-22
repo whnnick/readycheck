@@ -10,6 +10,21 @@ else
   PUBLISH_DIST_DIR="${BUILD_DIST_DIR}"
 fi
 
+if [[ -n "${READYCHECK_NODE_BIN:-}" ]]; then
+  if [[ ! -x "$READYCHECK_NODE_BIN" ]]; then
+    echo "READYCHECK_NODE_BIN is not executable: $READYCHECK_NODE_BIN" >&2
+    exit 1
+  fi
+  export PATH="$(dirname "$READYCHECK_NODE_BIN"):$PATH"
+fi
+
+NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
+if (( NODE_MAJOR > 24 )); then
+  echo "Windows packaging requires the tested Node.js 24 or earlier; found $(node --version)." >&2
+  echo "Set READYCHECK_NODE_BIN to a compatible Node.js executable." >&2
+  exit 1
+fi
+
 cd "$WINDOWS_DIR"
 npm ci
 npm run check

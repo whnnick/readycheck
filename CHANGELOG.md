@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.1.98 - 2026-09-22
+
+- Bound the local Codex event handshake, reject initialization errors, and fall back to another installed Codex client when the first candidate is unavailable or unresponsive.
+- Reconnect event monitoring with capped exponential backoff and invalidate callbacks from a stopped monitor generation.
+- Show a sanitized local quota-event connection state and refresh a complete snapshot after the event stream reconnects.
+- Calibrated against Codex CLI 0.155.0-alpha.9.2 generated JSON Schema. Windows includes synchronized version metadata and a portable preview package.
+- Make Windows release packaging fail early on unvalidated Node versions and support an explicit compatible Node binary.
+
+## 0.1.97 - 2026-09-20
+
+- Add an explicit local Codex connection mode that reads the official app-server without requiring ReadyCheck's legacy OAuth token or Keychain access; keep standalone OAuth as a user-selected fallback.
+- Refresh on both account and rate-limit updates, preserve account isolation with official account IDs, and parse the current reset-credit detail contract without treating unknown details as an empty list.
+- Verify notification removal through a testable adapter and preserve a newly delivered recovery baseline when an older alert removal is still retrying.
+- Add a system-backed Launch at Login setting that reports approval and availability through `SMAppService.mainApp`.
+- Windows version metadata only. Local preview; not published.
+
+## 0.1.96 - 2026-09-15
+
+- Verify that recovered-quota notifications are absent from Notification Center before completing an automatic dismissal.
+- Retry dismissal after an asynchronous macOS removal failure and clear any older recovered-quota notifications left behind under another request identifier.
+- Windows version metadata only. Local preview; not published.
+
+## 0.1.95 - 2026-09-15
+
+- Automatically remove a persistent quota-recovery notification when the recovered quota starts being consumed.
+- Replace older recovery notifications with the latest recovery, migrate the most recent 0.1.94 alert, and preserve retry, account isolation, and notification history behavior.
+- Allow release packaging to use a temporary SwiftPM build directory and omit unshipped dSYM generation on macOS 27.
+- Windows version metadata only. Local preview; not published.
+
 ## 0.1.94 - 2026-09-15
 
 - macOS wake reconnects quota events and queues a fresh quota/reminder check, coalescing with pending event refreshes.

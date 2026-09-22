@@ -186,6 +186,10 @@ private struct ReminderHistoryRow: View {
             localization.text("notification.history.delivered")
         case .failed:
             localization.text("notification.history.failed")
+        case .automaticallyWithdrawn:
+            localization.text("notification.history.withdrawn")
+        case .withdrawalPending:
+            localization.text("notification.history.withdrawalPending")
         case .legacyUnknown:
             localization.text("notification.history.legacyUnknown")
         }
@@ -195,6 +199,8 @@ private struct ReminderHistoryRow: View {
         switch record.status {
         case .delivered: .green
         case .failed: .red
+        case .automaticallyWithdrawn: .blue
+        case .withdrawalPending: .orange
         case .legacyUnknown: .secondary
         }
     }
@@ -203,6 +209,8 @@ private struct ReminderHistoryRow: View {
         switch record.status {
         case .delivered: "checkmark"
         case .failed: "exclamationmark"
+        case .automaticallyWithdrawn: "bell.slash.fill"
+        case .withdrawalPending: "arrow.clockwise"
         case .legacyUnknown: "questionmark"
         }
     }

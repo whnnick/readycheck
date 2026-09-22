@@ -312,6 +312,28 @@ struct SettingsView: View {
 
             Divider()
 
+            preferenceSection(titleKey: "settings.launchAtLogin", systemImage: "power") {
+                Toggle(model.localization.text("settings.launchAtLogin"), isOn: Binding(
+                    get: { model.launchAtLoginStatus == .enabled },
+                    set: { model.setLaunchAtLoginEnabled($0) }
+                ))
+                .toggleStyle(.switch)
+
+                Text(launchAtLoginStatusText)
+                    .font(.footnote)
+                    .foregroundStyle(model.launchAtLoginStatus == .failed ? Color.red : Color.secondary)
+
+                if model.launchAtLoginStatus == .requiresApproval {
+                    Button(model.localization.text("settings.launchAtLogin.open")) {
+                        model.openLoginItemSettings()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+
+            Divider()
+
             preferenceSection(titleKey: "settings.refresh", systemImage: "arrow.clockwise") {
                 Picker(model.localization.text("settings.refreshInterval"), selection: $model.refreshInterval) {
                     ForEach(refreshIntervalOptions, id: \.self) { interval in
@@ -371,6 +393,16 @@ struct SettingsView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var launchAtLoginStatusText: String {
+        switch model.launchAtLoginStatus {
+        case .disabled: model.localization.text("settings.launchAtLogin.disabled")
+        case .enabled: model.localization.text("settings.launchAtLogin.enabled")
+        case .requiresApproval: model.localization.text("settings.launchAtLogin.approval")
+        case .unavailable: model.localization.text("settings.launchAtLogin.unavailable")
+        case .failed: model.localization.text("settings.launchAtLogin.failed")
         }
     }
 
@@ -542,6 +574,15 @@ struct SettingsView: View {
                     .font(.headline)
             }
 
+            Picker(model.localization.text("codex.connectionMode"), selection: Binding(
+                get: { model.codexConnectionMode },
+                set: { mode in Task { await model.setCodexConnectionMode(mode) } }
+            )) {
+                Text(model.localization.text("codex.connectionMode.local")).tag(CodexConnectionMode.localCodex)
+                Text(model.localization.text("codex.connectionMode.oauth")).tag(CodexConnectionMode.standaloneOAuth)
+            }
+            .pickerStyle(.segmented)
+
             HStack(spacing: 8) {
                 if model.codexOAuthStatus != .connected {
                     Label(codexOAuthStatusText, systemImage: codexOAuthStatusIcon)
@@ -564,7 +605,7 @@ struct SettingsView: View {
 
                 Spacer(minLength: 8)
 
-                if shouldShowConnectButton {
+                if model.codexConnectionMode == .standaloneOAuth && shouldShowConnectButton {
                     Button(connectButtonTitle) {
                         if model.codexOAuthStatus == .credentialStorageFailed {
                             Task { await model.retryCredentialRead() }
@@ -581,7 +622,7 @@ struct SettingsView: View {
                     }
                 }
 
-                if model.codexOAuthStatus == .connected {
+                if model.codexConnectionMode == .standaloneOAuth && model.codexOAuthStatus == .connected {
                     Button(model.localization.text("action.disconnect")) {
                         Task {
                             await model.disconnectCodexOAuth()
@@ -596,7 +637,14 @@ struct SettingsView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
-            if model.codexOAuthStatus != .connected {
+            if model.codexConnectionMode == .localCodex {
+                Text(localCodexMonitorStatusText)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(model.codexEventMonitorStatus == .connected ? .green : .secondary)
+                    .textSelection(.enabled)
+            }
+
+            if model.codexConnectionMode == .standaloneOAuth && model.codexOAuthStatus != .connected {
                 VStack(alignment: .leading, spacing: 5) {
                     Label(model.localization.text("oauth.step.openBrowser"), systemImage: "1.circle")
                     Label(model.localization.text("oauth.step.waitForCallback"), systemImage: "2.circle")
@@ -661,11 +709,22 @@ struct SettingsView: View {
 
                     if model.codexOAuthStatus != .connected {
                         Button {
-                            if let url = model.beginCodexOAuthConnection() {
+                            if model.codexConnectionMode == .localCodex {
+                                Task { await model.retryLocalCodexConnection() }
+                            } else if let url = model.beginCodexOAuthConnection() {
                                 NSWorkspace.shared.open(url)
                             }
                         } label: {
-                            Label(model.localization.text("action.connectCodex"), systemImage: "key.horizontal")
+                            Label(
+                                model.localization.text(
+                                    model.codexConnectionMode == .localCodex
+                                        ? "action.retryLocalCodex"
+                                        : "action.connectCodex"
+                                ),
+                                systemImage: model.codexConnectionMode == .localCodex
+                                    ? "arrow.clockwise"
+                                    : "key.horizontal"
+                            )
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.small)
@@ -705,22 +764,44 @@ struct SettingsView: View {
 
         case .reconnect:
             Button {
-                if let url = model.beginCodexOAuthConnection(replacingExistingAuthorization: true) {
+                if model.codexConnectionMode == .localCodex {
+                    Task { await model.retryLocalCodexConnection() }
+                } else if let url = model.beginCodexOAuthConnection(replacingExistingAuthorization: true) {
                     NSWorkspace.shared.open(url)
                 }
             } label: {
-                Label(model.localization.text("action.reconnect"), systemImage: "person.badge.key.fill")
+                Label(
+                    model.localization.text(
+                        model.codexConnectionMode == .localCodex
+                            ? "action.retryLocalCodex"
+                            : "action.reconnect"
+                    ),
+                    systemImage: model.codexConnectionMode == .localCodex
+                        ? "arrow.clockwise"
+                        : "person.badge.key.fill"
+                )
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
 
         case .connect:
             Button {
-                if let url = model.beginCodexOAuthConnection() {
+                if model.codexConnectionMode == .localCodex {
+                    Task { await model.retryLocalCodexConnection() }
+                } else if let url = model.beginCodexOAuthConnection() {
                     NSWorkspace.shared.open(url)
                 }
             } label: {
-                Label(model.localization.text("action.connectCodex"), systemImage: "key.horizontal")
+                Label(
+                    model.localization.text(
+                        model.codexConnectionMode == .localCodex
+                            ? "action.retryLocalCodex"
+                            : "action.connectCodex"
+                    ),
+                    systemImage: model.codexConnectionMode == .localCodex
+                        ? "arrow.clockwise"
+                        : "key.horizontal"
+                )
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
@@ -810,11 +891,35 @@ struct SettingsView: View {
     }
 
     private var accountDetailText: String {
+        if model.codexConnectionMode == .localCodex {
+            return model.localization.text(
+                model.codexOAuthStatus == .connected
+                    ? "codex.local.connectedDetail"
+                    : "codex.local.detail"
+            )
+        }
         if model.codexOAuthStatus == .connected {
             return model.localization.text("provider.codexOAuth.connectedDetail")
         }
 
         return model.localization.text("provider.codexOAuth.detail")
+    }
+
+    private var localCodexMonitorStatusText: String {
+        switch model.codexEventMonitorStatus {
+        case .stopped:
+            return model.localization.text("codex.monitor.stopped")
+        case .connecting:
+            return model.localization.text("codex.monitor.connecting")
+        case .connected:
+            return model.localization.text("codex.monitor.connected")
+        case let .retrying(failure, attempt):
+            return String(
+                format: model.localization.text("codex.monitor.retrying"),
+                failure.rawValue,
+                attempt
+            )
+        }
     }
 
     private var refreshSummary: String {
@@ -829,6 +934,10 @@ struct SettingsView: View {
     private var quotaEmptyMessage: String {
         if model.codexOAuthStatus == .connected {
             return model.localization.text("empty.quota.connectedMessage")
+        }
+
+        if model.codexConnectionMode == .localCodex {
+            return model.localization.text("empty.quota.localMessage")
         }
 
         return model.localization.text("empty.quota.codexMessage")

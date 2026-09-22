@@ -4,6 +4,7 @@ public enum QuotaReminderEvent: Equatable, Hashable, Sendable {
     case manualResetExpiring(index: Int, expiresAt: Date, leadHours: Int)
     case creditsStarted
     case quotaRecovered(requestID: String)
+    case dismissQuotaRecovered(requestID: String)
 }
 
 public enum QuotaReminderHistoryKind: String, Codable, Equatable, Sendable {
@@ -15,6 +16,8 @@ public enum QuotaReminderHistoryKind: String, Codable, Equatable, Sendable {
 public enum QuotaReminderDeliveryStatus: String, Codable, Equatable, Sendable {
     case delivered
     case failed
+    case automaticallyWithdrawn
+    case withdrawalPending
     case legacyUnknown
 }
 
@@ -54,6 +57,10 @@ public struct QuotaReminderHistoryRecord: Codable, Equatable, Identifiable, Send
 
 public struct QuotaReminderState: Codable, Equatable, Sendable {
     public var recoveryRequest: QuotaRecoveryRequest?
+    public var recoveryNotificationBaseline: QuotaRecoveryRequest? = nil
+    public var recoveryNotificationBaselineMigrationCompleted: Bool? = nil
+    public var recoveryNotificationRemovalVerificationVersion: Int? = nil
+    public var pendingRecoveryNotificationDismissalID: String? = nil
     public var automaticRecoveryEnabled: Bool?
     public var recoveryRevision: Int?
     public var isAutomaticRecoveryEnabled: Bool { automaticRecoveryEnabled ?? true }
@@ -131,6 +138,15 @@ public enum QuotaReminderEvaluator {
 
         var state = originalState
         var events: [QuotaReminderEvent] = []
+        if let requestID = state.pendingRecoveryNotificationDismissalID {
+            events.append(.dismissQuotaRecovered(requestID: requestID))
+            state.pendingRecoveryNotificationDismissalID = nil
+        }
+        if let baseline = state.recoveryNotificationBaseline,
+           baseline.hasConsumption(snapshot, account: account, now: now) {
+            events.append(.dismissQuotaRecovered(requestID: baseline.id))
+            state.recoveryNotificationBaseline = nil
+        }
         if !state.isAutomaticRecoveryEnabled {
             state.recoveryRequest = nil
         } else if let account, !account.isEmpty {
@@ -144,6 +160,9 @@ public enum QuotaReminderEvaluator {
         if let request = state.recoveryRequest,
            request.isRecovered(snapshot, account: account, now: now) {
             events.append(.quotaRecovered(requestID: request.id))
+            state.recoveryNotificationBaseline = QuotaRecoveryRequest(
+                id: request.id, account: request.account, snapshot: snapshot
+            )
             state.recoveryRequest = QuotaRecoveryRequest.canArm(snapshot, now: now)
                 ? QuotaRecoveryRequest(account: request.account, snapshot: snapshot) : nil
         } else if let request = state.recoveryRequest,
@@ -379,6 +398,19 @@ public actor QuotaReminderStore {
                     }
             case .quotaRecovered:
                 state.recoveryRequest = previousState.recoveryRequest
+                state.recoveryNotificationBaseline = delivered.contains(where: {
+                    if case .dismissQuotaRecovered = $0 { return true }
+                    return false
+                }) ? nil : previousState.recoveryNotificationBaseline
+            case .dismissQuotaRecovered:
+                let deliveredRecoveryID = delivered.compactMap { event -> String? in
+                    guard case let .quotaRecovered(requestID) = event else { return nil }
+                    return requestID
+                }.first
+                if state.recoveryNotificationBaseline?.id != deliveredRecoveryID {
+                    state.recoveryNotificationBaseline = previousState.recoveryNotificationBaseline
+                }
+                state.pendingRecoveryNotificationDismissalID = previousState.pendingRecoveryNotificationDismissalID
             case .creditsStarted:
                 state.previousCreditBalance = previousState.previousCreditBalance
                 state.creditsReminderSentForCurrentExhaustion = previousState.creditsReminderSentForCurrentExhaustion
@@ -386,11 +418,19 @@ public actor QuotaReminderStore {
             }
         }
 
-        for event in batch.events {
+        for event in batch.events where !event.isDismissal {
             recordHistory(
                 event,
                 delivered: delivered.contains(event),
                 cycleKey: batch.proposedState.creditExhaustionCycleKey,
+                now: now,
+                state: &state
+            )
+        }
+        for event in batch.events where event.isDismissal {
+            recordDismissal(
+                event,
+                withdrawn: delivered.contains(event),
                 now: now,
                 state: &state
             )
@@ -500,6 +540,7 @@ public actor QuotaReminderStore {
 
     private func migrateHistoryIfNeeded(_ input: QuotaReminderState) -> QuotaReminderState {
         var state = input
+        let baselineMigrationWasAlreadyCompleted = state.recoveryNotificationBaselineMigrationCompleted == true
         if state.notificationHistoryMigrationCompleted != true {
             var history = state.notificationHistory ?? []
             let existingIDs = Set(history.map(\.id))
@@ -536,6 +577,38 @@ public actor QuotaReminderStore {
                 return migrated
             }
             state.notificationDeliveryVerificationVersion = 1
+        }
+
+        if state.recoveryNotificationBaselineMigrationCompleted != true {
+            if state.recoveryNotificationBaseline == nil,
+               let request = state.recoveryRequest,
+               let deliveredRecovery = (state.notificationHistory ?? []).first(where: {
+                   $0.kind == .quotaRecovered
+                       && $0.status == .delivered
+                       && $0.deliveredAt.map { $0 <= request.observedAt } == true
+               }),
+               deliveredRecovery.id.hasPrefix("recovery:") {
+                let requestID = String(deliveredRecovery.id.dropFirst("recovery:".count))
+                state.recoveryNotificationBaseline = QuotaRecoveryRequest(id: requestID, copying: request)
+            }
+            state.recoveryNotificationBaselineMigrationCompleted = true
+        }
+
+        if (state.recoveryNotificationRemovalVerificationVersion ?? 0) < 1 {
+            if state.recoveryNotificationBaseline == nil,
+               let request = state.recoveryRequest,
+               let deliveredRecovery = (state.notificationHistory ?? []).first(where: {
+                   $0.kind == .quotaRecovered && $0.status == .delivered
+               }),
+               deliveredRecovery.id.hasPrefix("recovery:") {
+                let requestID = String(deliveredRecovery.id.dropFirst("recovery:".count))
+                if baselineMigrationWasAlreadyCompleted {
+                    state.pendingRecoveryNotificationDismissalID = requestID
+                } else {
+                    state.recoveryNotificationBaseline = QuotaRecoveryRequest(id: requestID, copying: request)
+                }
+            }
+            state.recoveryNotificationRemovalVerificationVersion = 1
         }
 
         return state
@@ -575,6 +648,8 @@ public actor QuotaReminderStore {
             expiresAt = nil
             leadHours = nil
             resetIndex = nil
+        case .dismissQuotaRecovered:
+            return
         case .creditsStarted:
             recordID = "credits:\(cycleKey ?? "unknown")"
             kind = .creditsStarted
@@ -597,6 +672,20 @@ public actor QuotaReminderStore {
         )
         history.removeAll { $0.id == recordID }
         history.append(record)
+        state.notificationHistory = prunedHistory(history)
+    }
+
+    private func recordDismissal(
+        _ event: QuotaReminderEvent,
+        withdrawn: Bool,
+        now: Date,
+        state: inout QuotaReminderState
+    ) {
+        guard case let .dismissQuotaRecovered(requestID) = event else { return }
+        var history = state.notificationHistory ?? []
+        guard let index = history.firstIndex(where: { $0.id == "recovery:\(requestID)" }) else { return }
+        history[index].status = withdrawn ? .automaticallyWithdrawn : .withdrawalPending
+        history[index].lastAttemptAt = now
         state.notificationHistory = prunedHistory(history)
     }
 
@@ -626,5 +715,12 @@ public actor QuotaReminderStore {
         } catch {
             // Reminder persistence must never prevent quota refresh.
         }
+    }
+}
+
+private extension QuotaReminderEvent {
+    var isDismissal: Bool {
+        if case .dismissQuotaRecovered = self { return true }
+        return false
     }
 }

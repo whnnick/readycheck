@@ -3,6 +3,7 @@ import Observation
 import OSLog
 import ReadyCheckCore
 import Security
+import ServiceManagement
 import SwiftUI
 
 enum CodexOAuthConnectionStatus: Equatable {
@@ -14,11 +15,26 @@ enum CodexOAuthConnectionStatus: Equatable {
     case failed
 }
 
+enum CodexConnectionMode: String, CaseIterable, Identifiable {
+    case localCodex
+    case standaloneOAuth
+
+    var id: String { rawValue }
+}
+
 enum AppUpdateStatus: Equatable {
     case idle
     case checking
     case upToDate
     case updateAvailable(AppUpdate)
+    case failed
+}
+
+enum LaunchAtLoginStatus: Equatable {
+    case disabled
+    case enabled
+    case requiresApproval
+    case unavailable
     case failed
 }
 
@@ -79,7 +95,10 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
-        Task { await appModel.reloadNotificationReadiness() }
+        Task {
+            await appModel.reloadNotificationReadiness()
+            appModel.reloadLaunchAtLoginStatus()
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -172,6 +191,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
 final class ReadyCheckAppModel {
     private static let widgetAlwaysOnTopDefaultsKey = "ReadyCheck.widgetAlwaysOnTop.v1"
     private static let notchStatusVisibleDefaultsKey = "ReadyCheck.notchStatusVisible.v1"
+    private static let codexConnectionModeDefaultsKey = "ReadyCheck.codexConnectionMode.v1"
     private static let oauthLogger = Logger(subsystem: "com.readycheck.app", category: "oauth")
 
     var language: AppLanguage = .zhCN
@@ -242,10 +262,13 @@ final class ReadyCheckAppModel {
     var isRefreshing = false
     var lastRefreshAt: Date?
     var codexOAuthStatus: CodexOAuthConnectionStatus = .notConnected
+    var codexConnectionMode: CodexConnectionMode
     var codexOAuthCallbackURL = ""
     var codexOAuthStatusMessage: String?
     var codexOAuthLoginEmail: String?
+    var codexEventMonitorStatus: CodexAppServerMonitorStatus = .stopped
     var updateStatus: AppUpdateStatus = .idle
+    var launchAtLoginStatus: LaunchAtLoginStatus = .disabled
     var updatePromptState = UpdatePromptState()
 
     @ObservationIgnored
@@ -313,6 +336,10 @@ final class ReadyCheckAppModel {
         codexAppServerClient: any CodexAppServerReading = CodexAppServerClient(),
         rateLimitMonitor: CodexAppServerRateLimitMonitor = CodexAppServerRateLimitMonitor()
     ) {
+        let initialConnectionMode = CodexConnectionMode(
+            rawValue: UserDefaults.standard.string(forKey: Self.codexConnectionModeDefaultsKey) ?? ""
+        ) ?? .localCodex
+        self.codexConnectionMode = initialConnectionMode
         self.credentialStore = credentialStore
         self.codexOAuthClient = codexOAuthClient
         self.updateChecker = updateChecker
@@ -325,12 +352,13 @@ final class ReadyCheckAppModel {
             registry: ProviderRegistry(
                 configurations: ProviderConfiguration.defaults,
                 credentialStore: credentialStore,
-                codexAppServerClient: codexAppServerClient
+                codexAppServerClient: initialConnectionMode == .localCodex ? codexAppServerClient : nil
             )
         )
         self.floatingWindowController.onVisibilityChanged = { [weak self] isVisible in
             self?.syncWidgetVisibilityFromWindow(isVisible)
         }
+        reloadLaunchAtLoginStatus()
     }
 
     var localization: LocalizationService {
@@ -388,6 +416,42 @@ final class ReadyCheckAppModel {
             guard let url = URL(string: value), NSWorkspace.shared.open(url) else { continue }
             return
         }
+    }
+
+    func reloadLaunchAtLoginStatus() {
+        switch SMAppService.mainApp.status {
+        case .notRegistered:
+            launchAtLoginStatus = .disabled
+        case .enabled:
+            launchAtLoginStatus = .enabled
+        case .requiresApproval:
+            launchAtLoginStatus = .requiresApproval
+        case .notFound:
+            launchAtLoginStatus = .unavailable
+        @unknown default:
+            launchAtLoginStatus = .unavailable
+        }
+    }
+
+    func setLaunchAtLoginEnabled(_ enabled: Bool) {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+            reloadLaunchAtLoginStatus()
+        } catch {
+            reloadLaunchAtLoginStatus()
+            if launchAtLoginStatus != .requiresApproval {
+                launchAtLoginStatus = .failed
+            }
+        }
+    }
+
+    func openLoginItemSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension") else { return }
+        NSWorkspace.shared.open(url)
     }
 
     func showFloatingWidget() {
@@ -486,7 +550,45 @@ final class ReadyCheckAppModel {
         }
     }
 
+    func setCodexConnectionMode(_ mode: CodexConnectionMode) async {
+        guard mode != codexConnectionMode else { return }
+        codexConnectionMode = mode
+        UserDefaults.standard.set(mode.rawValue, forKey: Self.codexConnectionModeDefaultsKey)
+        rebuildStore()
+        await reloadCodexOAuthConnectionStatus()
+        await refresh(reason: .manual)
+    }
+
+    func retryLocalCodexConnection() async {
+        await reloadCodexOAuthConnectionStatus()
+        guard codexOAuthStatus == .connected else { return }
+        await refresh(reason: .manual)
+    }
+
     func reloadCodexOAuthConnectionStatus() async {
+        if codexConnectionMode == .localCodex {
+            do {
+                guard let snapshot = try await codexAppServerClient.readAccountSnapshots().first,
+                      !snapshot.rateLimits.isEmpty
+                else {
+                    codexOAuthStatus = .notConnected
+                    codexOAuthStatusMessage = localization.text("codex.local.unavailable")
+                    codexOAuthLoginEmail = nil
+                    await updateRecoveryReminderAccount(nil)
+                    return
+                }
+                codexOAuthStatus = .connected
+                codexOAuthStatusMessage = nil
+                codexOAuthLoginEmail = snapshot.email
+                await updateRecoveryReminderAccount(snapshot.accountID ?? snapshot.email)
+            } catch {
+                codexOAuthStatus = .notConnected
+                codexOAuthStatusMessage = localization.text("codex.local.unavailable")
+                codexOAuthLoginEmail = nil
+                await updateRecoveryReminderAccount(nil)
+            }
+            return
+        }
         do {
             let tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)
             if let token = try await tokenStore.loadToken() {
@@ -774,15 +876,24 @@ final class ReadyCheckAppModel {
     }
 
     func startRateLimitMonitoring() {
-        rateLimitMonitor.start { [weak self] in
+        rateLimitMonitor.start(onStatusChanged: { [weak self] status in
+            Task { @MainActor in
+                guard let self else { return }
+                self.codexEventMonitorStatus = status
+                if status == .connected, self.codexConnectionMode == .localCodex {
+                    self.scheduleRateLimitEventRefresh()
+                }
+            }
+        }, onRateLimitsUpdated: { [weak self] in
             Task { @MainActor in
                 self?.scheduleRateLimitEventRefresh()
             }
-        }
+        })
     }
 
     func stopRateLimitMonitoring() {
         rateLimitMonitor.stop()
+        codexEventMonitorStatus = .stopped
         rateLimitEventRefreshTask?.cancel()
         rateLimitEventRefreshTask = nil
     }
@@ -800,6 +911,7 @@ final class ReadyCheckAppModel {
                 try? await Task.sleep(nanoseconds: 100_000_000)
             }
             if !Task.isCancelled {
+                await reloadCodexOAuthConnectionStatus()
                 await refresh(reason: .serverEvent)
             }
             rateLimitEventRefreshTask = nil
@@ -915,11 +1027,16 @@ final class ReadyCheckAppModel {
     private func rebuildStoreIfConfigurationChanged(oldValue: Bool, newValue: Bool) {
         guard oldValue != newValue else { return }
 
+        rebuildStore()
+    }
+
+    private func rebuildStore() {
+
         store = QuotaStore(
             registry: ProviderRegistry(
                 configurations: providerConfigurations,
                 credentialStore: credentialStore,
-                codexAppServerClient: codexAppServerClient
+                codexAppServerClient: codexConnectionMode == .localCodex ? codexAppServerClient : nil
             )
         )
         storeGeneration += 1

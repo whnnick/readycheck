@@ -27,6 +27,8 @@ scripts/package_dmg.sh
 scripts/package_windows_portable.sh
 ```
 
+Windows packaging is validated through Node.js 24. If a newer system Node is installed, set `READYCHECK_NODE_BIN` to a compatible Node executable; the script fails before packaging rather than accepting an empty Electron Packager result.
+
 `scripts/package_dmg.sh` is the only standard local packaging entry point. It cleans old `ReadyCheck-*-macos.dmg` files from `dist` before writing the current DMG.
 
 Release builds must use a stable signing identity. `scripts/package_app.sh` prefers `ReadyCheck Preview Signing` when it exists, or the identity supplied through `READYCHECK_SIGNING_IDENTITY`. Standalone contributor app builds may fall back to ad-hoc signing, while `scripts/package_dmg.sh` fails instead of producing a release DMG without a stable identity.

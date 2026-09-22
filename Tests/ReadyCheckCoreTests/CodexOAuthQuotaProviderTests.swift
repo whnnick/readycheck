@@ -2,6 +2,48 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class CodexOAuthQuotaProviderTests: XCTestCase {
+    func testOfficialLocalSnapshotWorksWhenKeychainReadFails() async throws {
+        let appServer = StubCodexAppServerReader(
+            snapshot: CodexAppServerAccountSnapshot(
+                accountID: "account-local",
+                email: "local@example.com",
+                planName: "plus",
+                rateLimits: [
+                    CodexAppServerRateLimitSnapshot(
+                        limitID: "codex",
+                        limitName: "Codex",
+                        primary: CodexAppServerRateLimitWindow(
+                            usedPercent: 25,
+                            durationMinutes: 300,
+                            resetsAt: Date(timeIntervalSince1970: 4_600)
+                        ),
+                        secondary: nil,
+                        creditBalance: nil,
+                        hasCredits: false,
+                        creditsUnlimited: false,
+                        planName: "plus"
+                    )
+                ],
+                resetCredits: [],
+                tokenUsage: nil
+            )
+        )
+        let provider = CodexOAuthQuotaProvider(
+            credentialStore: FailingCredentialStore(),
+            appServerClient: appServer,
+            now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        let snapshot = try await provider.fetchSnapshot(
+            context: ProviderRefreshContext(reason: .automatic)
+        )
+
+        XCTAssertEqual(snapshot.status, .available)
+        XCTAssertEqual(snapshot.source, .appServer)
+        XCTAssertEqual(snapshot.windows.first?.remainingRatio, 0.75)
+        XCTAssertTrue(snapshot.errors.isEmpty)
+    }
+
     func testSupplementalRefreshGateThrottlesAutomaticRefreshButAllowsManualRefresh() async {
         let gate = CodexSupplementalRefreshGate(automaticInterval: 900)
         let start = Date(timeIntervalSince1970: 1_000)
@@ -476,6 +518,15 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertEqual(snapshot.errors, ["quota.error.authorizationRejected"])
         XCTAssertEqual(snapshot.recoveryAction, .reconnect)
     }
+}
+
+private struct FailingCredentialStore: CredentialStore {
+    func loadCredential(for key: CredentialKey) async throws -> String? {
+        throw KeychainCredentialStoreError.unexpectedStatus(errSecInteractionNotAllowed)
+    }
+
+    func saveCredential(_ credential: String, for key: CredentialKey) async throws {}
+    func removeCredential(for key: CredentialKey) async throws {}
 }
 
 private struct StubCodexAppServerReader: CodexAppServerReading {

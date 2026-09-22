@@ -8,11 +8,11 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 当前预览版：[`0.1.94`](https://github.com/whnnick/readycheck/releases/tag/v0.1.94)。目前仅支持 Codex OAuth；恢复提醒仅支持 macOS。
+> 当前预览版：[`0.1.98`](https://github.com/whnnick/readycheck/releases/tag/v0.1.98)。本版新增本机 Codex 事件连接超时恢复和脱敏诊断；恢复提醒仅支持 macOS。
 
 ## 可以做什么
 
-预览版 **0.1.94**：唤醒刷新和悬浮窗屏幕变化恢复。参见[验收状态](docs/QA.zh-CN.md#0194-唤醒与屏幕变化恢复)。
+ReadyCheck **0.1.98**：本机 Codex 额度事件连接卡住或被拒绝时可以自动恢复，并尝试其他已安装客户端，同时显示脱敏连接状态。参见 [0.1.98 验收状态](docs/versions/0.1.98/QA.zh-CN.md)。
 
 - 根据 Codex 当前实际返回动态展示经过验证的额度窗口，不预设固定为 5 小时或 7 天。
 - 当已授权的用量数据提供对应字段时，在主窗口和详细 Widget 中显示 Credits 余额或无限额度状态。
@@ -27,9 +27,11 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
 
 ReadyCheck 采用保守策略：无法安全读取或验证额度数据时，显示不可用，而不会猜测百分比。
 
-## 额度恢复自动提醒（macOS 0.1.94）
+## 额度恢复自动提醒（macOS 0.1.98）
 
 **额度恢复自动提醒** 默认开启，始终显示在主窗口和菜单栏的额度区域下方。任一已观察窗口的剩余额度回升就提醒，无需先耗尽，也无需等待其他窗口恢复。正常消耗和重复刷新不提醒，首次读取只建立基线。请保持 ReadyCheck 运行；未观察到的历史恢复不会补发通知。
+
+恢复后的额度再次开始下降时，ReadyCheck 会自动从通知中心移除对应的持续提醒。新的恢复会替换旧恢复提醒，已完成的提醒不会不断堆积。
 
 关闭开关会停止监听并取消当前等待。开关与等待状态在重启后保留，切换账号会清除旧账号的等待。连接、数据或投递异常会就地说明；系统通知关闭时提供设置入口。“测试通知”按钮在测试后仍可点击，结果单独显示。
 
@@ -45,9 +47,9 @@ Windows 10/11 预览测试可从同一个发布页下载已发布的 Windows 便
 
 ## 连接 Codex
 
-1. 打开 ReadyCheck，点击“连接”。
-2. 在浏览器完成 OAuth 授权。
-3. ReadyCheck 接收本地回调并刷新可用额度窗口。
+1. 打开 ReadyCheck，保持选择“使用本机 Codex”，直接复用这台 Mac 上 Codex 或 ChatGPT 已登录的账号。
+2. 如果本机 app-server 不可用，选择“独立 OAuth”，点击“连接”并在浏览器完成授权。
+3. ReadyCheck 只刷新该连接返回的额度与用量数据。
 
 OAuth 回调监听 `localhost:1455`。若本地回调未成功接收，仍可手动粘贴回调 URL 完成授权。
 
@@ -61,7 +63,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.94-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.94-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.98-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.98-windows-x64-portable.zip`。
 
 ## Windows 预览版开发
 
@@ -80,11 +82,13 @@ npm run dev
 ## 准确性与隐私
 
 - 应用优先使用官方本地 Codex app-server，否则读取已授权的 Codex 用量端点；两条路径都不会发送 prompt 或调用模型。
-- 只有 app-server 的账户邮箱与 ReadyCheck OAuth 账户一致时才采用其数据。降级用量响应属于内部服务接口，可能变化，因此 ReadyCheck 只显示可以验证的字段。
+- 本机模式在官方账号 ID 可用时用它隔离提醒状态；独立 OAuth 仅接受与 OAuth 账号匹配的 app-server 补充数据。降级用量响应属于内部服务接口，可能变化，因此 ReadyCheck 只显示可以验证的字段。
 - OAuth token 存储在 Keychain 中；提交 GitHub Issue 时不要包含 token、回调 URL、账户 ID 或原始用量数据。
 - 本项目与 OpenAI 没有隶属或背书关系。
 
 ## 文档
+
+- [0.1.98 下一版计划](docs/versions/0.1.98/PLAN.zh-CN.md) | [Next release plan](docs/versions/0.1.98/PLAN.md) | [版本索引](docs/VERSIONS.md)
 
 - [安装说明](docs/INSTALL.zh-CN.md) | [Install guide](docs/INSTALL.md)
 - [真实场景验收](docs/QA.zh-CN.md) | [Real-world QA checklist](docs/QA.md)

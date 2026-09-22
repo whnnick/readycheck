@@ -8,11 +8,11 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Current preview: [`0.1.94`](https://github.com/whnnick/readycheck/releases/tag/v0.1.94). Codex OAuth is the only supported provider. Recovery reminders are macOS-only.
+> Current preview: [`0.1.98`](https://github.com/whnnick/readycheck/releases/tag/v0.1.98). This release adds bounded local Codex event recovery and sanitized connection diagnostics. Recovery reminders are macOS-only.
 
 ## What It Does
 
-Preview **0.1.94**, with wake refresh and floating-widget display recovery. See [acceptance status](docs/QA.md#0194-macos-wake-and-display-recovery).
+ReadyCheck **0.1.98** recovers from a stalled or rejected local Codex event connection, tries another installed client, and shows a sanitized event status. See the [0.1.98 acceptance status](docs/versions/0.1.98/QA.md).
 
 - Shows the validated quota windows currently returned by Codex instead of assuming a fixed 5-hour or 7-day model.
 - Shows the Credits balance or unlimited-credit state in the main window and detailed widget when the authorized usage response provides it.
@@ -27,9 +27,11 @@ Preview **0.1.94**, with wake refresh and floating-widget display recovery. See 
 
 ReadyCheck fails closed: when quota data cannot be read or validated, it shows an unavailable state instead of estimating a percentage.
 
-## Automatic quota recovery reminders (macOS 0.1.94)
+## Automatic quota recovery reminders (macOS 0.1.98)
 
 **Automatic recovery alerts** is on by default and always visible below quota in the main window and menu bar. A verified increase in any tracked window sends an alert, even before exhaustion. Consumption and unchanged refreshes do not notify. The first snapshot establishes a baseline. Keep ReadyCheck running; unobserved past recoveries are not replayed.
+
+When the recovered quota starts decreasing again, ReadyCheck automatically removes its persistent recovery alert from Notification Center. A newer recovery replaces an older recovery alert, so completed reminders do not accumulate.
 
 Turn the switch off to stop monitoring and cancel the current wait. The setting and active wait survive restarts; account changes discard the old account's wait. The control explains connection, data and delivery problems and links to system notification settings when alerts are disabled. The notification test button remains available after a test, with its result displayed separately.
 
@@ -45,9 +47,9 @@ The preview build uses a stable self-signed ReadyCheck identity but is not Devel
 
 ## Connect Codex
 
-1. Open ReadyCheck and select **Connect**.
-2. Complete the browser OAuth flow.
-3. ReadyCheck receives the local callback and refreshes the available quota windows.
+1. Open ReadyCheck and keep **Use local Codex** selected to reuse the account signed in to Codex or ChatGPT on this Mac.
+2. If the local app-server is unavailable, select **Standalone OAuth**, click **Connect**, and complete browser authorization.
+3. ReadyCheck refreshes only the quota and usage data returned for that connection.
 
 The OAuth callback listener uses `localhost:1455`. A manual callback URL field remains available if the local callback cannot be received.
 
@@ -61,7 +63,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.94-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.94-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.98-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.98-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 
@@ -80,11 +82,13 @@ npm run dev
 ## Accuracy And Privacy
 
 - The app prefers the official local Codex app-server and otherwise reads the authorized Codex usage endpoint. Neither path sends a prompt or invokes a model.
-- Official app-server data is accepted only when its account email matches the ReadyCheck OAuth account. The fallback usage response is an internal service interface and may change, so ReadyCheck displays only validated fields.
+- Local mode binds reminder state to the official account ID when available. Standalone OAuth accepts app-server supplementation only for the matching OAuth account. The fallback usage response is an internal service interface and may change, so ReadyCheck displays only validated fields.
 - OAuth tokens are stored in Keychain; do not put tokens, callback URLs, account IDs, or usage payloads in GitHub issues.
 - This project is not affiliated with or endorsed by OpenAI.
 
 ## Documentation
+
+- [0.1.98 plan](docs/versions/0.1.98/PLAN.md) | [下一版计划](docs/versions/0.1.98/PLAN.zh-CN.md) | [Version index](docs/VERSIONS.md)
 
 - [Install guide](docs/INSTALL.md) | [安装说明](docs/INSTALL.zh-CN.md)
 - [Real-world QA checklist](docs/QA.md) | [真实场景验收](docs/QA.zh-CN.md)

@@ -27,6 +27,8 @@ scripts/package_dmg.sh
 scripts/package_windows_portable.sh
 ```
 
+Windows 打包已验证到 Node.js 24。如果系统安装了更新的 Node，请用 `READYCHECK_NODE_BIN` 指定兼容的 Node 可执行文件；脚本会在打包前失败，不再接受 Electron Packager 未生成产物的假成功结果。
+
 `scripts/package_dmg.sh` 是标准本地打包入口。它会在写入当前版本 DMG 前自动清理 `dist` 中的旧 `ReadyCheck-*-macos.dmg`。
 
 发布包必须使用稳定签名身份。`scripts/package_app.sh` 会优先使用本机的 `ReadyCheck Preview Signing`，也可通过 `READYCHECK_SIGNING_IDENTITY` 指定其他身份。单独构建 App 时允许贡献者回退到 ad-hoc 签名，但 `scripts/package_dmg.sh` 找不到稳定身份时会直接失败，不会生成不可持续访问 Keychain 的发布 DMG。

@@ -12,26 +12,32 @@ public extension CodexAppServerReading {
 }
 
 public struct CodexAppServerAccountSnapshot: Equatable, Sendable {
+    public let accountID: String?
     public let email: String?
     public let planName: String?
     public let rateLimits: [CodexAppServerRateLimitSnapshot]
     public let manualResetCount: Int?
     public let resetCredits: [CodexAppServerResetCredit]
+    public let resetCreditDetailsAvailable: Bool
     public let tokenUsage: AccountTokenUsage?
 
     public init(
+        accountID: String? = nil,
         email: String?,
         planName: String?,
         rateLimits: [CodexAppServerRateLimitSnapshot],
         manualResetCount: Int? = nil,
         resetCredits: [CodexAppServerResetCredit],
+        resetCreditDetailsAvailable: Bool = false,
         tokenUsage: AccountTokenUsage?
     ) {
+        self.accountID = accountID
         self.email = email
         self.planName = planName
         self.rateLimits = rateLimits
         self.manualResetCount = manualResetCount
         self.resetCredits = resetCredits
+        self.resetCreditDetailsAvailable = resetCreditDetailsAvailable
         self.tokenUsage = tokenUsage
     }
 }
@@ -83,10 +89,22 @@ public struct CodexAppServerRateLimitSnapshot: Equatable, Sendable {
 }
 
 public struct CodexAppServerResetCredit: Equatable, Sendable {
+    public let id: String?
+    public let title: String?
+    public let detail: String?
     public let status: String?
     public let expiresAt: Date?
 
-    public init(status: String?, expiresAt: Date?) {
+    public init(
+        id: String? = nil,
+        title: String? = nil,
+        detail: String? = nil,
+        status: String?,
+        expiresAt: Date?
+    ) {
+        self.id = id
+        self.title = title
+        self.detail = detail
         self.status = status
         self.expiresAt = expiresAt
     }
@@ -368,16 +386,21 @@ public enum CodexAppServerResponseParser {
         }
 
         return CodexAppServerAccountSnapshot(
+            accountID: limits.accountID ?? account.workspaceRouting?.chatgptAccountID,
             email: account.account?.email,
             planName: account.account?.planType,
             rateLimits: snapshots.map(mapRateLimit),
             manualResetCount: limits.rateLimitResetCredits?.availableCount,
             resetCredits: limits.rateLimitResetCredits?.credits?.map {
                 CodexAppServerResetCredit(
+                    id: $0.id,
+                    title: $0.title,
+                    detail: $0.description,
                     status: $0.status,
                     expiresAt: $0.expiresAt.map { Date(timeIntervalSince1970: TimeInterval($0)) }
                 )
             } ?? [],
+            resetCreditDetailsAvailable: limits.rateLimitResetCredits?.credits != nil,
             tokenUsage: usage.map {
                 AccountTokenUsage(
                     summary: AccountTokenUsageSummary(
@@ -420,19 +443,30 @@ public enum CodexAppServerResponseParser {
 
 private struct AccountResponse: Decodable {
     let account: Account?
+    let workspaceRouting: WorkspaceRouting?
 
     struct Account: Decodable {
         let email: String?
         let planType: String?
     }
+
+    struct WorkspaceRouting: Decodable {
+        let chatgptAccountID: String?
+
+        enum CodingKeys: String, CodingKey {
+            case chatgptAccountID = "chatgptAccountId"
+        }
+    }
 }
 
 private struct RateLimitsResponse: Decodable {
+    let accountID: String?
     let rateLimits: RateLimitResponseSnapshot
     let rateLimitsByLimitID: [String: RateLimitResponseSnapshot]?
     let rateLimitResetCredits: ResetCredits?
 
     enum CodingKeys: String, CodingKey {
+        case accountID = "accountId"
         case rateLimits
         case rateLimitsByLimitID = "rateLimitsByLimitId"
         case rateLimitResetCredits
@@ -444,6 +478,9 @@ private struct RateLimitsResponse: Decodable {
     }
 
     struct Credit: Decodable {
+        let id: String?
+        let title: String?
+        let description: String?
         let status: String?
         let expiresAt: Int64?
     }

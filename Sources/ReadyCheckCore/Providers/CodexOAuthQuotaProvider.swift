@@ -40,13 +40,30 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             reason: context.reason,
             now: date
         )
+        let appServerSnapshots = try? await appServerClient?.readAccountSnapshots()
         let storedToken: CodexOAuthToken?
         do {
             storedToken = try await tokenStore.loadToken()
         } catch is KeychainCredentialStoreError {
+            if let appServerSnapshot = preferredAppServerSnapshot(appServerSnapshots ?? [], token: nil),
+               let officialSnapshot = makeOfficialSnapshot(
+                   appServerSnapshot,
+                   token: nil,
+                   refreshedAt: date
+               ) {
+                return officialSnapshot
+            }
             return snapshot(date: date, error: "oauth.error.keychainUnavailable")
         }
         guard var token = storedToken else {
+            if let appServerSnapshot = preferredAppServerSnapshot(appServerSnapshots ?? [], token: nil),
+               let officialSnapshot = makeOfficialSnapshot(
+                   appServerSnapshot,
+                   token: nil,
+                   refreshedAt: date
+               ) {
+                return officialSnapshot
+            }
             return snapshot(date: date, error: "quota.error.oauthRequired")
         }
 
@@ -59,11 +76,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             }
         }
 
-        if shouldRefreshSupplementalDetails,
-           let appServerClient,
-           let appServerSnapshots = try? await appServerClient.readAccountSnapshots(),
-           let appServerSnapshot = mergedMatchingAppServerSnapshot(
-               appServerSnapshots,
+        if let appServerSnapshot = preferredAppServerSnapshot(
+               appServerSnapshots ?? [],
                token: token
            ),
            let officialSnapshot = makeOfficialSnapshot(
@@ -140,6 +154,12 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         token: CodexOAuthToken,
         snapshot: CodexAppServerAccountSnapshot
     ) -> Bool {
+        if let tokenAccountID = token.accountID?.trimmingCharacters(in: .whitespacesAndNewlines),
+           let snapshotAccountID = snapshot.accountID?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !tokenAccountID.isEmpty,
+           !snapshotAccountID.isEmpty {
+            return tokenAccountID == snapshotAccountID
+        }
         guard let readyCheckEmail = token.loginEmail?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
               let appServerEmail = snapshot.email?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
               !readyCheckEmail.isEmpty,
@@ -150,11 +170,26 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         return readyCheckEmail == appServerEmail
     }
 
-    private func mergedMatchingAppServerSnapshot(
+    private func preferredAppServerSnapshot(
         _ snapshots: [CodexAppServerAccountSnapshot],
-        token: CodexOAuthToken
+        token: CodexOAuthToken?
     ) -> CodexAppServerAccountSnapshot? {
-        let matching = snapshots.filter { accountsMatch(token: token, snapshot: $0) }
+        let matching: [CodexAppServerAccountSnapshot]
+        if let token {
+            let exact = snapshots.filter { accountsMatch(token: token, snapshot: $0) }
+            matching = exact.isEmpty ? Array(snapshots.prefix(1)) : exact
+        } else {
+            guard let first = snapshots.first else { return nil }
+            matching = snapshots.filter { candidate in
+                if let accountID = first.accountID, !accountID.isEmpty {
+                    return candidate.accountID == accountID
+                }
+                if let email = first.email?.lowercased(), !email.isEmpty {
+                    return candidate.email?.lowercased() == email
+                }
+                return candidate == first
+            }
+        }
         guard var merged = matching.first else { return nil }
 
         for candidate in matching.dropFirst() {
@@ -168,11 +203,14 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             }
 
             merged = CodexAppServerAccountSnapshot(
+                accountID: merged.accountID ?? candidate.accountID,
                 email: merged.email,
                 planName: merged.planName ?? candidate.planName,
                 rateLimits: merged.rateLimits.isEmpty ? candidate.rateLimits : merged.rateLimits,
                 manualResetCount: resolvedCount,
                 resetCredits: resolvedResetCredits,
+                resetCreditDetailsAvailable: merged.resetCreditDetailsAvailable
+                    || candidate.resetCreditDetailsAvailable,
                 tokenUsage: merged.tokenUsage ?? candidate.tokenUsage
             )
         }
@@ -181,7 +219,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
 
     private func makeOfficialSnapshot(
         _ appServerSnapshot: CodexAppServerAccountSnapshot,
-        token: CodexOAuthToken,
+        token: CodexOAuthToken?,
         refreshedAt: Date
     ) -> ProviderQuotaSnapshot? {
         let windows = appServerSnapshot.rateLimits.flatMap { snapshot in
@@ -226,8 +264,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             details: ProviderQuotaDetails(
                 planName: defaultLimit?.planName
                     ?? appServerSnapshot.planName
-                    ?? CodexJWTClaims.planName(from: token.idToken),
-                subscriptionRenewalAt: CodexJWTClaims.subscriptionRenewalAt(from: token.idToken),
+                    ?? token.flatMap { CodexJWTClaims.planName(from: $0.idToken) },
+                subscriptionRenewalAt: token.flatMap { CodexJWTClaims.subscriptionRenewalAt(from: $0.idToken) },
                 manualResetCount: appServerSnapshot.manualResetCount,
                 manualResetExpirations: resetExpirations,
                 creditBalance: defaultLimit?.hasCredits == false ? nil : defaultLimit?.creditBalance,

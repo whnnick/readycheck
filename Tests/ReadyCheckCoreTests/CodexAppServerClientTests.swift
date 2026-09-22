@@ -5,7 +5,7 @@ final class CodexAppServerClientTests: XCTestCase {
     func testParserMapsDynamicWindowsCreditsResetsAndTokenUsage() throws {
         let snapshot = try CodexAppServerResponseParser.parse(
             accountData: Data(
-                #"{"account":{"type":"chatgpt","email":"user@example.com","planType":"plus"}}"#.utf8
+                #"{"account":{"type":"chatgpt","email":"user@example.com","planType":"plus"},"workspaceRouting":{"chatgptAccountId":"account-123"}}"#.utf8
             ),
             rateLimitsData: Data(
                 """
@@ -58,6 +58,9 @@ final class CodexAppServerClientTests: XCTestCase {
                     "availableCount": 1,
                     "credits": [
                       {
+                        "id": "reset-1",
+                        "title": "Reset Codex",
+                        "description": "Restore the shared allowance",
                         "status": "available",
                         "expiresAt": 1785686400
                       }
@@ -86,6 +89,7 @@ final class CodexAppServerClientTests: XCTestCase {
         )
 
         XCTAssertEqual(snapshot.email, "user@example.com")
+        XCTAssertEqual(snapshot.accountID, "account-123")
         XCTAssertEqual(snapshot.planName, "plus")
         XCTAssertEqual(snapshot.rateLimits.count, 1)
         XCTAssertEqual(snapshot.rateLimits[0].primary?.durationMinutes, 300)
@@ -98,6 +102,9 @@ final class CodexAppServerClientTests: XCTestCase {
         XCTAssertEqual(snapshot.rateLimits[0].creditBalance, "12.5")
         XCTAssertEqual(snapshot.manualResetCount, 1)
         XCTAssertEqual(snapshot.resetCredits.count, 1)
+        XCTAssertEqual(snapshot.resetCredits[0].id, "reset-1")
+        XCTAssertEqual(snapshot.resetCredits[0].title, "Reset Codex")
+        XCTAssertTrue(snapshot.resetCreditDetailsAvailable)
         XCTAssertEqual(snapshot.tokenUsage?.summary.lifetimeTokens, 123_456)
         XCTAssertEqual(snapshot.tokenUsage?.dailyBuckets.map(\.tokens), [12_000, 9_000])
     }
@@ -141,7 +148,9 @@ final class CodexAppServerClientTests: XCTestCase {
         )
 
         XCTAssertEqual(zero.manualResetCount, 0)
+        XCTAssertTrue(zero.resetCreditDetailsAvailable)
         XCTAssertNil(unavailable.manualResetCount)
+        XCTAssertFalse(unavailable.resetCreditDetailsAvailable)
     }
 
     func testExecutableDiscoveryHonorsExplicitPath() throws {

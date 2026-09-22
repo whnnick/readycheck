@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-BUILD_DIR="${REPO_ROOT}/.build"
+BUILD_DIR="${READYCHECK_BUILD_DIR:-${REPO_ROOT}/.build}"
 if [[ "${REPO_ROOT}" == */.worktrees/* ]]; then
     DEFAULT_DIST_DIR="$(cd "${REPO_ROOT}/../.." && pwd)/dist"
 else
@@ -19,7 +19,7 @@ EXECUTABLE_TARGET="${MACOS_DIR}/ReadyCheckApp"
 ICONSET_DIR="${BUILD_DIR}/ReadyCheck.iconset"
 ICON_SOURCE="${BUILD_DIR}/ReadyCheckIcon1024.png"
 ICON_TARGET="${RESOURCES_DIR}/ReadyCheck.icns"
-VERSION="0.1.94"
+VERSION="0.1.98"
 PREVIEW_SIGNING_IDENTITY="ReadyCheck Preview Signing"
 
 resolve_signing_identity() {
@@ -44,7 +44,8 @@ export SWIFTPM_MODULECACHE_PATH="${BUILD_DIR}/module-cache"
 mkdir -p "${DIST_DIR}"
 find "${DIST_DIR}" -maxdepth 1 -type d -name "ReadyCheck*.app" -exec rm -rf {} +
 
-swift build --disable-sandbox -c release --product ReadyCheckApp
+swift build --disable-sandbox --scratch-path "${BUILD_DIR}" -c release \
+    -debug-info-format none --product ReadyCheckApp
 
 mkdir -p "${MACOS_DIR}" "${RESOURCES_DIR}"
 cp "${EXECUTABLE_SOURCE}" "${EXECUTABLE_TARGET}"
