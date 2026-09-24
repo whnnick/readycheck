@@ -157,16 +157,23 @@ struct MenuBarQuotaView: View {
                     )
                 )
 
-                HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 6) {
                     Label(localization.text("settings.widgetStyle"), systemImage: "rectangle.split.2x1")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
 
-                    WidgetStyleSwitcherView(selection: $model.widgetDisplayMode, localization: localization)
+                    Picker("", selection: $model.widgetPresentation) {
+                        Text(localization.text("widgetPresentation.bubble")).tag(WidgetPresentation.bubble)
+                        Text(localization.text("widgetPresentation.card")).tag(WidgetPresentation.card)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
 
-                    Spacer(minLength: 0)
+                    if model.widgetPresentation == .card {
+                        WidgetStyleSwitcherView(selection: $model.widgetDisplayMode, localization: localization)
+                    }
                 }
 
                 Button {

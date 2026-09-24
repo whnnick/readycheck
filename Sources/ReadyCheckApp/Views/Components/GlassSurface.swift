@@ -2,10 +2,12 @@ import SwiftUI
 
 enum GlassSurfaceRenderingMode {
     case material
+    case liquidGlass
     case staticSurface
 }
 
 struct GlassSurface<Content: View>: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     private let cornerRadius: CGFloat
     private let renderingMode: GlassSurfaceRenderingMode
     private let content: Content
@@ -32,9 +34,9 @@ struct GlassSurface<Content: View>: View {
             }
             .shadow(
                 color: .black.opacity(renderingMode == .material ? 0.12 : 0.08),
-                radius: renderingMode == .material ? 14 : 7,
+                radius: renderingMode == .staticSurface ? 7 : 14,
                 x: 0,
-                y: renderingMode == .material ? 8 : 3
+                y: renderingMode == .staticSurface ? 3 : 8
             )
     }
 
@@ -47,6 +49,14 @@ struct GlassSurface<Content: View>: View {
             shape
                 .fill(Color(nsColor: .windowBackgroundColor).opacity(0.36))
                 .background(.regularMaterial, in: shape)
+        case .liquidGlass:
+            if reduceTransparency {
+                shape.fill(Color(nsColor: .windowBackgroundColor))
+            } else if #available(macOS 26, *) {
+                shape.fill(.clear).glassEffect(.regular, in: shape)
+            } else {
+                shape.fill(.regularMaterial)
+            }
         case .staticSurface:
             shape
                 .fill(Color(nsColor: .controlBackgroundColor).opacity(0.92))

@@ -15,7 +15,7 @@ struct FloatingWidgetView: View {
     }
 
     var body: some View {
-        GlassSurface(cornerRadius: 22) {
+        GlassSurface(cornerRadius: 22, renderingMode: .liquidGlass) {
             VStack(alignment: .leading, spacing: 12) {
                 header
 

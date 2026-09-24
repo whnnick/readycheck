@@ -203,9 +203,10 @@ final class ReadyCheckAppModel {
             guard !isSyncingWidgetVisibilityFromWindow else { return }
 
             if widgetVisible {
-                floatingWindowController.showAtDefaultPosition(model: self)
+                showSelectedWidget()
             } else {
                 floatingWindowController.close()
+                bubbleWindowController.close()
             }
         }
     }
@@ -213,6 +214,22 @@ final class ReadyCheckAppModel {
         didSet {
             UserDefaults.standard.set(widgetAlwaysOnTop, forKey: Self.widgetAlwaysOnTopDefaultsKey)
             floatingWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
+            bubbleWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
+        }
+    }
+    var widgetPresentation: WidgetPresentation = WidgetPresentationPreference.value() {
+        didSet {
+            guard widgetPresentation != oldValue else { return }
+            WidgetPresentationPreference.set(widgetPresentation)
+            if !widgetVisible {
+                widgetVisible = true
+                return
+            }
+            isSwitchingWidgetPresentation = true
+            floatingWindowController.close()
+            bubbleWindowController.close()
+            isSwitchingWidgetPresentation = false
+            showSelectedWidget()
         }
     }
     var widgetDisplayMode: WidgetDisplayMode = WidgetDisplayModePreference.value() {
@@ -228,6 +245,7 @@ final class ReadyCheckAppModel {
             guard notchStatusVisible != oldValue else { return }
             UserDefaults.standard.set(notchStatusVisible, forKey: Self.notchStatusVisibleDefaultsKey)
             if notchStatusVisible {
+                if widgetVisible { widgetVisible = false }
                 notchWindowController.show(model: self)
             } else {
                 notchWindowController.close()
@@ -305,6 +323,9 @@ final class ReadyCheckAppModel {
     private let floatingWindowController = FloatingWindowController()
 
     @ObservationIgnored
+    private let bubbleWindowController = BubbleWindowController()
+
+    @ObservationIgnored
     private let notchWindowController = NotchWindowController()
 
     @ObservationIgnored
@@ -324,6 +345,9 @@ final class ReadyCheckAppModel {
 
     @ObservationIgnored
     private var isSyncingWidgetVisibilityFromWindow = false
+
+    @ObservationIgnored
+    private var isSwitchingWidgetPresentation = false
 
     @ObservationIgnored
     private var rateLimitEventRefreshTask: Task<Void, Never>?
@@ -358,6 +382,9 @@ final class ReadyCheckAppModel {
         self.floatingWindowController.onVisibilityChanged = { [weak self] isVisible in
             self?.syncWidgetVisibilityFromWindow(isVisible)
         }
+        self.bubbleWindowController.onVisibilityChanged = { [weak self] isVisible in
+            self?.syncWidgetVisibilityFromWindow(isVisible)
+        }
         reloadLaunchAtLoginStatus()
     }
 
@@ -379,7 +406,19 @@ final class ReadyCheckAppModel {
 
     func restoreFloatingWidgetIfNeeded() {
         guard widgetVisible else { return }
-        floatingWindowController.showAtDefaultPosition(model: self)
+        if notchStatusVisible {
+            widgetVisible = false
+            return
+        }
+        showSelectedWidget()
+    }
+
+    private func showSelectedWidget() {
+        if notchStatusVisible { notchStatusVisible = false }
+        switch widgetPresentation {
+        case .card: floatingWindowController.show(model: self)
+        case .bubble: bubbleWindowController.show(model: self)
+        }
     }
 
     var notchStatusAvailable: Bool {
@@ -456,7 +495,7 @@ final class ReadyCheckAppModel {
 
     func showFloatingWidget() {
         if widgetVisible {
-            floatingWindowController.showAtDefaultPosition(model: self)
+            showSelectedWidget()
         } else {
             widgetVisible = true
         }
@@ -468,7 +507,12 @@ final class ReadyCheckAppModel {
 
     func resetFloatingWidgetPosition() {
         if widgetVisible {
-            floatingWindowController.resetPosition(model: self)
+            isSwitchingWidgetPresentation = true
+            switch widgetPresentation {
+            case .card: floatingWindowController.resetPosition(model: self)
+            case .bubble: bubbleWindowController.resetPosition(model: self)
+            }
+            isSwitchingWidgetPresentation = false
         } else {
             widgetVisible = true
         }
@@ -518,6 +562,7 @@ final class ReadyCheckAppModel {
     }
 
     private func syncWidgetVisibilityFromWindow(_ isVisible: Bool) {
+        guard !isSwitchingWidgetPresentation else { return }
         guard widgetVisible != isVisible else { return }
 
         isSyncingWidgetVisibilityFromWindow = true

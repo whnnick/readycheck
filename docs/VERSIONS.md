@@ -1,5 +1,17 @@
 # Version plans / 版本规划
 
+- [0.1.109 Widget spacing acceptance](versions/0.1.109/QA.md) | [中文验收](versions/0.1.109/QA.zh-CN.md)
+- [0.1.108 shared quota-window selection](versions/0.1.108/QA.md) | [中文验收](versions/0.1.108/QA.zh-CN.md)
+- [0.1.107 display-spacing acceptance](versions/0.1.107/QA.md) | [中文验收](versions/0.1.107/QA.zh-CN.md)
+- [0.1.106 display-controls acceptance](versions/0.1.106/QA.md) | [中文验收](versions/0.1.106/QA.zh-CN.md)
+- [0.1.105 bubble-collapse acceptance](versions/0.1.105/QA.md) | [中文验收](versions/0.1.105/QA.zh-CN.md)
+- [0.1.104 shape-transition acceptance](versions/0.1.104/QA.md) | [中文验收](versions/0.1.104/QA.zh-CN.md)
+- [0.1.103 motion and glass acceptance](versions/0.1.103/QA.md) | [中文验收](versions/0.1.103/QA.zh-CN.md)
+- [0.1.102 quota-switch acceptance](versions/0.1.102/QA.md) | [中文验收](versions/0.1.102/QA.zh-CN.md)
+- [0.1.101 edge-tab acceptance](versions/0.1.101/QA.md) | [中文验收](versions/0.1.101/QA.zh-CN.md)
+- [0.1.100 bubble acceptance](versions/0.1.100/QA.md) | [中文验收](versions/0.1.100/QA.zh-CN.md)
+- [0.1.99 bubble plan](versions/0.1.99/PLAN.md) | [中文计划](versions/0.1.99/PLAN.zh-CN.md)
+- [0.1.99 acceptance](versions/0.1.99/QA.md) | [中文验收](versions/0.1.99/QA.zh-CN.md)
 - [0.1.98 plan](versions/0.1.98/PLAN.md) | [中文计划](versions/0.1.98/PLAN.zh-CN.md)
 - [0.1.98 acceptance](versions/0.1.98/QA.md) | [中文验收](versions/0.1.98/QA.zh-CN.md)
 - [0.1.97 plan](NEXT_RELEASE.md) | [中文计划](NEXT_RELEASE.zh-CN.md)

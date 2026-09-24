@@ -8,11 +8,13 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 当前预览版：[`0.1.98`](https://github.com/whnnick/readycheck/releases/tag/v0.1.98)。本版新增本机 Codex 事件连接超时恢复和脱敏诊断；恢复提醒仅支持 macOS。
+> 当前预览版：[`0.1.109`](https://github.com/whnnick/readycheck/releases/tag/v0.1.109)。本版新增可拖动的额度气泡、贴边胶囊、液态玻璃效果和更清晰的显示设置；恢复提醒仅支持 macOS。
 
 ## 可以做什么
 
-ReadyCheck **0.1.98**：本机 Codex 额度事件连接卡住或被拒绝时可以自动恢复，并尝试其他已安装客户端，同时显示脱敏连接状态。参见 [0.1.98 验收状态](docs/versions/0.1.98/QA.zh-CN.md)。
+ReadyCheck **0.1.109** 新增可拖动的额度气泡，点开后查看两档额度，贴边时收成更清晰的胶囊；原有卡片和刘海显示继续可用。桌面 Widget 在支持的 macOS 上使用液态玻璃，主窗口按功能整理显示设置，并让两组共用配额窗口选择。参见 [0.1.109 验收状态](docs/versions/0.1.109/QA.zh-CN.md)。
+
+气泡在运行时读取已安装 Codex 或 ChatGPT 的应用图标。Codex、ChatGPT 及其标志归 OpenAI 所有；ReadyCheck 是独立项目，并[遵循 OpenAI 品牌规范](https://openai.com/brand/)。
 
 - 根据 Codex 当前实际返回动态展示经过验证的额度窗口，不预设固定为 5 小时或 7 天。
 - 当已授权的用量数据提供对应字段时，在主窗口和详细 Widget 中显示 Credits 余额或无限额度状态。
@@ -63,7 +65,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.98-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.98-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.109-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.109-windows-x64-portable.zip`。
 
 ## Windows 预览版开发
 
@@ -88,7 +90,17 @@ npm run dev
 
 ## 文档
 
-- [0.1.98 下一版计划](docs/versions/0.1.98/PLAN.zh-CN.md) | [Next release plan](docs/versions/0.1.98/PLAN.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.109 Widget 间距验收](docs/versions/0.1.109/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.109/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.108 共用配额选择验收](docs/versions/0.1.108/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.108/QA.md)
+- [0.1.107 显示间距验收](docs/versions/0.1.107/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.107/QA.md)
+- [0.1.106 显示控件分组验收](docs/versions/0.1.106/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.106/QA.md)
+- [0.1.105 圆球收起验收](docs/versions/0.1.105/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.105/QA.md)
+- [0.1.104 形状切换验收](docs/versions/0.1.104/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.104/QA.md)
+- [0.1.103 动效与玻璃验收](docs/versions/0.1.103/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.103/QA.md)
+- [0.1.102 额度切换验收](docs/versions/0.1.102/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.102/QA.md)
+- [0.1.101 贴边标签验收](docs/versions/0.1.101/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.101/QA.md)
+- [0.1.100 气泡验收](docs/versions/0.1.100/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.100/QA.md)
+- [0.1.99 气泡计划](docs/versions/0.1.99/PLAN.zh-CN.md) | [English plan](docs/versions/0.1.99/PLAN.md)
 
 - [安装说明](docs/INSTALL.zh-CN.md) | [Install guide](docs/INSTALL.md)
 - [真实场景验收](docs/QA.zh-CN.md) | [Real-world QA checklist](docs/QA.md)

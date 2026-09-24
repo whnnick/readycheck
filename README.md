@@ -8,11 +8,13 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Current preview: [`0.1.98`](https://github.com/whnnick/readycheck/releases/tag/v0.1.98). This release adds bounded local Codex event recovery and sanitized connection diagnostics. Recovery reminders are macOS-only.
+> Current preview: [`0.1.109`](https://github.com/whnnick/readycheck/releases/tag/v0.1.109). This release adds a draggable quota bubble, screen-edge capsule, Liquid Glass presentation, and clearer display settings. Recovery reminders are macOS-only.
 
 ## What It Does
 
-ReadyCheck **0.1.98** recovers from a stalled or rejected local Codex event connection, tries another installed client, and shows a sanitized event status. See the [0.1.98 acceptance status](docs/versions/0.1.98/QA.md).
+ReadyCheck **0.1.109** adds a draggable quota bubble that expands to show both quota windows and becomes a larger capsule at the screen edge. The original Card and Notch displays remain available. The macOS widget uses Liquid Glass where supported, and the main window groups display settings by feature with a shared quota-window choice. See the [0.1.109 acceptance status](docs/versions/0.1.109/QA.md).
+
+The bubble reads an icon from an installed Codex or ChatGPT app at runtime. Codex, ChatGPT, and their marks belong to OpenAI; ReadyCheck is independent and [follows OpenAI's brand guidance](https://openai.com/brand/).
 
 - Shows the validated quota windows currently returned by Codex instead of assuming a fixed 5-hour or 7-day model.
 - Shows the Credits balance or unlimited-credit state in the main window and detailed widget when the authorized usage response provides it.
@@ -63,7 +65,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.98-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.98-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.109-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.109-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 
@@ -88,7 +90,17 @@ npm run dev
 
 ## Documentation
 
-- [0.1.98 plan](docs/versions/0.1.98/PLAN.md) | [下一版计划](docs/versions/0.1.98/PLAN.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.109 Widget spacing acceptance](docs/versions/0.1.109/QA.md) | [中文验收](docs/versions/0.1.109/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.108 shared quota-selection acceptance](docs/versions/0.1.108/QA.md) | [中文验收](docs/versions/0.1.108/QA.zh-CN.md)
+- [0.1.107 display-spacing acceptance](docs/versions/0.1.107/QA.md) | [中文验收](docs/versions/0.1.107/QA.zh-CN.md)
+- [0.1.106 display-controls acceptance](docs/versions/0.1.106/QA.md) | [中文验收](docs/versions/0.1.106/QA.zh-CN.md)
+- [0.1.105 bubble-collapse acceptance](docs/versions/0.1.105/QA.md) | [中文验收](docs/versions/0.1.105/QA.zh-CN.md)
+- [0.1.104 shape-transition acceptance](docs/versions/0.1.104/QA.md) | [中文验收](docs/versions/0.1.104/QA.zh-CN.md)
+- [0.1.103 motion and glass acceptance](docs/versions/0.1.103/QA.md) | [中文验收](docs/versions/0.1.103/QA.zh-CN.md)
+- [0.1.102 quota-switch acceptance](docs/versions/0.1.102/QA.md) | [中文验收](docs/versions/0.1.102/QA.zh-CN.md)
+- [0.1.101 edge-tab acceptance](docs/versions/0.1.101/QA.md) | [中文验收](docs/versions/0.1.101/QA.zh-CN.md)
+- [0.1.100 bubble acceptance](docs/versions/0.1.100/QA.md) | [中文验收](docs/versions/0.1.100/QA.zh-CN.md)
+- [0.1.99 bubble plan](docs/versions/0.1.99/PLAN.md) | [中文计划](docs/versions/0.1.99/PLAN.zh-CN.md)
 
 - [Install guide](docs/INSTALL.md) | [安装说明](docs/INSTALL.zh-CN.md)
 - [Real-world QA checklist](docs/QA.md) | [真实场景验收](docs/QA.zh-CN.md)

@@ -13,6 +13,28 @@ public enum WidgetDisplayMode: String, CaseIterable, Codable, Equatable, Sendabl
     case detailed
 }
 
+public enum WidgetPresentation: String, CaseIterable, Codable, Equatable, Sendable {
+    case card
+    case bubble
+}
+
+public enum WidgetPresentationPreference {
+    public static let defaultsKey = "ReadyCheck.widgetPresentation.v1"
+
+    public static func value(defaults: UserDefaults = .standard) -> WidgetPresentation {
+        guard let rawValue = defaults.string(forKey: defaultsKey),
+              let presentation = WidgetPresentation(rawValue: rawValue)
+        else {
+            return .bubble
+        }
+        return presentation
+    }
+
+    public static func set(_ presentation: WidgetPresentation, defaults: UserDefaults = .standard) {
+        defaults.set(presentation.rawValue, forKey: defaultsKey)
+    }
+}
+
 public enum WidgetDisplayModePreference {
     public static let defaultsKey = "ReadyCheck.widgetDisplayMode.v1"
 

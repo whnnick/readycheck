@@ -135,9 +135,14 @@ struct SettingsView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
 
-                widgetControls
+                VStack(alignment: .leading, spacing: 12) {
+                    quotaWindowControls
 
-                notchControls
+                    HStack(alignment: .top, spacing: 12) {
+                        widgetControls
+                        notchControls
+                    }
+                }
 
                 Divider()
 
@@ -190,11 +195,55 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    private var quotaWindowControls: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Label(model.localization.text("settings.quotaWindow"), systemImage: "gauge.with.dots.needle.67percent")
+                    .font(.subheadline.weight(.semibold))
+
+                Text(model.localization.text("settings.quotaWindowHelp"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 0)
+
+            Picker(model.localization.text("settings.quotaWindow"), selection: $model.notchQuotaSelection) {
+                ForEach(NotchQuotaSelection.allCases, id: \.self) { selection in
+                    Text(model.localization.text(selection.labelKey)).tag(selection)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .frame(width: 260)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.primary.opacity(0.10), lineWidth: 0.7))
+        .controlSize(.small)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(model.localization.text("settings.quotaWindow"))
+    }
+
     private var widgetControls: some View {
-        HStack(spacing: 22) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Label(model.localization.text("settings.desktopWidget"), systemImage: "macwindow.on.rectangle")
+                    .font(.subheadline.weight(.semibold))
+
+                Spacer(minLength: 0)
+
+                Button {
+                    model.resetFloatingWidgetPosition()
+                } label: {
+                    Label(model.localization.text("action.resetWidgetPosition"), systemImage: "arrow.down.forward.and.arrow.up.backward")
+                }
+            }
+
             widgetToggleControl(
                 title: model.localization.text("action.pinWidget"),
-                systemImage: "macwindow.on.rectangle",
+                systemImage: "eye",
                 isOn: $model.widgetVisible
             )
 
@@ -204,68 +253,55 @@ struct SettingsView: View {
                 isOn: $model.widgetAlwaysOnTop
             )
 
-            HStack(spacing: 4) {
-                HStack(spacing: 8) {
-                    Image(systemName: "rectangle.split.2x1")
-                        .imageScale(.medium)
+            Divider()
 
-                    Text(model.localization.text("settings.widgetStyle"))
-                        .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
-                }
+            HStack(spacing: 8) {
+                Text(model.localization.text("settings.widgetStyle"))
+                    .lineLimit(1)
 
-                Picker("", selection: $model.widgetDisplayMode) {
-                    Text(model.localization.text("widgetStyle.minimal")).tag(WidgetDisplayMode.minimal)
-                    Text(model.localization.text("widgetStyle.detailed")).tag(WidgetDisplayMode.detailed)
+                Spacer(minLength: 0)
+
+                Picker("", selection: $model.widgetPresentation) {
+                    Text(model.localization.text("widgetPresentation.bubble")).tag(WidgetPresentation.bubble)
+                    Text(model.localization.text("widgetPresentation.card")).tag(WidgetPresentation.card)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 116)
+                .frame(width: 120)
                 .accessibilityLabel(model.localization.text("settings.widgetStyle"))
                 .help(model.localization.text("settings.widgetStyle"))
             }
-            .layoutPriority(1)
 
-            Button {
-                model.resetFloatingWidgetPosition()
-            } label: {
-                Label(model.localization.text("action.resetWidgetPosition"), systemImage: "arrow.down.forward.and.arrow.up.backward")
+            if model.widgetPresentation == .card {
+                WidgetStyleSwitcherView(selection: $model.widgetDisplayMode, localization: model.localization)
             }
-
-            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(14)
+        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.primary.opacity(0.10), lineWidth: 0.7))
         .toggleStyle(.switch)
         .buttonStyle(.bordered)
         .controlSize(.small)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(model.localization.text("settings.desktopWidget"))
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private var notchControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-        HStack(spacing: 10) {
-            Image(systemName: "macbook")
-                .imageScale(.medium)
+        VStack(alignment: .leading, spacing: 12) {
+            Label(model.localization.text("settings.notchDisplay"), systemImage: "macbook")
+                .font(.subheadline.weight(.semibold))
 
-            Text(model.localization.text("settings.notchStatus"))
-                .lineLimit(1)
-                .fixedSize(horizontal: true, vertical: false)
-
-            Toggle("", isOn: $model.notchStatusVisible)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .disabled(!model.notchStatusAvailable)
-
-            Picker(model.localization.text("settings.notchQuota"), selection: $model.notchQuotaSelection) {
-                ForEach(NotchQuotaSelection.allCases, id: \.self) { selection in
-                    Text(model.localization.text(selection.labelKey)).tag(selection)
-                }
+            HStack(spacing: 8) {
+                Text(model.localization.text("settings.notchStatus"))
+                Spacer(minLength: 0)
+                Toggle("", isOn: $model.notchStatusVisible)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .disabled(!model.notchStatusAvailable)
             }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .frame(width: 200)
-            .disabled(!model.notchStatusAvailable)
 
-            Spacer(minLength: 0)
-        }
             Text(
                 model.localization.text(
                     model.notchStatusAvailable
@@ -277,8 +313,14 @@ struct SettingsView: View {
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
         }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(14)
+        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.primary.opacity(0.10), lineWidth: 0.7))
         .controlSize(.small)
         .help(model.localization.text("settings.notchStatusHelp"))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(model.localization.text("settings.notchDisplay"))
     }
 
     private func widgetToggleControl(title: String, systemImage: String, isOn: Binding<Bool>) -> some View {
@@ -290,10 +332,11 @@ struct SettingsView: View {
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
 
+            Spacer(minLength: 0)
+
             Toggle("", isOn: isOn)
                 .labelsHidden()
         }
-        .layoutPriority(1)
         .help(title)
     }
 

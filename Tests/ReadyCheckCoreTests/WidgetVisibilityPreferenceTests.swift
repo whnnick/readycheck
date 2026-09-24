@@ -36,4 +36,11 @@ final class WidgetVisibilityPreferenceTests: XCTestCase {
 
         XCTAssertEqual(WidgetDisplayModePreference.value(defaults: defaults), .detailed)
     }
+
+    func testBubblePresentationDefaultsAndCardChoicePersists() {
+        XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .bubble)
+
+        WidgetPresentationPreference.set(.card, defaults: defaults)
+        XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .card)
+    }
 }

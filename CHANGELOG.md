@@ -1,5 +1,62 @@
 # Changelog
 
+## 0.1.109 - 2026-09-24
+
+- Let the Desktop widget settings card fit its controls in Bubble mode instead of retaining an unnecessary minimum height. Card mode can still grow to show its extra style controls.
+- Windows receives version metadata only.
+
+## 0.1.108 - 2026-09-24 (local preview)
+
+- Move the shared quota-window choice above the Desktop widget and Notch display groups, and explain that bubble, card, and notch displays use the same selection.
+- Windows receives version metadata only.
+
+## 0.1.107 - 2026-09-24 (local preview)
+
+- Reduce the minimum height of the Desktop widget and Notch display groups so their cards finish closer to the last control while retaining content-driven growth for Card mode and longer text.
+- Windows receives version metadata only.
+
+## 0.1.106 - 2026-09-24 (local preview)
+
+- Reorganize the main dashboard's display controls into separate Desktop widget and Notch display groups. Align each group's visibility switch and put style, quota choice, and reset action beside the feature they affect.
+- Keep connection status and refresh actions above the display controls. No preference behavior changes; Windows receives version metadata only.
+
+## 0.1.105 - 2026-09-24 (local preview)
+
+- Stop the expanded quota card's glass border from lingering as a capsule-shaped flash when collapsing back to a round bubble. Switch the circle content before the window returns to its resting frame; keep window movement and edge-tab expansion behavior.
+- Windows receives version metadata only.
+
+## 0.1.104 - 2026-09-24 (local preview)
+
+- Remove the transient edge-capsule outline when a dragged capsule becomes a round bubble. Switch those resting shapes and their window geometry together instead of cross-fading the old border through the resize.
+- Keep expansion and collapse motion. Windows receives version metadata only.
+
+## 0.1.103 - 2026-09-24 (local preview)
+
+- Give the bubble, screen-edge capsule, expanded quota card, and existing floating card native Liquid Glass on macOS 26 and later, with material and Reduce Transparency fallbacks. Preserve the black notch silhouette.
+- Animate expansion, collapse, and snap after drag release; keep active dragging directly under the pointer and honor Reduce Motion.
+- Windows receives version metadata only.
+
+## 0.1.102 - 2026-09-24 (local preview)
+
+- Stop the bubble's brief recovery border from flashing when switching between the 5-hour and 7-day quota windows. Highlight only a verified increase in the same selected window.
+- Windows receives version metadata only.
+
+## 0.1.101 - 2026-09-24 (local preview)
+
+- Redesign the edge tab as a larger, readable capsule with the installed Codex or ChatGPT icon, the selected quota window's short label and verified remaining percentage, a vertical progress rail, and an inward-pointing expand cue. Mirror the layout on left and right edges and preserve saved tab positions.
+- Windows receives version metadata only.
+
+## 0.1.100 - 2026-09-24 (local preview)
+
+- Move the bubble from absolute screen-pointer movement so dragging no longer feeds back through its moving view coordinates; enlarge the bubble and edge tab while preserving saved positions.
+- Restore green, orange, and red urgency colors independently for both expanded quota bars. Windows receives version metadata only.
+
+## 0.1.99 - 2026-09-24 (local preview)
+
+- Add a compact Codex quota bubble that expands on click, can be dragged, and folds into a screen-edge tab. Keep the existing card and notch displays available.
+- Use the icon of an installed Codex or ChatGPT app in the bubble, with a system-symbol fallback. Show percentages only for fresh, validated quota data.
+- Remember the bubble position, keep one always-on surface visible at a time, and expose Bubble/Card selection in Settings and the menu bar. Windows receives version metadata only.
+
 ## 0.1.98 - 2026-09-22
 
 - Bound the local Codex event handshake, reject initialization errors, and fall back to another installed Codex client when the first candidate is unavailable or unresponsive.
