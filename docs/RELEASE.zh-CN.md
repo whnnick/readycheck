@@ -52,9 +52,10 @@ codesign -dr - /Volumes/ReadyCheck/ReadyCheck.app
 
 根目录 `dist` 只能包含：
 
-- `ReadyCheck.app`
 - `ReadyCheck-<version>-macos.dmg`
 - `windows/ReadyCheck-<version>-windows-x64-portable.zip`
+
+`package_dmg.sh` 将应用封入 DMG 后会移除中间应用包。
 
 这些检查通过后，再提交开发工作区。
 
@@ -89,7 +90,6 @@ unzip -t dist/windows/ReadyCheck-<version>-windows-x64-portable.zip
 
 public sync 的 `dist` 只能包含：
 
-- `ReadyCheck.app`
 - `ReadyCheck-<version>-macos.dmg`
 - `windows/ReadyCheck-<version>-windows-x64-portable.zip`
 

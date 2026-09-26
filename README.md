@@ -8,11 +8,11 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Current preview: [`0.1.109`](https://github.com/whnnick/readycheck/releases/tag/v0.1.109). This release adds a draggable quota bubble, screen-edge capsule, Liquid Glass presentation, and clearer display settings. Recovery reminders are macOS-only.
+> Latest release: [`0.1.113`](https://github.com/whnnick/readycheck/releases/tag/v0.1.113). It refines the floating quota bubble and display settings. Recovery reminders are macOS-only.
 
 ## What It Does
 
-ReadyCheck **0.1.109** adds a draggable quota bubble that expands to show both quota windows and becomes a larger capsule at the screen edge. The original Card and Notch displays remain available. The macOS widget uses Liquid Glass where supported, and the main window groups display settings by feature with a shared quota-window choice. See the [0.1.109 acceptance status](docs/versions/0.1.109/QA.md).
+ReadyCheck **0.1.113** keeps the draggable quota bubble, edge capsule, Card, and Notch displays. The bubble uses a stable dark surface and a window-level silhouette mask to prevent a square backing around its round, docked, and expanded forms. The main window groups display settings by feature with a shared quota-window choice. See the [0.1.113 acceptance status](docs/versions/0.1.113/QA.md).
 
 The bubble reads an icon from an installed Codex or ChatGPT app at runtime. Codex, ChatGPT, and their marks belong to OpenAI; ReadyCheck is independent and [follows OpenAI's brand guidance](https://openai.com/brand/).
 
@@ -65,7 +65,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.109-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.109-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.113-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.113-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 
@@ -90,7 +90,11 @@ npm run dev
 
 ## Documentation
 
-- [0.1.109 Widget spacing acceptance](docs/versions/0.1.109/QA.md) | [中文验收](docs/versions/0.1.109/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.113 Floating-window mask acceptance](docs/versions/0.1.113/QA.md) | [中文验收](docs/versions/0.1.113/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.112 Bubble silhouette acceptance](docs/versions/0.1.112/QA.md) | [中文验收](docs/versions/0.1.112/QA.zh-CN.md)
+- [0.1.111 Bubble corner acceptance](docs/versions/0.1.111/QA.md) | [中文验收](docs/versions/0.1.111/QA.zh-CN.md)
+- [0.1.110 Bubble legibility acceptance](docs/versions/0.1.110/QA.md) | [中文验收](docs/versions/0.1.110/QA.zh-CN.md)
+- [0.1.109 Widget spacing acceptance](docs/versions/0.1.109/QA.md) | [中文验收](docs/versions/0.1.109/QA.zh-CN.md)
 - [0.1.108 shared quota-selection acceptance](docs/versions/0.1.108/QA.md) | [中文验收](docs/versions/0.1.108/QA.zh-CN.md)
 - [0.1.107 display-spacing acceptance](docs/versions/0.1.107/QA.md) | [中文验收](docs/versions/0.1.107/QA.zh-CN.md)
 - [0.1.106 display-controls acceptance](docs/versions/0.1.106/QA.md) | [中文验收](docs/versions/0.1.106/QA.zh-CN.md)

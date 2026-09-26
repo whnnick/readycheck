@@ -52,9 +52,10 @@ codesign -dr - /Volumes/ReadyCheck/ReadyCheck.app
 
 The root `dist` directory must contain only:
 
-- `ReadyCheck.app`
 - `ReadyCheck-<version>-macos.dmg`
 - `windows/ReadyCheck-<version>-windows-x64-portable.zip`
+
+`package_dmg.sh` removes the intermediate app after sealing it inside the DMG.
 
 Commit the development worktree after these checks pass.
 
@@ -89,7 +90,6 @@ unzip -t dist/windows/ReadyCheck-<version>-windows-x64-portable.zip
 
 The public sync `dist` directory must contain only:
 
-- `ReadyCheck.app`
 - `ReadyCheck-<version>-macos.dmg`
 - `windows/ReadyCheck-<version>-windows-x64-portable.zip`
 

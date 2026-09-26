@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.1.113 - 2026-09-26
+
+- Mask the floating window at the AppKit layer to the current bubble, edge capsule, or expanded-card silhouette. Use a solid dark surface without an outer shadow so no rectangular backing can be composited outside that silhouette.
+- Windows receives version metadata only.
+
+## 0.1.112 - 2026-09-26 (local preview)
+
+- Remove the square backing produced by the bubble's Liquid Glass effect. Use a shape-bounded frosted material for the round bubble, edge capsule, and expanded card.
+- Windows receives version metadata only.
+
+## 0.1.111 - 2026-09-26 (local preview)
+
+- Clip the frosted bubble surface to its rounded shape so the expanded card has no pointed translucent corners. Restore the blue accent on the “Open ReadyCheck” link.
+- Windows receives version metadata only.
+
+## 0.1.110 - 2026-09-24 (local preview)
+
+- Give the macOS bubble, edge capsule, and expanded quota card a consistent dark frosted surface with fixed high-contrast foregrounds. Keep a subtle system glass layer, the existing status colors, and a solid surface when Reduce Transparency is enabled.
+- Windows receives version metadata only.
+
 ## 0.1.109 - 2026-09-24
 
 - Let the Desktop widget settings card fit its controls in Bubble mode instead of retaining an unnecessary minimum height. Card mode can still grow to show its extra style controls.

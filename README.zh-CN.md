@@ -8,11 +8,11 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 当前预览版：[`0.1.109`](https://github.com/whnnick/readycheck/releases/tag/v0.1.109)。本版新增可拖动的额度气泡、贴边胶囊、液态玻璃效果和更清晰的显示设置；恢复提醒仅支持 macOS。
+> 最新发布版：[`0.1.113`](https://github.com/whnnick/readycheck/releases/tag/v0.1.113)。本版完善额度气泡和显示设置；恢复提醒仅支持 macOS。
 
 ## 可以做什么
 
-ReadyCheck **0.1.109** 新增可拖动的额度气泡，点开后查看两档额度，贴边时收成更清晰的胶囊；原有卡片和刘海显示继续可用。桌面 Widget 在支持的 macOS 上使用液态玻璃，主窗口按功能整理显示设置，并让两组共用配额窗口选择。参见 [0.1.109 验收状态](docs/versions/0.1.109/QA.zh-CN.md)。
+ReadyCheck **0.1.113** 保留可拖动额度气泡、贴边胶囊、卡片和刘海显示。气泡使用稳定深色表面，并在窗口层按圆球、贴边或展开卡片轮廓裁切，避免外侧出现方形底。主窗口按功能整理显示设置，两组共用配额窗口选择。参见 [0.1.113 验收状态](docs/versions/0.1.113/QA.zh-CN.md)。
 
 气泡在运行时读取已安装 Codex 或 ChatGPT 的应用图标。Codex、ChatGPT 及其标志归 OpenAI 所有；ReadyCheck 是独立项目，并[遵循 OpenAI 品牌规范](https://openai.com/brand/)。
 
@@ -65,7 +65,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.109-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.109-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.113-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.113-windows-x64-portable.zip`。
 
 ## Windows 预览版开发
 
@@ -90,7 +90,11 @@ npm run dev
 
 ## 文档
 
-- [0.1.109 Widget 间距验收](docs/versions/0.1.109/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.109/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.113 悬浮窗遮罩验收](docs/versions/0.1.113/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.113/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.112 气泡轮廓验收](docs/versions/0.1.112/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.112/QA.md)
+- [0.1.111 气泡圆角验收](docs/versions/0.1.111/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.111/QA.md)
+- [0.1.110 气泡可读性验收](docs/versions/0.1.110/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.110/QA.md)
+- [0.1.109 Widget 间距验收](docs/versions/0.1.109/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.109/QA.md)
 - [0.1.108 共用配额选择验收](docs/versions/0.1.108/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.108/QA.md)
 - [0.1.107 显示间距验收](docs/versions/0.1.107/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.107/QA.md)
 - [0.1.106 显示控件分组验收](docs/versions/0.1.106/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.106/QA.md)

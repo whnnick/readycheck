@@ -17,7 +17,6 @@ struct BubbleQuotaDisplay: Equatable {
 
 struct BubbleWidgetView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Bindable var model: ReadyCheckAppModel
     let isExpanded: Bool
     let tabEdge: BubbleWidgetPlacement.Edge?
@@ -61,6 +60,10 @@ struct BubbleWidgetView: View {
         quotaColor(for: primaryRatio)
     }
 
+    private var floatingSurfaceColor: Color {
+        Color(red: 0.10, green: 0.12, blue: 0.15)
+    }
+
     private func quotaColor(for ratio: Double?) -> Color {
         switch QuotaUrgency(remainingRatio: ratio) {
         case .normal: .green
@@ -95,9 +98,9 @@ struct BubbleWidgetView: View {
     private var circleBubble: some View {
         ZStack {
             bubbleSurface(Circle())
-                .overlay(Circle().stroke(recoveryHighlight ? urgencyColor : Color.primary.opacity(0.14), lineWidth: recoveryHighlight ? 2 : 0.7))
+                .overlay(Circle().stroke(recoveryHighlight ? urgencyColor : .clear, lineWidth: 2))
             Circle()
-                .stroke(Color.primary.opacity(0.12), lineWidth: 4)
+                .stroke(Color.white.opacity(0.18), lineWidth: 4)
                 .padding(6)
             Circle()
                 .trim(from: 0, to: max(0, min(primaryRatio ?? 0, 1)))
@@ -112,6 +115,7 @@ struct BubbleWidgetView: View {
                     .monospacedDigit()
                     .lineLimit(1)
             }
+            .foregroundStyle(.white)
         }
         .frame(width: BubbleWidgetPlacement.bubbleSize.width, height: BubbleWidgetPlacement.bubbleSize.height)
         .contentShape(Circle())
@@ -138,15 +142,16 @@ struct BubbleWidgetView: View {
                     Image(systemName: edge == .right ? "chevron.left" : "chevron.right")
                         .font(.system(size: 8, weight: .semibold))
                 }
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.72))
             }
             .frame(maxWidth: .infinity)
             if edge == .left { edgeProgressRail }
         }
+        .foregroundStyle(.white)
         .padding(.horizontal, 8)
         .frame(width: BubbleWidgetPlacement.tabSize.width, height: BubbleWidgetPlacement.tabSize.height)
         .background { bubbleSurface(RoundedRectangle(cornerRadius: 21, style: .continuous)) }
-        .overlay(RoundedRectangle(cornerRadius: 21).stroke(recoveryHighlight ? urgencyColor : Color.primary.opacity(0.18), lineWidth: recoveryHighlight ? 2 : 0.8))
+        .overlay(RoundedRectangle(cornerRadius: 21).stroke(recoveryHighlight ? urgencyColor : .clear, lineWidth: 2))
         .contentShape(RoundedRectangle(cornerRadius: 21))
         .onTapGesture(perform: onTap)
         .simultaneousGesture(dragGesture)
@@ -158,7 +163,7 @@ struct BubbleWidgetView: View {
     private var edgeProgressRail: some View {
         GeometryReader { geometry in
             Capsule()
-                .fill(Color.primary.opacity(0.14))
+                .fill(Color.white.opacity(0.18))
                 .overlay(alignment: .bottom) {
                     Capsule()
                         .fill(urgencyColor)
@@ -169,44 +174,47 @@ struct BubbleWidgetView: View {
     }
 
     private var expandedCard: some View {
-        GlassSurface(cornerRadius: 18, renderingMode: .liquidGlass) {
-            VStack(alignment: .leading, spacing: 9) {
-                HStack(spacing: 7) {
-                    codexIcon.frame(width: 18, height: 18)
-                    Text("ReadyCheck")
-                        .font(.subheadline.weight(.semibold))
-                    Text("· Codex")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Button(action: onCollapse) {
-                        Image(systemName: "chevron.down")
-                    }
-                    .buttonStyle(.plain)
-                    .help(model.localization.text("bubble.collapse"))
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 7) {
+                codexIcon.frame(width: 18, height: 18)
+                Text("ReadyCheck")
+                    .font(.subheadline.weight(.semibold))
+                Text("· Codex")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.72))
+                Spacer()
+                Button(action: onCollapse) {
+                    Image(systemName: "chevron.down")
                 }
-
-                if let snapshot, !windows.isEmpty {
-                    ForEach(Array(windows.prefix(2))) { window in
-                        quotaRow(window, canShow: snapshot.canShowPercentages(now: now))
-                    }
-                } else {
-                    Text(model.localization.text("empty.quota.title"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Button {
-                    model.openMainWindowFromWidget()
-                    onCollapse()
-                } label: {
-                    Text(model.localization.text("bubble.openMainWindow"))
-                        .font(.caption)
-                }
-                .buttonStyle(.link)
+                .buttonStyle(.plain)
+                .help(model.localization.text("bubble.collapse"))
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let snapshot, !windows.isEmpty {
+                ForEach(Array(windows.prefix(2))) { window in
+                    quotaRow(window, canShow: snapshot.canShowPercentages(now: now))
+                }
+            } else {
+                Text(model.localization.text("empty.quota.title"))
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.72))
+            }
+
+            Button {
+                model.openMainWindowFromWidget()
+                onCollapse()
+            } label: {
+                Text(model.localization.text("bubble.openMainWindow"))
+                    .font(.caption)
+                    .foregroundStyle(Color(red: 0.62, green: 0.80, blue: 1))
+            }
+            .buttonStyle(.link)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .foregroundStyle(.white)
+        .tint(Color(red: 0.62, green: 0.80, blue: 1))
+        .padding(12)
+        .background { bubbleSurface(RoundedRectangle(cornerRadius: 18, style: .continuous)) }
         .padding(7)
         .frame(width: 282, height: 156)
     }
@@ -219,7 +227,7 @@ struct BubbleWidgetView: View {
                 .lineLimit(1)
                 .frame(width: 82, alignment: .leading)
             GeometryReader { geometry in
-                Capsule().fill(Color.primary.opacity(0.12))
+                Capsule().fill(Color.white.opacity(0.18))
                     .overlay(alignment: .leading) {
                         Capsule()
                             .fill(quotaColor(for: ratio))
@@ -260,15 +268,9 @@ struct BubbleWidgetView: View {
         reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.94))
     }
 
-    @ViewBuilder
     private func bubbleSurface<S: Shape>(_ shape: S) -> some View {
-        if reduceTransparency {
-            shape.fill(Color(nsColor: .windowBackgroundColor))
-        } else if #available(macOS 26, *) {
-            shape.fill(.clear).glassEffect(.regular, in: shape)
-        } else {
-            shape.fill(.regularMaterial)
-        }
+        shape.fill(floatingSurfaceColor)
+            .overlay(shape.stroke(Color.white.opacity(0.24), lineWidth: 0.8))
     }
 
     @ViewBuilder

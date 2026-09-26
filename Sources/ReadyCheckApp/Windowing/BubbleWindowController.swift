@@ -8,6 +8,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
     private let frameDefaultsKey = "ReadyCheck.bubbleWidgetFrame.v1"
     private var panel: NSPanel?
     private var hostingController: NSHostingController<BubbleWidgetView>?
+    private var clippingView: BubbleClippingView?
     private weak var model: ReadyCheckAppModel?
     private var restingFrame: CGRect?
     private var edge: BubbleWidgetPlacement.Edge?
@@ -55,8 +56,21 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
         let view = makeView(model: model)
         let host = NSHostingController(rootView: view)
+        let clip = BubbleClippingView()
+        let container = NSViewController()
+        container.view = clip
+        container.addChild(host)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        clip.addSubview(host.view)
+        NSLayoutConstraint.activate([
+            host.view.leadingAnchor.constraint(equalTo: clip.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: clip.trailingAnchor),
+            host.view.topAnchor.constraint(equalTo: clip.topAnchor),
+            host.view.bottomAnchor.constraint(equalTo: clip.bottomAnchor)
+        ])
         hostingController = host
-        panel.contentViewController = host
+        clippingView = clip
+        panel.contentViewController = container
 
         let screen = targetScreen(savedFrame: savedFrame())
         let visible = screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
@@ -78,6 +92,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         panel.delegate = nil
         self.panel = nil
         hostingController = nil
+        clippingView = nil
         panel.close()
         isExpanded = false
         edge = nil
@@ -104,6 +119,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         if !isExpanded, let restingFrame { persist(restingFrame) }
         panel = nil
         hostingController = nil
+        clippingView = nil
         onVisibilityChanged?(false)
     }
 
@@ -133,6 +149,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
     private func updateView() {
         guard let model else { return }
+        clippingView?.silhouette = isExpanded ? .expanded : (edge == nil ? .circle : .edgeTab)
         hostingController?.rootView = makeView(model: model)
     }
 
@@ -256,5 +273,57 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
     private func persist(_ frame: CGRect) {
         UserDefaults.standard.set(NSStringFromRect(frame), forKey: frameDefaultsKey)
+    }
+}
+
+private final class BubbleClippingView: NSView {
+    enum Silhouette {
+        case circle
+        case edgeTab
+        case expanded
+    }
+
+    var silhouette: Silhouette = .circle {
+        didSet { updateMask() }
+    }
+
+    private let maskLayer = CAShapeLayer()
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.clear.cgColor
+        layer?.mask = maskLayer
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.clear.cgColor
+        layer?.mask = maskLayer
+    }
+
+    override func layout() {
+        super.layout()
+        updateMask()
+    }
+
+    private func updateMask() {
+        guard let layer else { return }
+        let path: CGPath
+        switch silhouette {
+        case .circle:
+            path = CGPath(ellipseIn: bounds, transform: nil)
+        case .edgeTab:
+            path = CGPath(roundedRect: bounds, cornerWidth: 21, cornerHeight: 21, transform: nil)
+        case .expanded:
+            path = CGPath(roundedRect: bounds.insetBy(dx: 7, dy: 7), cornerWidth: 18, cornerHeight: 18, transform: nil)
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        maskLayer.frame = bounds
+        maskLayer.path = path
+        layer.mask = maskLayer
+        CATransaction.commit()
     }
 }

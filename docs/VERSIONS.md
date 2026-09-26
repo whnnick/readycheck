@@ -1,5 +1,9 @@
 # Version plans / 版本规划
 
+- [0.1.113 Floating-window mask acceptance](versions/0.1.113/QA.md) | [中文验收](versions/0.1.113/QA.zh-CN.md)
+- [0.1.112 Bubble silhouette acceptance](versions/0.1.112/QA.md) | [中文验收](versions/0.1.112/QA.zh-CN.md)
+- [0.1.111 Bubble corner acceptance](versions/0.1.111/QA.md) | [中文验收](versions/0.1.111/QA.zh-CN.md)
+- [0.1.110 Bubble legibility acceptance](versions/0.1.110/QA.md) | [中文验收](versions/0.1.110/QA.zh-CN.md)
 - [0.1.109 Widget spacing acceptance](versions/0.1.109/QA.md) | [中文验收](versions/0.1.109/QA.zh-CN.md)
 - [0.1.108 shared quota-window selection](versions/0.1.108/QA.md) | [中文验收](versions/0.1.108/QA.zh-CN.md)
 - [0.1.107 display-spacing acceptance](versions/0.1.107/QA.md) | [中文验收](versions/0.1.107/QA.zh-CN.md)
