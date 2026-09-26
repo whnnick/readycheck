@@ -8,11 +8,11 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 最新发布版：[`0.1.113`](https://github.com/whnnick/readycheck/releases/tag/v0.1.113)。本版完善额度气泡和显示设置；恢复提醒仅支持 macOS。
+> 最新发布版：[`0.1.114`](https://github.com/whnnick/readycheck/releases/tag/v0.1.114)。本版说明两种账号来源，并改进气泡展开、收起的轮廓动效；恢复提醒仅支持 macOS。
 
 ## 可以做什么
 
-ReadyCheck **0.1.113** 保留可拖动额度气泡、贴边胶囊、卡片和刘海显示。气泡使用稳定深色表面，并在窗口层按圆球、贴边或展开卡片轮廓裁切，避免外侧出现方形底。主窗口按功能整理显示设置，两组共用配额窗口选择。参见 [0.1.113 验收状态](docs/versions/0.1.113/QA.zh-CN.md)。
+ReadyCheck **0.1.114** 用直白文案解释 macOS 的两种账号来源，并让气泡展开、收起时的轮廓连续变化。参见 [0.1.114 验收状态](docs/versions/0.1.114/QA.zh-CN.md)。
 
 气泡在运行时读取已安装 Codex 或 ChatGPT 的应用图标。Codex、ChatGPT 及其标志归 OpenAI 所有；ReadyCheck 是独立项目，并[遵循 OpenAI 品牌规范](https://openai.com/brand/)。
 
@@ -65,7 +65,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.113-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.113-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.114-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.114-windows-x64-portable.zip`。
 
 ## Windows 预览版开发
 
@@ -90,6 +90,7 @@ npm run dev
 
 ## 文档
 
+- [0.1.114 账号来源与动效验收](docs/versions/0.1.114/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.114/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.113 悬浮窗遮罩验收](docs/versions/0.1.113/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.113/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.112 气泡轮廓验收](docs/versions/0.1.112/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.112/QA.md)
 - [0.1.111 气泡圆角验收](docs/versions/0.1.111/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.111/QA.md)

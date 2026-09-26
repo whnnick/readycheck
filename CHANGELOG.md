@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.114 - 2026-09-26
+
+- Rename the macOS account-source choices to “Follow Codex on this Mac” and “Sign in separately”, with a short explanation of each selection.
+- Keep the floating window's clipping outline continuous as it expands and collapses, and remove the full-card opacity/scale transition that could flash at the edge.
+- Windows receives version metadata only.
+
 ## 0.1.113 - 2026-09-26
 
 - Mask the floating window at the AppKit layer to the current bubble, edge capsule, or expanded-card silhouette. Use a solid dark surface without an outer shadow so no rectangular backing can be composited outside that silhouette.

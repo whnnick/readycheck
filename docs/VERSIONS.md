@@ -1,5 +1,6 @@
 # Version plans / 版本规划
 
+- [0.1.114 Account-source and motion acceptance](versions/0.1.114/QA.md) | [中文验收](versions/0.1.114/QA.zh-CN.md)
 - [0.1.113 Floating-window mask acceptance](versions/0.1.113/QA.md) | [中文验收](versions/0.1.113/QA.zh-CN.md)
 - [0.1.112 Bubble silhouette acceptance](versions/0.1.112/QA.md) | [中文验收](versions/0.1.112/QA.zh-CN.md)
 - [0.1.111 Bubble corner acceptance](versions/0.1.111/QA.md) | [中文验收](versions/0.1.111/QA.zh-CN.md)

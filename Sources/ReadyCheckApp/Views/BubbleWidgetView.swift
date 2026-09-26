@@ -16,7 +16,6 @@ struct BubbleQuotaDisplay: Equatable {
 }
 
 struct BubbleWidgetView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var model: ReadyCheckAppModel
     let isExpanded: Bool
     let tabEdge: BubbleWidgetPlacement.Edge?
@@ -75,7 +74,7 @@ struct BubbleWidgetView: View {
 
     var body: some View {
         Group {
-            if isExpanded { expandedCard.transition(surfaceTransition) }
+            if isExpanded { expandedCard }
             else if let tabEdge { edgeTab(tabEdge) }
             else { circleBubble }
         }
@@ -262,10 +261,6 @@ struct BubbleWidgetView: View {
         DragGesture(minimumDistance: 4)
             .onChanged { onDragChanged($0.translation) }
             .onEnded { _ in onDragEnded() }
-    }
-
-    private var surfaceTransition: AnyTransition {
-        reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.94))
     }
 
     private func bubbleSurface<S: Shape>(_ shape: S) -> some View {

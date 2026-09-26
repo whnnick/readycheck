@@ -626,6 +626,14 @@ struct SettingsView: View {
             }
             .pickerStyle(.segmented)
 
+            Text(model.localization.text(
+                model.codexConnectionMode == .localCodex
+                    ? "codex.connectionMode.localHelp"
+                    : "codex.connectionMode.oauthHelp"
+            ))
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+
             HStack(spacing: 8) {
                 if model.codexOAuthStatus != .connected {
                     Label(codexOAuthStatusText, systemImage: codexOAuthStatusIcon)

@@ -8,11 +8,11 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Latest release: [`0.1.113`](https://github.com/whnnick/readycheck/releases/tag/v0.1.113). It refines the floating quota bubble and display settings. Recovery reminders are macOS-only.
+> Latest release: [`0.1.114`](https://github.com/whnnick/readycheck/releases/tag/v0.1.114). It clarifies account sources and smooths the floating bubble's expand/collapse outline. Recovery reminders are macOS-only.
 
 ## What It Does
 
-ReadyCheck **0.1.113** keeps the draggable quota bubble, edge capsule, Card, and Notch displays. The bubble uses a stable dark surface and a window-level silhouette mask to prevent a square backing around its round, docked, and expanded forms. The main window groups display settings by feature with a shared quota-window choice. See the [0.1.113 acceptance status](docs/versions/0.1.113/QA.md).
+ReadyCheck **0.1.114** explains the two macOS account sources in plain language and smooths the bubble's expand/collapse outline. See the [0.1.114 acceptance status](docs/versions/0.1.114/QA.md).
 
 The bubble reads an icon from an installed Codex or ChatGPT app at runtime. Codex, ChatGPT, and their marks belong to OpenAI; ReadyCheck is independent and [follows OpenAI's brand guidance](https://openai.com/brand/).
 
@@ -65,7 +65,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.113-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.113-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.114-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.114-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 
@@ -90,6 +90,7 @@ npm run dev
 
 ## Documentation
 
+- [0.1.114 Account-source and motion acceptance](docs/versions/0.1.114/QA.md) | [中文验收](docs/versions/0.1.114/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.113 Floating-window mask acceptance](docs/versions/0.1.113/QA.md) | [中文验收](docs/versions/0.1.113/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.112 Bubble silhouette acceptance](docs/versions/0.1.112/QA.md) | [中文验收](docs/versions/0.1.112/QA.zh-CN.md)
 - [0.1.111 Bubble corner acceptance](docs/versions/0.1.111/QA.md) | [中文验收](docs/versions/0.1.111/QA.zh-CN.md)

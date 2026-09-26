@@ -158,9 +158,16 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         guard let panel, let restingFrame else { return }
         isExpanded = true
         let visible = targetScreen(savedFrame: restingFrame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
-        setFrame(BubbleWidgetPlacement.expandedFrame(from: restingFrame, edge: edge, in: visible), animated: true)
+        let expandedFrame = BubbleWidgetPlacement.expandedFrame(from: restingFrame, edge: edge, in: visible)
+        clippingView?.morph(
+            from: edge == nil ? .circle : .edgeTab,
+            to: .expanded,
+            fromWidth: restingFrame.width,
+            toWidth: expandedFrame.width
+        )
+        setFrame(expandedFrame, animated: true)
         panel.makeKeyAndOrderFront(nil)
-        updateView(animated: edge != nil)
+        updateView()
         startDismissMonitors()
     }
 
@@ -168,13 +175,14 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         guard isExpanded, panel != nil, let restingFrame else { return }
         stopDismissMonitors()
         isExpanded = false
-        if edge == nil {
-            updateView()
-            setFrame(restingFrame, animated: true)
-            return
-        }
+        clippingView?.morph(
+            from: .expanded,
+            to: edge == nil ? .circle : .edgeTab,
+            fromWidth: BubbleWidgetPlacement.expandedSize.width,
+            toWidth: restingFrame.width
+        )
         setFrame(restingFrame, animated: true)
-        updateView(animated: true)
+        updateView()
     }
 
     private func dragChanged(_ firstTranslation: CGSize) {
@@ -277,17 +285,27 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 }
 
 private final class BubbleClippingView: NSView {
-    enum Silhouette {
+    enum Silhouette: Equatable {
         case circle
         case edgeTab
         case expanded
     }
 
     var silhouette: Silhouette = .circle {
-        didSet { updateMask() }
+        didSet {
+            if silhouette != oldValue { shapeMorph = nil }
+            updateMask()
+        }
     }
 
+    private var shapeMorph: (from: Silhouette, to: Silhouette, fromWidth: CGFloat, toWidth: CGFloat)?
     private let maskLayer = CAShapeLayer()
+
+    func morph(from: Silhouette, to: Silhouette, fromWidth: CGFloat, toWidth: CGFloat) {
+        silhouette = to
+        shapeMorph = (from, to, fromWidth, toWidth)
+        updateMask()
+    }
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -311,13 +329,15 @@ private final class BubbleClippingView: NSView {
     private func updateMask() {
         guard let layer else { return }
         let path: CGPath
-        switch silhouette {
-        case .circle:
-            path = CGPath(ellipseIn: bounds, transform: nil)
-        case .edgeTab:
-            path = CGPath(roundedRect: bounds, cornerWidth: 21, cornerHeight: 21, transform: nil)
-        case .expanded:
-            path = CGPath(roundedRect: bounds.insetBy(dx: 7, dy: 7), cornerWidth: 18, cornerHeight: 18, transform: nil)
+        if let shapeMorph, shapeMorph.fromWidth != shapeMorph.toWidth {
+            let progress = min(1, max(0, (bounds.width - shapeMorph.fromWidth) / (shapeMorph.toWidth - shapeMorph.fromWidth)))
+            let inset = shapeInset(for: shapeMorph.from) * (1 - progress) + shapeInset(for: shapeMorph.to) * progress
+            let radius = cornerRadius(for: shapeMorph.from) * (1 - progress) + cornerRadius(for: shapeMorph.to) * progress
+            path = CGPath(roundedRect: bounds.insetBy(dx: inset, dy: inset), cornerWidth: radius, cornerHeight: radius, transform: nil)
+        } else {
+            let inset = shapeInset(for: silhouette)
+            let radius = cornerRadius(for: silhouette)
+            path = CGPath(roundedRect: bounds.insetBy(dx: inset, dy: inset), cornerWidth: radius, cornerHeight: radius, transform: nil)
         }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
@@ -325,5 +345,17 @@ private final class BubbleClippingView: NSView {
         maskLayer.path = path
         layer.mask = maskLayer
         CATransaction.commit()
+    }
+
+    private func shapeInset(for silhouette: Silhouette) -> CGFloat {
+        silhouette == .expanded ? 7 : 0
+    }
+
+    private func cornerRadius(for silhouette: Silhouette) -> CGFloat {
+        switch silhouette {
+        case .circle: min(bounds.width, bounds.height) / 2
+        case .edgeTab: 21
+        case .expanded: 18
+        }
     }
 }
