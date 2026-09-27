@@ -138,7 +138,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                     manualResetExpirations: usageDetails.manualResetExpirations,
                     creditBalance: usageDetails.creditBalance,
                     creditsUnlimited: usageDetails.creditsUnlimited
-                )
+                ),
+                ordinaryUsageAllowed: usageParser.parseOrdinaryUsageAllowed(payload)
             )
         } catch CodexUsageParserError.noDisplayableWindows {
             return snapshot(date: date, error: "quota.error.parserUnavailable")
@@ -211,7 +212,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 resetCredits: resolvedResetCredits,
                 resetCreditDetailsAvailable: merged.resetCreditDetailsAvailable
                     || candidate.resetCreditDetailsAvailable,
-                tokenUsage: merged.tokenUsage ?? candidate.tokenUsage
+                tokenUsage: merged.tokenUsage ?? candidate.tokenUsage,
+                ordinaryUsageAllowed: merged.ordinaryUsageAllowed ?? candidate.ordinaryUsageAllowed
             )
         }
         return merged
@@ -271,7 +273,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 creditBalance: defaultLimit?.hasCredits == false ? nil : defaultLimit?.creditBalance,
                 creditsUnlimited: defaultLimit?.creditsUnlimited,
                 accountTokenUsage: appServerSnapshot.tokenUsage
-            )
+            ),
+            ordinaryUsageAllowed: appServerSnapshot.ordinaryUsageAllowed
         )
     }
 
@@ -301,7 +304,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             remaining: 100 - used,
             unit: .percent,
             resetAt: window.resetsAt,
-            confidence: .verified
+            confidence: .verified,
+            durationMinutes: window.durationMinutes
         )
     }
 
@@ -310,14 +314,10 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         limitID: String,
         usesFallbackLabel: Bool
     ) -> String? {
-        guard usesFallbackLabel,
-              let value = limitName?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !value.isEmpty,
-              value.caseInsensitiveCompare(limitID) != .orderedSame
-        else {
-            return nil
-        }
-        return value
+        guard usesFallbackLabel || limitID != "codex" else { return nil }
+        let value = limitName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let value, !value.isEmpty { return value }
+        return limitID == "codex" ? nil : limitID
     }
 
     private func labelKey(durationMinutes: Int?, fallback: String) -> String {

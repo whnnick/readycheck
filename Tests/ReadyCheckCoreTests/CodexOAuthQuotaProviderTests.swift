@@ -25,7 +25,8 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
                     )
                 ],
                 resetCredits: [],
-                tokenUsage: nil
+                tokenUsage: nil,
+                ordinaryUsageAllowed: false
             )
         )
         let provider = CodexOAuthQuotaProvider(
@@ -40,7 +41,10 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
 
         XCTAssertEqual(snapshot.status, .available)
         XCTAssertEqual(snapshot.source, .appServer)
+        XCTAssertEqual(snapshot.ordinaryUsageAllowed, false)
         XCTAssertEqual(snapshot.windows.first?.remainingRatio, 0.75)
+        XCTAssertEqual(snapshot.windows.first?.durationMinutes, 300)
+        XCTAssertEqual(NotchQuotaSelection.sevenDay.resolve(in: snapshot.windows)?.id, "codex-primary")
         XCTAssertTrue(snapshot.errors.isEmpty)
     }
 
@@ -59,6 +63,49 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertTrue(dueAutomatic)
         XCTAssertTrue(manual)
         XCTAssertTrue(serverEvent)
+    }
+
+    func testNamedAdditionalBucketRemainsDistinguishableAtKnownDuration() async throws {
+        let appServer = StubCodexAppServerReader(
+            snapshot: CodexAppServerAccountSnapshot(
+                accountID: "account-local",
+                email: "local@example.com",
+                planName: "plus",
+                rateLimits: [
+                    CodexAppServerRateLimitSnapshot(
+                        limitID: "codex",
+                        limitName: nil,
+                        primary: CodexAppServerRateLimitWindow(usedPercent: 25, durationMinutes: 300, resetsAt: nil),
+                        secondary: nil,
+                        creditBalance: nil,
+                        hasCredits: false,
+                        creditsUnlimited: false,
+                        planName: "plus"
+                    ),
+                    CodexAppServerRateLimitSnapshot(
+                        limitID: "codex_other",
+                        limitName: "Additional allowance",
+                        primary: CodexAppServerRateLimitWindow(usedPercent: 40, durationMinutes: 300, resetsAt: nil),
+                        secondary: nil,
+                        creditBalance: nil,
+                        hasCredits: false,
+                        creditsUnlimited: false,
+                        planName: "plus"
+                    )
+                ],
+                resetCredits: [],
+                tokenUsage: nil
+            )
+        )
+        let provider = CodexOAuthQuotaProvider(
+            credentialStore: FailingCredentialStore(),
+            appServerClient: appServer,
+            now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: .automatic))
+        XCTAssertEqual(snapshot.windows.map(\.id), ["codex-primary", "codex_other-primary"])
+        XCTAssertEqual(snapshot.windows.map(\.displayLabel), [nil, "Additional allowance"])
     }
 
     func testProviderPrefersMatchingOfficialAppServerSnapshot() async throws {
@@ -343,6 +390,7 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
                 """
                 {
                   "rate_limit": {
+                    "allowed": false,
                     "primary_window": {
                       "used_percent": 20,
                       "limit_window_seconds": 18000,
@@ -377,6 +425,7 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertEqual(request.value(forHTTPHeaderField: "ChatGPT-Account-Id"), "account-123")
         XCTAssertEqual(snapshot.status, .available)
         XCTAssertEqual(snapshot.source, .oauthAPI)
+        XCTAssertEqual(snapshot.ordinaryUsageAllowed, false)
         XCTAssertEqual(snapshot.errors, [])
         XCTAssertEqual(snapshot.windows.map(\.labelKey), ["quota.window.codex.5h", "quota.window.codex.7d"])
         XCTAssertEqual(snapshot.windows[0].remainingRatio, 0.8)

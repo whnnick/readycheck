@@ -1,5 +1,11 @@
 # Version plans / 版本规划
 
+- [0.1.118 OAuth availability acceptance](versions/0.1.118/QA.md) | [中文验收](versions/0.1.118/QA.zh-CN.md)
+
+- [0.1.117 Availability and window-selection acceptance](versions/0.1.117/QA.md) | [中文验收](versions/0.1.117/QA.zh-CN.md)
+
+- [0.1.116 Subscription-date display acceptance](versions/0.1.116/QA.md) | [中文验收](versions/0.1.116/QA.zh-CN.md)
+- [0.1.115 Dynamic-quota and main-window acceptance](versions/0.1.115/QA.md) | [中文验收](versions/0.1.115/QA.zh-CN.md)
 - [0.1.114 Account-source and motion acceptance](versions/0.1.114/QA.md) | [中文验收](versions/0.1.114/QA.zh-CN.md)
 - [0.1.113 Floating-window mask acceptance](versions/0.1.113/QA.md) | [中文验收](versions/0.1.113/QA.zh-CN.md)
 - [0.1.112 Bubble silhouette acceptance](versions/0.1.112/QA.md) | [中文验收](versions/0.1.112/QA.zh-CN.md)

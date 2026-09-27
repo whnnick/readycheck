@@ -21,6 +21,17 @@ public struct CodexUsageParser: Sendable {
         return windows
     }
 
+    public func parseOrdinaryUsageAllowed(_ data: Data) -> Bool? {
+        guard let root = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let rateLimit = root["rate_limit"] as? [String: Any],
+              let allowed = rateLimit["allowed"] as? NSNumber,
+              CFGetTypeID(allowed) == CFBooleanGetTypeID()
+        else {
+            return nil
+        }
+        return allowed.boolValue
+    }
+
     public func parseManualResetDetails(_ data: Data) -> ProviderQuotaDetails {
         guard let object = try? JSONSerialization.jsonObject(with: data),
               let root = object as? [String: Any]
@@ -89,7 +100,11 @@ public struct CodexUsageParser: Sendable {
             remaining: remaining,
             unit: .percent,
             resetAt: resetAt,
-            confidence: .verified
+            confidence: .verified,
+            durationMinutes: payload.limitWindowSeconds.flatMap { seconds in
+                guard seconds.isFinite, seconds > 0, seconds / 60 < Double(Int.max) else { return nil }
+                return Int((seconds / 60).rounded())
+            }
         )
     }
 

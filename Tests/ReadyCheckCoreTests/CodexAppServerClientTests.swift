@@ -131,6 +131,28 @@ final class CodexAppServerClientTests: XCTestCase {
         XCTAssertNil(snapshot.manualResetCount)
     }
 
+    func testParserKeepsBackendUsagePermissionSeparateFromPercentages() throws {
+        let account = Data(#"{"account":{"email":"user@example.com"}}"#.utf8)
+        for (permission, expected) in [("true", true), ("false", false)] {
+            let data = Data(
+                """
+                {"ordinaryUsageAllowed":\(permission),"rateLimits":{"primary":{"usedPercent":20}}}
+                """.utf8
+            )
+            let snapshot = try CodexAppServerResponseParser.parse(
+                accountData: account, rateLimitsData: data, usageData: nil
+            )
+            XCTAssertEqual(snapshot.ordinaryUsageAllowed, expected)
+            XCTAssertEqual(snapshot.rateLimits.first?.primary?.usedPercent, 20)
+        }
+        let legacy = try CodexAppServerResponseParser.parse(
+            accountData: account,
+            rateLimitsData: Data(#"{"rateLimits":{"primary":{"usedPercent":20}}}"#.utf8),
+            usageData: nil
+        )
+        XCTAssertNil(legacy.ordinaryUsageAllowed)
+    }
+
     func testParserDistinguishesZeroResetCreditsFromUnavailableDetails() throws {
         let zero = try CodexAppServerResponseParser.parse(
             accountData: Data(#"{"account":{"email":"user@example.com"}}"#.utf8),

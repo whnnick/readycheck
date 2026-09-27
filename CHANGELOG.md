@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.1.118 - 2026-09-27
+
+- Read `rate_limit.allowed` from the independent OAuth usage response as the same explicit ordinary-use permission shown for the local Codex app-server. Missing or null permission remains unknown; percentages do not substitute for it. Keep the interactive Keychain retry visible when a saved OAuth login cannot be read during refresh. Windows receives version metadata only.
+
+## 0.1.117 - 2026-09-27 (local preview)
+
+- Read the optional official backend permission for ordinary Codex usage separately from quota percentages. Show restricted or unknown status instead of claiming availability when permission is false or absent; quota-increase alerts remain based on verified window changes.
+- Explain when a saved persistent-widget window is missing after an account change and show the temporary fallback. Link missing subscription dates to OpenAI's ChatGPT billing guidance. Windows receives version metadata only.
+
+## 0.1.116 - 2026-09-26 (local preview)
+
+- Keep displaying the subscription date found in the sign-in token. If that date has passed, label it as the last recorded date instead of hiding it behind “Unconfirmed”.
+- When the current connection supplies no subscription date, direct users to ChatGPT billing for the current date. Windows receives version metadata only.
+
+## 0.1.115 - 2026-09-26 (local preview)
+
+- Put verified quota and recovery status ahead of collapsible display settings in the macOS main window.
+- Populate the persistent-display quota picker from the connected account's actual windows; keep bubble and notch labels aligned with the selected or available fallback window.
+- Show an outdated-data hint in the expanded bubble and stop presenting a past token subscription date as a future renewal. Windows receives version metadata only.
+
 ## 0.1.114 - 2026-09-26
 
 - Rename the macOS account-source choices to “Follow Codex on this Mac” and “Sign in separately”, with a short explanation of each selection.

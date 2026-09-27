@@ -20,6 +20,7 @@ public struct CodexAppServerAccountSnapshot: Equatable, Sendable {
     public let resetCredits: [CodexAppServerResetCredit]
     public let resetCreditDetailsAvailable: Bool
     public let tokenUsage: AccountTokenUsage?
+    public let ordinaryUsageAllowed: Bool?
 
     public init(
         accountID: String? = nil,
@@ -29,7 +30,8 @@ public struct CodexAppServerAccountSnapshot: Equatable, Sendable {
         manualResetCount: Int? = nil,
         resetCredits: [CodexAppServerResetCredit],
         resetCreditDetailsAvailable: Bool = false,
-        tokenUsage: AccountTokenUsage?
+        tokenUsage: AccountTokenUsage?,
+        ordinaryUsageAllowed: Bool? = nil
     ) {
         self.accountID = accountID
         self.email = email
@@ -39,6 +41,7 @@ public struct CodexAppServerAccountSnapshot: Equatable, Sendable {
         self.resetCredits = resetCredits
         self.resetCreditDetailsAvailable = resetCreditDetailsAvailable
         self.tokenUsage = tokenUsage
+        self.ordinaryUsageAllowed = ordinaryUsageAllowed
     }
 }
 
@@ -414,7 +417,8 @@ public enum CodexAppServerResponseParser {
                         AccountTokenUsageDailyBucket(startDate: $0.startDate, tokens: $0.tokens)
                     }
                 )
-            }
+            },
+            ordinaryUsageAllowed: limits.ordinaryUsageAllowed
         )
     }
 
@@ -461,12 +465,14 @@ private struct AccountResponse: Decodable {
 
 private struct RateLimitsResponse: Decodable {
     let accountID: String?
+    let ordinaryUsageAllowed: Bool?
     let rateLimits: RateLimitResponseSnapshot
     let rateLimitsByLimitID: [String: RateLimitResponseSnapshot]?
     let rateLimitResetCredits: ResetCredits?
 
     enum CodingKeys: String, CodingKey {
         case accountID = "accountId"
+        case ordinaryUsageAllowed
         case rateLimits
         case rateLimitsByLimitID = "rateLimitsByLimitId"
         case rateLimitResetCredits

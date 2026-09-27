@@ -8,11 +8,11 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Latest release: [`0.1.114`](https://github.com/whnnick/readycheck/releases/tag/v0.1.114). It clarifies account sources and smooths the floating bubble's expand/collapse outline. Recovery reminders are macOS-only.
+> Latest release: [`0.1.118`](https://github.com/whnnick/readycheck/releases/tag/v0.1.118). It clarifies quota availability in local and standalone OAuth modes and improves the persistent display. Recovery reminders are macOS-only.
 
 ## What It Does
 
-ReadyCheck **0.1.114** explains the two macOS account sources in plain language and smooths the bubble's expand/collapse outline. See the [0.1.114 acceptance status](docs/versions/0.1.114/QA.md).
+ReadyCheck **0.1.118** reads explicit ordinary-use permission through either the local Codex app-server or a separate OAuth usage response. A missing permission remains unknown even when quota percentages are available. See the [0.1.118 acceptance status](docs/versions/0.1.118/QA.md).
 
 The bubble reads an icon from an installed Codex or ChatGPT app at runtime. Codex, ChatGPT, and their marks belong to OpenAI; ReadyCheck is independent and [follows OpenAI's brand guidance](https://openai.com/brand/).
 
@@ -49,8 +49,8 @@ The preview build uses a stable self-signed ReadyCheck identity but is not Devel
 
 ## Connect Codex
 
-1. Open ReadyCheck and keep **Use local Codex** selected to reuse the account signed in to Codex or ChatGPT on this Mac.
-2. If the local app-server is unavailable, select **Standalone OAuth**, click **Connect**, and complete browser authorization.
+1. Open ReadyCheck and keep **Follow Codex on this Mac** selected to reuse the account signed in to Codex or ChatGPT on this Mac.
+2. If the local app-server is unavailable, select **Sign in separately**, click **Connect**, and complete browser authorization.
 3. ReadyCheck refreshes only the quota and usage data returned for that connection.
 
 The OAuth callback listener uses `localhost:1455`. A manual callback URL field remains available if the local callback cannot be received.
@@ -65,7 +65,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.114-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.114-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.118-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.118-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 
@@ -90,6 +90,7 @@ npm run dev
 
 ## Documentation
 
+- [0.1.118 OAuth availability acceptance](docs/versions/0.1.118/QA.md) | [中文验收](docs/versions/0.1.118/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.114 Account-source and motion acceptance](docs/versions/0.1.114/QA.md) | [中文验收](docs/versions/0.1.114/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.113 Floating-window mask acceptance](docs/versions/0.1.113/QA.md) | [中文验收](docs/versions/0.1.113/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.112 Bubble silhouette acceptance](docs/versions/0.1.112/QA.md) | [中文验收](docs/versions/0.1.112/QA.zh-CN.md)

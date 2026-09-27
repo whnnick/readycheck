@@ -81,7 +81,8 @@ public actor QuotaStore {
             details: details.preservingSupplementalDetails(
                 from: previousDetails,
                 now: snapshot.refreshedAt
-            )
+            ),
+            ordinaryUsageAllowed: snapshot.ordinaryUsageAllowed
         )
     }
 }

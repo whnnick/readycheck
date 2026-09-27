@@ -81,7 +81,7 @@ struct NotchStatusView: View {
 
     private var displayedWindow: QuotaWindow? {
         let windows = snapshot?.windows.filter(QuotaWindowPresentation.shouldShow) ?? []
-        return windows.first { model.notchQuotaSelection.matches(labelKey: $0.labelKey) }
+        return model.notchQuotaSelection.resolve(in: windows)
     }
 
     private var displayedRatio: Double? {
@@ -90,7 +90,7 @@ struct NotchStatusView: View {
     }
 
     private var displayedWindowLabel: String {
-        model.notchQuotaSelection.shortLabel
+        displayedWindow.map(QuotaWindowDisplay.shortLabel) ?? "—"
     }
 
     private var quotaItem: some View {

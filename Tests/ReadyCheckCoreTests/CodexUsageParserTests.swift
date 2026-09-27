@@ -42,6 +42,21 @@ final class CodexUsageParserTests: XCTestCase {
         XCTAssertEqual(windows[1].labelKey, "quota.window.codex.7d")
         XCTAssertEqual(windows[1].used, 40)
         XCTAssertEqual(windows[1].remaining, 60)
+        XCTAssertEqual(parser.parseOrdinaryUsageAllowed(data), true)
+    }
+
+    func testOrdinaryUsagePermissionDoesNotComeFromPercentages() {
+        let parser = CodexUsageParser()
+        let blocked = Data(#"{"rate_limit":{"allowed":false,"primary_window":{"used_percent":0}}}"#.utf8)
+        let missing = Data(#"{"rate_limit":{"primary_window":{"used_percent":0}}}"#.utf8)
+        let nullLimit = Data(#"{"rate_limit":null}"#.utf8)
+        let invalid = Data(#"{"rate_limit":{"allowed":"true","primary_window":{"used_percent":20}}}"#.utf8)
+
+        XCTAssertEqual(parser.parseOrdinaryUsageAllowed(blocked), false)
+        XCTAssertNil(parser.parseOrdinaryUsageAllowed(missing))
+        XCTAssertNil(parser.parseOrdinaryUsageAllowed(nullLimit))
+        XCTAssertNil(parser.parseOrdinaryUsageAllowed(invalid))
+        XCTAssertEqual(try? parser.parse(invalid, refreshedAt: Date()).first?.remainingRatio, 0.8)
     }
 
     func testParserClampsUsedPercentOverOneHundred() throws {

@@ -8,11 +8,11 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 最新发布版：[`0.1.114`](https://github.com/whnnick/readycheck/releases/tag/v0.1.114)。本版说明两种账号来源，并改进气泡展开、收起的轮廓动效；恢复提醒仅支持 macOS。
+> 最新发布版：[`0.1.118`](https://github.com/whnnick/readycheck/releases/tag/v0.1.118)。本版明确本机与独立 OAuth 模式的配额可用状态，并改进常驻显示；恢复提醒仅支持 macOS。
 
 ## 可以做什么
 
-ReadyCheck **0.1.114** 用直白文案解释 macOS 的两种账号来源，并让气泡展开、收起时的轮廓连续变化。参见 [0.1.114 验收状态](docs/versions/0.1.114/QA.zh-CN.md)。
+ReadyCheck **0.1.118** 在本机 Codex app-server 或独立 OAuth 用量响应中读取明确的普通用量使用许可。即使配额百分比有效，许可字段缺失时仍显示“未确认”。参见 [0.1.118 验收](docs/versions/0.1.118/QA.zh-CN.md)。
 
 气泡在运行时读取已安装 Codex 或 ChatGPT 的应用图标。Codex、ChatGPT 及其标志归 OpenAI 所有；ReadyCheck 是独立项目，并[遵循 OpenAI 品牌规范](https://openai.com/brand/)。
 
@@ -49,8 +49,8 @@ Windows 10/11 预览测试可从同一个发布页下载已发布的 Windows 便
 
 ## 连接 Codex
 
-1. 打开 ReadyCheck，保持选择“使用本机 Codex”，直接复用这台 Mac 上 Codex 或 ChatGPT 已登录的账号。
-2. 如果本机 app-server 不可用，选择“独立 OAuth”，点击“连接”并在浏览器完成授权。
+1. 打开 ReadyCheck，保持选择“跟随本机 Codex”，直接复用这台 Mac 上 Codex 或 ChatGPT 已登录的账号。
+2. 如果本机 app-server 不可用，选择“单独登录”，点击“连接”并在浏览器完成授权。
 3. ReadyCheck 只刷新该连接返回的额度与用量数据。
 
 OAuth 回调监听 `localhost:1455`。若本地回调未成功接收，仍可手动粘贴回调 URL 完成授权。
@@ -65,7 +65,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.114-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.114-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.118-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.118-windows-x64-portable.zip`。
 
 ## Windows 预览版开发
 
@@ -90,6 +90,7 @@ npm run dev
 
 ## 文档
 
+- [0.1.118 OAuth 可用性验收](docs/versions/0.1.118/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.118/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.114 账号来源与动效验收](docs/versions/0.1.114/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.114/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.113 悬浮窗遮罩验收](docs/versions/0.1.113/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.113/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.112 气泡轮廓验收](docs/versions/0.1.112/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.112/QA.md)

@@ -6,14 +6,15 @@ final class QuotaRecoveryReminderTests: XCTestCase {
 
     private func snapshot(_ remaining: [Double], status: ProviderStatus = .available,
                           confidence: QuotaConfidence = .verified, stale: Bool = false,
-                          blocked: Bool = false, refreshedOffset: TimeInterval = 0) -> ProviderQuotaSnapshot {
+                          blocked: Bool = false, refreshedOffset: TimeInterval = 0,
+                          ordinaryUsageAllowed: Bool? = nil) -> ProviderQuotaSnapshot {
         ProviderQuotaSnapshot(providerId: "codex-oauth", displayName: "Codex", status: status,
             source: .appServer, refreshedAt: now.addingTimeInterval(refreshedOffset), staleAfter: now.addingTimeInterval(stale ? -1 : 300),
             windows: remaining.enumerated().map { index, value in
                 QuotaWindow(id: "window-\(index)", labelKey: "quota.window", limitStateCode: blocked ? "limit_reached" : nil,
                     kind: .rolling, used: 1 - value, limit: 1, remaining: value, unit: .percent,
                     resetAt: now.addingTimeInterval(-60), confidence: confidence)
-            }, errors: [])
+            }, errors: [], ordinaryUsageAllowed: ordinaryUsageAllowed)
     }
 
     func testTracksPartiallyConsumedQuota() {
@@ -21,6 +22,24 @@ final class QuotaRecoveryReminderTests: XCTestCase {
         XCTAssertTrue(QuotaRecoveryRequest.canArm(snapshot([0.1]), now: now))
         XCTAssertFalse(QuotaRecoveryRequest.canArm(snapshot([0], stale: true), now: now))
         XCTAssertFalse(QuotaRecoveryRequest.canArm(snapshot([0], confidence: .estimated), now: now))
+    }
+
+    func testQuotaIncreaseAlertRemainsSeparateFromBackendUsagePermission() throws {
+        let initial = QuotaReminderEvaluator.evaluate(
+            snapshot: snapshot([0.5], refreshedOffset: -1, ordinaryUsageAllowed: false),
+            now: now,
+            state: QuotaReminderState(),
+            account: "test-account"
+        )
+        let requestID = try XCTUnwrap(initial.state.recoveryRequest?.id)
+
+        let increased = QuotaReminderEvaluator.evaluate(
+            snapshot: snapshot([0.7], ordinaryUsageAllowed: false),
+            now: now,
+            state: initial.state,
+            account: "test-account"
+        )
+        XCTAssertEqual(increased.events, [.quotaRecovered(requestID: requestID)])
     }
 
     func testWaitsForAllWindowsAndActualFreshRecovery() {

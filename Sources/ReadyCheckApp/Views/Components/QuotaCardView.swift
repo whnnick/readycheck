@@ -171,10 +171,16 @@ struct QuotaCardView: View {
             value: displayPlanName
         )
 
-        inlineDetail(
-            label: localization.text("quota.subscriptionRenewal"),
-            value: subscriptionRenewalText
-        )
+        if let subscriptionDate = snapshot.details?.subscriptionRenewalAt {
+            inlineDetail(
+                label: localization.text(
+                    subscriptionDate > now ? "quota.subscriptionRenewal" : "quota.subscriptionLastRecorded"
+                ),
+                value: dateText(for: subscriptionDate, forceFullDate: true)
+            )
+        } else {
+            subscriptionBillingLink
+        }
 
         if let creditBalanceText {
             inlineDetail(
@@ -184,20 +190,25 @@ struct QuotaCardView: View {
         }
     }
 
+    private var subscriptionBillingLink: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Text(localization.text("quota.subscriptionDate"))
+                .foregroundStyle(Color.primary.opacity(0.58))
+            Link(
+                localization.text("quota.subscriptionCheckBilling"),
+                destination: URL(string: "https://help.openai.com/en/articles/9039756-managing-billing-for-chatgpt-and-the-api-platform")!
+            )
+        }
+        .font(displayMode == .widgetDetailed ? .caption : .subheadline)
+        .lineLimit(2)
+    }
+
     private var displayPlanName: String {
         guard let plan = nonEmpty(snapshot.details?.planName) else {
             return localization.text("quota.notProvided")
         }
 
         return plan.prefix(1).uppercased() + String(plan.dropFirst())
-    }
-
-    private var subscriptionRenewalText: String {
-        guard let date = snapshot.details?.subscriptionRenewalAt else {
-            return localization.text("quota.notProvided")
-        }
-
-        return dateText(for: date, forceFullDate: true)
     }
 
     private var manualResetExpirations: [Date] {
@@ -340,6 +351,14 @@ struct QuotaCardView: View {
             return stateText
         }
 
+        if snapshot.providerId == "codex-oauth", snapshot.status == .available {
+            return switch snapshot.ordinaryUsageAllowed {
+            case true: localization.text("status.available")
+            case false: localization.text("status.ordinaryUsageBlocked")
+            case nil: localization.text("status.ordinaryUsageUnknown")
+            }
+        }
+
         return switch snapshot.status {
         case .available:
             localization.text("status.available")
@@ -378,6 +397,14 @@ struct QuotaCardView: View {
             return .red
         }
 
+        if snapshot.providerId == "codex-oauth", snapshot.status == .available {
+            return switch snapshot.ordinaryUsageAllowed {
+            case true: .green
+            case false: .red
+            case nil: .orange
+            }
+        }
+
         return switch snapshot.status {
         case .available:
             .green
@@ -391,14 +418,7 @@ struct QuotaCardView: View {
     }
 
     private func windowTitle(_ window: QuotaWindow) -> String {
-        if let displayLabel = window.displayLabel?.trimmingCharacters(in: .whitespacesAndNewlines),
-           !displayLabel.isEmpty {
-            if window.labelKey == "quota.window.codex.secondary" {
-                return "\(displayLabel) · \(localization.text("quota.window.secondarySuffix"))"
-            }
-            return displayLabel
-        }
-        return localization.text(window.labelKey)
+        QuotaWindowDisplay.title(for: window, localization: localization)
     }
 
     private func limitStateText(_ code: String?) -> String? {

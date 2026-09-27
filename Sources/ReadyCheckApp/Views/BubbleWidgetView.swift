@@ -36,7 +36,7 @@ struct BubbleWidgetView: View {
     }
 
     private var primaryWindow: QuotaWindow? {
-        windows.first { model.notchQuotaSelection.matches(labelKey: $0.labelKey) } ?? windows.first
+        model.notchQuotaSelection.resolve(in: windows)
     }
 
     private var primaryRatio: Double? {
@@ -49,10 +49,12 @@ struct BubbleWidgetView: View {
     }
 
     private var primaryWindowShortLabel: String {
-        guard let labelKey = primaryWindow?.labelKey else { return model.notchQuotaSelection.shortLabel }
-        if NotchQuotaSelection.fiveHour.matches(labelKey: labelKey) { return NotchQuotaSelection.fiveHour.shortLabel }
-        if NotchQuotaSelection.sevenDay.matches(labelKey: labelKey) { return NotchQuotaSelection.sevenDay.shortLabel }
-        return model.notchQuotaSelection.shortLabel
+        primaryWindow.map(QuotaWindowDisplay.shortLabel) ?? "—"
+    }
+
+    private var expandedWindows: [QuotaWindow] {
+        guard let primaryWindow else { return Array(windows.prefix(2)) }
+        return [primaryWindow] + Array(windows.filter { $0.id != primaryWindow.id }.prefix(1))
     }
 
     private var urgencyColor: Color {
@@ -190,7 +192,7 @@ struct BubbleWidgetView: View {
             }
 
             if let snapshot, !windows.isEmpty {
-                ForEach(Array(windows.prefix(2))) { window in
+                ForEach(expandedWindows) { window in
                     quotaRow(window, canShow: snapshot.canShowPercentages(now: now))
                 }
             } else {
@@ -199,15 +201,23 @@ struct BubbleWidgetView: View {
                     .foregroundStyle(.white.opacity(0.72))
             }
 
-            Button {
-                model.openMainWindowFromWidget()
-                onCollapse()
-            } label: {
-                Text(model.localization.text("bubble.openMainWindow"))
-                    .font(.caption)
-                    .foregroundStyle(Color(red: 0.62, green: 0.80, blue: 1))
+            HStack {
+                Button {
+                    model.openMainWindowFromWidget()
+                    onCollapse()
+                } label: {
+                    Text(model.localization.text("bubble.openMainWindow"))
+                        .font(.caption)
+                        .foregroundStyle(Color(red: 0.62, green: 0.80, blue: 1))
+                }
+                .buttonStyle(.link)
+                Spacer()
+                if snapshot?.isStale(now: now) == true {
+                    Text(model.localization.text("bubble.dataStale"))
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.72))
+                }
             }
-            .buttonStyle(.link)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .foregroundStyle(.white)
@@ -221,7 +231,7 @@ struct BubbleWidgetView: View {
     private func quotaRow(_ window: QuotaWindow, canShow: Bool) -> some View {
         let ratio = canShow ? window.remainingRatio : nil
         return HStack(spacing: 8) {
-            Text(window.displayLabel ?? model.localization.text(window.labelKey))
+            Text(QuotaWindowDisplay.title(for: window, localization: model.localization))
                 .font(.caption)
                 .lineLimit(1)
                 .frame(width: 82, alignment: .leading)

@@ -7,6 +7,7 @@ struct SettingsView: View {
 
     @State private var now = Date()
     @State private var isReminderHistoryPresented = false
+    @State private var isDisplaySettingsExpanded = false
 
     private let refreshIntervalOptions: [TimeInterval] = [60, 180, 300]
 
@@ -19,6 +20,24 @@ struct SettingsView: View {
 
                 GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
                     quotaControls
+                }
+
+                GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
+                    DisclosureGroup(isExpanded: $isDisplaySettingsExpanded) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            quotaWindowControls
+                            HStack(alignment: .top, spacing: 12) {
+                                widgetControls
+                                notchControls
+                            }
+                            Divider()
+                            productSummary
+                        }
+                        .padding(.top, 12)
+                    } label: {
+                        Label(model.localization.text("settings.display"), systemImage: "macwindow.on.rectangle")
+                            .font(.headline)
+                    }
                 }
 
                 GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
@@ -135,18 +154,6 @@ struct SettingsView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    quotaWindowControls
-
-                    HStack(alignment: .top, spacing: 12) {
-                        widgetControls
-                        notchControls
-                    }
-                }
-
-                Divider()
-
-                productSummary
             }
         }
     }
@@ -196,26 +203,46 @@ struct SettingsView: View {
     }
 
     private var quotaWindowControls: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                Label(model.localization.text("settings.quotaWindow"), systemImage: "gauge.with.dots.needle.67percent")
-                    .font(.subheadline.weight(.semibold))
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Label(model.localization.text("settings.quotaWindow"), systemImage: "gauge.with.dots.needle.67percent")
+                        .font(.subheadline.weight(.semibold))
 
-                Text(model.localization.text("settings.quotaWindowHelp"))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 0)
-
-            Picker(model.localization.text("settings.quotaWindow"), selection: $model.notchQuotaSelection) {
-                ForEach(NotchQuotaSelection.allCases, id: \.self) { selection in
-                    Text(model.localization.text(selection.labelKey)).tag(selection)
+                    Text(model.localization.text("settings.quotaWindowHelp"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+
+                Spacer(minLength: 0)
+
+                Picker(model.localization.text("settings.quotaWindow"), selection: quotaWindowSelection) {
+                    Text(model.localization.text("settings.quotaWindowAutomatic"))
+                        .tag(NotchQuotaSelection.automatic)
+                    if case let .window(id) = model.notchQuotaSelection,
+                       !model.notchQuotaSelection.hasPreferredWindow(in: availableQuotaWindows) {
+                        Text(model.localization.text("settings.quotaWindowMissing"))
+                            .tag(NotchQuotaSelection.window(id))
+                    }
+                    ForEach(availableQuotaWindows) { window in
+                        Text(QuotaWindowDisplay.title(for: window, localization: model.localization))
+                            .tag(NotchQuotaSelection.window(window.id))
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .frame(width: 250)
             }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .frame(width: 260)
+            if !availableQuotaWindows.isEmpty,
+               !model.notchQuotaSelection.hasPreferredWindow(in: availableQuotaWindows),
+               let fallback = model.notchQuotaSelection.resolve(in: availableQuotaWindows) {
+                Text(String(
+                    format: model.localization.text("settings.quotaWindowFallback"),
+                    QuotaWindowDisplay.title(for: fallback, localization: model.localization)
+                ))
+                .font(.caption)
+                .foregroundStyle(.orange)
+            }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -224,6 +251,28 @@ struct SettingsView: View {
         .controlSize(.small)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(model.localization.text("settings.quotaWindow"))
+    }
+
+    private var availableQuotaWindows: [QuotaWindow] {
+        model.snapshots.first(where: { $0.providerId == "codex-oauth" })?
+            .windows.filter(QuotaWindowPresentation.shouldShow) ?? []
+    }
+
+    private var quotaWindowSelection: Binding<NotchQuotaSelection> {
+        Binding(
+            get: {
+                if model.notchQuotaSelection == .automatic { return .automatic }
+                if case .window = model.notchQuotaSelection,
+                   !model.notchQuotaSelection.hasPreferredWindow(in: availableQuotaWindows) {
+                    return model.notchQuotaSelection
+                }
+                guard let selected = model.notchQuotaSelection.resolve(in: availableQuotaWindows) else {
+                    return .automatic
+                }
+                return .window(selected.id)
+            },
+            set: { model.notchQuotaSelection = $0 }
+        )
     }
 
     private var widgetControls: some View {
@@ -658,7 +707,7 @@ struct SettingsView: View {
 
                 if model.codexConnectionMode == .standaloneOAuth && shouldShowConnectButton {
                     Button(connectButtonTitle) {
-                        if model.codexOAuthStatus == .credentialStorageFailed {
+                        if oauthCredentialReadNeedsRetry {
                             Task { await model.retryCredentialRead() }
                         } else if let url = model.beginCodexOAuthConnection() {
                             NSWorkspace.shared.open(url)
@@ -926,6 +975,13 @@ struct SettingsView: View {
         model.codexOAuthStatus == .notConnected
             || model.codexOAuthStatus == .credentialStorageFailed
             || model.codexOAuthStatus == .failed
+            || oauthCredentialReadNeedsRetry
+    }
+
+    private var oauthCredentialReadNeedsRetry: Bool {
+        model.codexOAuthStatus == .credentialStorageFailed
+            || model.snapshots.first(where: { $0.providerId == "codex-oauth" })?
+                .errors.contains("oauth.error.keychainUnavailable") == true
     }
 
     private var shouldShowCancelAuthorizationButton: Bool {
@@ -933,7 +989,7 @@ struct SettingsView: View {
     }
 
     private var connectButtonTitle: String {
-        if model.codexOAuthStatus == .credentialStorageFailed {
+        if oauthCredentialReadNeedsRetry {
             return model.localization.text("oauth.retryCredentialRead")
         }
         return model.codexOAuthStatus == .failed

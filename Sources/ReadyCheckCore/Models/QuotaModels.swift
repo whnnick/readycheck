@@ -110,6 +110,7 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
     public let unit: QuotaUnit
     public let resetAt: Date?
     public let confidence: QuotaConfidence
+    public let durationMinutes: Int?
 
     public init(
         id: String,
@@ -122,7 +123,8 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
         remaining: Double,
         unit: QuotaUnit,
         resetAt: Date?,
-        confidence: QuotaConfidence
+        confidence: QuotaConfidence,
+        durationMinutes: Int? = nil
     ) {
         self.id = id
         self.labelKey = labelKey
@@ -135,6 +137,7 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
         self.unit = unit
         self.resetAt = resetAt
         self.confidence = confidence
+        self.durationMinutes = durationMinutes
     }
 
     public var remainingRatio: Double? {
@@ -291,6 +294,7 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
     public let windows: [QuotaWindow]
     public let errors: [String]
     public let details: ProviderQuotaDetails?
+    public let ordinaryUsageAllowed: Bool?
 
     public init(
         providerId: String,
@@ -301,7 +305,8 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
         staleAfter: Date,
         windows: [QuotaWindow],
         errors: [String],
-        details: ProviderQuotaDetails? = nil
+        details: ProviderQuotaDetails? = nil,
+        ordinaryUsageAllowed: Bool? = nil
     ) {
         self.providerId = providerId
         self.displayName = displayName
@@ -312,6 +317,7 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
         self.windows = windows
         self.errors = errors
         self.details = details
+        self.ordinaryUsageAllowed = ordinaryUsageAllowed
     }
 
     var hasDisplayablePercentageWindowIgnoringStaleness: Bool {
@@ -375,7 +381,8 @@ public extension ProviderQuotaSnapshot {
             staleAfter: staleAfter,
             windows: windows,
             errors: errors,
-            details: details.preservingSupplementalDetails(from: fallback, now: now)
+            details: details.preservingSupplementalDetails(from: fallback, now: now),
+            ordinaryUsageAllowed: ordinaryUsageAllowed
         )
     }
 }
