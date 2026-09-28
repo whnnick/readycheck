@@ -207,6 +207,7 @@ final class ReadyCheckAppModel {
             } else {
                 floatingWindowController.close()
                 bubbleWindowController.close()
+                edgeRailWindowController.close()
             }
         }
     }
@@ -215,6 +216,7 @@ final class ReadyCheckAppModel {
             UserDefaults.standard.set(widgetAlwaysOnTop, forKey: Self.widgetAlwaysOnTopDefaultsKey)
             floatingWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
             bubbleWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
+            edgeRailWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
         }
     }
     var widgetPresentation: WidgetPresentation = WidgetPresentationPreference.value() {
@@ -228,10 +230,12 @@ final class ReadyCheckAppModel {
             isSwitchingWidgetPresentation = true
             floatingWindowController.close()
             bubbleWindowController.close()
+            edgeRailWindowController.close()
             isSwitchingWidgetPresentation = false
             showSelectedWidget()
         }
     }
+    var edgeRailSide: EdgeRailPlacement.Edge = .right
     var widgetDisplayMode: WidgetDisplayMode = WidgetDisplayModePreference.value() {
         didSet {
             WidgetDisplayModePreference.set(widgetDisplayMode)
@@ -326,6 +330,9 @@ final class ReadyCheckAppModel {
     private let bubbleWindowController = BubbleWindowController()
 
     @ObservationIgnored
+    private let edgeRailWindowController = EdgeRailWindowController()
+
+    @ObservationIgnored
     private let notchWindowController = NotchWindowController()
 
     @ObservationIgnored
@@ -376,7 +383,8 @@ final class ReadyCheckAppModel {
             registry: ProviderRegistry(
                 configurations: ProviderConfiguration.defaults,
                 credentialStore: credentialStore,
-                codexAppServerClient: initialConnectionMode == .localCodex ? codexAppServerClient : nil
+                codexAppServerClient: codexAppServerClient,
+                preferCodexOAuthAPI: initialConnectionMode != .localCodex
             )
         )
         self.floatingWindowController.onVisibilityChanged = { [weak self] isVisible in
@@ -384,6 +392,13 @@ final class ReadyCheckAppModel {
         }
         self.bubbleWindowController.onVisibilityChanged = { [weak self] isVisible in
             self?.syncWidgetVisibilityFromWindow(isVisible)
+        }
+        self.edgeRailWindowController.onVisibilityChanged = { [weak self] isVisible in
+            self?.syncWidgetVisibilityFromWindow(isVisible)
+        }
+        self.edgeRailSide = edgeRailWindowController.savedEdge()
+        self.edgeRailWindowController.onEdgeChanged = { [weak self] edge in
+            self?.edgeRailSide = edge
         }
         reloadLaunchAtLoginStatus()
     }
@@ -418,6 +433,7 @@ final class ReadyCheckAppModel {
         switch widgetPresentation {
         case .card: floatingWindowController.show(model: self)
         case .bubble: bubbleWindowController.show(model: self)
+        case .edgeRail: edgeRailWindowController.show(model: self)
         }
     }
 
@@ -505,12 +521,23 @@ final class ReadyCheckAppModel {
         widgetVisible = false
     }
 
+    func moveEdgeRail(to edge: EdgeRailPlacement.Edge) {
+        if !widgetVisible { widgetVisible = true }
+        edgeRailWindowController.move(to: edge, model: self)
+    }
+
+    func revealEdgeRail() {
+        if !widgetVisible { widgetVisible = true }
+        edgeRailWindowController.reveal(model: self)
+    }
+
     func resetFloatingWidgetPosition() {
         if widgetVisible {
             isSwitchingWidgetPresentation = true
             switch widgetPresentation {
             case .card: floatingWindowController.resetPosition(model: self)
             case .bubble: bubbleWindowController.resetPosition(model: self)
+            case .edgeRail: edgeRailWindowController.resetPosition(model: self)
             }
             isSwitchingWidgetPresentation = false
         } else {
@@ -707,6 +734,7 @@ final class ReadyCheckAppModel {
             codexOAuthLoginEmail = token.loginEmail
             await updateRecoveryReminderAccount(token.accountID)
             wasConnectedBeforePendingAuthorization = false
+            rebuildStore()
             await refresh(reason: .manual)
         } catch {
             Self.oauthLogger.error("OAuth authorization failed: \(self.oauthLogSummary(for: error), privacy: .public)")
@@ -1081,7 +1109,8 @@ final class ReadyCheckAppModel {
             registry: ProviderRegistry(
                 configurations: providerConfigurations,
                 credentialStore: credentialStore,
-                codexAppServerClient: codexConnectionMode == .localCodex ? codexAppServerClient : nil
+                codexAppServerClient: codexAppServerClient,
+                preferCodexOAuthAPI: codexConnectionMode != .localCodex
             )
         )
         storeGeneration += 1

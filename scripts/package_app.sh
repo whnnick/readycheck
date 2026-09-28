@@ -19,7 +19,7 @@ EXECUTABLE_TARGET="${MACOS_DIR}/ReadyCheckApp"
 ICONSET_DIR="${BUILD_DIR}/ReadyCheck.iconset"
 ICON_SOURCE="${BUILD_DIR}/ReadyCheckIcon1024.png"
 ICON_TARGET="${RESOURCES_DIR}/ReadyCheck.icns"
-VERSION="0.1.118"
+VERSION="0.1.128"
 PREVIEW_SIGNING_IDENTITY="ReadyCheck Preview Signing"
 
 resolve_signing_identity() {
@@ -52,79 +52,7 @@ cp "${EXECUTABLE_SOURCE}" "${EXECUTABLE_TARGET}"
 chmod +x "${EXECUTABLE_TARGET}"
 
 generate_icon() {
-    local icon_script
-    icon_script="$(mktemp "${BUILD_DIR}/readycheck-icon.XXXXXX.swift")"
-
-    cat > "${icon_script}" <<'SWIFT'
-import AppKit
-
-let outputURL = URL(fileURLWithPath: CommandLine.arguments[1])
-let size = NSSize(width: 1024, height: 1024)
-let image = NSImage(size: size)
-
-image.lockFocus()
-
-NSColor.clear.setFill()
-NSRect(origin: .zero, size: size).fill()
-
-let outerRect = NSRect(x: 64, y: 64, width: 896, height: 896)
-let outerPath = NSBezierPath(roundedRect: outerRect, xRadius: 218, yRadius: 218)
-NSGradient(colors: [
-    NSColor(calibratedRed: 0.08, green: 0.34, blue: 0.82, alpha: 1),
-    NSColor(calibratedRed: 0.10, green: 0.72, blue: 0.82, alpha: 1)
-])?.draw(in: outerPath, angle: -42)
-
-NSColor.white.withAlphaComponent(0.28).setStroke()
-outerPath.lineWidth = 18
-outerPath.stroke()
-
-let glassRect = NSRect(x: 150, y: 176, width: 724, height: 672)
-let glassPath = NSBezierPath(roundedRect: glassRect, xRadius: 156, yRadius: 156)
-NSColor.white.withAlphaComponent(0.16).setFill()
-glassPath.fill()
-
-NSColor.white.withAlphaComponent(0.34).setStroke()
-glassPath.lineWidth = 10
-glassPath.stroke()
-
-if let symbol = NSImage(systemSymbolName: "gauge.with.dots.needle.67percent", accessibilityDescription: nil) {
-    symbol.isTemplate = true
-    NSColor.white.set()
-    symbol.draw(
-        in: NSRect(x: 250, y: 266, width: 524, height: 524),
-        from: .zero,
-        operation: .sourceOver,
-        fraction: 0.96
-    )
-} else {
-    let text = "RC" as NSString
-    text.draw(
-        in: NSRect(x: 0, y: 386, width: 1024, height: 260),
-        withAttributes: [
-            .font: NSFont.systemFont(ofSize: 220, weight: .bold),
-            .foregroundColor: NSColor.white,
-            .paragraphStyle: {
-                let style = NSMutableParagraphStyle()
-                style.alignment = .center
-                return style
-            }()
-        ]
-    )
-}
-
-image.unlockFocus()
-
-guard let tiffData = image.tiffRepresentation,
-      let bitmap = NSBitmapImageRep(data: tiffData),
-      let pngData = bitmap.representation(using: .png, properties: [:]) else {
-    fatalError("Failed to render ReadyCheck app icon")
-}
-
-try pngData.write(to: outputURL)
-SWIFT
-
-    swift "${icon_script}" "${ICON_SOURCE}"
-    rm -f "${icon_script}"
+    swift "${SCRIPT_DIR}/render_app_icon.swift" "${ICON_SOURCE}"
 
     rm -rf "${ICONSET_DIR}"
     mkdir -p "${ICONSET_DIR}"

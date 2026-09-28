@@ -431,6 +431,81 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertEqual(snapshot.windows[0].remainingRatio, 0.8)
     }
 
+    func testSeparateSignInUsesOnlyMatchingLocalTokenHistory() async throws {
+        let credentialStore = InMemoryCredentialStore()
+        try await CodexOAuthTokenStore(credentialStore: credentialStore).saveToken(
+            CodexOAuthToken(
+                accessToken: "access",
+                refreshToken: "refresh",
+                idToken: nil,
+                tokenType: "Bearer",
+                expiresAt: Date(timeIntervalSince1970: 4_600),
+                accountID: "separate-account",
+                email: "shared@example.com"
+            )
+        )
+        let endpoint = try XCTUnwrap(URL(string: "https://chatgpt.com/backend-api/wham/usage"))
+        let loader = QuotaRecordingHTTPDataLoader(
+            data: Data(#"{"rate_limit":{"primary_window":{"used_percent":20,"limit_window_seconds":18000}}}"#.utf8),
+            statusCode: 200
+        )
+        func localSnapshot(accountID: String, tokens: Int64) -> CodexAppServerAccountSnapshot {
+            CodexAppServerAccountSnapshot(
+                accountID: accountID,
+                email: "shared@example.com",
+                planName: "plus",
+                rateLimits: [
+                    CodexAppServerRateLimitSnapshot(
+                        limitID: "codex",
+                        limitName: nil,
+                        primary: CodexAppServerRateLimitWindow(usedPercent: 90, durationMinutes: 300, resetsAt: nil),
+                        secondary: nil,
+                        creditBalance: nil,
+                        hasCredits: false,
+                        creditsUnlimited: false,
+                        planName: "plus"
+                    )
+                ],
+                resetCredits: [],
+                tokenUsage: AccountTokenUsage(
+                    summary: AccountTokenUsageSummary(lifetimeTokens: tokens),
+                    dailyBuckets: [AccountTokenUsageDailyBucket(startDate: "2026-09-29", tokens: tokens)]
+                )
+            )
+        }
+        let provider = CodexOAuthQuotaProvider(
+            credentialStore: credentialStore,
+            quotaEndpoint: endpoint,
+            resetCreditsEndpoint: nil,
+            quotaClient: CodexQuotaHTTPClient(loader: loader),
+            appServerClient: StubCodexAppServerReader(snapshots: [
+                localSnapshot(accountID: "other-account", tokens: 999),
+                localSnapshot(accountID: "separate-account", tokens: 123)
+            ]),
+            preferOAuthAPI: true,
+            now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: .manual))
+
+        XCTAssertEqual(snapshot.source, .oauthAPI)
+        XCTAssertEqual(snapshot.windows.first?.remainingRatio, 0.8)
+        XCTAssertEqual(snapshot.details?.accountTokenUsage?.dailyBuckets.first?.tokens, 123)
+
+        let unmatchedProvider = CodexOAuthQuotaProvider(
+            credentialStore: credentialStore,
+            quotaEndpoint: endpoint,
+            resetCreditsEndpoint: nil,
+            quotaClient: CodexQuotaHTTPClient(loader: loader),
+            appServerClient: StubCodexAppServerReader(snapshot: localSnapshot(accountID: "other-account", tokens: 999)),
+            preferOAuthAPI: true,
+            now: { Date(timeIntervalSince1970: 1_000) }
+        )
+        let unmatchedSnapshot = try await unmatchedProvider.fetchSnapshot(context: ProviderRefreshContext(reason: .manual))
+        XCTAssertEqual(unmatchedSnapshot.source, .oauthAPI)
+        XCTAssertNil(unmatchedSnapshot.details?.accountTokenUsage)
+    }
+
     func testProviderFetchesResetCreditExpirationsFromDetailEndpoint() async throws {
         let credentialStore = InMemoryCredentialStore()
         let tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)

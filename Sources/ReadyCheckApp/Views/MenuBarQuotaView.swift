@@ -47,9 +47,10 @@ struct MenuBarQuotaView: View {
 
     private var header: some View {
         HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "gauge.with.dots.needle.67percent")
-                .font(.title3)
-                .foregroundStyle(.tint)
+            Image(nsImage: NSApplication.shared.applicationIconImage)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: 24, height: 24)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(localization.text("app.name"))
@@ -167,6 +168,7 @@ struct MenuBarQuotaView: View {
                     Picker("", selection: $model.widgetPresentation) {
                         Text(localization.text("widgetPresentation.bubble")).tag(WidgetPresentation.bubble)
                         Text(localization.text("widgetPresentation.card")).tag(WidgetPresentation.card)
+                        Text(localization.text("widgetPresentation.edgeRail")).tag(WidgetPresentation.edgeRail)
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()

@@ -9,6 +9,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
     private let quotaClient: CodexQuotaHTTPClient
     private let usageParser: CodexUsageParser
     private let appServerClient: (any CodexAppServerReading)?
+    private let preferOAuthAPI: Bool
     private let quotaEndpoint: URL?
     private let resetCreditsEndpoint: URL?
     private let now: @Sendable () -> Date
@@ -22,6 +23,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         quotaClient: CodexQuotaHTTPClient = CodexQuotaHTTPClient(),
         usageParser: CodexUsageParser = CodexUsageParser(),
         appServerClient: (any CodexAppServerReading)? = nil,
+        preferOAuthAPI: Bool = false,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
         self.tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)
@@ -29,6 +31,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         self.quotaClient = quotaClient
         self.usageParser = usageParser
         self.appServerClient = appServerClient
+        self.preferOAuthAPI = preferOAuthAPI
         self.quotaEndpoint = quotaEndpoint
         self.resetCreditsEndpoint = resetCreditsEndpoint
         self.now = now
@@ -45,7 +48,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         do {
             storedToken = try await tokenStore.loadToken()
         } catch is KeychainCredentialStoreError {
-            if let appServerSnapshot = preferredAppServerSnapshot(appServerSnapshots ?? [], token: nil),
+            if !preferOAuthAPI,
+               let appServerSnapshot = preferredAppServerSnapshot(appServerSnapshots ?? [], token: nil),
                let officialSnapshot = makeOfficialSnapshot(
                    appServerSnapshot,
                    token: nil,
@@ -56,7 +60,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             return snapshot(date: date, error: "oauth.error.keychainUnavailable")
         }
         guard var token = storedToken else {
-            if let appServerSnapshot = preferredAppServerSnapshot(appServerSnapshots ?? [], token: nil),
+            if !preferOAuthAPI,
+               let appServerSnapshot = preferredAppServerSnapshot(appServerSnapshots ?? [], token: nil),
                let officialSnapshot = makeOfficialSnapshot(
                    appServerSnapshot,
                    token: nil,
@@ -76,7 +81,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             }
         }
 
-        if let appServerSnapshot = preferredAppServerSnapshot(
+        if !preferOAuthAPI,
+           let appServerSnapshot = preferredAppServerSnapshot(
                appServerSnapshots ?? [],
                token: token
            ),
@@ -137,7 +143,11 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                     manualResetCount: usageDetails.manualResetCount,
                     manualResetExpirations: usageDetails.manualResetExpirations,
                     creditBalance: usageDetails.creditBalance,
-                    creditsUnlimited: usageDetails.creditsUnlimited
+                    creditsUnlimited: usageDetails.creditsUnlimited,
+                    accountTokenUsage: appServerSnapshots?
+                        .filter { accountsMatch(token: token, snapshot: $0) }
+                        .compactMap(\.tokenUsage)
+                        .first
                 ),
                 ordinaryUsageAllowed: usageParser.parseOrdinaryUsageAllowed(payload)
             )

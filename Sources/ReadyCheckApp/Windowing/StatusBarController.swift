@@ -29,16 +29,34 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private func configureStatusItem() {
         guard let button = statusItem.button else { return }
 
-        button.image = NSImage(
-            systemSymbolName: "gauge.with.dots.needle.67percent",
-            accessibilityDescription: "ReadyCheck"
-        )
-        button.image?.isTemplate = true
+        button.image = makeMenuBarMark()
         button.imagePosition = .imageOnly
         button.toolTip = "ReadyCheck"
         button.target = self
         button.action = #selector(togglePopover(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+    }
+
+    private func makeMenuBarMark() -> NSImage {
+        let image = NSImage(size: NSSize(width: 20, height: 20))
+        image.lockFocus()
+
+        let mark = NSBezierPath()
+        mark.lineWidth = 2.8
+        mark.lineCapStyle = .round
+        mark.appendArc(
+            withCenter: NSPoint(x: 10, y: 10),
+            radius: 6.3,
+            startAngle: 32,
+            endAngle: 328
+        )
+        NSColor.black.setStroke()
+        mark.stroke()
+
+        image.unlockFocus()
+        image.isTemplate = true
+        image.accessibilityDescription = "ReadyCheck"
+        return image
     }
 
     private func configurePopover() {

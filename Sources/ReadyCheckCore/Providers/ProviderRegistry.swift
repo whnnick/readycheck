@@ -11,6 +11,7 @@ public struct ProviderRegistry: Sendable {
         configurations: [ProviderConfiguration],
         credentialStore: any CredentialStore = InMemoryCredentialStore(),
         codexAppServerClient: (any CodexAppServerReading)? = nil,
+        preferCodexOAuthAPI: Bool = false,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
         self.init(
@@ -26,6 +27,7 @@ public struct ProviderRegistry: Sendable {
                     return CodexOAuthQuotaProvider(
                         credentialStore: credentialStore,
                         appServerClient: codexAppServerClient,
+                        preferOAuthAPI: preferCodexOAuthAPI,
                         now: now
                     )
                 }

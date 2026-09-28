@@ -105,11 +105,10 @@ struct SettingsView: View {
         GlassSurface(cornerRadius: 28, renderingMode: .staticSurface) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .center, spacing: 14) {
-                    Image(systemName: "gauge.with.dots.needle.67percent")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(.white)
+                    Image(nsImage: NSApplication.shared.applicationIconImage)
+                        .resizable()
+                        .interpolation(.high)
                         .frame(width: 54, height: 54)
-                        .background(Color.accentColor.gradient, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(model.localization.text("app.name"))
@@ -179,7 +178,7 @@ struct SettingsView: View {
                 ProgressView()
                     .controlSize(.small)
             } else {
-                Image(systemName: "gauge.with.dots.needle.67percent")
+                Image(systemName: "arrow.clockwise")
                     .foregroundStyle(.secondary)
             }
 
@@ -206,7 +205,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 7) {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Label(model.localization.text("settings.quotaWindow"), systemImage: "gauge.with.dots.needle.67percent")
+                    Label(model.localization.text("settings.quotaWindow"), systemImage: "chart.bar.fill")
                         .font(.subheadline.weight(.semibold))
 
                     Text(model.localization.text("settings.quotaWindowHelp"))
@@ -313,16 +312,40 @@ struct SettingsView: View {
                 Picker("", selection: $model.widgetPresentation) {
                     Text(model.localization.text("widgetPresentation.bubble")).tag(WidgetPresentation.bubble)
                     Text(model.localization.text("widgetPresentation.card")).tag(WidgetPresentation.card)
+                    Text(model.localization.text("widgetPresentation.edgeRail")).tag(WidgetPresentation.edgeRail)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 120)
+                .frame(width: 210)
                 .accessibilityLabel(model.localization.text("settings.widgetStyle"))
                 .help(model.localization.text("settings.widgetStyle"))
             }
 
+            Text(model.localization.text("widgetPresentation.modeHint"))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
             if model.widgetPresentation == .card {
                 WidgetStyleSwitcherView(selection: $model.widgetDisplayMode, localization: model.localization)
+            } else if model.widgetPresentation == .edgeRail {
+                HStack(spacing: 8) {
+                    Text(model.localization.text("edgeRail.side"))
+                    Spacer(minLength: 0)
+                    Picker("", selection: Binding(
+                        get: { model.edgeRailSide },
+                        set: { model.moveEdgeRail(to: $0) }
+                    )) {
+                        Text(model.localization.text("edgeRail.left")).tag(EdgeRailPlacement.Edge.left)
+                        Text(model.localization.text("edgeRail.right")).tag(EdgeRailPlacement.Edge.right)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .frame(width: 130)
+                    Button(model.localization.text("edgeRail.reveal")) {
+                        model.revealEdgeRail()
+                    }
+                }
+                .font(.caption)
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -666,6 +689,10 @@ struct SettingsView: View {
                     .font(.headline)
             }
 
+            Text(model.localization.text("codex.connectionMode"))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
             Picker(model.localization.text("codex.connectionMode"), selection: Binding(
                 get: { model.codexConnectionMode },
                 set: { mode in Task { await model.setCodexConnectionMode(mode) } }
@@ -673,6 +700,7 @@ struct SettingsView: View {
                 Text(model.localization.text("codex.connectionMode.local")).tag(CodexConnectionMode.localCodex)
                 Text(model.localization.text("codex.connectionMode.oauth")).tag(CodexConnectionMode.standaloneOAuth)
             }
+            .labelsHidden()
             .pickerStyle(.segmented)
 
             Text(model.localization.text(

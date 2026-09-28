@@ -8,11 +8,13 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 最新发布版：[`0.1.118`](https://github.com/whnnick/readycheck/releases/tag/v0.1.118)。本版明确本机与独立 OAuth 模式的配额可用状态，并改进常驻显示；恢复提醒仅支持 macOS。
+> 最新发布版：[`0.1.128`](https://github.com/whnnick/readycheck/releases/tag/v0.1.128)。本版增加贴边圆环与 C 形应用标志，并在独立 OAuth 模式恢复匹配账号的 Token 记录；恢复提醒仅支持 macOS。
 
 ## 可以做什么
 
 ReadyCheck **0.1.118** 在本机 Codex app-server 或独立 OAuth 用量响应中读取明确的普通用量使用许可。即使配额百分比有效，许可字段缺失时仍显示“未确认”。参见 [0.1.118 验收](docs/versions/0.1.118/QA.zh-CN.md)。
+
+**0.1.128 预览发布版**在独立 OAuth 登录账号与本机 Codex 账号一致时，恢复每日 Token 柱图和悬停数量。没有匹配的 Token 记录时，图表仍显示以百分点为单位的本地额度下降。参见 [0.1.128 验收清单](docs/versions/0.1.128/QA.zh-CN.md)。
 
 气泡在运行时读取已安装 Codex 或 ChatGPT 的应用图标。Codex、ChatGPT 及其标志归 OpenAI 所有；ReadyCheck 是独立项目，并[遵循 OpenAI 品牌规范](https://openai.com/brand/)。
 
@@ -65,7 +67,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.118-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.118-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.128-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.128-windows-x64-portable.zip`。
 
 ## Windows 预览版开发
 
@@ -90,6 +92,16 @@ npm run dev
 
 ## 文档
 
+- [0.1.128 Token 图恢复验收](docs/versions/0.1.128/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.128/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.127 图标一致性验收](docs/versions/0.1.127/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.127/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.126 C 形图标验收](docs/versions/0.1.126/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.126/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.125 应用图标验收](docs/versions/0.1.125/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.125/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.124 账号来源排版验收](docs/versions/0.1.124/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.124/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.123 贴边胶囊颜色与悬停验收](docs/versions/0.1.123/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.123/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.122 贴边胶囊交互验收](docs/versions/0.1.122/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.122/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.121 贴边圆环比例与动效验收](docs/versions/0.1.121/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.121/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.120 贴边圆环找回验收](docs/versions/0.1.120/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.120/QA.md) | [版本索引](docs/VERSIONS.md)
+- [0.1.119 贴边配额条验收](docs/versions/0.1.119/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.119/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.118 OAuth 可用性验收](docs/versions/0.1.118/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.118/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.114 账号来源与动效验收](docs/versions/0.1.114/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.114/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.113 悬浮窗遮罩验收](docs/versions/0.1.113/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.113/QA.md) | [版本索引](docs/VERSIONS.md)

@@ -16,6 +16,7 @@ public enum WidgetDisplayMode: String, CaseIterable, Codable, Equatable, Sendabl
 public enum WidgetPresentation: String, CaseIterable, Codable, Equatable, Sendable {
     case card
     case bubble
+    case edgeRail
 }
 
 public enum WidgetPresentationPreference {

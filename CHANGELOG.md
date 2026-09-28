@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.1.128 - 2026-09-29
+
+- Restore the daily Token chart and hover totals in separate OAuth mode when the local Codex app-server reports Token history for the exact same account. Keep OAuth quota data authoritative and show the local percentage-point chart when no matching Token history is available. Windows receives version metadata only.
+
+## 0.1.127 - 2026-09-28 (local preview)
+
+- Carry the C identity into the macOS menu bar and its quota popover. Replace remaining legacy gauge symbols in the main window with icons for refresh and quota selection. Windows receives version metadata only.
+
+## 0.1.126 - 2026-09-28 (local preview)
+
+- Replace the rejected two-window app mark with a single C-shaped progress motif selected for ReadyCheck. Keep the icon fixed while the interface shows live quota values. Windows receives version metadata only.
+
+## 0.1.125 - 2026-09-28 (local preview)
+
+- Replace the generic gauge app icon with a fixed two-window brand mark. Use the packaged app icon in the macOS main header and About window; live quota percentages remain in the interface. Windows receives version metadata only.
+
+## 0.1.124 - 2026-09-28 (local preview)
+
+- Place the account-source label above its segmented choices so the English label and both options remain readable in the narrow macOS account card. Windows receives version metadata only.
+
+## 0.1.123 - 2026-09-27 (local preview)
+
+- Restore the blue “Open ReadyCheck” link in the edge-rail detail card. Shorten narrow-capsule hover expansion from one second to half a second; clicking still opens it immediately. Windows receives version metadata only.
+
+## 0.1.122 - 2026-09-27 (local preview)
+
+- Make the whole expanded edge capsule the single control for showing or hiding the shared quota details; the two rings now display data without separate click highlights. Hover over the narrow capsule for one second to reveal both rings, or click to reveal them immediately. Leaving early cancels the hover action. Windows receives version metadata only.
+
+## 0.1.121 - 2026-09-27 (local preview)
+
+- Scale the edge handle's 5-hour and 7-day colored bars to their actual remaining quota ratios. Click to reveal the rings and click a ring to toggle its detail card; hover now gives a subtle highlight instead of opening details. Animate the panel's frame with reduced-motion support. Windows receives version metadata only.
+
+## 0.1.120 - 2026-09-27 (local preview)
+
+- Make the edge rail recoverable after it collapses: use a visible draggable handle, show the quota rings when the style is selected, and add Left/Right and Show rings controls. Clarify that Round bubble, Card, and Edge rings are alternative widget styles; the original round bubble remains available. Windows receives version metadata only.
+
+## 0.1.119 - 2026-09-27 (local preview)
+
+- Add an optional macOS edge-rail widget alongside the bubble and card. Its narrow edge line opens to separate live Codex 5-hour and 7-day rings on hover; hovering a ring reveals a compact detail card. Drag the rail to either screen edge, and move the pointer away to collapse it. Stale or missing percentages appear as unknown. The notch display remains available. Windows receives version metadata only.
+
 ## 0.1.118 - 2026-09-27
 
 - Read `rate_limit.allowed` from the independent OAuth usage response as the same explicit ordinary-use permission shown for the local Codex app-server. Missing or null permission remains unknown; percentages do not substitute for it. Keep the interactive Keychain retry visible when a saved OAuth login cannot be read during refresh. Windows receives version metadata only.

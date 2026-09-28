@@ -8,11 +8,13 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Latest release: [`0.1.118`](https://github.com/whnnick/readycheck/releases/tag/v0.1.118). It clarifies quota availability in local and standalone OAuth modes and improves the persistent display. Recovery reminders are macOS-only.
+> Latest release: [`0.1.128`](https://github.com/whnnick/readycheck/releases/tag/v0.1.128). It adds the edge-ring widget and C-shaped app identity, and restores matched-account Token history in separate OAuth mode. Recovery reminders are macOS-only.
 
 ## What It Does
 
 ReadyCheck **0.1.118** reads explicit ordinary-use permission through either the local Codex app-server or a separate OAuth usage response. A missing permission remains unknown even when quota percentages are available. See the [0.1.118 acceptance status](docs/versions/0.1.118/QA.md).
+
+The **0.1.128 preview release** restores the daily Token chart and hover totals in separate OAuth mode when the local Codex app-server account matches the OAuth account. Without matching Token history, the chart continues to show local quota decreases in percentage points. See the [0.1.128 acceptance checklist](docs/versions/0.1.128/QA.md).
 
 The bubble reads an icon from an installed Codex or ChatGPT app at runtime. Codex, ChatGPT, and their marks belong to OpenAI; ReadyCheck is independent and [follows OpenAI's brand guidance](https://openai.com/brand/).
 
@@ -65,7 +67,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.118-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.118-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.128-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.128-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 
@@ -90,6 +92,16 @@ npm run dev
 
 ## Documentation
 
+- [0.1.128 Token-chart recovery acceptance](docs/versions/0.1.128/QA.md) | [中文验收](docs/versions/0.1.128/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.127 icon consistency acceptance](docs/versions/0.1.127/QA.md) | [中文验收](docs/versions/0.1.127/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.126 C-icon acceptance](docs/versions/0.1.126/QA.md) | [中文验收](docs/versions/0.1.126/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.125 app-icon acceptance](docs/versions/0.1.125/QA.md) | [中文验收](docs/versions/0.1.125/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.124 account-source layout acceptance](docs/versions/0.1.124/QA.md) | [中文验收](docs/versions/0.1.124/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.123 edge-capsule color and hover acceptance](docs/versions/0.1.123/QA.md) | [中文验收](docs/versions/0.1.123/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.122 edge-capsule interaction acceptance](docs/versions/0.1.122/QA.md) | [中文验收](docs/versions/0.1.122/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.121 edge-ring proportion and motion acceptance](docs/versions/0.1.121/QA.md) | [中文验收](docs/versions/0.1.121/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.120 edge-ring recovery acceptance](docs/versions/0.1.120/QA.md) | [中文验收](docs/versions/0.1.120/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
+- [0.1.119 edge-rail acceptance](docs/versions/0.1.119/QA.md) | [中文验收](docs/versions/0.1.119/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.118 OAuth availability acceptance](docs/versions/0.1.118/QA.md) | [中文验收](docs/versions/0.1.118/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.114 Account-source and motion acceptance](docs/versions/0.1.114/QA.md) | [中文验收](docs/versions/0.1.114/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.113 Floating-window mask acceptance](docs/versions/0.1.113/QA.md) | [中文验收](docs/versions/0.1.113/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)

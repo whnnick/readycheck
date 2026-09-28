@@ -1,3 +1,4 @@
+import AppKit
 import ReadyCheckCore
 import SwiftUI
 
@@ -6,11 +7,10 @@ struct AboutView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "gauge.with.dots.needle.67percent")
-                .font(.system(size: 38, weight: .semibold))
-                .foregroundStyle(.white)
+            Image(nsImage: NSApplication.shared.applicationIconImage)
+                .resizable()
+                .interpolation(.high)
                 .frame(width: 72, height: 72)
-                .background(Color.accentColor.gradient, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
 
             VStack(spacing: 5) {
                 Text(localization.text("app.name"))

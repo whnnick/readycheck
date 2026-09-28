@@ -42,5 +42,8 @@ final class WidgetVisibilityPreferenceTests: XCTestCase {
 
         WidgetPresentationPreference.set(.card, defaults: defaults)
         XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .card)
+
+        WidgetPresentationPreference.set(.edgeRail, defaults: defaults)
+        XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .edgeRail)
     }
 }

@@ -1,5 +1,25 @@
 # Version plans / 版本规划
 
+- [0.1.128 Token-chart recovery acceptance](versions/0.1.128/QA.md) | [中文验收](versions/0.1.128/QA.zh-CN.md)
+
+- [0.1.127 icon consistency acceptance](versions/0.1.127/QA.md) | [中文验收](versions/0.1.127/QA.zh-CN.md)
+
+- [0.1.126 C-icon acceptance](versions/0.1.126/QA.md) | [中文验收](versions/0.1.126/QA.zh-CN.md)
+
+- [0.1.125 app-icon acceptance](versions/0.1.125/QA.md) | [中文验收](versions/0.1.125/QA.zh-CN.md)
+
+- [0.1.124 account-source layout acceptance](versions/0.1.124/QA.md) | [中文验收](versions/0.1.124/QA.zh-CN.md)
+
+- [0.1.123 edge-capsule color and hover acceptance](versions/0.1.123/QA.md) | [中文验收](versions/0.1.123/QA.zh-CN.md)
+
+- [0.1.122 edge-capsule interaction acceptance](versions/0.1.122/QA.md) | [中文验收](versions/0.1.122/QA.zh-CN.md)
+
+- [0.1.121 edge-ring proportion and motion acceptance](versions/0.1.121/QA.md) | [中文验收](versions/0.1.121/QA.zh-CN.md)
+
+- [0.1.120 edge-ring recovery acceptance](versions/0.1.120/QA.md) | [中文验收](versions/0.1.120/QA.zh-CN.md)
+
+- [0.1.119 edge-rail acceptance](versions/0.1.119/QA.md) | [中文验收](versions/0.1.119/QA.zh-CN.md)
+
 - [0.1.118 OAuth availability acceptance](versions/0.1.118/QA.md) | [中文验收](versions/0.1.118/QA.zh-CN.md)
 
 - [0.1.117 Availability and window-selection acceptance](versions/0.1.117/QA.md) | [中文验收](versions/0.1.117/QA.zh-CN.md)
