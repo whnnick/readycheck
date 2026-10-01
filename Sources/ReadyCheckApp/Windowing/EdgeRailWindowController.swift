@@ -45,7 +45,7 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         centerY = saved?.midY ?? EdgeRailPlacement.defaultCenterY(in: visible)
         mode = .dock
         keepDockUntilHover = true
-        let frame = EdgeRailPlacement.frame(edge: edge, centerY: centerY, mode: mode, in: visible)
+        let frame = layoutFrame(in: visible)
 
         let panel = NSPanel(
             contentRect: frame,
@@ -134,7 +134,7 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         expandTask = nil
         collapseTask?.cancel()
         let visible = targetScreen(for: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
-        panel.setFrame(EdgeRailPlacement.frame(edge: edge, centerY: centerY, mode: mode, in: visible), display: true)
+        panel.setFrame(layoutFrame(in: visible), display: true)
         updateView()
         panel.orderFrontRegardless()
         persist()
@@ -167,8 +167,8 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
     @objc private func screenParametersDidChange() {
         guard let panel else { return }
         let visible = targetScreen(for: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
-        centerY = EdgeRailPlacement.frame(edge: edge, centerY: centerY, mode: mode, in: visible).midY
-        panel.setFrame(EdgeRailPlacement.frame(edge: edge, centerY: centerY, mode: mode, in: visible), display: true)
+        centerY = layoutFrame(in: visible).midY
+        panel.setFrame(layoutFrame(in: visible), display: true)
         persist()
     }
 
@@ -177,12 +177,32 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
             model: model,
             edge: edge,
             mode: mode,
+            height: layoutHeight(in: targetScreen(for: panel?.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero),
             onHover: { [weak self] isInside in self?.hoverChanged(isInside) },
             onExpand: { [weak self] in self?.expandDock() },
             onToggleDetail: { [weak self] in self?.toggleDetail() },
             onDragChanged: { [weak self] translation in self?.dragChanged(translation) },
             onDragEnded: { [weak self] in self?.dragEnded() }
         )
+    }
+
+    private func layoutHeight(in visible: CGRect) -> CGFloat {
+        let windows = model?.snapshots.first { $0.providerId == "codex-oauth" }?.windows ?? []
+        return EdgeRailPlacement.contentHeight(for: EdgeRailPlacement.displayWindows(in: windows), maximum: visible.height, mode: mode)
+    }
+
+    private func layoutFrame(in visible: CGRect) -> CGRect {
+        EdgeRailPlacement.frame(edge: edge, centerY: centerY, mode: mode, in: visible, height: layoutHeight(in: visible))
+    }
+
+    func updateQuotaLayout() {
+        guard let panel, dragStartFrame == nil else { return }
+        let visible = targetScreen(for: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+        let frame = layoutFrame(in: visible)
+        if panel.frame.size != frame.size {
+            panel.setFrame(frame, display: true)
+            updateView()
+        }
     }
 
     private func updateView() {
@@ -254,7 +274,7 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         }
         mode = newMode
         let visible = targetScreen(for: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
-        let frame = EdgeRailPlacement.frame(edge: edge, centerY: centerY, mode: mode, in: visible)
+        let frame = layoutFrame(in: visible)
         if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             panel.setFrame(frame, display: true)
             updateView()
@@ -292,7 +312,7 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         let visible = targetScreen(for: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
         edge = EdgeRailPlacement.edge(for: CGPoint(x: panel.frame.midX, y: panel.frame.midY), in: visible)
         centerY = panel.frame.midY
-        panel.setFrame(EdgeRailPlacement.frame(edge: edge, centerY: centerY, mode: mode, in: visible), display: true)
+        panel.setFrame(layoutFrame(in: visible), display: true)
         updateView()
         persist()
         onEdgeChanged?(edge)
@@ -317,7 +337,7 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
     private func persist() {
         guard let panel else { return }
         let visible = targetScreen(for: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
-        let resting = EdgeRailPlacement.frame(edge: edge, centerY: centerY, mode: .dock, in: visible)
+        let resting = EdgeRailPlacement.frame(edge: edge, centerY: centerY, mode: .dock, in: visible, height: layoutHeight(in: visible))
         UserDefaults.standard.set(NSStringFromRect(resting), forKey: frameDefaultsKey)
     }
 }

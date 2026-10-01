@@ -8,7 +8,9 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Latest release: [`0.1.128`](https://github.com/whnnick/readycheck/releases/tag/v0.1.128). It adds the edge-ring widget and C-shaped app identity, and restores matched-account Token history in separate OAuth mode. Recovery reminders are macOS-only.
+> Latest release: [`0.1.129`](https://github.com/whnnick/readycheck/releases/tag/v0.1.129). Edge rings now follow returned quota windows and resize after refresh. Recovery reminders are macOS-only.
+
+The **0.1.129 preview release** adapts the macOS edge rings and their details to the quota windows the account actually returns. A weekly-only account gets one ring; additional named windows stay distinct, and the capsule resizes after a refresh. See the [0.1.129 acceptance checklist](docs/versions/0.1.129/QA.md).
 
 ## What It Does
 
@@ -67,7 +69,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.128-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.128-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.129-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.129-windows-x64-portable.zip`.
 
 ## Windows Preview Development
 
@@ -92,6 +94,7 @@ npm run dev
 
 ## Documentation
 
+- [0.1.129 adaptive edge-ring acceptance](docs/versions/0.1.129/QA.md) | [中文验收](docs/versions/0.1.129/QA.zh-CN.md)
 - [0.1.128 Token-chart recovery acceptance](docs/versions/0.1.128/QA.md) | [中文验收](docs/versions/0.1.128/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.127 icon consistency acceptance](docs/versions/0.1.127/QA.md) | [中文验收](docs/versions/0.1.127/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)
 - [0.1.126 C-icon acceptance](docs/versions/0.1.126/QA.md) | [中文验收](docs/versions/0.1.126/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)

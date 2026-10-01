@@ -6,6 +6,7 @@ struct EdgeRailWidgetView: View {
     @Bindable var model: ReadyCheckAppModel
     let edge: EdgeRailPlacement.Edge
     let mode: EdgeRailPlacement.Mode
+    let height: CGFloat
     let onHover: (Bool) -> Void
     let onExpand: () -> Void
     let onToggleDetail: () -> Void
@@ -20,26 +21,13 @@ struct EdgeRailWidgetView: View {
     }
 
     private var windows: [QuotaWindow] {
-        snapshot?.windows.filter(QuotaWindowPresentation.shouldShow) ?? []
-    }
-
-    private var fiveHourWindow: QuotaWindow? {
-        windows.first { $0.labelKey == "quota.window.codex.5h" || $0.labelKey == "quota.fiveHour" || $0.durationMinutes == 300 }
-    }
-
-    private var sevenDayWindow: QuotaWindow? {
-        windows.first { $0.labelKey == "quota.window.codex.7d" || $0.labelKey == "quota.sevenDay" || $0.durationMinutes == 10_080 }
+        EdgeRailPlacement.displayWindows(in: snapshot?.windows ?? [])
     }
 
     private var canShowPercentages: Bool { snapshot?.canShowPercentages(now: now) == true }
 
-    private func ratio(for selection: NotchQuotaSelection) -> Double? {
-        guard canShowPercentages else { return nil }
-        switch selection {
-        case .fiveHour: return fiveHourWindow?.remainingRatio
-        case .sevenDay: return sevenDayWindow?.remainingRatio
-        default: return nil
-        }
+    private func ratio(for window: QuotaWindow) -> Double? {
+        canShowPercentages ? window.remainingRatio : nil
     }
 
     private func color(for ratio: Double?) -> Color {
@@ -64,7 +52,7 @@ struct EdgeRailWidgetView: View {
                 }
             }
         }
-        .frame(width: width, height: EdgeRailPlacement.height)
+        .frame(width: width, height: height)
         .contentShape(Rectangle())
         .onHover(perform: onHover)
         .contextMenu {
@@ -91,10 +79,11 @@ struct EdgeRailWidgetView: View {
     private var collapsedHandle: some View {
         VStack(spacing: 8) {
             codexIcon.frame(width: 16, height: 16)
-            quotaBar(.fiveHour)
-            quotaBar(.sevenDay)
+            ForEach(windows) { window in
+                quotaBar(window)
+            }
         }
-        .frame(width: 24, height: 150)
+        .frame(width: 24, height: min(height, 50 + CGFloat(windows.count) * 50))
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(red: 0.10, green: 0.12, blue: 0.15)))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.white.opacity(isHandleHovered ? 0.42 : 0.24), lineWidth: 0.8))
         .frame(maxWidth: .infinity, alignment: edge == .left ? .leading : .trailing)
@@ -106,16 +95,17 @@ struct EdgeRailWidgetView: View {
         .simultaneousGesture(dragGesture)
     }
 
-    private func quotaBar(_ selection: NotchQuotaSelection) -> some View {
-        let value = ratio(for: selection)
+    private func quotaBar(_ window: QuotaWindow) -> some View {
+        let value = ratio(for: window)
+        let barHeight = min(42, max(1, (height - 38 - CGFloat(windows.count) * 8) / CGFloat(max(1, windows.count))))
         return ZStack(alignment: .bottom) {
             Capsule().fill(Color.white.opacity(0.16))
             if let value {
                 Capsule().fill(color(for: value))
-                    .frame(height: 42 * max(0, min(value, 1)))
+                    .frame(height: barHeight * max(0, min(value, 1)))
             }
         }
-        .frame(width: 7, height: 42)
+        .frame(width: 7, height: barHeight)
         .animation(.easeOut(duration: 0.25), value: value)
     }
 
@@ -124,10 +114,25 @@ struct EdgeRailWidgetView: View {
             VStack(spacing: 5) {
                 codexIcon.frame(width: 20, height: 20)
                     .padding(.bottom, 1)
-                quotaRing(.fiveHour, shortLabel: "5h")
-                quotaRing(.sevenDay, shortLabel: "7d")
+                if windows.isEmpty {
+                    Text(model.localization.text("edgeRail.noQuota"))
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.65))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 6)
+                } else {
+                    ScrollView(.vertical) {
+                        VStack(spacing: 0) {
+                            ForEach(windows) { window in
+                                quotaRing(window)
+                            }
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                }
             }
-            .frame(width: EdgeRailPlacement.dockWidth, height: EdgeRailPlacement.height)
+            .padding(.vertical, 4)
+            .frame(width: EdgeRailPlacement.dockWidth, height: height)
             .contentShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
             .background(RoundedRectangle(cornerRadius: 25, style: .continuous).fill(Color(red: 0.10, green: 0.12, blue: 0.15)))
             .overlay(RoundedRectangle(cornerRadius: 25, style: .continuous).stroke(Color.white.opacity(0.24), lineWidth: 0.8))
@@ -138,8 +143,11 @@ struct EdgeRailWidgetView: View {
         .help(model.localization.text("edgeRail.dragHint"))
     }
 
-    private func quotaRing(_ selection: NotchQuotaSelection, shortLabel: String) -> some View {
-        let value = ratio(for: selection)
+    private func quotaRing(_ window: QuotaWindow) -> some View {
+        let value = ratio(for: window)
+        let shortLabel = window.durationMinutes == nil
+            ? QuotaWindowDisplay.title(for: window, localization: model.localization)
+            : QuotaWindowDisplay.shortLabel(for: window)
         return VStack(spacing: 1) {
             ZStack {
                 Circle().stroke(Color.white.opacity(0.17), lineWidth: 4)
@@ -150,15 +158,24 @@ struct EdgeRailWidgetView: View {
                 Text(QuotaFormatters.percentageText(for: value))
                     .font(.system(size: 11, weight: .bold, design: .rounded))
                     .monospacedDigit()
+                    .foregroundStyle(.white)
             }
             .frame(width: 49, height: 49)
+            if let name = window.displayLabel, window.durationMinutes != nil {
+                Text(name)
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.72))
+                    .lineLimit(1)
+                    .help(QuotaWindowDisplay.title(for: window, localization: model.localization))
+            }
             Text(shortLabel)
+                .lineLimit(1)
                 .font(.system(size: 10, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white.opacity(0.72))
         }
-        .frame(width: 72, height: 66)
+        .frame(width: 72, height: EdgeRailPlacement.ringHeight(for: window))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(shortLabel) \(QuotaFormatters.percentageText(for: value))")
+        .accessibilityLabel("\(QuotaWindowDisplay.title(for: window, localization: model.localization)) \(QuotaFormatters.percentageText(for: value))")
     }
 
     private var dragGesture: some Gesture {
@@ -177,9 +194,20 @@ struct EdgeRailWidgetView: View {
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.65))
             }
-            detailRow(.fiveHour, window: fiveHourWindow)
-            detailRow(.sevenDay, window: sevenDayWindow)
-            Spacer(minLength: 0)
+            if windows.isEmpty {
+                Text(model.localization.text("edgeRail.noQuota"))
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.65))
+                Spacer(minLength: 0)
+            } else {
+                ScrollView(.vertical) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(windows) { window in
+                            detailRow(window)
+                        }
+                    }
+                }
+            }
             HStack {
                 Button {
                     model.openMainWindowFromWidget()
@@ -199,19 +227,17 @@ struct EdgeRailWidgetView: View {
         .foregroundStyle(.white)
         .tint(Color(red: 0.62, green: 0.80, blue: 1))
         .padding(14)
-        .frame(width: 260, height: EdgeRailPlacement.height)
+        .frame(width: 260, height: height)
         .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Color(red: 0.10, green: 0.12, blue: 0.15)))
         .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.white.opacity(0.24), lineWidth: 0.8))
     }
 
-    private func detailRow(_ selection: NotchQuotaSelection, window: QuotaWindow?) -> some View {
-        let value = ratio(for: selection)
-        let title = selection == .fiveHour
-            ? model.localization.text("quota.window.codex.5h")
-            : model.localization.text("quota.window.codex.7d")
+    private func detailRow(_ window: QuotaWindow) -> some View {
+        let value = ratio(for: window)
+        let title = QuotaWindowDisplay.title(for: window, localization: model.localization)
         return VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(title).font(.caption.weight(.semibold))
+                Text(title).font(.caption.weight(.semibold)).lineLimit(2)
                 Spacer()
                 Text(QuotaFormatters.percentageText(for: value))
                     .font(.caption.weight(.semibold).monospacedDigit())
@@ -224,7 +250,7 @@ struct EdgeRailWidgetView: View {
                     }
             }
             .frame(height: 5)
-            if let resetAt = window?.resetAt {
+            if let resetAt = window.resetAt {
                 Text("\(model.localization.text("quota.resetAt")) \(DateFormatter.localizedString(from: resetAt, dateStyle: .short, timeStyle: .short))")
                     .font(.caption2)
                     .foregroundStyle(.white.opacity(0.65))

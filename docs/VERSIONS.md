@@ -1,5 +1,7 @@
 # Version plans / 版本规划
 
+- [0.1.129 adaptive edge-ring acceptance](versions/0.1.129/QA.md) | [中文验收](versions/0.1.129/QA.zh-CN.md)
+
 - [0.1.128 Token-chart recovery acceptance](versions/0.1.128/QA.md) | [中文验收](versions/0.1.128/QA.zh-CN.md)
 
 - [0.1.127 icon consistency acceptance](versions/0.1.127/QA.md) | [中文验收](versions/0.1.127/QA.zh-CN.md)

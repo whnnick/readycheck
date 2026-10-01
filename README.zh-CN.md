@@ -8,7 +8,9 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 最新发布版：[`0.1.128`](https://github.com/whnnick/readycheck/releases/tag/v0.1.128)。本版增加贴边圆环与 C 形应用标志，并在独立 OAuth 模式恢复匹配账号的 Token 记录；恢复提醒仅支持 macOS。
+> 最新发布版：[`0.1.129`](https://github.com/whnnick/readycheck/releases/tag/v0.1.129)。贴边圆环跟随实际返回的配额窗口，刷新后同步调整尺寸；恢复提醒仅支持 macOS。
+
+**0.1.129 预览发布版**让 macOS 贴边圆环及详情跟随账号实际返回的配额窗口。仅有周配额时显示一个圆环，额外窗口保留独立名称，刷新后胶囊同步调整尺寸。参见 [0.1.129 验收清单](docs/versions/0.1.129/QA.zh-CN.md)。
 
 ## 可以做什么
 
@@ -67,7 +69,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.128-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.128-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.129-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.129-windows-x64-portable.zip`。
 
 ## Windows 预览版开发
 
@@ -92,6 +94,7 @@ npm run dev
 
 ## 文档
 
+- [0.1.129 动态贴边圆环验收](docs/versions/0.1.129/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.129/QA.md)
 - [0.1.128 Token 图恢复验收](docs/versions/0.1.128/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.128/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.127 图标一致性验收](docs/versions/0.1.127/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.127/QA.md) | [版本索引](docs/VERSIONS.md)
 - [0.1.126 C 形图标验收](docs/versions/0.1.126/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.126/QA.md) | [版本索引](docs/VERSIONS.md)

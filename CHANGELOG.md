@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.129 - 2026-10-01
+
+- Adapt macOS edge rings, collapsed bars, and quota details to validated windows returned for the account. Shrink weekly-only capsules, distinguish additional named buckets, and resize on refresh; large lists scroll within the screen. Windows receives version metadata only.
+
 ## 0.1.128 - 2026-09-29
 
 - Restore the daily Token chart and hover totals in separate OAuth mode when the local Codex app-server reports Token history for the exact same account. Keep OAuth quota data authoritative and show the local percentage-point chart when no matching Token history is available. Windows receives version metadata only.

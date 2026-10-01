@@ -271,7 +271,9 @@ final class ReadyCheckAppModel {
             rebuildStoreIfConfigurationChanged(oldValue: oldValue, newValue: codexOAuthProviderEnabled)
         }
     }
-    var snapshots: [ProviderQuotaSnapshot] = []
+    var snapshots: [ProviderQuotaSnapshot] = [] {
+        didSet { edgeRailWindowController.updateQuotaLayout() }
+    }
     var quotaHistorySamples: [QuotaHistorySample] = []
     var recoveryReminderRequest: QuotaRecoveryRequest?
     var automaticRecoveryEnabled = true
@@ -365,7 +367,8 @@ final class ReadyCheckAppModel {
         updateChecker: GitHubReleaseUpdateChecker = GitHubReleaseUpdateChecker(),
         quotaHistoryStore: QuotaHistoryStore? = nil,
         codexAppServerClient: any CodexAppServerReading = CodexAppServerClient(),
-        rateLimitMonitor: CodexAppServerRateLimitMonitor = CodexAppServerRateLimitMonitor()
+        rateLimitMonitor: CodexAppServerRateLimitMonitor = CodexAppServerRateLimitMonitor(),
+        quotaNotificationService: QuotaNotificationService? = nil
     ) {
         let initialConnectionMode = CodexConnectionMode(
             rawValue: UserDefaults.standard.string(forKey: Self.codexConnectionModeDefaultsKey) ?? ""
@@ -378,7 +381,7 @@ final class ReadyCheckAppModel {
         self.rateLimitMonitor = rateLimitMonitor
         self.quotaHistoryStore = quotaHistoryStore ?? QuotaHistoryStore(fileURL: Self.defaultQuotaHistoryURL)
         self.quotaReminderStore = QuotaReminderStore(fileURL: Self.defaultQuotaReminderURL)
-        self.quotaNotificationService = QuotaNotificationService()
+        self.quotaNotificationService = quotaNotificationService ?? QuotaNotificationService()
         self.store = QuotaStore(
             registry: ProviderRegistry(
                 configurations: ProviderConfiguration.defaults,

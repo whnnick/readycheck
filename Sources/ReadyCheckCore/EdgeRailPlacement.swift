@@ -17,7 +17,20 @@ public enum EdgeRailPlacement {
     public static let dockWidth: CGFloat = 84
     public static let detailWidth: CGFloat = 354
 
-    public static func frame(edge: Edge, centerY: CGFloat, mode: Mode, in visible: CGRect) -> CGRect {
+    public static func displayWindows(in windows: [QuotaWindow]) -> [QuotaWindow] {
+        windows.filter { QuotaWindowPresentation.shouldShow($0) && $0.hasDisplayableRatioIgnoringSnapshotState }
+    }
+
+    public static func ringHeight(for window: QuotaWindow) -> CGFloat {
+        window.displayLabel != nil && window.durationMinutes != nil ? 88 : 71
+    }
+
+    public static func contentHeight(for windows: [QuotaWindow], maximum: CGFloat, mode: Mode = .dock) -> CGFloat {
+        let natural = windows.isEmpty ? 100 : 34 + windows.reduce(0) { $0 + ringHeight(for: $1) }
+        return min(mode == .detail && !windows.isEmpty ? max(136, natural) : natural, maximum)
+    }
+
+    public static func frame(edge: Edge, centerY: CGFloat, mode: Mode, in visible: CGRect, height: CGFloat = height) -> CGRect {
         let width: CGFloat
         switch mode {
         case .collapsed: width = collapsedWidth
