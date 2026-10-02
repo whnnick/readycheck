@@ -32,6 +32,24 @@ final class NotchQuotaSelectionTests: XCTestCase {
         XCTAssertEqual(NotchQuotaSelection.value(defaults: defaults), .automatic)
     }
 
+    func testMissingPreferenceStaysSelectedWhileDisplayFallsBackAndRecovers() {
+        let weekly = window(id: "weekly", labelKey: "quota.window.codex.7d", duration: 10_080)
+        let extra = window(id: "extra", labelKey: "quota.window.dynamic", duration: 60)
+        let preference = NotchQuotaSelection.window(extra.id)
+        XCTAssertEqual(preference.pickerSelection(in: [weekly]), preference)
+        XCTAssertEqual(preference.resolve(in: [weekly])?.id, weekly.id)
+        XCTAssertEqual(preference.resolve(in: [weekly, extra])?.id, extra.id)
+        XCTAssertEqual(preference.pickerSelection(in: []), preference)
+        XCTAssertNil(preference.resolve(in: []))
+    }
+
+    func testMissingLegacyPreferenceDoesNotMasqueradeAsFallbackInPicker() {
+        let weekly = window(id: "weekly", labelKey: "quota.window.codex.7d", duration: 10_080)
+        XCTAssertEqual(NotchQuotaSelection.fiveHour.pickerSelection(in: [weekly]), .fiveHour)
+        XCTAssertEqual(NotchQuotaSelection.sevenDay.pickerSelection(in: [weekly]), .window(weekly.id))
+        XCTAssertEqual(NotchQuotaSelection.automatic.pickerSelection(in: [weekly]), .automatic)
+    }
+
     private func window(id: String, labelKey: String, duration: Int) -> QuotaWindow {
         QuotaWindow(
             id: id,

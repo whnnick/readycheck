@@ -30,6 +30,12 @@ public enum NotchQuotaSelection: Hashable, Sendable {
         return preferred ?? windows.first
     }
 
+    public func pickerSelection(in windows: [QuotaWindow]) -> Self {
+        guard self != .automatic, hasPreferredWindow(in: windows),
+              let selected = resolve(in: windows) else { return self }
+        return .window(selected.id)
+    }
+
     public static func value(defaults: UserDefaults = .standard) -> Self {
         if let stored = defaults.string(forKey: currentDefaultsKey) {
             return stored.isEmpty ? .automatic : .window(stored)

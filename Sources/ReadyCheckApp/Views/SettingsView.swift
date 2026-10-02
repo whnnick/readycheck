@@ -218,10 +218,9 @@ struct SettingsView: View {
                 Picker(model.localization.text("settings.quotaWindow"), selection: quotaWindowSelection) {
                     Text(model.localization.text("settings.quotaWindowAutomatic"))
                         .tag(NotchQuotaSelection.automatic)
-                    if case let .window(id) = model.notchQuotaSelection,
-                       !model.notchQuotaSelection.hasPreferredWindow(in: availableQuotaWindows) {
+                    if !model.notchQuotaSelection.hasPreferredWindow(in: availableQuotaWindows) {
                         Text(model.localization.text("settings.quotaWindowMissing"))
-                            .tag(NotchQuotaSelection.window(id))
+                            .tag(model.notchQuotaSelection)
                     }
                     ForEach(availableQuotaWindows) { window in
                         Text(QuotaWindowDisplay.title(for: window, localization: model.localization))
@@ -259,17 +258,7 @@ struct SettingsView: View {
 
     private var quotaWindowSelection: Binding<NotchQuotaSelection> {
         Binding(
-            get: {
-                if model.notchQuotaSelection == .automatic { return .automatic }
-                if case .window = model.notchQuotaSelection,
-                   !model.notchQuotaSelection.hasPreferredWindow(in: availableQuotaWindows) {
-                    return model.notchQuotaSelection
-                }
-                guard let selected = model.notchQuotaSelection.resolve(in: availableQuotaWindows) else {
-                    return .automatic
-                }
-                return .window(selected.id)
-            },
+            get: { model.notchQuotaSelection.pickerSelection(in: availableQuotaWindows) },
             set: { model.notchQuotaSelection = $0 }
         )
     }

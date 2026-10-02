@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.130 - 2026-10-02
+
+- Keep all returned windows in scrollable round-bubble details; preserve panel size, urgency colors and the blue app link. Clarify primary quota selection for bubble/notch and retain missing saved or legacy choices while temporarily falling back. Windows version metadata only.
+
 ## 0.1.129 - 2026-10-01
 
 - Adapt macOS edge rings, collapsed bars, and quota details to validated windows returned for the account. Shrink weekly-only capsules, distinguish additional named buckets, and resize on refresh; large lists scroll within the screen. Windows receives version metadata only.

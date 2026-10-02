@@ -7,6 +7,40 @@ import UserNotifications
 
 @MainActor
 final class EdgeRailWidgetTests: XCTestCase {
+    func testBubbleDetailsRetainEveryWindowAndRecoverSavedSelectionAfterRefresh() throws {
+        _ = NSApplication.shared
+        let keys = ["ReadyCheck.quotaWindowSelection.v2", "ReadyCheck.notchQuotaSelection.v1"]
+        let defaults = UserDefaults.standard
+        let saved = keys.map { defaults.object(forKey: $0) }
+        let model = ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
+            client: RailTestNotificationClient(), verificationDelays: []))
+        defer {
+            for (key, value) in zip(keys, saved) {
+                if let value { defaults.set(value, forKey: key) }
+                else { defaults.removeObject(forKey: key) }
+            }
+        }
+        let weekly = window(id: "weekly", minutes: 10_080, remaining: 70)
+        let hourly = window(id: "hourly", minutes: 300, remaining: 13)
+        let extra = window(id: "extra", minutes: 300, remaining: 85, name: "Additional allowance")
+        model.notchQuotaSelection = .window(extra.id)
+        let view = BubbleWidgetView(model: model, isExpanded: true, tabEdge: nil,
+            onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
+        for (name, windows, expectedIDs) in [
+            ("bubble-extra", [hourly, weekly, extra], [extra.id, hourly.id, weekly.id]),
+            ("bubble-weekly", [weekly], [weekly.id]),
+            ("bubble-empty", [], []),
+            ("bubble-restored", [weekly, extra], [extra.id, weekly.id])
+        ] {
+            model.snapshots = [snapshot(windows)]
+            XCTAssertEqual(view.expandedWindows.map(\.id), expectedIDs)
+            XCTAssertEqual(model.notchQuotaSelection, .window(extra.id))
+            let host = NSHostingView(rootView: view)
+            host.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
+            try capture(host, name: name)
+        }
+    }
+
     func testModelRefreshResizesVisiblePanelWithoutMovingItsScreenEdge() throws {
         _ = NSApplication.shared
         let defaults = UserDefaults.standard

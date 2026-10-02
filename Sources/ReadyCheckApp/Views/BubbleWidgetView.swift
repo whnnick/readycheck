@@ -52,9 +52,9 @@ struct BubbleWidgetView: View {
         primaryWindow.map(QuotaWindowDisplay.shortLabel) ?? "—"
     }
 
-    private var expandedWindows: [QuotaWindow] {
-        guard let primaryWindow else { return Array(windows.prefix(2)) }
-        return [primaryWindow] + Array(windows.filter { $0.id != primaryWindow.id }.prefix(1))
+    var expandedWindows: [QuotaWindow] {
+        guard let primaryWindow else { return windows }
+        return [primaryWindow] + windows.filter { $0.id != primaryWindow.id }
     }
 
     private var urgencyColor: Color {
@@ -192,8 +192,12 @@ struct BubbleWidgetView: View {
             }
 
             if let snapshot, !windows.isEmpty {
-                ForEach(expandedWindows) { window in
-                    quotaRow(window, canShow: snapshot.canShowPercentages(now: now))
+                ScrollView(.vertical) {
+                    VStack(spacing: 9) {
+                        ForEach(expandedWindows) { window in
+                            quotaRow(window, canShow: snapshot.canShowPercentages(now: now))
+                        }
+                    }
                 }
             } else {
                 Text(model.localization.text("empty.quota.title"))
@@ -219,13 +223,13 @@ struct BubbleWidgetView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .foregroundStyle(.white)
         .tint(Color(red: 0.62, green: 0.80, blue: 1))
         .padding(12)
         .background { bubbleSurface(RoundedRectangle(cornerRadius: 18, style: .continuous)) }
         .padding(7)
-        .frame(width: 282, height: 156)
+        .frame(width: BubbleWidgetPlacement.expandedSize.width, height: BubbleWidgetPlacement.expandedSize.height)
     }
 
     private func quotaRow(_ window: QuotaWindow, canShow: Bool) -> some View {
@@ -233,8 +237,9 @@ struct BubbleWidgetView: View {
         return HStack(spacing: 8) {
             Text(QuotaWindowDisplay.title(for: window, localization: model.localization))
                 .font(.caption)
-                .lineLimit(1)
-                .frame(width: 82, alignment: .leading)
+                .lineLimit(2)
+                .frame(width: 102, alignment: .leading)
+                .help(QuotaWindowDisplay.title(for: window, localization: model.localization))
             GeometryReader { geometry in
                 Capsule().fill(Color.white.opacity(0.18))
                     .overlay(alignment: .leading) {
@@ -248,6 +253,7 @@ struct BubbleWidgetView: View {
                 .font(.caption.weight(.semibold).monospacedDigit())
                 .frame(width: 38, alignment: .trailing)
         }
+        .frame(minHeight: 20)
         .accessibilityElement(children: .combine)
     }
 
