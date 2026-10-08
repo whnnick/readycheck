@@ -25,3 +25,15 @@ Local preview acceptance on macOS 27.0.1, 2026-10-07. Public release requested o
 ## Public-release checks
 
 Follow the existing [release workflow](../../RELEASE.md): package the current version, review sensitive data and public source/history, verify remote assets/latest and retain the pending live checks above. Release preparation points documentation to v0.1.132; it is not proof that remote publication succeeded.
+
+
+## Verified publication — 2026-10-08
+
+Public-source tests pass (227 Core + 14 App). Windows checks, service smoke and UI smoke pass. The mounted DMG contains 0.1.132 with a valid stable preview signature; ZIP integrity passes. Both local artifact directories contain only the current DMG and Windows ZIP. Public history was checked for internal configuration paths and private-path/token patterns.
+
+Source/tag commit: `a2ef0e2`. The [Release](https://github.com/whnnick/readycheck/releases/tag/v0.1.132) is public; latest is v0.1.132. Both download URLs return HTTP 200 and GitHub's SHA-256 digests match the locally checked upload files:
+
+- macOS DMG: `592bb8d527e71085c9d391f6f8968e114509b44fe0a65c5edcbf14cabe921f49`
+- Windows ZIP: `3b9f78fa7f99835a134993f90ffcc70092ece055d7f25380b4db2b03248d6d09`
+
+Publication does not resolve the live follow-ups listed above.

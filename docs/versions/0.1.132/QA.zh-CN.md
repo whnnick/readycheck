@@ -25,3 +25,15 @@
 ## 公开发布前检查
 
 遵循现有[发布流程](../../RELEASE.zh-CN.md)，生成当前版本产物，审阅敏感信息和公开源码/历史，核验远端附件与 latest，并保留上列真实环境待验收项。发布准备将文档入口指向 v0.1.132，不等于远端已发布成功。
+
+
+## 远端发布已核验 — 2026-10-08
+
+公开源码测试通过（Core 227 + App 14）。Windows 检查、服务 smoke 和 UI smoke 通过。挂载 DMG 内版本为 0.1.132，稳定预览签名有效；ZIP 完整性通过。本地两处产物目录均只保留当前 DMG 和 Windows ZIP。公开历史已检查内部配置路径及私人路径、token 模式。
+
+源码及标签对应提交为 `a2ef0e2`。[Release](https://github.com/whnnick/readycheck/releases/tag/v0.1.132) 已公开，latest 为 v0.1.132。两个下载链接均返回 HTTP 200，GitHub SHA-256 与本地上传包相同：
+
+- macOS DMG：`592bb8d527e71085c9d391f6f8968e114509b44fe0a65c5edcbf14cabe921f49`
+- Windows ZIP：`3b9f78fa7f99835a134993f90ffcc70092ece055d7f25380b4db2b03248d6d09`
+
+远端发布成功不代表上列真实环境待验收项已经完成。
