@@ -121,6 +121,8 @@ struct SettingsView: View {
 
                     Spacer()
 
+                    DataStatusButton(model: model).controlSize(.small)
+
                     Label(codexOAuthStatusText, systemImage: codexOAuthStatusIcon)
                         .font(.footnote.weight(.medium))
                         .foregroundStyle(codexOAuthStatusColor)
@@ -292,23 +294,10 @@ struct SettingsView: View {
 
             Divider()
 
-            HStack(spacing: 8) {
-                Text(model.localization.text("settings.widgetStyle"))
-                    .lineLimit(1)
-
-                Spacer(minLength: 0)
-
-                Picker("", selection: $model.widgetPresentation) {
-                    Text(model.localization.text("widgetPresentation.bubble")).tag(WidgetPresentation.bubble)
-                    Text(model.localization.text("widgetPresentation.card")).tag(WidgetPresentation.card)
-                    Text(model.localization.text("widgetPresentation.edgeRail")).tag(WidgetPresentation.edgeRail)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 210)
-                .accessibilityLabel(model.localization.text("settings.widgetStyle"))
-                .help(model.localization.text("settings.widgetStyle"))
-            }
+            Text(model.localization.text("settings.widgetStyle")).font(.caption.weight(.medium))
+            WidgetPresentationPicker(selection: $model.widgetPresentation, localization: model.localization)
+            WidgetSnoozeMenu(model: model)
+            WidgetSnoozeStatusView(model: model)
 
             Text(model.localization.text("widgetPresentation.modeHint"))
                 .font(.caption2)
@@ -425,9 +414,10 @@ struct SettingsView: View {
 
                 Text(launchAtLoginStatusText)
                     .font(.footnote)
-                    .foregroundStyle(model.launchAtLoginStatus == .failed ? Color.red : Color.secondary)
+                    .foregroundStyle(model.launchAtLoginStatus == .failed || model.launchAtLoginStatus == .incompleteInstallation ? Color.red : Color.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                if model.launchAtLoginStatus == .requiresApproval {
+                if model.launchAtLoginStatus == .requiresApproval || model.launchAtLoginStatus == .failed || model.launchAtLoginStatus == .unavailable {
                     Button(model.localization.text("settings.launchAtLogin.open")) {
                         model.openLoginItemSettings()
                     }
@@ -506,6 +496,7 @@ struct SettingsView: View {
         case .enabled: model.localization.text("settings.launchAtLogin.enabled")
         case .requiresApproval: model.localization.text("settings.launchAtLogin.approval")
         case .unavailable: model.localization.text("settings.launchAtLogin.unavailable")
+        case .incompleteInstallation: model.localization.text("settings.launchAtLogin.incomplete")
         case .failed: model.localization.text("settings.launchAtLogin.failed")
         }
     }

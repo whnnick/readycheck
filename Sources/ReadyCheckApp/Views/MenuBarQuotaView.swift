@@ -32,6 +32,7 @@ struct MenuBarQuotaView: View {
             }
 
             QuotaRecoveryReminderView(model: model, now: now)
+            WidgetSnoozeStatusView(model: model)
 
             footer
         }
@@ -115,6 +116,7 @@ struct MenuBarQuotaView: View {
     private var footer: some View {
         VStack(spacing: 10) {
             HStack(spacing: 10) {
+                DataStatusButton(model: model)
                 Button {
                     Task {
                         await model.refresh(reason: .manual)
@@ -165,13 +167,7 @@ struct MenuBarQuotaView: View {
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
 
-                    Picker("", selection: $model.widgetPresentation) {
-                        Text(localization.text("widgetPresentation.bubble")).tag(WidgetPresentation.bubble)
-                        Text(localization.text("widgetPresentation.card")).tag(WidgetPresentation.card)
-                        Text(localization.text("widgetPresentation.edgeRail")).tag(WidgetPresentation.edgeRail)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
+                    WidgetPresentationPicker(selection: $model.widgetPresentation, localization: localization)
 
                     if model.widgetPresentation == .card {
                         WidgetStyleSwitcherView(selection: $model.widgetDisplayMode, localization: localization)
@@ -183,6 +179,7 @@ struct MenuBarQuotaView: View {
                 } label: {
                     Label(localization.text("action.resetWidgetPosition"), systemImage: "arrow.down.forward.and.arrow.up.backward")
                 }
+                WidgetSnoozeMenu(model: model)
             }
 
             Divider()

@@ -47,6 +47,7 @@ struct FloatingWidgetView: View {
         .padding(12)
         .frame(width: 352)
         .background(.clear)
+        .contextMenu { WidgetSnoozeMenu(model: model) }
         .task {
             await updateNowWhileVisible()
         }

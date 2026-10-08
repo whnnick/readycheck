@@ -1,0 +1,3 @@
+import {Heading, Native, Page, Rise} from './Shared';
+
+export const Rings = () => <Page><Heading sub="5 小时 + 7 天，都放在屏幕边上。">两个圆环，<br/>一眼看清</Heading><Rise style={{position: 'absolute', left: 92, top: 715, width: 850, height: 680, background: '#19212c', borderRadius: 48, color: 'white'}}><Native name="edge" style={{position: 'absolute', right: 50, top: 42, width: 260, height: 590}}/><div style={{position: 'absolute', top: 135, left: 54, fontSize: 68, fontWeight: 600}}>5 小时<div style={{fontSize: 40, fontWeight: 400, color: '#ff8088', marginTop: 20}}>看这一轮还剩多少</div></div><div style={{position: 'absolute', top: 420, left: 54, fontSize: 68, fontWeight: 600}}>7 天<div style={{fontSize: 40, fontWeight: 400, color: '#79dfa0', marginTop: 20}}>看这周的使用节奏</div></div></Rise></Page>;

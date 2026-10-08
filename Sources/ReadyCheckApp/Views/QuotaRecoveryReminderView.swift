@@ -26,11 +26,32 @@ struct QuotaRecoveryReminderView: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
+            Divider()
+            Picker(model.localization.text("lowQuota.setting"), selection: Binding(
+                get: { model.lowQuotaThreshold },
+                set: { value in Task { await model.setLowQuotaThreshold(value) } }
+            )) {
+                Text(model.localization.text("lowQuota.off")).tag(0)
+                Text("20%").tag(20)
+                Text("10%").tag(10)
+            }
+            .pickerStyle(.menu)
+            .disabled(model.isUpdatingLowQuotaReminder)
+            Text(model.localization.text("lowQuota.help"))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if model.lowQuotaReminderSaveFailed {
+                Text(model.localization.text("recovery.saveFailed")).font(.caption).foregroundStyle(.red)
+            }
+
             if model.automaticRecoveryEnabled {
                 Text(model.localization.text("recovery.automaticHelp"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+            if model.automaticRecoveryEnabled || model.lowQuotaThreshold > 0 {
                 if notificationsBlocked {
                     Label(model.localization.text("recovery.blocked"), systemImage: "bell.slash")
                         .font(.caption)

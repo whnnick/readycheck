@@ -153,6 +153,8 @@ private struct ReminderHistoryRow: View {
 
     private var title: String {
         switch record.kind {
+        case .quotaLow:
+            return localization.text("notification.lowQuota.title")
         case .manualResetExpiring:
             guard let resetIndex = record.resetIndex else {
                 return String(
@@ -173,6 +175,9 @@ private struct ReminderHistoryRow: View {
     }
 
     private var detail: String? {
+        if record.kind == .quotaLow, let remaining = record.remainingPercent {
+            return String(format: localization.text("notification.lowQuota.body"), record.quotaDisplayLabel ?? localization.text(record.quotaLabelKey ?? "quota.window"), remaining)
+        }
         guard let expiresAt = record.expiresAt else { return nil }
         return String(
             format: localization.text("notification.history.expires"),

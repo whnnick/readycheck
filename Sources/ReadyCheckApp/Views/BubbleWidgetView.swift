@@ -289,6 +289,7 @@ struct BubbleWidgetView: View {
         Button(model.localization.text("bubble.openDetails"), action: onTap)
         Button(model.localization.text("bubble.openMainWindow")) { model.openMainWindowFromWidget() }
         Divider()
+        WidgetSnoozeMenu(model: model)
         Button(model.localization.text("action.hideWidget")) { model.hideFloatingWidget() }
     }
 }

@@ -35,6 +35,7 @@ enum LaunchAtLoginStatus: Equatable {
     case enabled
     case requiresApproval
     case unavailable
+    case incompleteInstallation
     case failed
 }
 
@@ -205,6 +206,7 @@ final class ReadyCheckAppModel {
             if widgetVisible {
                 showSelectedWidget()
             } else {
+                clearWidgetSnooze()
                 floatingWindowController.close()
                 bubbleWindowController.close()
                 edgeRailWindowController.close()
@@ -278,6 +280,9 @@ final class ReadyCheckAppModel {
     var recoveryReminderRequest: QuotaRecoveryRequest?
     var automaticRecoveryEnabled = true
     var recoveryReminderSaveFailed = false
+    var lowQuotaThreshold = 0
+    var isUpdatingLowQuotaReminder = false
+    var lowQuotaReminderSaveFailed = false
     var isUpdatingRecoveryReminder = false
     private var recoveryReminderAccount: String?
     var reminderHistoryRecords: [QuotaReminderHistoryRecord] = []
@@ -285,6 +290,8 @@ final class ReadyCheckAppModel {
     var testNotificationResult: TestNotificationResult = .idle
     var isRefreshing = false
     var lastRefreshAt: Date?
+    var lastSuccessfulRefreshAt: Date?
+    var widgetSnoozedUntil: Date? = WidgetSnoozePreference.value()
     var codexOAuthStatus: CodexOAuthConnectionStatus = .notConnected
     var codexConnectionMode: CodexConnectionMode
     var codexOAuthCallbackURL = ""
@@ -361,6 +368,9 @@ final class ReadyCheckAppModel {
     @ObservationIgnored
     private var rateLimitEventRefreshTask: Task<Void, Never>?
 
+    @ObservationIgnored
+    private var widgetSnoozeTask: Task<Void, Never>?
+
     init(
         credentialStore: any CredentialStore = KeychainCredentialStore(),
         codexOAuthClient: CodexOAuthClient = CodexOAuthClient(),
@@ -423,6 +433,11 @@ final class ReadyCheckAppModel {
     }
 
     func restoreFloatingWidgetIfNeeded() {
+        if WidgetSnoozePreference.isActive(widgetSnoozedUntil) {
+            scheduleWidgetResume()
+            return
+        }
+        clearWidgetSnooze()
         guard widgetVisible else { return }
         if notchStatusVisible {
             widgetVisible = false
@@ -432,6 +447,7 @@ final class ReadyCheckAppModel {
     }
 
     private func showSelectedWidget() {
+        guard !WidgetSnoozePreference.isActive(widgetSnoozedUntil) else { return }
         if notchStatusVisible { notchStatusVisible = false }
         switch widgetPresentation {
         case .card: floatingWindowController.show(model: self)
@@ -477,6 +493,10 @@ final class ReadyCheckAppModel {
     }
 
     func reloadLaunchAtLoginStatus() {
+        guard LaunchAtLoginInstallation.isComplete(at: Bundle.main.bundleURL) else {
+            launchAtLoginStatus = .incompleteInstallation
+            return
+        }
         switch SMAppService.mainApp.status {
         case .notRegistered:
             launchAtLoginStatus = .disabled
@@ -492,6 +512,10 @@ final class ReadyCheckAppModel {
     }
 
     func setLaunchAtLoginEnabled(_ enabled: Bool) {
+        guard LaunchAtLoginInstallation.isComplete(at: Bundle.main.bundleURL) else {
+            launchAtLoginStatus = .incompleteInstallation
+            return
+        }
         do {
             if enabled {
                 try SMAppService.mainApp.register()
@@ -500,6 +524,10 @@ final class ReadyCheckAppModel {
             }
             reloadLaunchAtLoginStatus()
         } catch {
+            let serviceError = error as NSError
+            Logger(subsystem: "com.readycheck.app", category: "login-item").error(
+                "Login item update failed: domain=\(serviceError.domain, privacy: .public), code=\(serviceError.code); \(serviceError.localizedDescription, privacy: .private)"
+            )
             reloadLaunchAtLoginStatus()
             if launchAtLoginStatus != .requiresApproval {
                 launchAtLoginStatus = .failed
@@ -513,6 +541,7 @@ final class ReadyCheckAppModel {
     }
 
     func showFloatingWidget() {
+        clearWidgetSnooze()
         if widgetVisible {
             showSelectedWidget()
         } else {
@@ -521,20 +550,59 @@ final class ReadyCheckAppModel {
     }
 
     func hideFloatingWidget() {
+        clearWidgetSnooze()
         widgetVisible = false
     }
 
+    func snoozeFloatingWidget(minutes: Int) {
+        guard widgetVisible, let deadline = WidgetSnoozePreference.deadline(minutes: minutes) else { return }
+        widgetSnoozedUntil = deadline
+        WidgetSnoozePreference.set(deadline)
+        isSwitchingWidgetPresentation = true
+        floatingWindowController.close()
+        bubbleWindowController.close()
+        edgeRailWindowController.close()
+        isSwitchingWidgetPresentation = false
+        scheduleWidgetResume()
+    }
+
+    private func clearWidgetSnooze() {
+        widgetSnoozeTask?.cancel()
+        widgetSnoozeTask = nil
+        widgetSnoozedUntil = nil
+        WidgetSnoozePreference.set(nil)
+    }
+
+    private func scheduleWidgetResume() {
+        widgetSnoozeTask?.cancel()
+        guard let deadline = widgetSnoozedUntil else { return }
+        widgetSnoozeTask = Task { [weak self] in
+            do { try await Task.sleep(for: .seconds(max(0, deadline.timeIntervalSinceNow))) }
+            catch { return }
+            guard let self else { return }
+            if WidgetSnoozePreference.isActive(self.widgetSnoozedUntil) {
+                self.scheduleWidgetResume()
+            } else {
+                self.clearWidgetSnooze()
+                if self.widgetVisible && !self.notchStatusVisible { self.showSelectedWidget() }
+            }
+        }
+    }
+
     func moveEdgeRail(to edge: EdgeRailPlacement.Edge) {
+        clearWidgetSnooze()
         if !widgetVisible { widgetVisible = true }
         edgeRailWindowController.move(to: edge, model: self)
     }
 
     func revealEdgeRail() {
+        clearWidgetSnooze()
         if !widgetVisible { widgetVisible = true }
         edgeRailWindowController.reveal(model: self)
     }
 
     func resetFloatingWidgetPosition() {
+        clearWidgetSnooze()
         if widgetVisible {
             isSwitchingWidgetPresentation = true
             switch widgetPresentation {
@@ -592,6 +660,7 @@ final class ReadyCheckAppModel {
     }
 
     private func syncWidgetVisibilityFromWindow(_ isVisible: Bool) {
+        guard widgetSnoozedUntil == nil else { return }
         guard !isSwitchingWidgetPresentation else { return }
         guard widgetVisible != isVisible else { return }
 
@@ -776,7 +845,9 @@ final class ReadyCheckAppModel {
             try await authorizer.disconnect()
             await quotaReminderStore.clearKnownManualResetExpirations()
             await cancelRecoveryReminder()
+            await quotaReminderStore.clearLowQuotaBaseline()
             recoveryReminderAccount = nil
+            lastSuccessfulRefreshAt = nil
             pendingCodexOAuthSession = nil
             codexOAuthCallbackURL = ""
             stopCodexOAuthCallbackServer()
@@ -995,6 +1066,7 @@ final class ReadyCheckAppModel {
     }
 
     func refreshAfterWake() {
+        if widgetSnoozedUntil != nil { restoreFloatingWidgetIfNeeded() }
         rateLimitMonitor.stop()
         startRateLimitMonitoring()
         scheduleRateLimitEventRefresh()
@@ -1027,6 +1099,7 @@ final class ReadyCheckAppModel {
         }
         lastRefreshAt = refreshCompletedAt
         for snapshot in snapshots where snapshot.providerId == "codex-oauth" && snapshot.status == .available {
+            if !snapshot.isStale(now: refreshCompletedAt) { lastSuccessfulRefreshAt = snapshot.refreshedAt }
             quotaHistorySamples = await quotaHistoryStore.record(snapshot)
             let reminderBatch = await quotaReminderStore.prepare(snapshot, account: recoveryReminderAccount)
             let deliveredEvents = await quotaNotificationService.deliver(
@@ -1049,9 +1122,12 @@ final class ReadyCheckAppModel {
         reminderHistoryRecords = await quotaReminderStore.history()
         recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
         automaticRecoveryEnabled = await quotaReminderStore.automaticRecoveryEnabled()
+        lowQuotaThreshold = await quotaReminderStore.lowQuotaThreshold()
     }
 
     private func updateRecoveryReminderAccount(_ account: String?) async {
+        if let account { await quotaReminderStore.clearLowQuotaBaselineIfAccountChanged(account) }
+        if recoveryReminderAccount != account { lastSuccessfulRefreshAt = nil }
         recoveryReminderAccount = account
         if let request = await quotaReminderStore.recoveryRequest(), request.account != account {
             await cancelRecoveryReminder()
@@ -1066,6 +1142,18 @@ final class ReadyCheckAppModel {
         automaticRecoveryEnabled = await quotaReminderStore.automaticRecoveryEnabled()
         recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
         if enabled && !recoveryReminderSaveFailed {
+            await requestNotificationAuthorizationIfNeeded()
+            await refresh(reason: .manual)
+        }
+    }
+
+    func setLowQuotaThreshold(_ threshold: Int) async {
+        guard !isUpdatingLowQuotaReminder else { return }
+        isUpdatingLowQuotaReminder = true
+        defer { isUpdatingLowQuotaReminder = false }
+        lowQuotaReminderSaveFailed = !(await quotaReminderStore.setLowQuotaThreshold(threshold))
+        lowQuotaThreshold = await quotaReminderStore.lowQuotaThreshold()
+        if lowQuotaThreshold > 0 && !lowQuotaReminderSaveFailed {
             await requestNotificationAuthorizationIfNeeded()
             await refresh(reason: .manual)
         }
@@ -1118,6 +1206,7 @@ final class ReadyCheckAppModel {
         )
         storeGeneration += 1
         snapshots = []
+        lastSuccessfulRefreshAt = nil
         lastRefreshAt = nil
     }
 

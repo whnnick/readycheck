@@ -8,7 +8,9 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 最新发布版：[`0.1.130`](https://github.com/whnnick/readycheck/releases/tag/v0.1.130)。圆形气泡详情保留全部配额，主显示配额设置说明气泡／刘海选择及临时回退；恢复提醒仅支持 macOS。
+> 最新发布版：[`0.1.132`](https://github.com/whnnick/readycheck/releases/tag/v0.1.132)。可选低额度提醒、临时隐藏浮窗、样式预览和数据状态说明；新增功能及恢复提醒仅支持 macOS。
+
+**0.1.132 预览版**同时包含 0.1.131 的登录启动安装完整性检查。参见[计划](docs/versions/0.1.132/PLAN.zh-CN.md)与[验收清单](docs/versions/0.1.132/QA.zh-CN.md)。
 
 **0.1.130 预览发布版**让圆形气泡详情保留全部配额窗口，在原有面板内滚动；主显示配额用于气泡和刘海，已选窗口暂缺时保留偏好并临时回退。参见 [0.1.130 验收清单](docs/versions/0.1.130/QA.zh-CN.md)。
 
@@ -71,7 +73,9 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.130-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.130-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.132-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.132-windows-x64-portable.zip`。
+
+本地启动图形界面请运行 `scripts/build_and_run.sh`。它在 `.build/run` 中打包并打开完整应用，与发布暂存目录分开。日常使用时，请先把完整应用安装到“应用程序”，再设置登录启动。
 
 ## Windows 预览版开发
 
@@ -96,6 +100,7 @@ npm run dev
 
 ## 文档
 
+- [0.1.130 小红书宣传素材](docs/versions/0.1.130/PROMO.zh-CN.md) | [English campaign](docs/versions/0.1.130/PROMO.md)
 - [0.1.130 气泡详情与配额选择验收](docs/versions/0.1.130/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.130/QA.md)
 - [0.1.129 动态贴边圆环验收](docs/versions/0.1.129/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.129/QA.md)
 - [0.1.128 Token 图恢复验收](docs/versions/0.1.128/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.128/QA.md) | [版本索引](docs/VERSIONS.md)

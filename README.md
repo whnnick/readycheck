@@ -8,7 +8,9 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Latest release: [`0.1.130`](https://github.com/whnnick/readycheck/releases/tag/v0.1.130). Round-bubble details retain all quota windows; primary quota settings explain bubble/notch selection and temporary fallback. Recovery reminders are macOS-only.
+> Latest release: [`0.1.132`](https://github.com/whnnick/readycheck/releases/tag/v0.1.132). Optional low-quota alerts, temporary widget hiding, visual style selection and data-status explanations. New features and recovery reminders are macOS-only.
+
+**0.1.132 preview** also includes the launch-at-login installation checks from 0.1.131. See the [plan](docs/versions/0.1.132/PLAN.md) and [acceptance checklist](docs/versions/0.1.132/QA.md).
 
 The **0.1.129 preview release** adapts the macOS edge rings and their details to the quota windows the account actually returns. A weekly-only account gets one ring; additional named windows stay distinct, and the capsule resizes after a refresh. See the [0.1.129 acceptance checklist](docs/versions/0.1.129/QA.md).
 
@@ -71,7 +73,9 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.130-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.130-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.132-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.132-windows-x64-portable.zip`.
+
+For a local GUI launch, run `scripts/build_and_run.sh`. It packages and opens a complete app under `.build/run`, separate from release staging. Install the packaged app in Applications before configuring login startup for daily use.
 
 ## Windows Preview Development
 
@@ -96,6 +100,7 @@ npm run dev
 
 ## Documentation
 
+- [0.1.130 Xiaohongshu campaign](docs/versions/0.1.130/PROMO.md) | [中文宣传素材](docs/versions/0.1.130/PROMO.zh-CN.md)
 - [0.1.130 bubble detail and quota-selection acceptance](docs/versions/0.1.130/QA.md) | [中文验收](docs/versions/0.1.130/QA.zh-CN.md)
 - [0.1.129 adaptive edge-ring acceptance](docs/versions/0.1.129/QA.md) | [中文验收](docs/versions/0.1.129/QA.zh-CN.md)
 - [0.1.128 Token-chart recovery acceptance](docs/versions/0.1.128/QA.md) | [中文验收](docs/versions/0.1.128/QA.zh-CN.md) | [Version index](docs/VERSIONS.md)

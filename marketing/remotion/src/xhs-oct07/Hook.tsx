@@ -1,0 +1,3 @@
+import {Heading, Native, Page, Rise} from './Shared';
+
+export const Hook = () => <Page><Heading sub="写代码的思路，不该被额度打断。">查额度，<br/>还要切窗口？</Heading><Rise style={{position: 'absolute', left: 92, top: 710, width: 850, height: 680, borderRadius: 48, background: '#19212c', color: 'white'}}><div style={{position: 'absolute', top: 80, left: 56, fontSize: 36, color: '#8fa5bd'}}>把剩余额度放在手边</div><div style={{position: 'absolute', left: 56, top: 225, fontSize: 64, fontWeight: 600, lineHeight: 1.5}}>不用切走<br/><span style={{color: '#84c9ff'}}>也能看见</span></div><Native name="edge" style={{position: 'absolute', right: 46, top: 60, width: 255, height: 570}}/></Rise></Page>;

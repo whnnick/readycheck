@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.132 - 2026-10-08
+
+- Add optional low-quota notifications (20% or 10%) with per-account/window/cycle deduplication and verified delivery retries; hide widgets for 30/60 minutes without stopping monitoring, including early resume and restart restoration. Add visual style selection with placement hints and data-status explanations for source, freshness, missing fields and historical subscription dates. Windows only shares the version.
+- Include the 0.1.131 installation checks and recovery guidance for launch-at-login failures.
+
+## 0.1.131 - 2026-10-07 (local preview)
+
+- Detect incomplete macOS app installations before updating login items; explain recovery steps, expose Login Items after a system failure, and log the error domain/code without exposing private descriptions. Development launches now use a complete signed app in a persistent directory. Windows only shares the version number.
+
 ## 0.1.130 - 2026-10-02
 
 - Keep all returned windows in scrollable round-bubble details; preserve panel size, urgency colors and the blue app link. Clarify primary quota selection for bubble/notch and retain missing saved or legacy choices while temporarily falling back. Windows version metadata only.

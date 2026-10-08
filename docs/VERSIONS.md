@@ -1,5 +1,11 @@
 # Version plans / 版本规划
 
+- [0.1.132 quieter widget plan](versions/0.1.132/PLAN.md) | [中文计划](versions/0.1.132/PLAN.zh-CN.md) | [Acceptance](versions/0.1.132/QA.md) | [中文验收](versions/0.1.132/QA.zh-CN.md)
+
+- [0.1.131 login startup fix plan](versions/0.1.131/PLAN.md) | [中文计划](versions/0.1.131/PLAN.zh-CN.md) | [Acceptance](versions/0.1.131/QA.md) | [中文验收](versions/0.1.131/QA.zh-CN.md)
+
+- [0.1.130 Xiaohongshu campaign](versions/0.1.130/PROMO.md) | [中文宣传素材](versions/0.1.130/PROMO.zh-CN.md)
+
 - [0.1.130 bubble detail and quota-selection acceptance](versions/0.1.130/QA.md) | [中文验收](versions/0.1.130/QA.zh-CN.md)
 
 - [0.1.129 adaptive edge-ring acceptance](versions/0.1.129/QA.md) | [中文验收](versions/0.1.129/QA.zh-CN.md)

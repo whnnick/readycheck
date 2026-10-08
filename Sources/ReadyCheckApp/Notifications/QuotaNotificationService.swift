@@ -139,6 +139,13 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         }
 
         for event in notificationEvents {
+            if case let .quotaLow(alert) = event,
+               !(await reminderStore.isLowQuotaAlertActive(alert)) { continue }
+            if case .quotaLow = event,
+               await deliveredNotificationIdentifiers().contains(identifier(for: event)) {
+                deliveredEvents.append(event)
+                continue
+            }
             if case let .quotaRecovered(requestID) = event,
                !(await reminderStore.isRecoveryRequestActive(requestID)) {
                 continue
@@ -152,6 +159,12 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
             content.sound = .default
 
             switch event {
+            case let .quotaLow(alert):
+                content.title = localization.text("notification.lowQuota.title")
+                content.body = String(
+                    format: localization.text("notification.lowQuota.body"),
+                    alert.displayLabel ?? localization.text(alert.labelKey), alert.remainingPercent
+                )
             case let .manualResetExpiring(index, expiresAt, leadHours):
                 content.title = localization.text("notification.resetExpiry.title")
                 content.body = String(
@@ -252,6 +265,8 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
 
     private func identifier(for event: QuotaReminderEvent) -> String {
         switch event {
+        case let .quotaLow(alert):
+            return "readycheck.low-quota.\(alert.id)"
         case let .manualResetExpiring(_, expiresAt, leadHours):
             return "readycheck.reset-expiry.\(Int64(expiresAt.timeIntervalSince1970.rounded())).\(leadHours)"
         case let .quotaRecovered(requestID):

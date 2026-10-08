@@ -3,6 +3,7 @@ import Foundation
 public enum QuotaReminderEvent: Equatable, Hashable, Sendable {
     case manualResetExpiring(index: Int, expiresAt: Date, leadHours: Int)
     case creditsStarted
+    case quotaLow(LowQuotaAlert)
     case quotaRecovered(requestID: String)
     case dismissQuotaRecovered(requestID: String)
 }
@@ -10,6 +11,7 @@ public enum QuotaReminderEvent: Equatable, Hashable, Sendable {
 public enum QuotaReminderHistoryKind: String, Codable, Equatable, Sendable {
     case manualResetExpiring
     case creditsStarted
+    case quotaLow
     case quotaRecovered
 }
 
@@ -31,6 +33,9 @@ public struct QuotaReminderHistoryRecord: Codable, Equatable, Identifiable, Send
     public var leadHours: Int?
     public var resetIndex: Int?
     public var attemptCount: Int
+    public var quotaLabelKey: String? = nil
+    public var quotaDisplayLabel: String? = nil
+    public var remainingPercent: Int? = nil
 
     public init(
         id: String,
@@ -56,6 +61,9 @@ public struct QuotaReminderHistoryRecord: Codable, Equatable, Identifiable, Send
 }
 
 public struct QuotaReminderState: Codable, Equatable, Sendable {
+    public var lowQuotaThreshold: Int? = nil
+    public var lowQuotaState: LowQuotaReminderState? = nil
+    public var lowQuotaRevision: Int? = nil
     public var recoveryRequest: QuotaRecoveryRequest?
     public var recoveryNotificationBaseline: QuotaRecoveryRequest? = nil
     public var recoveryNotificationBaselineMigrationCompleted: Bool? = nil
@@ -138,6 +146,12 @@ public enum QuotaReminderEvaluator {
 
         var state = originalState
         var events: [QuotaReminderEvent] = []
+        let lowQuota = LowQuotaReminderEvaluator.evaluate(
+            snapshot: snapshot, now: now, account: account,
+            threshold: state.lowQuotaThreshold ?? 0, state: state.lowQuotaState
+        )
+        state.lowQuotaState = lowQuota.state
+        events.append(contentsOf: lowQuota.alerts.map(QuotaReminderEvent.quotaLow))
         if let requestID = state.pendingRecoveryNotificationDismissalID {
             events.append(.dismissQuotaRecovered(requestID: requestID))
             state.pendingRecoveryNotificationDismissalID = nil
@@ -388,6 +402,9 @@ public actor QuotaReminderStore {
 
         for event in undelivered {
             switch event {
+            case let .quotaLow(alert):
+                state.lowQuotaState?.windows[alert.windowID]?.notified = false
+                state.lowQuotaState?.windows[alert.windowID]?.pending = true
             case let .manualResetExpiring(_, expiresAt, _):
                 let timestamp = Int64(expiresAt.timeIntervalSince1970.rounded())
                 let previousThresholds = migratedThresholds(from: previousState)
@@ -438,6 +455,11 @@ public actor QuotaReminderStore {
 
         // A user may cancel or replace a request while system delivery is awaiting confirmation.
         let currentState = load()
+        if currentState.lowQuotaRevision != batch.previousState.lowQuotaRevision {
+            state.lowQuotaThreshold = currentState.lowQuotaThreshold
+            state.lowQuotaState = currentState.lowQuotaState
+            state.lowQuotaRevision = currentState.lowQuotaRevision
+        }
         if currentState.recoveryRevision != batch.previousState.recoveryRevision
             || currentState.recoveryRequest?.id != batch.previousState.recoveryRequest?.id {
             state.recoveryRequest = currentState.recoveryRequest
@@ -454,6 +476,37 @@ public actor QuotaReminderStore {
 
     public func automaticRecoveryEnabled() -> Bool {
         load().isAutomaticRecoveryEnabled
+    }
+
+    public func lowQuotaThreshold() -> Int { load().lowQuotaThreshold ?? 0 }
+
+    @discardableResult
+    public func setLowQuotaThreshold(_ threshold: Int) -> Bool {
+        guard [0, 10, 20].contains(threshold) else { return false }
+        var state = migrateHistoryIfNeeded(load())
+        state.lowQuotaThreshold = threshold
+        state.lowQuotaState = nil
+        state.lowQuotaRevision = (state.lowQuotaRevision ?? 0) + 1
+        save(state)
+        return load() == state
+    }
+
+    public func clearLowQuotaBaseline() {
+        var state = load()
+        state.lowQuotaState = nil
+        state.lowQuotaRevision = (state.lowQuotaRevision ?? 0) + 1
+        save(state)
+    }
+
+    public func clearLowQuotaBaselineIfAccountChanged(_ account: String) {
+        guard let previous = load().lowQuotaState?.account, previous != account else { return }
+        clearLowQuotaBaseline()
+    }
+
+    public func isLowQuotaAlertActive(_ alert: LowQuotaAlert) -> Bool {
+        let state = load()
+        return state.lowQuotaThreshold == alert.threshold
+            && state.lowQuotaState?.windows[alert.windowID]?.id == alert.id
     }
 
     public func isRecoveryRequestActive(_ id: String) -> Bool {
@@ -629,6 +682,12 @@ public actor QuotaReminderStore {
         let resetIndex: Int?
 
         switch event {
+        case let .quotaLow(alert):
+            recordID = "low-quota:\(alert.id)"
+            kind = .quotaLow
+            expiresAt = nil
+            leadHours = nil
+            resetIndex = nil
         case let .manualResetExpiring(index, expiration, hours):
             let timestamp = Int64(expiration.timeIntervalSince1970.rounded())
             recordID = history.first(where: {
@@ -659,7 +718,7 @@ public actor QuotaReminderStore {
         }
 
         let existing = history.first(where: { $0.id == recordID })
-        let record = QuotaReminderHistoryRecord(
+        var record = QuotaReminderHistoryRecord(
             id: recordID,
             kind: kind,
             status: delivered ? .delivered : .failed,
@@ -670,6 +729,11 @@ public actor QuotaReminderStore {
             resetIndex: resetIndex,
             attemptCount: (existing?.attemptCount ?? 0) + 1
         )
+        if case let .quotaLow(alert) = event {
+            record.quotaLabelKey = alert.labelKey
+            record.quotaDisplayLabel = alert.displayLabel
+            record.remainingPercent = alert.remainingPercent
+        }
         history.removeAll { $0.id == recordID }
         history.append(record)
         state.notificationHistory = prunedHistory(history)
