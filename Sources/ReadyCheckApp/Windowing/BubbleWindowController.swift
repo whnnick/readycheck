@@ -6,13 +6,14 @@ import SwiftUI
 @MainActor
 final class BubbleWindowController: NSObject, NSWindowDelegate {
     private let frameDefaultsKey = "ReadyCheck.bubbleWidgetFrame.v1"
-    private var panel: NSPanel?
+    private var panel: QuotaWidgetPanel?
     private var hostingController: NSHostingController<BubbleWidgetView>?
     private var clippingView: BubbleClippingView?
     private weak var model: ReadyCheckAppModel?
     private var restingFrame: CGRect?
     private var edge: BubbleWidgetPlacement.Edge?
-    private var isExpanded = false
+    private let interaction = WidgetInteractionController()
+    private var isExpanded: Bool { interaction.state != .collapsed }
     private var dragStartFrame: CGRect?
     private var dragStartPointer: CGPoint?
     private var outsideClickMonitor: Any?
@@ -21,6 +22,14 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
     override init() {
         super.init()
+        interaction.containsPointer = { [weak self] in
+            self?.panel?.frame.contains(NSEvent.mouseLocation) == true
+        }
+        interaction.onChange = { [weak self] state in self?.applyInteraction(state) }
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self, selector: #selector(activeSpaceDidChange),
+            name: NSWorkspace.activeSpaceDidChangeNotification, object: nil
+        )
         NotificationCenter.default.addObserver(
             self, selector: #selector(screenParametersDidChange),
             name: NSApplication.didChangeScreenParametersNotification, object: nil
@@ -29,6 +38,11 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
+    }
+
+    @objc private func activeSpaceDidChange() {
+        interaction.spaceChanged()
     }
 
     func show(model: ReadyCheckAppModel) {
@@ -38,7 +52,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             return
         }
 
-        let panel = NSPanel(
+        let panel = QuotaWidgetPanel(
             contentRect: CGRect(origin: .zero, size: BubbleWidgetPlacement.bubbleSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
@@ -49,7 +63,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         panel.hasShadow = false
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        panel.collectionBehavior = WidgetSpaceBehavior.collectionBehavior(hideInFullscreen: model.widgetHideInFullscreen)
         panel.delegate = self
         panel.level = model.widgetAlwaysOnTop ? .floating : .normal
         self.panel = panel
@@ -61,6 +75,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         container.view = clip
         container.addChild(host)
         host.view.translatesAutoresizingMaskIntoConstraints = false
+        clip.onPointerChange = { [weak self] in self?.interaction.hoverChanged($0) }
         clip.addSubview(host.view)
         NSLayoutConstraint.activate([
             host.view.leadingAnchor.constraint(equalTo: clip.leadingAnchor),
@@ -81,12 +96,17 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         onVisibilityChanged?(true)
     }
 
+    func updateFullscreenBehavior(hideInFullscreen: Bool) {
+        panel?.collectionBehavior = WidgetSpaceBehavior.collectionBehavior(hideInFullscreen: hideInFullscreen)
+    }
+
     func close() {
         close(persistingPosition: true)
     }
 
     private func close(persistingPosition: Bool) {
         stopDismissMonitors()
+        interaction.reset()
         guard let panel else { return }
         if persistingPosition, let restingFrame { persist(restingFrame) }
         panel.delegate = nil
@@ -94,7 +114,6 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         hostingController = nil
         clippingView = nil
         panel.close()
-        isExpanded = false
         edge = nil
         restingFrame = nil
         dragStartFrame = nil
@@ -118,9 +137,16 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         stopDismissMonitors()
         if !isExpanded, let restingFrame { persist(restingFrame) }
         panel = nil
+        interaction.reset()
         hostingController = nil
         clippingView = nil
         onVisibilityChanged?(false)
+    }
+
+    func windowDidResignKey(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, window === panel,
+              interaction.state == .pinned else { return }
+        interaction.collapse()
     }
 
     @objc private func screenParametersDidChange() {
@@ -139,8 +165,10 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         BubbleWidgetView(
             model: model,
             isExpanded: isExpanded,
+            isPinned: interaction.state == .pinned,
+            onPin: { [weak self] in self?.interaction.pinPreview() },
             tabEdge: isExpanded ? nil : edge,
-            onTap: { [weak self] in self?.toggleExpanded() },
+            onTap: { [weak self] in self?.interaction.click() },
             onDragChanged: { [weak self] translation in self?.dragChanged(translation) },
             onDragEnded: { [weak self] in self?.dragEnded() },
             onCollapse: { [weak self] in self?.collapse() }
@@ -153,40 +181,35 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         hostingController?.rootView = makeView(model: model)
     }
 
-    private func toggleExpanded() {
-        if isExpanded { collapse(); return }
+    private func applyInteraction(_ state: WidgetInteractionController.State) {
         guard let panel, let restingFrame else { return }
-        isExpanded = true
-        let visible = targetScreen(savedFrame: restingFrame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
-        let expandedFrame = BubbleWidgetPlacement.expandedFrame(from: restingFrame, edge: edge, in: visible)
-        clippingView?.morph(
-            from: edge == nil ? .circle : .edgeTab,
-            to: .expanded,
-            fromWidth: restingFrame.width,
-            toWidth: expandedFrame.width
-        )
-        setFrame(expandedFrame, animated: true)
-        panel.makeKeyAndOrderFront(nil)
+        if state == .collapsed {
+            stopDismissMonitors()
+            panel.allowsKeyboard = false
+            panel.resignKey()
+            clippingView?.morph(from: .expanded, to: edge == nil ? .circle : .edgeTab,
+                fromWidth: BubbleWidgetPlacement.expandedSize.width, toWidth: restingFrame.width)
+            setFrame(restingFrame, animated: true)
+        } else {
+            let visible = targetScreen(savedFrame: restingFrame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+            let expandedFrame = BubbleWidgetPlacement.expandedFrame(from: restingFrame, edge: edge, in: visible)
+            if panel.frame.size != expandedFrame.size {
+                clippingView?.morph(from: edge == nil ? .circle : .edgeTab, to: .expanded,
+                    fromWidth: restingFrame.width, toWidth: expandedFrame.width)
+                setFrame(expandedFrame, animated: true)
+            }
+            panel.allowsKeyboard = state == .pinned
+            if state == .pinned { panel.makeKeyAndOrderFront(nil) }
+            startDismissMonitors()
+        }
         updateView()
-        startDismissMonitors()
     }
 
-    private func collapse() {
-        guard isExpanded, panel != nil, let restingFrame else { return }
-        stopDismissMonitors()
-        isExpanded = false
-        clippingView?.morph(
-            from: .expanded,
-            to: edge == nil ? .circle : .edgeTab,
-            fromWidth: BubbleWidgetPlacement.expandedSize.width,
-            toWidth: restingFrame.width
-        )
-        setFrame(restingFrame, animated: true)
-        updateView()
-    }
+    private func collapse() { interaction.collapse() }
 
     private func dragChanged(_ firstTranslation: CGSize) {
         guard !isExpanded, let panel else { return }
+        interaction.beginDrag()
         let pointer = NSEvent.mouseLocation
         if dragStartFrame == nil {
             dragStartFrame = panel.frame
@@ -208,6 +231,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             height: BubbleWidgetPlacement.bubbleSize.height
         )
         placeResting(BubbleWidgetPlacement.clamped(bubbleFrame, in: visible), visibleFrame: visible, animated: true)
+        interaction.endDrag()
     }
 
     private func placeResting(_ bubbleFrame: CGRect, visibleFrame: CGRect, animated: Bool = false) {
@@ -245,14 +269,20 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
     }
 
     private func startDismissMonitors() {
+        stopDismissMonitors()
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             guard let self, let panel = self.panel else { return }
             if !panel.frame.contains(NSEvent.mouseLocation) { self.collapse() }
         }
-        escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard event.keyCode == 53, self?.isExpanded == true else { return event }
-            self?.collapse()
-            return nil
+        escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown, .rightMouseDown]) { [weak self] event in
+            guard let self, let panel = self.panel, self.isExpanded else { return event }
+            if event.type == .keyDown {
+                guard event.keyCode == 53, panel.isKeyWindow else { return event }
+                self.collapse()
+                return nil
+            }
+            if event.window !== panel { self.collapse() }
+            return event
         }
     }
 
@@ -290,6 +320,18 @@ private final class BubbleClippingView: NSView {
         case edgeTab
         case expanded
     }
+
+    var onPointerChange: ((Bool) -> Void)?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        for area in trackingAreas { removeTrackingArea(area) }
+        addTrackingArea(NSTrackingArea(rect: .zero,
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self, userInfo: nil))
+    }
+
+    override func mouseEntered(with event: NSEvent) { onPointerChange?(true) }
+    override func mouseExited(with event: NSEvent) { onPointerChange?(false) }
 
     var silhouette: Silhouette = .circle {
         didSet {

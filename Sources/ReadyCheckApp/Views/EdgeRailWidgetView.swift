@@ -10,6 +10,7 @@ struct EdgeRailWidgetView: View {
     let onHover: (Bool) -> Void
     let onExpand: () -> Void
     let onToggleDetail: () -> Void
+    let onCollapse: () -> Void
     let onDragChanged: (CGSize) -> Void
     let onDragEnded: () -> Void
 
@@ -88,7 +89,10 @@ struct EdgeRailWidgetView: View {
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(red: 0.10, green: 0.12, blue: 0.15)))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.white.opacity(isHandleHovered ? 0.42 : 0.24), lineWidth: 0.8))
         .frame(maxWidth: .infinity, alignment: edge == .left ? .leading : .trailing)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(model.localization.text("edgeRail.accessibility"))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { onExpand() }
         .help(model.localization.text("edgeRail.hoverHint"))
         .onHover { isHandleHovered = $0 }
         .animation(.easeOut(duration: 0.16), value: isHandleHovered)
@@ -139,6 +143,7 @@ struct EdgeRailWidgetView: View {
             .overlay(RoundedRectangle(cornerRadius: 25, style: .continuous).stroke(Color.white.opacity(0.24), lineWidth: 0.8))
         }
         .buttonStyle(.plain)
+        .help(model.localization.text(mode == .detail ? "widget.pinnedHint" : "widget.previewHint"))
         .accessibilityLabel(model.localization.text(mode == .detail ? "edgeRail.hideDetail" : "edgeRail.showDetail"))
         .simultaneousGesture(dragGesture)
         .help(model.localization.text("edgeRail.dragHint"))
@@ -191,9 +196,10 @@ struct EdgeRailWidgetView: View {
                 Text("Codex")
                     .font(.subheadline.weight(.semibold))
                 Spacer()
-                Text(model.localization.text("edgeRail.detail"))
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.65))
+                Button(action: onCollapse) { Image(systemName: "chevron.down") }
+                    .buttonStyle(.plain)
+                    .help(model.localization.text("bubble.collapse"))
+                    .accessibilityLabel(model.localization.text("bubble.collapse"))
             }
             if windows.isEmpty {
                 Text(model.localization.text("edgeRail.noQuota"))
@@ -212,6 +218,7 @@ struct EdgeRailWidgetView: View {
             HStack {
                 Button {
                     model.openMainWindowFromWidget()
+                    onCollapse()
                 } label: {
                     Text(model.localization.text("bubble.openMainWindow"))
                         .foregroundStyle(Color(red: 0.62, green: 0.80, blue: 1))
@@ -251,11 +258,7 @@ struct EdgeRailWidgetView: View {
                     }
             }
             .frame(height: 5)
-            if let resetAt = window.resetAt {
-                Text("\(model.localization.text("quota.resetAt")) \(DateFormatter.localizedString(from: resetAt, dateStyle: .short, timeStyle: .short))")
-                    .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.65))
-            }
+            QuotaResetCountdownView(window: window, snapshot: snapshot, localization: model.localization)
         }
         .accessibilityElement(children: .combine)
     }

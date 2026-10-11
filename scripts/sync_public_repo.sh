@@ -59,6 +59,7 @@ excludes=(
     --exclude marketing/hyperframes/node_modules
     --exclude marketing/hyperframes/renders
     --exclude marketing/hyperframes/snapshots
+    --exclude marketing/hyperframes/videos
     --exclude .worktrees
     --exclude .codex
     --exclude .agents
@@ -75,7 +76,7 @@ fi
 find "${PUBLIC_SYNC_DIR}" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
 rsync -a --delete "${excludes[@]}" "${SOURCE_ROOT}/" "${PUBLIC_SYNC_DIR}/"
 
-for forbidden in AGENTS.md .codex .agents .worktrees docs/superpowers dist; do
+for forbidden in AGENTS.md .codex .agents .worktrees docs/superpowers dist marketing/hyperframes/videos; do
     if [[ -e "${PUBLIC_SYNC_DIR}/${forbidden}" ]]; then
         echo "Forbidden public-sync path exists: ${forbidden}" >&2
         exit 1

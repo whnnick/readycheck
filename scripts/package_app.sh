@@ -18,8 +18,8 @@ EXECUTABLE_SOURCE="${BUILD_DIR}/release/ReadyCheckApp"
 EXECUTABLE_TARGET="${MACOS_DIR}/ReadyCheckApp"
 ICONSET_DIR="${BUILD_DIR}/ReadyCheck.iconset"
 ICON_SOURCE="${BUILD_DIR}/ReadyCheckIcon1024.png"
-ICON_TARGET="${RESOURCES_DIR}/ReadyCheck.icns"
-VERSION="0.1.132"
+ICON_ARCHIVE="${BUILD_DIR}/ReadyCheck.icns"
+VERSION="0.1.135"
 PREVIEW_SIGNING_IDENTITY="ReadyCheck Preview Signing"
 
 resolve_signing_identity() {
@@ -44,7 +44,7 @@ export SWIFTPM_MODULECACHE_PATH="${BUILD_DIR}/module-cache"
 mkdir -p "${DIST_DIR}"
 find "${DIST_DIR}" -maxdepth 1 -type d -name "ReadyCheck*.app" -exec rm -rf {} +
 
-swift build --disable-sandbox --scratch-path "${BUILD_DIR}" -c release \
+swift build --build-system native --disable-sandbox --scratch-path "${BUILD_DIR}" -c release \
     -debug-info-format none --product ReadyCheckApp
 
 mkdir -p "${MACOS_DIR}" "${RESOURCES_DIR}"
@@ -66,9 +66,10 @@ generate_icon() {
     sips -z 512 512 "${ICON_SOURCE}" --out "${ICONSET_DIR}/icon_256x256@2x.png" >/dev/null
     sips -z 512 512 "${ICON_SOURCE}" --out "${ICONSET_DIR}/icon_512x512.png" >/dev/null
     sips -z 1024 1024 "${ICON_SOURCE}" --out "${ICONSET_DIR}/icon_512x512@2x.png" >/dev/null
-    if ! iconutil -c icns "${ICONSET_DIR}" -o "${ICON_TARGET}"; then
-        cp "${ICON_SOURCE}" "${RESOURCES_DIR}/ReadyCheck.png"
-    fi
+    iconutil -c icns "${ICONSET_DIR}" -o "${ICON_ARCHIVE}"
+    ICON_DIGEST="$(shasum -a 256 "${ICON_ARCHIVE}" | cut -c 1-12)"
+    ICON_FILE="ReadyCheck-${ICON_DIGEST}.icns"
+    cp "${ICON_ARCHIVE}" "${RESOURCES_DIR}/${ICON_FILE}"
 }
 
 generate_icon
@@ -87,7 +88,7 @@ cat > "${CONTENTS_DIR}/Info.plist" <<'PLIST'
     <key>CFBundleIdentifier</key>
     <string>com.readycheck.app</string>
     <key>CFBundleIconFile</key>
-    <string>ReadyCheck</string>
+    <string>__ICON_FILE__</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
@@ -108,10 +109,8 @@ cat > "${CONTENTS_DIR}/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-perl -0pi -e "s/__VERSION__/${VERSION}/g" "${CONTENTS_DIR}/Info.plist"
-if [[ ! -f "${ICON_TARGET}" ]]; then
-    cp "${ICON_SOURCE}" "${RESOURCES_DIR}/ReadyCheck.png"
-fi
+perl -0pi -e "s/__VERSION__/${VERSION}/g; s/__ICON_FILE__/${ICON_FILE}/g" "${CONTENTS_DIR}/Info.plist"
+test -s "${RESOURCES_DIR}/${ICON_FILE}"
 printf "APPL????" > "${CONTENTS_DIR}/PkgInfo"
 
 plutil -lint "${CONTENTS_DIR}/Info.plist"

@@ -18,6 +18,8 @@ struct BubbleQuotaDisplay: Equatable {
 struct BubbleWidgetView: View {
     @Bindable var model: ReadyCheckAppModel
     let isExpanded: Bool
+    var isPinned = true
+    var onPin: () -> Void = {}
     let tabEdge: BubbleWidgetPlacement.Edge?
     let onTap: () -> Void
     let onDragChanged: (CGSize) -> Void
@@ -123,7 +125,9 @@ struct BubbleWidgetView: View {
         .onTapGesture(perform: onTap)
         .simultaneousGesture(dragGesture)
         .contextMenu { contextMenu }
-        .help(model.localization.text("bubble.openDetails"))
+        .help(model.localization.text("widget.previewHint"))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { onTap() }
         .accessibilityLabel(model.localization.text("bubble.accessibility") + " " + QuotaFormatters.percentageText(for: primaryRatio))
     }
 
@@ -157,7 +161,9 @@ struct BubbleWidgetView: View {
         .onTapGesture(perform: onTap)
         .simultaneousGesture(dragGesture)
         .contextMenu { contextMenu }
-        .help(model.localization.text("bubble.openDetails"))
+        .help(model.localization.text("widget.previewHint"))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { onTap() }
         .accessibilityLabel(model.localization.text("bubble.accessibility") + " " + QuotaFormatters.percentageText(for: primaryRatio))
     }
 
@@ -184,6 +190,12 @@ struct BubbleWidgetView: View {
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.72))
                 Spacer()
+                if !isPinned {
+                    Button(action: onPin) { Image(systemName: "pin") }
+                        .buttonStyle(.plain)
+                        .help(model.localization.text("widget.pinDetails"))
+                        .accessibilityLabel(model.localization.text("widget.pinDetails"))
+                }
                 Button(action: onCollapse) {
                     Image(systemName: "chevron.down")
                 }
@@ -230,30 +242,35 @@ struct BubbleWidgetView: View {
         .background { bubbleSurface(RoundedRectangle(cornerRadius: 18, style: .continuous)) }
         .padding(7)
         .frame(width: BubbleWidgetPlacement.expandedSize.width, height: BubbleWidgetPlacement.expandedSize.height)
+        .onTapGesture(perform: onPin)
+        .help(model.localization.text(isPinned ? "widget.pinnedHint" : "widget.previewHint"))
     }
 
     private func quotaRow(_ window: QuotaWindow, canShow: Bool) -> some View {
         let ratio = canShow ? window.remainingRatio : nil
-        return HStack(spacing: 8) {
-            Text(QuotaWindowDisplay.title(for: window, localization: model.localization))
-                .font(.caption)
-                .lineLimit(2)
-                .frame(width: 102, alignment: .leading)
-                .help(QuotaWindowDisplay.title(for: window, localization: model.localization))
-            GeometryReader { geometry in
-                Capsule().fill(Color.white.opacity(0.18))
-                    .overlay(alignment: .leading) {
-                        Capsule()
-                            .fill(quotaColor(for: ratio))
-                            .frame(width: geometry.size.width * max(0, min(ratio ?? 0, 1)))
-                    }
+        return VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 8) {
+                Text(QuotaWindowDisplay.title(for: window, localization: model.localization))
+                    .font(.caption)
+                    .lineLimit(2)
+                    .frame(width: 102, alignment: .leading)
+                    .help(QuotaWindowDisplay.title(for: window, localization: model.localization))
+                GeometryReader { geometry in
+                    Capsule().fill(Color.white.opacity(0.18))
+                        .overlay(alignment: .leading) {
+                            Capsule()
+                                .fill(quotaColor(for: ratio))
+                                .frame(width: geometry.size.width * max(0, min(ratio ?? 0, 1)))
+                        }
+                }
+                .frame(height: 5)
+                Text(QuotaFormatters.percentageText(for: ratio))
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .frame(width: 38, alignment: .trailing)
             }
-            .frame(height: 5)
-            Text(QuotaFormatters.percentageText(for: ratio))
-                .font(.caption.weight(.semibold).monospacedDigit())
-                .frame(width: 38, alignment: .trailing)
+            QuotaResetCountdownView(window: window, snapshot: snapshot, localization: model.localization)
         }
-        .frame(minHeight: 20)
+        .frame(minHeight: 34)
         .accessibilityElement(children: .combine)
     }
 

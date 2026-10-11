@@ -6,16 +6,16 @@ import SwiftUI
 @MainActor
 final class EdgeRailWindowController: NSObject, NSWindowDelegate {
     private let frameDefaultsKey = "ReadyCheck.edgeRailFrame.v1"
-    private var panel: NSPanel?
+    private var panel: QuotaWidgetPanel?
     private var hostingController: NSHostingController<EdgeRailWidgetView>?
     private var trackingView: EdgeRailTrackingView?
     private weak var model: ReadyCheckAppModel?
     private var edge: EdgeRailPlacement.Edge = .right
     private var centerY: CGFloat = 0
     private var mode: EdgeRailPlacement.Mode = .collapsed
-    private var keepDockUntilHover = false
-    private var expandTask: Task<Void, Never>?
-    private var collapseTask: Task<Void, Never>?
+    private let interaction = WidgetInteractionController()
+    private var outsideClickMonitor: Any?
+    private var localDismissMonitor: Any?
     private var dragStartFrame: CGRect?
     private var dragStartPointer: CGPoint?
     var onVisibilityChanged: ((Bool) -> Void)?
@@ -23,13 +23,39 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
 
     override init() {
         super.init()
+        interaction.containsPointer = { [weak self] in
+            self?.panel?.frame.contains(NSEvent.mouseLocation) == true
+        }
+        interaction.onChange = { [weak self] state in
+            guard let self else { return }
+            let mode: EdgeRailPlacement.Mode = switch state {
+            case .collapsed: .collapsed
+            case .preview: .dock
+            case .pinned: .detail
+            }
+            self.setMode(mode)
+            self.panel?.allowsKeyboard = state == .pinned
+            if state == .pinned { self.panel?.makeKeyAndOrderFront(nil) }
+            else { self.panel?.resignKey() }
+        }
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self, selector: #selector(activeSpaceDidChange),
+            name: NSWorkspace.activeSpaceDidChangeNotification, object: nil
+        )
         NotificationCenter.default.addObserver(
             self, selector: #selector(screenParametersDidChange),
             name: NSApplication.didChangeScreenParametersNotification, object: nil
         )
     }
 
-    deinit { NotificationCenter.default.removeObserver(self) }
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
+    }
+
+    @objc private func activeSpaceDidChange() {
+        interaction.spaceChanged()
+    }
 
     func show(model: ReadyCheckAppModel) {
         self.model = model
@@ -44,10 +70,10 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         edge = savedEdge()
         centerY = saved?.midY ?? EdgeRailPlacement.defaultCenterY(in: visible)
         mode = .dock
-        keepDockUntilHover = true
+        interaction.showPreview()
         let frame = layoutFrame(in: visible)
 
-        let panel = NSPanel(
+        let panel = QuotaWidgetPanel(
             contentRect: frame,
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
@@ -59,14 +85,14 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         panel.acceptsMouseMovedEvents = true
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        panel.collectionBehavior = WidgetSpaceBehavior.collectionBehavior(hideInFullscreen: model.widgetHideInFullscreen)
         panel.level = model.widgetAlwaysOnTop ? .floating : .normal
         panel.delegate = self
         self.panel = panel
 
         let host = NSHostingController(rootView: makeView(model: model))
         let tracker = EdgeRailTrackingView()
-        tracker.onPointerChange = { [weak self] in self?.hoverChanged($0) }
+        tracker.onPointerChange = { [weak self] in self?.interaction.hoverChanged($0) }
         let container = NSViewController()
         container.view = tracker
         container.addChild(host)
@@ -82,17 +108,20 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         trackingView = tracker
         panel.contentViewController = container
         panel.orderFrontRegardless()
+        startDismissMonitors()
         onVisibilityChanged?(true)
         onEdgeChanged?(edge)
+    }
+
+    func updateFullscreenBehavior(hideInFullscreen: Bool) {
+        panel?.collectionBehavior = WidgetSpaceBehavior.collectionBehavior(hideInFullscreen: hideInFullscreen)
     }
 
     func close() { close(persistingPosition: true) }
 
     private func close(persistingPosition: Bool) {
-        expandTask?.cancel()
-        expandTask = nil
-        collapseTask?.cancel()
-        collapseTask = nil
+        interaction.reset()
+        stopDismissMonitors()
         guard let panel else { return }
         if persistingPosition { persist() }
         panel.delegate = nil
@@ -102,7 +131,6 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         model = nil
         dragStartFrame = nil
         dragStartPointer = nil
-        keepDockUntilHover = false
         panel.close()
         onVisibilityChanged?(false)
     }
@@ -129,10 +157,7 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         guard let panel else { return }
         edge = newEdge
         mode = .dock
-        keepDockUntilHover = true
-        expandTask?.cancel()
-        expandTask = nil
-        collapseTask?.cancel()
+        interaction.showPreview()
         let visible = targetScreen(for: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
         panel.setFrame(layoutFrame(in: visible), display: true)
         updateView()
@@ -143,25 +168,26 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
 
     func reveal(model: ReadyCheckAppModel) {
         if panel == nil { show(model: model) }
-        keepDockUntilHover = true
-        expandTask?.cancel()
-        expandTask = nil
-        collapseTask?.cancel()
-        setMode(.dock)
+        interaction.showPreview()
         panel?.orderFrontRegardless()
     }
 
     func windowWillClose(_ notification: Notification) {
         guard let closing = notification.object as? NSWindow, closing === panel else { return }
-        expandTask?.cancel()
-        expandTask = nil
-        collapseTask?.cancel()
         persist()
+        interaction.reset()
+        stopDismissMonitors()
         panel = nil
         hostingController = nil
         trackingView = nil
         model = nil
         onVisibilityChanged?(false)
+    }
+
+    func windowDidResignKey(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, window === panel,
+              interaction.state == .pinned else { return }
+        interaction.collapse()
     }
 
     @objc private func screenParametersDidChange() {
@@ -178,9 +204,10 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
             edge: edge,
             mode: mode,
             height: layoutHeight(in: targetScreen(for: panel?.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero),
-            onHover: { [weak self] isInside in self?.hoverChanged(isInside) },
-            onExpand: { [weak self] in self?.expandDock() },
-            onToggleDetail: { [weak self] in self?.toggleDetail() },
+            onHover: { [weak self] isInside in self?.interaction.hoverChanged(isInside) },
+            onExpand: { [weak self] in self?.interaction.click() },
+            onToggleDetail: { [weak self] in self?.interaction.click() },
+            onCollapse: { [weak self] in self?.interaction.collapse() },
             onDragChanged: { [weak self] translation in self?.dragChanged(translation) },
             onDragEnded: { [weak self] in self?.dragEnded() }
         )
@@ -210,68 +237,33 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         hostingController?.rootView = makeView(model: model)
     }
 
-    private func hoverChanged(_ isInside: Bool) {
-        if isInside {
-            if mode == .collapsed {
-                keepDockUntilHover = false
-                scheduleExpansion()
-            } else if panel?.frame.contains(NSEvent.mouseLocation) == true {
-                keepDockUntilHover = false
-                scheduleCollapse()
+    private func startDismissMonitors() {
+        stopDismissMonitors()
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            guard let self, let panel = self.panel, !panel.frame.contains(NSEvent.mouseLocation) else { return }
+            self.interaction.collapse()
+        }
+        localDismissMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown, .rightMouseDown]) { [weak self] event in
+            guard let self, let panel = self.panel else { return event }
+            if event.type == .keyDown {
+                guard event.keyCode == 53, panel.isKeyWindow else { return event }
+                self.interaction.collapse()
+                return nil
             }
-        } else {
-            expandTask?.cancel()
-            expandTask = nil
-            if mode != .collapsed, !keepDockUntilHover { scheduleCollapse() }
+            if event.window !== panel { self.interaction.collapse() }
+            return event
         }
     }
 
-    private func scheduleExpansion() {
-        guard expandTask == nil else { return }
-        expandTask = Task { [weak self] in
-            do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
-            guard !Task.isCancelled, let self, let panel = self.panel else { return }
-            self.expandTask = nil
-            guard self.mode == .collapsed, self.dragStartFrame == nil,
-                  panel.frame.contains(NSEvent.mouseLocation) else { return }
-            self.expandDock()
-        }
-    }
-
-    private func expandDock() {
-        expandTask?.cancel()
-        expandTask = nil
-        keepDockUntilHover = true
-        collapseTask?.cancel()
-        setMode(.dock)
-    }
-
-    private func toggleDetail() {
-        collapseTask?.cancel()
-        setMode(mode == .detail ? .dock : .detail)
-        scheduleCollapse()
-    }
-
-    private func scheduleCollapse() {
-        collapseTask?.cancel()
-        collapseTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(350))
-                guard !Task.isCancelled, let self, let panel = self.panel else { return }
-                if self.dragStartFrame == nil, !panel.frame.contains(NSEvent.mouseLocation) {
-                    self.setMode(.collapsed)
-                    return
-                }
-            }
-        }
+    private func stopDismissMonitors() {
+        if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
+        if let localDismissMonitor { NSEvent.removeMonitor(localDismissMonitor) }
+        outsideClickMonitor = nil
+        localDismissMonitor = nil
     }
 
     private func setMode(_ newMode: EdgeRailPlacement.Mode) {
         guard let panel, mode != newMode else { return }
-        if newMode != .collapsed {
-            expandTask?.cancel()
-            expandTask = nil
-        }
         mode = newMode
         let visible = targetScreen(for: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
         let frame = layoutFrame(in: visible)
@@ -290,11 +282,8 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
 
     private func dragChanged(_ firstTranslation: CGSize) {
         guard let panel else { return }
-        expandTask?.cancel()
-        expandTask = nil
-        keepDockUntilHover = false
-        collapseTask?.cancel()
-        if mode == .detail { setMode(.dock) }
+        interaction.beginDrag()
+        if mode == .detail { interaction.showPreview() }
         let pointer = NSEvent.mouseLocation
         if dragStartFrame == nil {
             dragStartFrame = panel.frame
@@ -316,7 +305,7 @@ final class EdgeRailWindowController: NSObject, NSWindowDelegate {
         updateView()
         persist()
         onEdgeChanged?(edge)
-        if !panel.frame.contains(NSEvent.mouseLocation) { scheduleCollapse() }
+        interaction.endDrag()
     }
 
     private func targetScreen(for frame: CGRect?) -> NSScreen? {

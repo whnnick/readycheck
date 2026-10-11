@@ -455,6 +455,14 @@ private struct AccountTokenUsageView: View {
                 )
             }
 
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .top, spacing: 10) { comparisonCards }
+                VStack(alignment: .leading, spacing: 10) { comparisonCards }
+            }
+            Text(localization.text("usage.comparisonDateHelp"))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
             if visibleBuckets.isEmpty {
                 ContentUnavailableView {
                     Label(localization.text("usage.tokenEmptyTitle"), systemImage: "chart.bar.xaxis")
@@ -568,9 +576,66 @@ private struct AccountTokenUsageView: View {
     }
 
     private var visibleBuckets: [DatedBucket] {
-        let calendar = Calendar(identifier: .gregorian)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         let start = calendar.date(byAdding: .day, value: -(selectedRange.rawValue - 1), to: now) ?? now
         return datedBuckets.filter { $0.date >= calendar.startOfDay(for: start) && $0.date <= now }
+    }
+
+    @ViewBuilder
+    private var comparisonCards: some View {
+        comparisonCard(
+            title: localization.text("usage.todayComparison"),
+            currentLabel: localization.text("usage.todaySoFar"),
+            previousLabel: localization.text("usage.yesterday"),
+            comparison: .today(buckets: usage.dailyBuckets, now: now)
+        )
+        comparisonCard(
+            title: localization.text("usage.weekComparison"),
+            currentLabel: localization.text("usage.lastSevenDays"),
+            previousLabel: localization.text("usage.previousSevenDays"),
+            comparison: .week(buckets: usage.dailyBuckets, now: now)
+        )
+    }
+
+    private func comparisonCard(title: String, currentLabel: String, previousLabel: String,
+                                comparison: TokenUsageComparison) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.caption.weight(.medium)).foregroundStyle(.secondary)
+            HStack {
+                Text(currentLabel)
+                Spacer(minLength: 8)
+                Text(formattedTokenCount(comparison.current.total)).monospacedDigit()
+            }
+            .font(.subheadline.weight(.semibold))
+            HStack {
+                Text(previousLabel)
+                Spacer(minLength: 8)
+                Text(formattedTokenCount(comparison.previous.total)).monospacedDigit()
+            }
+            .font(.caption).foregroundStyle(.secondary)
+            Text(changeText(comparison))
+                .font(.caption).foregroundStyle(.secondary)
+            if comparison.current.total == nil || comparison.previous.total == nil {
+                Text(String(format: localization.text("usage.comparisonCoverage"),
+                            comparison.current.observedDays, comparison.current.expectedDays,
+                            comparison.previous.observedDays, comparison.previous.expectedDays))
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+        .frame(minWidth: 250, maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func changeText(_ comparison: TokenUsageComparison) -> String {
+        guard comparison.current.total != nil, comparison.previous.total != nil else {
+            return localization.text("usage.comparisonIncomplete")
+        }
+        guard let ratio = comparison.changeRatio else {
+            return localization.text("usage.comparisonZeroBaseline")
+        }
+        return String(format: localization.text("usage.comparisonChange"), ratio * 100)
     }
 
     private var streakText: String {
@@ -605,6 +670,10 @@ private struct AccountTokenUsageView: View {
             Text("\(bucket.tokens.formatted(.number)) \(localization.text("usage.tokens"))")
                 .font(.subheadline.weight(.semibold))
                 .monospacedDigit()
+            Text(localization.text("usage.comparedWithPreviousDay"))
+                .font(.caption2).foregroundStyle(.secondary)
+            Text(changeText(.today(buckets: usage.dailyBuckets, now: bucket.date)))
+                .font(.caption).foregroundStyle(.secondary)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 7)

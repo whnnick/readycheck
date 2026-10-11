@@ -1,4 +1,5 @@
 import AppKit
+import CoreServices
 import Observation
 import OSLog
 import ReadyCheckCore
@@ -58,6 +59,13 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
 
     static func main() {
         let application = NSApplication.shared
+        if Bundle.main.bundleURL.pathExtension == "app" {
+            let status = LSRegisterURL(Bundle.main.bundleURL as CFURL, true)
+            if status != noErr {
+                Logger(subsystem: "com.readycheck.app", category: "app-registration")
+                    .error("Application registration failed: \(status)")
+            }
+        }
         let delegate = ReadyCheckApplication()
         readyCheckApplicationDelegate = delegate
         application.delegate = delegate
@@ -69,6 +77,10 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(widgetOcclusionDidChange),
+            name: NSWindow.didChangeOcclusionStateNotification, object: nil
+        )
         NSWorkspace.shared.notificationCenter.addObserver(
             self, selector: #selector(systemDidWake), name: NSWorkspace.didWakeNotification, object: nil
         )
@@ -107,12 +119,21 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        NotificationCenter.default.removeObserver(self)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         appModel.stopRateLimitMonitoring()
     }
 
     @objc private func systemDidWake() {
         appModel.refreshAfterWake()
+    }
+
+    @objc private func widgetOcclusionDidChange(_ notification: Notification) {
+        guard let window = notification.object as? NSPanel,
+              window.collectionBehavior.contains(.stationary) else { return }
+        Logger(subsystem: "com.readycheck.app", category: "widget-spaces").debug(
+            "Widget visible=\(window.occlusionState.contains(.visible)) activeSpace=\(window.isOnActiveSpace) behavior=\(window.collectionBehavior.rawValue)"
+        )
     }
 
     private func configureStatusBarItem() {
@@ -219,6 +240,16 @@ final class ReadyCheckAppModel {
             floatingWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
             bubbleWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
             edgeRailWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
+        }
+    }
+    var widgetHideInFullscreen: Bool = UserDefaults.standard.object(forKey: "ReadyCheck.widgetHideInFullscreen.v1") as? Bool ?? true {
+        didSet {
+            guard widgetHideInFullscreen != oldValue else { return }
+            UserDefaults.standard.set(widgetHideInFullscreen, forKey: "ReadyCheck.widgetHideInFullscreen.v1")
+            floatingWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
+            bubbleWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
+            edgeRailWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
+            notchWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
         }
     }
     var widgetPresentation: WidgetPresentation = WidgetPresentationPreference.value() {

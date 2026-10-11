@@ -85,7 +85,7 @@ final class EdgeRailWidgetTests: XCTestCase {
 
         let detailHeight = EdgeRailPlacement.contentHeight(for: [hourly, weekly, extra], maximum: 700, mode: .detail)
         let detail = EdgeRailWidgetView(model: model, edge: .right, mode: .detail, height: detailHeight,
-            onHover: { _ in }, onExpand: {}, onToggleDetail: {}, onDragChanged: { _ in }, onDragEnded: {})
+            onHover: { _ in }, onExpand: {}, onToggleDetail: {}, onCollapse: {}, onDragChanged: { _ in }, onDragEnded: {})
         let host = NSHostingView(rootView: detail)
         host.frame = CGRect(x: 0, y: 0, width: EdgeRailPlacement.detailWidth, height: detailHeight)
         try capture(host, name: "extra-detail")

@@ -26,6 +26,14 @@ struct SettingsView: View {
                     DisclosureGroup(isExpanded: $isDisplaySettingsExpanded) {
                         VStack(alignment: .leading, spacing: 12) {
                             quotaWindowControls
+                            VStack(alignment: .leading, spacing: 5) {
+                                Toggle(model.localization.text("settings.hideInFullscreen"), isOn: $model.widgetHideInFullscreen)
+                                    .toggleStyle(.switch)
+                                    .controlSize(.small)
+                                Text(model.localization.text("settings.hideInFullscreenHelp"))
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            .padding(.horizontal, 14)
                             HStack(alignment: .top, spacing: 12) {
                                 widgetControls
                                 notchControls

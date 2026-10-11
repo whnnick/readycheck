@@ -75,6 +75,8 @@ scripts/sync_public_repo.sh --apply
 
 脚本会清理旧同步内容、排除内部 agent 与构建文件、执行敏感信息扫描和 `git diff --check`，但不会提交、打标签、推送或创建 Release。
 
+`marketing/hyperframes/videos`下的本地宣传工程及其截图、音频、第三方资源包不进入公开同步。宣传素材应单独审阅后发布，应用Release不上传这些本地工程目录。
+
 在 public sync 目录中运行：
 
 ```bash

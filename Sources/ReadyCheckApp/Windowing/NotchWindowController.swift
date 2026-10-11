@@ -49,7 +49,7 @@ final class NotchWindowController: NSObject {
         panel.contentViewController = NSHostingController(rootView: NotchStatusView(model: model))
         panel.setFrame(frame, display: false)
         panel.level = .statusBar
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+        panel.collectionBehavior = WidgetSpaceBehavior.collectionBehavior(hideInFullscreen: model.widgetHideInFullscreen).union(.ignoresCycle)
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = true
@@ -60,6 +60,10 @@ final class NotchWindowController: NSObject {
 
         window = panel
         observeScreenChanges(model: model)
+    }
+
+    func updateFullscreenBehavior(hideInFullscreen: Bool) {
+        window?.collectionBehavior = WidgetSpaceBehavior.collectionBehavior(hideInFullscreen: hideInFullscreen).union(.ignoresCycle)
     }
 
     func close() {

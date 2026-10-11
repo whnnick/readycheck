@@ -8,7 +8,13 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Latest release: [`0.1.132`](https://github.com/whnnick/readycheck/releases/tag/v0.1.132). Optional low-quota alerts, temporary widget hiding, visual style selection and data-status explanations. New features and recovery reminders are macOS-only.
+> Latest release: [`0.1.135`](https://github.com/whnnick/readycheck/releases/tag/v0.1.135). Optional full-screen widget hiding, Token period comparisons, reset countdowns and consistent widget interactions. New features and recovery reminders are macOS-only.
+
+**0.1.135** adds full-screen hiding and Token comparisons without new monitoring requests. See the [plan](docs/versions/0.1.135/PLAN.md) and [acceptance](docs/versions/0.1.135/QA.md).
+
+**0.1.134 local preview** adds reset countdowns and consistent hover-preview / click-to-keep-open behavior for round bubbles and edge rings. See the [plan](docs/versions/0.1.134/PLAN.md) and [acceptance](docs/versions/0.1.134/QA.md).
+
+**0.1.133 local preview** refreshes the macOS app-icon registration without changing the app identity. On October 10, the user confirmed that notification artwork displayed correctly after restarting the Mac with local 0.1.134 installed. See [acceptance](docs/versions/0.1.133/QA.md) for the local repair history.
 
 **0.1.132 preview** also includes the launch-at-login installation checks from 0.1.131. See the [plan](docs/versions/0.1.132/PLAN.md) and [acceptance checklist](docs/versions/0.1.132/QA.md).
 
@@ -73,7 +79,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.132-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.132-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.135-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.135-windows-x64-portable.zip`.
 
 For a local GUI launch, run `scripts/build_and_run.sh`. It packages and opens a complete app under `.build/run`, separate from release staging. Install the packaged app in Applications before configuring login startup for daily use.
 
@@ -100,6 +106,7 @@ npm run dev
 
 ## Documentation
 
+- [0.1.132 quieter-monitoring campaign](docs/versions/0.1.132/PROMO.md) | [Version index / 版本索引](docs/VERSIONS.md)
 - [0.1.130 Xiaohongshu campaign](docs/versions/0.1.130/PROMO.md) | [中文宣传素材](docs/versions/0.1.130/PROMO.zh-CN.md)
 - [0.1.130 bubble detail and quota-selection acceptance](docs/versions/0.1.130/QA.md) | [中文验收](docs/versions/0.1.130/QA.zh-CN.md)
 - [0.1.129 adaptive edge-ring acceptance](docs/versions/0.1.129/QA.md) | [中文验收](docs/versions/0.1.129/QA.zh-CN.md)

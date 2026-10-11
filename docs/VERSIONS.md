@@ -1,5 +1,13 @@
 # Version plans / 版本规划
 
+- [0.1.135 fullscreen and Token comparison plan](versions/0.1.135/PLAN.md) | [中文计划](versions/0.1.135/PLAN.zh-CN.md) | [Acceptance](versions/0.1.135/QA.md) | [中文验收](versions/0.1.135/QA.zh-CN.md)
+
+- [0.1.134 countdown and interaction plan](versions/0.1.134/PLAN.md) | [中文计划](versions/0.1.134/PLAN.zh-CN.md) | [Acceptance](versions/0.1.134/QA.md) | [中文验收](versions/0.1.134/QA.zh-CN.md)
+
+- [0.1.133 notification-icon plan](versions/0.1.133/PLAN.md) | [中文计划](versions/0.1.133/PLAN.zh-CN.md) | [Acceptance](versions/0.1.133/QA.md) | [中文验收](versions/0.1.133/QA.zh-CN.md)
+
+- [0.1.132 Xiaohongshu campaign](versions/0.1.132/PROMO.md) | [中文宣传素材](versions/0.1.132/PROMO.zh-CN.md)
+
 - [0.1.132 quieter widget plan](versions/0.1.132/PLAN.md) | [中文计划](versions/0.1.132/PLAN.zh-CN.md) | [Acceptance](versions/0.1.132/QA.md) | [中文验收](versions/0.1.132/QA.zh-CN.md)
 
 - [0.1.131 login startup fix plan](versions/0.1.131/PLAN.md) | [中文计划](versions/0.1.131/PLAN.zh-CN.md) | [Acceptance](versions/0.1.131/QA.md) | [中文验收](versions/0.1.131/QA.zh-CN.md)

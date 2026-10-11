@@ -75,6 +75,8 @@ scripts/sync_public_repo.sh --apply
 
 The script clears stale sync contents, excludes internal agent and build files, scans for sensitive data, and runs `git diff --check`. It never commits, tags, pushes, or creates a release.
 
+Local campaign projects under `marketing/hyperframes/videos` are excluded together with their captures, audio and vendor bundles. Publish selected promotional assets separately after reviewing them; application releases do not upload these local campaign directories.
+
 In the public sync directory:
 
 ```bash

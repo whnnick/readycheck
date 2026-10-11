@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.135 - 2026-10-11
+
+- Add optional hiding of widgets and notch status in native full-screen Spaces while monitoring and notifications continue. Preserve placement and temporary-hide deadlines.
+- Compare today so far with yesterday and the last seven complete UTC dates with the previous seven. Missing/invalid days remain unknown; zero baselines have no change percentage. Add previous-day change to Token hover details. Windows receives version metadata only.
+- Clear bubble/edge hover timers and expanded intent when switching Spaces; test preview re-entry and cancellation. Include the preceding countdown/interaction updates and user-confirmed notification-icon acceptance after a Mac restart.
+
+## 0.1.134 - 2026-10-09 (local preview)
+
+- Add countdowns for current, verified official quota reset times in bubble and edge-ring details; elapsed deadlines wait for a refresh rather than claiming recovery. Unknown or outdated data stays unconfirmed.
+- Unify 0.5-second hover previews, click-to-keep-open details, outside-click dismissal and Esc for focused details. Cancel hover timers during dragging and prevent immediate reopening after explicit dismissal. Increase bubble detail height to accommodate countdowns. Windows receives version metadata only.
+
+## 0.1.133 - 2026-10-09 (local preview)
+
+- Use content-addressed macOS app-icon resources and refresh the running bundle’s Launch Services registration before notification setup, so icon updates can be rediscovered while preserving the app identity. Packaging now requires a valid ICNS instead of silently falling back to an unreferenced PNG. Windows only shares the version.
+- Initial notification-icon acceptance failed after local registration and service maintenance. On October 10, the user confirmed correct artwork after restarting the Mac with 0.1.134 installed; see the [acceptance record](docs/versions/0.1.133/QA.md).
+
 ## 0.1.132 - 2026-10-08
 
 - Add optional low-quota notifications (20% or 10%) with per-account/window/cycle deduplication and verified delivery retries; hide widgets for 30/60 minutes without stopping monitoring, including early resume and restart restoration. Add visual style selection with placement hints and data-status explanations for source, freshness, missing fields and historical subscription dates. Windows only shares the version.

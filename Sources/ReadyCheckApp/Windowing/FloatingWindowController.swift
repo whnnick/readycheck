@@ -62,7 +62,7 @@ final class FloatingWindowController: NSObject, NSWindowDelegate {
         window.isOpaque = false
         window.hasShadow = false
         applyLevel(to: window, alwaysOnTop: model.widgetAlwaysOnTop)
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        window.collectionBehavior = WidgetSpaceBehavior.collectionBehavior(hideInFullscreen: model.widgetHideInFullscreen)
         window.delegate = self
 
         self.window = window
@@ -90,6 +90,10 @@ final class FloatingWindowController: NSObject, NSWindowDelegate {
 
     func resetPosition(model: ReadyCheckAppModel) {
         showAtDefaultPosition(model: model)
+    }
+
+    func updateFullscreenBehavior(hideInFullscreen: Bool) {
+        window?.collectionBehavior = WidgetSpaceBehavior.collectionBehavior(hideInFullscreen: hideInFullscreen)
     }
 
     func close() {

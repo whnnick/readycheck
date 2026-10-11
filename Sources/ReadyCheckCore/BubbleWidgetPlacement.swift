@@ -8,7 +8,7 @@ public enum BubbleWidgetPlacement {
 
     public static let bubbleSize = CGSize(width: 76, height: 76)
     public static let tabSize = CGSize(width: 66, height: 114)
-    public static let expandedSize = CGSize(width: 282, height: 156)
+    public static let expandedSize = CGSize(width: 282, height: 184)
     public static let snapDistance: CGFloat = 34
 
     public static func defaultFrame(in visibleFrame: CGRect) -> CGRect {

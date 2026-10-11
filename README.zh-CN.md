@@ -8,7 +8,13 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 最新发布版：[`0.1.132`](https://github.com/whnnick/readycheck/releases/tag/v0.1.132)。可选低额度提醒、临时隐藏浮窗、样式预览和数据状态说明；新增功能及恢复提醒仅支持 macOS。
+> 最新发布版：[`0.1.135`](https://github.com/whnnick/readycheck/releases/tag/v0.1.135)。可选全屏隐藏浮窗、Token时段对比、重置倒计时和统一浮窗交互；新增功能及恢复提醒仅支持 macOS。
+
+**0.1.135** 新增全屏隐藏开关和Token时段对比，不新增监控请求。参见[计划](docs/versions/0.1.135/PLAN.zh-CN.md)与[验收](docs/versions/0.1.135/QA.zh-CN.md)。
+
+**0.1.134 本地预览** 新增重置倒计时，统一圆形气泡与贴边圆环的悬停预览、点击固定和 Esc 收起操作。参见[计划](docs/versions/0.1.134/PLAN.zh-CN.md)和[验收](docs/versions/0.1.134/QA.zh-CN.md)。
+
+**0.1.133 本地预览** 更新 macOS 应用图标注册，保留应用身份。10月10日，用户确认在安装本地0.1.134后重启Mac，通知图标已恢复正确。本机修复过程参见[验收清单](docs/versions/0.1.133/QA.zh-CN.md)。
 
 **0.1.132 预览版**同时包含 0.1.131 的登录启动安装完整性检查。参见[计划](docs/versions/0.1.132/PLAN.zh-CN.md)与[验收清单](docs/versions/0.1.132/QA.zh-CN.md)。
 
@@ -73,7 +79,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.132-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.132-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.135-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.135-windows-x64-portable.zip`。
 
 本地启动图形界面请运行 `scripts/build_and_run.sh`。它在 `.build/run` 中打包并打开完整应用，与发布暂存目录分开。日常使用时，请先把完整应用安装到“应用程序”，再设置登录启动。
 
@@ -100,6 +106,7 @@ npm run dev
 
 ## 文档
 
+- [0.1.132 新功能宣传素材](docs/versions/0.1.132/PROMO.zh-CN.md) | [Version index / 版本索引](docs/VERSIONS.md)
 - [0.1.130 小红书宣传素材](docs/versions/0.1.130/PROMO.zh-CN.md) | [English campaign](docs/versions/0.1.130/PROMO.md)
 - [0.1.130 气泡详情与配额选择验收](docs/versions/0.1.130/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.130/QA.md)
 - [0.1.129 动态贴边圆环验收](docs/versions/0.1.129/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.129/QA.md)
