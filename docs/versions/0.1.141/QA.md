@@ -21,3 +21,5 @@ Completed: macOS bars, zero/unknown distinction, bilingual help, anonymous nativ
 Local package checks: fresh 0.1.141 DMG and Windows ZIP built successfully using the standard scripts and Node 24. Mounted DMG app version is 0.1.141 with valid strict stable signing; ZIP integrity passes. Windows automated packaging checks passed. Final public-snapshot artifact verification follows before upload.
 
 Final public-snapshot verification: all 270 Swift tests passed with no skips or failures. Fresh final DMG passes mounted version/signature verification; Windows packaging checks, ZIP integrity and output-directory checks pass.
+
+Remote release verified: public main and annotated tag point to 7a1c2344d2ed4fd39455395ec35efe982ce715c1. GitHub latest is v0.1.141 with exactly two uploaded assets. Both downloaded packages match GitHub SHA-256 digests; DMG app version/signature and Windows ZIP/ASAR version/content checks pass. Windows upload workflow run 38232211864 succeeded. [Release](https://github.com/whnnick/readycheck/releases/tag/v0.1.141).

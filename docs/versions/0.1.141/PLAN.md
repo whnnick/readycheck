@@ -9,3 +9,5 @@
 | Layout | Preserve expanded dimensions, dial, edge rails and pin interactions. Verify the native render and installed app. |
 
 Scope: macOS mini chart only, Windows version metadata synchronized. The user subsequently requested the full public release: fresh macOS DMG and Windows ZIP, sanitized source, tag, GitHub Release and remote verification.
+
+[Campaign and publishing acceptance](PROMO.md).

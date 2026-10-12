@@ -21,3 +21,5 @@
 本地安装包检查：使用标准脚本和Node 24成功重新构建0.1.141 DMG及Windows ZIP；挂载DMG内应用版本0.1.141，稳定签名严格验证通过；ZIP完整性及Windows打包自动检查通过。上传前继续校验公开快照最终产物。
 
 最终公开快照验证：全量270项Swift测试通过，无跳过/失败。新DMG挂载后版本及签名校验通过；Windows打包自动检查、ZIP完整性和产物目录检查通过。
+
+远端发布已验证：公开main及注释tag对应7a1c2344d2ed4fd39455395ec35efe982ce715c1，GitHub latest为v0.1.141且只有两个上传完成的安装包。两个下载包均匹配GitHub SHA-256，DMG内版本／签名及Windows ZIP／ASAR版本／内容检查通过。Windows上传工作流38232211864成功。[Release](https://github.com/whnnick/readycheck/releases/tag/v0.1.141)。

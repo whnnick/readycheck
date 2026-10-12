@@ -1,5 +1,7 @@
 # Version plans / 版本规划
 
+- [0.1.141 orbital console campaign](versions/0.1.141/PROMO.md) | [中文宣传素材](versions/0.1.141/PROMO.zh-CN.md)
+
 - [0.1.141 single consumption bars](versions/0.1.141/PLAN.md) | [中文计划](versions/0.1.141/PLAN.zh-CN.md) | [Acceptance](versions/0.1.141/QA.md) | [中文验收](versions/0.1.141/QA.zh-CN.md)
 - [0.1.140 clear detail pin](versions/0.1.140/PLAN.md) | [中文计划](versions/0.1.140/PLAN.zh-CN.md) | [Acceptance](versions/0.1.140/QA.md) | [中文验收](versions/0.1.140/QA.zh-CN.md)
 - [0.1.139 smaller dial and clean outline](versions/0.1.139/PLAN.md) | [中文计划](versions/0.1.139/PLAN.zh-CN.md) | [Acceptance](versions/0.1.139/QA.md) | [中文验收](versions/0.1.139/QA.zh-CN.md)

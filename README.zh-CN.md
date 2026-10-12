@@ -12,7 +12,7 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
 
 **0.1.135** 新增全屏隐藏开关和Token时段对比，不新增监控请求。参见[计划](docs/versions/0.1.135/PLAN.zh-CN.md)与[验收](docs/versions/0.1.135/QA.zh-CN.md)。
 
-**0.1.141**将最近一小时额度消耗改回柱状图，每五分钟一根柱，暗色短刻度表示零，缺失数据留空。参见[计划](docs/versions/0.1.141/PLAN.zh-CN.md)与[验收](docs/versions/0.1.141/QA.zh-CN.md)。
+**0.1.141**将最近一小时额度消耗改回柱状图，每五分钟一根柱，暗色短刻度表示零，缺失数据留空。参见[计划](docs/versions/0.1.141/PLAN.zh-CN.md)与[验收](docs/versions/0.1.141/QA.zh-CN.md)。 [宣传素材验收](docs/versions/0.1.141/PROMO.zh-CN.md).
 
 **0.1.140**让详情固定按钮持续显示，固定后高亮，悬停提示明确用途；再次点击恢复悬停预览，不改变窗口置顶。参见[计划](docs/versions/0.1.140/PLAN.zh-CN.md)与[验收](docs/versions/0.1.140/QA.zh-CN.md)。
 

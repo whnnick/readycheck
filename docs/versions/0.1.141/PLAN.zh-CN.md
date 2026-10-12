@@ -9,3 +9,5 @@
 | 布局 | 保持展开尺寸、表盘、贴边竖条和固定交互，检查原生渲染与安装版。 |
 
 范围：仅修改macOS迷你图，Windows同步版本信息。用户随后授权完整公开发布：新macOS DMG和Windows ZIP、净化源码、tag、GitHub Release及远端校验。
+
+[宣传素材与发布验收](PROMO.zh-CN.md)。

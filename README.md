@@ -12,7 +12,7 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
 
 **0.1.135** adds full-screen hiding and Token comparisons without new monitoring requests. See the [plan](docs/versions/0.1.135/PLAN.md) and [acceptance](docs/versions/0.1.135/QA.md).
 
-**0.1.141** restores single bars for recent-hour quota consumption, one per five-minute bin. Dim ticks mark zero and empty slots remain unknown. See the [plan](docs/versions/0.1.141/PLAN.md) and [acceptance](docs/versions/0.1.141/QA.md).
+**0.1.141** restores single bars for recent-hour quota consumption, one per five-minute bin. Dim ticks mark zero and empty slots remain unknown. See the [plan](docs/versions/0.1.141/PLAN.md) and [acceptance](docs/versions/0.1.141/QA.md). [Campaign acceptance](docs/versions/0.1.141/PROMO.md).
 
 **0.1.140** keeps the detail pin visible, highlights its active state and explains its purpose in a tooltip. Click again to return to hover preview; it does not change window always-on-top. See the [plan](docs/versions/0.1.140/PLAN.md) and [acceptance](docs/versions/0.1.140/QA.md).
 

@@ -2,6 +2,7 @@
 
 ## 0.1.141 - 2026-10-12
 
+- Document the 35-second current-widget campaign, Chinese narration, new original music, media validation and actual platform submission states; no application behavior change.
 - Restore recent-hour quota consumption bars, with one bar per five-minute bin rather than repeated groups. Keep proportional heights, dim zero ticks and blank missing bins; update both-language help. Preserve the compact bubble layout and interactions. Windows version metadata only.
 
 ## 0.1.140 - 2026-10-12
