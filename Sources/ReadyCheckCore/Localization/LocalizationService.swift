@@ -17,7 +17,7 @@ public struct LocalizationService: Equatable, Sendable {
     private static let tables: [AppLanguage: [String: String]] = [
         .enUS: [
             "orbital.recentConsumption": "%@ · Last hour",
-            "orbital.trendHelp": "Each point shows observed quota decrease over five minutes, in percentage points. Gaps are unknown; resets, recovery and gaps over 10 minutes are excluded. This is not remaining quota or Token usage.",
+            "orbital.trendHelp": "Each bar shows observed quota decrease over five minutes, in percentage points. Dim ticks mean zero; empty slots are unknown. Resets, recovery and gaps over 10 minutes are excluded. This is not remaining quota or Token usage.",
             "orbital.collecting": "Waiting for enough observations",
             "recovery.automatic": "Automatic recovery alerts",
             "recovery.waiting": "Monitoring quota increases in each window.",
@@ -401,7 +401,7 @@ public struct LocalizationService: Equatable, Sendable {
         ],
         .zhCN: [
             "orbital.recentConsumption": "%@ · 最近一小时消耗",
-            "orbital.trendHelp": "每个点表示五分钟内观测到的额度下降，单位百分点；空缺为未知。重置、恢复及超过10分钟的间隔不计消耗，不代表剩余额度或Token数量。",
+            "orbital.trendHelp": "每根柱表示五分钟内观测到的额度下降，单位百分点；暗色短刻度表示零，空缺为未知。重置、恢复及超过10分钟的间隔不计消耗，不代表剩余额度或Token数量。",
             "orbital.collecting": "等待足够的观测记录",
             "recovery.automatic": "额度恢复自动提醒",
             "recovery.waiting": "正在监听各额度窗口的剩余额度回升。",

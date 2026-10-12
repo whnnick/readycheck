@@ -8,9 +8,11 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Latest release: [`0.1.140`](https://github.com/whnnick/readycheck/releases/tag/v0.1.140). Compact concentric quota dial, recent-hour consumption line, thin edge rails and a persistent detail pin with clear tooltips. New widget features and recovery reminders are macOS-only.
+> Latest release: [`0.1.141`](https://github.com/whnnick/readycheck/releases/tag/v0.1.141). Compact concentric quota dial, single recent-hour consumption bars, thin edge rails and a persistent detail pin with clear tooltips. New widget features and recovery reminders are macOS-only.
 
 **0.1.135** adds full-screen hiding and Token comparisons without new monitoring requests. See the [plan](docs/versions/0.1.135/PLAN.md) and [acceptance](docs/versions/0.1.135/QA.md).
+
+**0.1.141** restores single bars for recent-hour quota consumption, one per five-minute bin. Dim ticks mark zero and empty slots remain unknown. See the [plan](docs/versions/0.1.141/PLAN.md) and [acceptance](docs/versions/0.1.141/QA.md).
 
 **0.1.140** keeps the detail pin visible, highlights its active state and explains its purpose in a tooltip. Click again to return to hover preview; it does not change window always-on-top. See the [plan](docs/versions/0.1.140/PLAN.md) and [acceptance](docs/versions/0.1.140/QA.md).
 
@@ -81,7 +83,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.140-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.140-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.141-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.141-windows-x64-portable.zip`.
 
 For a local GUI launch, run `scripts/build_and_run.sh`. It packages and opens a complete app under `.build/run`, separate from release staging. Install the packaged app in Applications before configuring login startup for daily use.
 

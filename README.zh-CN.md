@@ -8,9 +8,11 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 最新发布版：[`0.1.140`](https://github.com/whnnick/readycheck/releases/tag/v0.1.140)。紧凑同心额度表盘、最近一小时消耗曲线、贴边细竖条，以及常驻且带清晰提示的详情固定按钮；新增浮窗功能及恢复提醒仅支持 macOS。
+> 最新发布版：[`0.1.141`](https://github.com/whnnick/readycheck/releases/tag/v0.1.141)。紧凑同心额度表盘、最近一小时单柱消耗图、贴边细竖条，以及常驻且带清晰提示的详情固定按钮；新增浮窗功能及恢复提醒仅支持 macOS。
 
 **0.1.135** 新增全屏隐藏开关和Token时段对比，不新增监控请求。参见[计划](docs/versions/0.1.135/PLAN.zh-CN.md)与[验收](docs/versions/0.1.135/QA.zh-CN.md)。
+
+**0.1.141**将最近一小时额度消耗改回柱状图，每五分钟一根柱，暗色短刻度表示零，缺失数据留空。参见[计划](docs/versions/0.1.141/PLAN.zh-CN.md)与[验收](docs/versions/0.1.141/QA.zh-CN.md)。
 
 **0.1.140**让详情固定按钮持续显示，固定后高亮，悬停提示明确用途；再次点击恢复悬停预览，不改变窗口置顶。参见[计划](docs/versions/0.1.140/PLAN.zh-CN.md)与[验收](docs/versions/0.1.140/QA.zh-CN.md)。
 
@@ -81,7 +83,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.140-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.140-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.141-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.141-windows-x64-portable.zip`。
 
 本地启动图形界面请运行 `scripts/build_and_run.sh`。它在 `.build/run` 中打包并打开完整应用，与发布暂存目录分开。日常使用时，请先把完整应用安装到“应用程序”，再设置登录启动。
 

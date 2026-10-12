@@ -132,6 +132,20 @@ final class EdgeRailWidgetTests: XCTestCase {
         englishPreviewHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
         try capture(englishPreviewHost, name: "bubble-preview-en-demo")
         model.language = .zhCN
+        let observedSamples = model.quotaHistorySamples
+        for (name, indices) in [("bubble-zero-bars-demo", Array(0..<12)),
+                                ("bubble-missing-bars-demo", [0, 1, 2, 7, 8, 9])] {
+            model.quotaHistorySamples = indices.map { index in
+                QuotaHistorySample(providerID: "codex-oauth",
+                    recordedAt: capturedAt.addingTimeInterval(Double(index - 12) * 300),
+                    values: [QuotaHistoryValue(windowID: hourly.id, labelKey: hourly.labelKey,
+                        remainingRatio: 0.5, resetAt: hourly.resetAt)])
+            }
+            let chartHost = NSHostingView(rootView: view)
+            chartHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
+            try capture(chartHost, name: name)
+        }
+        model.quotaHistorySamples = observedSamples
         let mirrored = BubbleWidgetView(model: model, isExpanded: true, tabEdge: nil, expansionSide: .left,
             onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
         let leftHost = NSHostingView(rootView: mirrored)

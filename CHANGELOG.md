@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.141 - 2026-10-12
+
+- Restore recent-hour quota consumption bars, with one bar per five-minute bin rather than repeated groups. Keep proportional heights, dim zero ticks and blank missing bins; update both-language help. Preserve the compact bubble layout and interactions. Windows version metadata only.
+
 ## 0.1.140 - 2026-10-12
 
 - Keep the bubble's detail pin visible in both states; use a filled blue pin while details are kept open. Add state-specific tooltips explaining pointer-exit behavior and that this is separate from always-on-top.
