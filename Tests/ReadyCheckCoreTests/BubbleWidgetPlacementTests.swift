@@ -17,7 +17,7 @@ final class BubbleWidgetPlacementTests: XCTestCase {
 
         let tab = BubbleWidgetPlacement.tabFrame(from: dragged, edge: .right, in: display)
         let expanded = BubbleWidgetPlacement.expandedFrame(from: tab, edge: .right, in: display)
-        XCTAssertEqual(tab.size, CGSize(width: 66, height: 114))
+        XCTAssertEqual(tab.size, CGSize(width: 28, height: 144))
         XCTAssertEqual(tab.maxX, display.maxX)
         XCTAssertEqual(expanded.maxX, display.maxX)
         XCTAssertTrue(display.contains(expanded))
@@ -64,5 +64,33 @@ final class BubbleWidgetPlacementTests: XCTestCase {
         )
         XCTAssertEqual(moved.origin, CGPoint(x: -160, y: 360))
         XCTAssertEqual(moved.size, start.size)
+    }
+
+    func testFreeBubbleExpandsTowardRoomWhileKeepingDialCenter() {
+        for x: CGFloat in [-1600, -400] {
+            let rest = CGRect(origin: CGPoint(x: x, y: 400), size: BubbleWidgetPlacement.bubbleSize)
+            let expanded = BubbleWidgetPlacement.expandedFrame(from: rest, edge: nil, in: display)
+            let side = BubbleWidgetPlacement.expansionEdge(from: rest, edge: nil, in: display)
+            let radius = BubbleWidgetPlacement.dialDiameter(in: expanded.size) / 2
+            let dialX = side == .left ? expanded.minX + radius : expanded.maxX - radius
+            XCTAssertEqual(dialX, rest.midX)
+            XCTAssertEqual(expanded.midY, rest.midY)
+            XCTAssertTrue(display.contains(expanded))
+        }
+    }
+
+    func testExpandedDialLeavesMoreWidthForDetails() {
+        let size = BubbleWidgetPlacement.expandedSize
+        let diameter = BubbleWidgetPlacement.dialDiameter(in: size)
+        XCTAssertEqual(diameter, 176)
+        XCTAssertGreaterThan(size.width - diameter, diameter)
+        XCTAssertEqual(BubbleWidgetPlacement.dialDiameter(in: BubbleWidgetPlacement.bubbleSize), 92)
+        XCTAssertEqual(BubbleWidgetPlacement.dialDiameter(in: BubbleWidgetPlacement.tabSize), 28)
+    }
+
+    func testExpandedSurfaceFitsSmallDisplay() {
+        let small = CGRect(x: -320, y: 40, width: 320, height: 200)
+        let rest = CGRect(x: -150, y: 100, width: 92, height: 92)
+        XCTAssertTrue(small.contains(BubbleWidgetPlacement.expandedFrame(from: rest, edge: nil, in: small)))
     }
 }

@@ -63,6 +63,17 @@ final class WidgetInteractionController {
         setState(.pinned)
     }
 
+    func togglePin() {
+        guard state != .collapsed, !isDragging else { return }
+        cancelTimers()
+        requiresExit = false
+        if state == .preview { setState(.pinned) }
+        else {
+            setState(.preview)
+            if !isInside { hoverChanged(false) }
+        }
+    }
+
     func showPreview() {
         cancelTimers()
         requiresExit = false

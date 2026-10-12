@@ -16,6 +16,9 @@ public struct LocalizationService: Equatable, Sendable {
 
     private static let tables: [AppLanguage: [String: String]] = [
         .enUS: [
+            "orbital.recentConsumption": "%@ · Last hour",
+            "orbital.trendHelp": "Each point shows observed quota decrease over five minutes, in percentage points. Gaps are unknown; resets, recovery and gaps over 10 minutes are excluded. This is not remaining quota or Token usage.",
+            "orbital.collecting": "Waiting for enough observations",
             "recovery.automatic": "Automatic recovery alerts",
             "recovery.waiting": "Monitoring quota increases in each window.",
             "recovery.monitoring": "Monitoring. Alerts when remaining quota increases, even before exhaustion.",
@@ -54,6 +57,11 @@ public struct LocalizationService: Equatable, Sendable {
             "bubble.openDetails": "Show Codex quota details",
             "widget.previewHint": "Hover to preview · click to keep open",
             "widget.pinDetails": "Keep details open",
+            "widget.unpinDetails": "Stop keeping details open",
+            "widget.pinHelp": "Keep details open when the pointer leaves. This does not keep the window on top. Click again to cancel.",
+            "widget.unpinHelp": "Details stay open when the pointer leaves. Click to return to hover preview. This does not keep the window on top.",
+            "widget.pinStateOn": "Kept open",
+            "widget.pinStateOff": "Hover preview",
             "widget.pinnedHint": "Click outside or press Esc to close",
             "quota.resetUnknown": "Reset time unconfirmed",
             "quota.resetAwaitingRefresh": "Waiting for refresh confirmation",
@@ -392,6 +400,9 @@ public struct LocalizationService: Equatable, Sendable {
             "quota.window.openai.monthly": "Monthly spend"
         ],
         .zhCN: [
+            "orbital.recentConsumption": "%@ · 最近一小时消耗",
+            "orbital.trendHelp": "每个点表示五分钟内观测到的额度下降，单位百分点；空缺为未知。重置、恢复及超过10分钟的间隔不计消耗，不代表剩余额度或Token数量。",
+            "orbital.collecting": "等待足够的观测记录",
             "recovery.automatic": "额度恢复自动提醒",
             "recovery.waiting": "正在监听各额度窗口的剩余额度回升。",
             "recovery.monitoring": "监听中。剩余额度回升就提醒，无需先耗尽。",
@@ -430,6 +441,11 @@ public struct LocalizationService: Equatable, Sendable {
             "bubble.openDetails": "查看 Codex 额度详情",
             "widget.previewHint": "悬停预览 · 点击保持展开",
             "widget.pinDetails": "保持详情展开",
+            "widget.unpinDetails": "取消保持详情展开",
+            "widget.pinHelp": "鼠标移开后仍保持详情展开，不是窗口置顶。再次点击可取消。",
+            "widget.unpinHelp": "已保持详情展开，鼠标移开也不会收起。点击恢复悬停预览，不是窗口置顶。",
+            "widget.pinStateOn": "已保持展开",
+            "widget.pinStateOff": "悬停预览",
             "widget.pinnedHint": "点击外部或按 Esc 收起",
             "quota.resetUnknown": "重置时间未确认",
             "quota.resetAwaitingRefresh": "等待刷新确认",

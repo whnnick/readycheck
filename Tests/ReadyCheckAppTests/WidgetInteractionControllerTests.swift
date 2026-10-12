@@ -4,6 +4,44 @@ import XCTest
 
 @MainActor
 final class WidgetInteractionControllerTests: XCTestCase {
+    func testPinToggleKeepsOpenAndUnpinRestoresExitDismissal() async throws {
+        let interaction = makeInteraction()
+        var inside = true
+        interaction.containsPointer = { inside }
+        interaction.showPreview()
+        interaction.hoverChanged(true)
+        interaction.togglePin()
+        XCTAssertEqual(interaction.state, .pinned)
+        inside = false
+        interaction.hoverChanged(false)
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertEqual(interaction.state, .pinned)
+        inside = true
+        interaction.hoverChanged(true)
+        interaction.togglePin()
+        XCTAssertEqual(interaction.state, .preview)
+        inside = false
+        interaction.hoverChanged(false)
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertEqual(interaction.state, .collapsed)
+    }
+
+    func testUnpinOutsideSchedulesDismissalAndDraggingCannotToggle() async throws {
+        let interaction = makeInteraction()
+        interaction.containsPointer = { false }
+        interaction.togglePin()
+        XCTAssertEqual(interaction.state, .collapsed)
+        interaction.click()
+        interaction.beginDrag()
+        interaction.togglePin()
+        XCTAssertEqual(interaction.state, .pinned)
+        interaction.endDrag()
+        interaction.togglePin()
+        XCTAssertEqual(interaction.state, .preview)
+        try await Task.sleep(for: .milliseconds(100))
+        XCTAssertEqual(interaction.state, .collapsed)
+    }
+
     func testBriefHoverNeverOpensAndExitClosesOnlyPreview() async throws {
         let interaction = makeInteraction()
         interaction.containsPointer = { false }

@@ -7,8 +7,76 @@ import UserNotifications
 
 @MainActor
 final class EdgeRailWidgetTests: XCTestCase {
+    func testOrbitalMaskStaysWithinWindowThroughoutExpansion() {
+        for start in [BubbleWidgetPlacement.bubbleSize, BubbleWidgetPlacement.tabSize] {
+            for step in 0...20 {
+                let t = CGFloat(step) / 20
+                let end = BubbleWidgetPlacement.expandedSize
+                let bounds = CGRect(x: 0, y: 0, width: start.width + (end.width - start.width) * t,
+                    height: start.height + (end.height - start.height) * t)
+                for left in [false, true] {
+                    let path = OrbitalWidgetShape(orbOnLeft: left, tabProgress: start == BubbleWidgetPlacement.tabSize ? 1 - t : 0)
+                        .path(in: bounds)
+                    // Non-cardinal circular arcs are approximated with cubic segments.
+                    let subpixelTolerance: CGFloat = 0.1
+                    XCTAssertGreaterThanOrEqual(path.boundingRect.minX, -subpixelTolerance)
+                    XCTAssertLessThanOrEqual(path.boundingRect.maxX, bounds.width + subpixelTolerance)
+                    XCTAssertGreaterThanOrEqual(path.boundingRect.minY, -subpixelTolerance)
+                    XCTAssertLessThanOrEqual(path.boundingRect.maxY, bounds.height + subpixelTolerance)
+                    XCTAssertTrue(path.contains(CGPoint(x: bounds.midX, y: bounds.midY)))
+                }
+            }
+        }
+    }
+
+    func testBubbleWindowContentFollowsEdgeAndExpandedSizes() throws {
+        _ = NSApplication.shared
+        let defaults = UserDefaults.standard
+        let key = "ReadyCheck.bubbleWidgetFrame.v1"
+        let saved = defaults.object(forKey: key)
+        let visible = try XCTUnwrap(NSScreen.main).visibleFrame
+        defaults.set(NSStringFromRect(CGRect(x: visible.maxX - 66, y: visible.minY + 150,
+            width: 66, height: 114)), forKey: key)
+        let controller = BubbleWindowController()
+        let model = ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
+            client: RailTestNotificationClient(), verificationDelays: []))
+        let previous = Set(NSApp.windows.map(\.windowNumber))
+        defer {
+            controller.close()
+            if let saved { defaults.set(saved, forKey: key) }
+            else { defaults.removeObject(forKey: key) }
+        }
+        controller.show(model: model)
+        let panel = try XCTUnwrap(NSApp.windows.first { $0 is QuotaWidgetPanel && !previous.contains($0.windowNumber) })
+        XCTAssertTrue(panel.allowsToolTipsWhenApplicationIsInactive)
+        let container = try XCTUnwrap(panel.contentViewController)
+        let host = try XCTUnwrap(container.children.first as? NSHostingController<BubbleWidgetView>)
+        host.rootView.onTap()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+        if !NSApp.isActive && !panel.isKeyWindow {
+            throw XCTSkip("Pinned-window sizing needs an unlocked foreground session; the panel could not retain keyboard focus.")
+        }
+        XCTAssertEqual(panel.frame.size, BubbleWidgetPlacement.expandedSize)
+        XCTAssertEqual(container.view.bounds.size, panel.frame.size)
+        XCTAssertEqual(host.view.bounds.size, panel.frame.size)
+        XCTAssertEqual(try XCTUnwrap(container.view.layer?.mask).contentsScale, panel.backingScaleFactor)
+        host.rootView.onTogglePin()
+        XCTAssertFalse(panel.canBecomeKey)
+        host.rootView.onTogglePin()
+        XCTAssertTrue(panel.canBecomeKey)
+        host.rootView.onCollapse()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+        XCTAssertEqual(panel.frame.size, BubbleWidgetPlacement.tabSize)
+        XCTAssertEqual(host.view.bounds.size, panel.frame.size)
+    }
+
     func testBubbleDetailsRetainEveryWindowAndRecoverSavedSelectionAfterRefresh() throws {
         _ = NSApplication.shared
+        let previousIcon = NSApp.applicationIconImage
+        if let path = ProcessInfo.processInfo.environment["READYCHECK_UI_APP_ICON"], let image = NSImage(contentsOfFile: path) {
+            NSApp.applicationIconImage = image
+        }
+        defer { NSApp.applicationIconImage = previousIcon }
         let keys = ["ReadyCheck.quotaWindowSelection.v2", "ReadyCheck.notchQuotaSelection.v1"]
         let defaults = UserDefaults.standard
         let saved = keys.map { defaults.object(forKey: $0) }
@@ -38,6 +106,43 @@ final class EdgeRailWidgetTests: XCTestCase {
             let host = NSHostingView(rootView: view)
             host.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
             try capture(host, name: name)
+        }
+        model.notchQuotaSelection = .fiveHour
+        model.snapshots = [snapshot([hourly, weekly])]
+        let capturedAt = Date()
+        let drops = [0.003, 0.010, 0.025, 0.006, 0.002, 0.004, 0.015, 0.008, 0.021, 0.009, 0.007]
+        model.quotaHistorySamples = (0..<12).map { index in
+            QuotaHistorySample(providerID: "codex-oauth", recordedAt: capturedAt.addingTimeInterval(Double(index - 12) * 300),
+                values: [QuotaHistoryValue(windowID: hourly.id, labelKey: hourly.labelKey,
+                    remainingRatio: 0.24 - drops.prefix(index).reduce(0, +), resetAt: hourly.resetAt)])
+        }
+        let finalHost = NSHostingView(rootView: view)
+        finalHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
+        try capture(finalHost, name: "bubble-unified-demo")
+        let preview = BubbleWidgetView(model: model, isExpanded: true, isPinned: false, tabEdge: nil,
+            onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
+        let previewHost = NSHostingView(rootView: preview)
+        previewHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
+        try capture(previewHost, name: "bubble-preview-demo")
+        model.language = .enUS
+        let englishHost = NSHostingView(rootView: view)
+        englishHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
+        try capture(englishHost, name: "bubble-english-demo")
+        let englishPreviewHost = NSHostingView(rootView: preview)
+        englishPreviewHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
+        try capture(englishPreviewHost, name: "bubble-preview-en-demo")
+        model.language = .zhCN
+        let mirrored = BubbleWidgetView(model: model, isExpanded: true, tabEdge: nil, expansionSide: .left,
+            onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
+        let leftHost = NSHostingView(rootView: mirrored)
+        leftHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
+        try capture(leftHost, name: "bubble-left-demo")
+        for edge in [BubbleWidgetPlacement.Edge.left, .right] {
+            let rail = BubbleWidgetView(model: model, isExpanded: false, tabEdge: edge,
+                onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
+            let railHost = NSHostingView(rootView: rail)
+            railHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.tabSize)
+            try capture(railHost, name: "bubble-rail-" + edge.rawValue)
         }
     }
 
@@ -95,7 +200,8 @@ final class EdgeRailWidgetTests: XCTestCase {
         let label = minutes == 300 ? "quota.window.codex.5h" : minutes == 10_080 ? "quota.window.codex.7d" : "quota.window.dynamic"
         return QuotaWindow(id: id, labelKey: label, displayLabel: name, kind: .rolling,
             used: 100 - remaining, limit: 100, remaining: remaining, unit: .percent,
-            resetAt: Date().addingTimeInterval(3600), confidence: .verified, durationMinutes: minutes)
+            resetAt: Date().addingTimeInterval(minutes == 10_080 ? 6 * 86_400 + 5 * 3600 : 3600),
+            confidence: .verified, durationMinutes: minutes)
     }
 
     private func snapshot(_ windows: [QuotaWindow]) -> ProviderQuotaSnapshot {

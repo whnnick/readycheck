@@ -6,10 +6,17 @@ public enum BubbleWidgetPlacement {
         case right
     }
 
-    public static let bubbleSize = CGSize(width: 76, height: 76)
-    public static let tabSize = CGSize(width: 66, height: 114)
-    public static let expandedSize = CGSize(width: 282, height: 184)
+    public static let bubbleSize = CGSize(width: 92, height: 92)
+    public static let tabSize = CGSize(width: 28, height: 144)
+    public static let expandedSize = CGSize(width: 500, height: 248)
+    public static let expandedDialDiameter: CGFloat = 176
     public static let snapDistance: CGFloat = 34
+
+    public static func dialDiameter(in size: CGSize) -> CGFloat {
+        let circle = min(size.width, size.height)
+        let reveal = min(1, max(0, (size.width - size.height) / (expandedSize.width - expandedSize.height)))
+        return circle + (min(expandedDialDiameter, circle) - circle) * reveal
+    }
 
     public static func defaultFrame(in visibleFrame: CGRect) -> CGRect {
         CGRect(
@@ -51,12 +58,26 @@ public enum BubbleWidgetPlacement {
     }
 
     public static func expandedFrame(from restingFrame: CGRect, edge: Edge?, in visibleFrame: CGRect) -> CGRect {
-        let proposedX = edge == .left ? visibleFrame.minX : restingFrame.maxX - expandedSize.width
-        let x = clamp(proposedX, lower: visibleFrame.minX, upper: visibleFrame.maxX - expandedSize.width)
-        let y = clamp(restingFrame.midY - expandedSize.height / 2,
+        let size = CGSize(width: min(expandedSize.width, visibleFrame.width),
+                          height: min(expandedSize.height, visibleFrame.height))
+        let side = expansionEdge(from: restingFrame, edge: edge, in: visibleFrame)
+        let proposedX: CGFloat
+        if let edge {
+            proposedX = edge == .left ? visibleFrame.minX : visibleFrame.maxX - size.width
+        } else {
+            let radius = dialDiameter(in: size) / 2
+            proposedX = side == .left ? restingFrame.midX - radius
+                : restingFrame.midX + radius - size.width
+        }
+        let x = clamp(proposedX, lower: visibleFrame.minX, upper: visibleFrame.maxX - size.width)
+        let y = clamp(restingFrame.midY - size.height / 2,
                       lower: visibleFrame.minY,
-                      upper: visibleFrame.maxY - expandedSize.height)
-        return CGRect(origin: CGPoint(x: x, y: y), size: expandedSize)
+                      upper: visibleFrame.maxY - size.height)
+        return CGRect(origin: CGPoint(x: x, y: y), size: size)
+    }
+
+    public static func expansionEdge(from restingFrame: CGRect, edge: Edge?, in visibleFrame: CGRect) -> Edge {
+        edge ?? (restingFrame.midX < visibleFrame.midX ? .left : .right)
     }
 
     public static func clamped(_ frame: CGRect, in visibleFrame: CGRect) -> CGRect {

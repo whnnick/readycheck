@@ -8,9 +8,11 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Latest release: [`0.1.135`](https://github.com/whnnick/readycheck/releases/tag/v0.1.135). Optional full-screen widget hiding, Token period comparisons, reset countdowns and consistent widget interactions. New features and recovery reminders are macOS-only.
+> Latest release: [`0.1.140`](https://github.com/whnnick/readycheck/releases/tag/v0.1.140). Compact concentric quota dial, recent-hour consumption line, thin edge rails and a persistent detail pin with clear tooltips. New widget features and recovery reminders are macOS-only.
 
 **0.1.135** adds full-screen hiding and Token comparisons without new monitoring requests. See the [plan](docs/versions/0.1.135/PLAN.md) and [acceptance](docs/versions/0.1.135/QA.md).
+
+**0.1.140** keeps the detail pin visible, highlights its active state and explains its purpose in a tooltip. Click again to return to hover preview; it does not change window always-on-top. See the [plan](docs/versions/0.1.140/PLAN.md) and [acceptance](docs/versions/0.1.140/QA.md).
 
 **0.1.134 local preview** adds reset countdowns and consistent hover-preview / click-to-keep-open behavior for round bubbles and edge rings. See the [plan](docs/versions/0.1.134/PLAN.md) and [acceptance](docs/versions/0.1.134/QA.md).
 
@@ -79,7 +81,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.135-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.135-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.140-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.140-windows-x64-portable.zip`.
 
 For a local GUI launch, run `scripts/build_and_run.sh`. It packages and opens a complete app under `.build/run`, separate from release staging. Install the packaged app in Applications before configuring login startup for daily use.
 

@@ -1,5 +1,11 @@
 # Version plans / 版本规划
 
+- [0.1.140 clear detail pin](versions/0.1.140/PLAN.md) | [中文计划](versions/0.1.140/PLAN.zh-CN.md) | [Acceptance](versions/0.1.140/QA.md) | [中文验收](versions/0.1.140/QA.zh-CN.md)
+- [0.1.139 smaller dial and clean outline](versions/0.1.139/PLAN.md) | [中文计划](versions/0.1.139/PLAN.zh-CN.md) | [Acceptance](versions/0.1.139/QA.md) | [中文验收](versions/0.1.139/QA.zh-CN.md)
+- [0.1.138 compact bubble and consumption line](versions/0.1.138/PLAN.md) | [中文计划](versions/0.1.138/PLAN.zh-CN.md) | [Acceptance](versions/0.1.138/QA.md) | [中文验收](versions/0.1.138/QA.zh-CN.md)
+- [0.1.137 sculpted orbital bubble and edge rails](versions/0.1.137/PLAN.md) | [中文计划](versions/0.1.137/PLAN.zh-CN.md) | [Acceptance](versions/0.1.137/QA.md) | [中文验收](versions/0.1.137/QA.zh-CN.md)
+- [0.1.136 continuous orbital bubble](versions/0.1.136/PLAN.md) | [中文计划](versions/0.1.136/PLAN.zh-CN.md) | [Acceptance](versions/0.1.136/QA.md) | [中文验收](versions/0.1.136/QA.zh-CN.md)
+
 - [0.1.135 fullscreen and Token comparison plan](versions/0.1.135/PLAN.md) | [中文计划](versions/0.1.135/PLAN.zh-CN.md) | [Acceptance](versions/0.1.135/QA.md) | [中文验收](versions/0.1.135/QA.zh-CN.md)
 
 - [0.1.134 countdown and interaction plan](versions/0.1.134/PLAN.md) | [中文计划](versions/0.1.134/PLAN.zh-CN.md) | [Acceptance](versions/0.1.134/QA.md) | [中文验收](versions/0.1.134/QA.zh-CN.md)

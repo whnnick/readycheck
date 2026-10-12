@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.1.140 - 2026-10-12
+
+- Keep the bubble's detail pin visible in both states; use a filled blue pin while details are kept open. Add state-specific tooltips explaining pointer-exit behavior and that this is separate from always-on-top.
+- Click again to restore hover preview and release keyboard focus. Scope generic hover help to the dial so it does not override button tooltips; allow tooltips while the app is inactive and expose the state for accessibility. Windows metadata only.
+- Include the 0.1.136–0.1.139 concentric bubble, compact sculpted shell, smaller dial, exact-quota edge rails, observed consumption line and outline/title corrections in this public release.
+
+## 0.1.139 - 2026-10-12 (local preview)
+
+- Give expanded details roughly two thirds of the width. The dial region is 176 points rather than matching the 248-point window height; rings and C scale proportionally, and free expansion keeps the actual dial center anchored.
+- Keep ReadyCheck on one line when the preview pin button is visible, restoring space for both reset countdowns. Use an inset outline, one native exterior mask, display-density mask rendering and tangent-aligned neck joins to reduce edge clipping and aliasing. Retain curves, free bubbles and thin rails. Windows metadata only.
+
+## 0.1.138 - 2026-10-12 (local preview)
+
+- Reduce expanded bubbles from 560 × 276 to 500 × 248 points, about 20% less area, with adjusted typography. Preserve the sculpted dial, free bubble and both thin edge rails.
+- Replace the four repeated strokes per five-minute bin with a thin line and subtle fill. Preserve true sample values, zero and gaps; isolated samples show a point, with no line across missing data or smoothing overshoot. This depicts observed quota decreases, not remaining quota, Token usage or energy consumption. Windows metadata only.
+
+## 0.1.137 - 2026-10-12 (local preview)
+
+- Restore the selected sculpted outline, layered metallic dial, thicker exact-quota arcs and plain C mark. Increase expanded dimensions to 560 × 276 points; use colored quota markers, separators, reset countdowns and a blue app link.
+- Dragging a round bubble to either edge collapses it to a 28-point vertical rail with two bars proportional to remaining quota. Preserve free dragging, inward expansion, half-second hover, click-to-pin and Esc dismissal. Windows metadata only.
+
+## 0.1.136 - 2026-10-12 (local preview)
+
+- Round bubbles use the approved C artwork and concentric remaining-quota rings. Expanded details share a continuous surface and outline with the dial; ring strokes and the C mark scale with the window transition rather than switching cards. Free bubbles open toward available space while retaining the dial center when unclamped; resting diameter is 92 points.
+- Recent-hour bars show observed local quota decreases; missing bins stay unknown, resets/recovery and gaps over ten minutes are excluded. Existing quota colors, all-window details, reset countdowns and other widget styles remain available. Windows receives version metadata only.
+- Disable hosting size inference for the explicitly sized bubble panel so edge, circle and detail geometry remain synchronized after transitions.
+
 ## 0.1.135 - 2026-10-11
 
 - Add optional hiding of widgets and notch status in native full-screen Spaces while monitoring and notifications continue. Preserve placement and temporary-hide deadlines.

@@ -62,6 +62,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         panel.isOpaque = false
         panel.hasShadow = false
         panel.hidesOnDeactivate = false
+        panel.allowsToolTipsWhenApplicationIsInactive = true
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = WidgetSpaceBehavior.collectionBehavior(hideInFullscreen: model.widgetHideInFullscreen)
         panel.delegate = self
@@ -70,7 +71,9 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
         let view = makeView(model: model)
         let host = NSHostingController(rootView: view)
+        host.sizingOptions = []
         let clip = BubbleClippingView()
+        clip.autoresizingMask = [.width, .height]
         let container = NSViewController()
         container.view = clip
         container.addChild(host)
@@ -167,7 +170,9 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             isExpanded: isExpanded,
             isPinned: interaction.state == .pinned,
             onPin: { [weak self] in self?.interaction.pinPreview() },
+            onTogglePin: { [weak self] in self?.interaction.togglePin() },
             tabEdge: isExpanded ? nil : edge,
+            expansionSide: expansionSide,
             onTap: { [weak self] in self?.interaction.click() },
             onDragChanged: { [weak self] translation in self?.dragChanged(translation) },
             onDragEnded: { [weak self] in self?.dragEnded() },
@@ -177,8 +182,15 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
     private func updateView() {
         guard let model else { return }
+        clippingView?.orbOnLeft = expansionSide == .left
         clippingView?.silhouette = isExpanded ? .expanded : (edge == nil ? .circle : .edgeTab)
         hostingController?.rootView = makeView(model: model)
+    }
+
+    private var expansionSide: BubbleWidgetPlacement.Edge {
+        guard let restingFrame else { return .right }
+        let visible = targetScreen(savedFrame: restingFrame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+        return BubbleWidgetPlacement.expansionEdge(from: restingFrame, edge: edge, in: visible)
     }
 
     private func applyInteraction(_ state: WidgetInteractionController.State) {
@@ -200,6 +212,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             }
             panel.allowsKeyboard = state == .pinned
             if state == .pinned { panel.makeKeyAndOrderFront(nil) }
+            else { panel.resignKey() }
             startDismissMonitors()
         }
         updateView()
@@ -254,7 +267,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             return
         }
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.24
+            context.duration = 0.30
             context.timingFunction = CAMediaTimingFunction(controlPoints: 0.2, 0.8, 0.2, 1)
             panel.animator().setFrame(frame, display: true)
         }
@@ -322,6 +335,7 @@ private final class BubbleClippingView: NSView {
     }
 
     var onPointerChange: ((Bool) -> Void)?
+    var orbOnLeft = false { didSet { updateMask() } }
 
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
@@ -368,36 +382,30 @@ private final class BubbleClippingView: NSView {
         updateMask()
     }
 
+    override func viewDidChangeBackingProperties() {
+        super.viewDidChangeBackingProperties()
+        updateMask()
+    }
+
     private func updateMask() {
         guard let layer else { return }
-        let path: CGPath
+        let tabProgress: CGFloat
         if let shapeMorph, shapeMorph.fromWidth != shapeMorph.toWidth {
             let progress = min(1, max(0, (bounds.width - shapeMorph.fromWidth) / (shapeMorph.toWidth - shapeMorph.fromWidth)))
-            let inset = shapeInset(for: shapeMorph.from) * (1 - progress) + shapeInset(for: shapeMorph.to) * progress
-            let radius = cornerRadius(for: shapeMorph.from) * (1 - progress) + cornerRadius(for: shapeMorph.to) * progress
-            path = CGPath(roundedRect: bounds.insetBy(dx: inset, dy: inset), cornerWidth: radius, cornerHeight: radius, transform: nil)
+            tabProgress = (shapeMorph.from == .edgeTab ? 1 : 0) * (1 - progress)
+                + (shapeMorph.to == .edgeTab ? 1 : 0) * progress
         } else {
-            let inset = shapeInset(for: silhouette)
-            let radius = cornerRadius(for: silhouette)
-            path = CGPath(roundedRect: bounds.insetBy(dx: inset, dy: inset), cornerWidth: radius, cornerHeight: radius, transform: nil)
+            tabProgress = silhouette == .edgeTab ? 1 : 0
         }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
+        let scale = window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2
+        layer.contentsScale = scale
+        maskLayer.contentsScale = scale
         maskLayer.frame = bounds
-        maskLayer.path = path
+        maskLayer.path = OrbitalWidgetShape(orbOnLeft: orbOnLeft, tabProgress: tabProgress).path(in: bounds).cgPath
         layer.mask = maskLayer
         CATransaction.commit()
     }
 
-    private func shapeInset(for silhouette: Silhouette) -> CGFloat {
-        silhouette == .expanded ? 7 : 0
-    }
-
-    private func cornerRadius(for silhouette: Silhouette) -> CGFloat {
-        switch silhouette {
-        case .circle: min(bounds.width, bounds.height) / 2
-        case .edgeTab: 21
-        case .expanded: 18
-        }
-    }
 }
