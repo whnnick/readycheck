@@ -5,7 +5,7 @@
 <p align="center"><strong>Keep Codex quota in view while you work.</strong></p>
 <p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
 <p align="center">
-  <a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/github/v/release/whnnick/readycheck?label=release" alt="Latest GitHub release"></a>
+  <a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/badge/release-v0.1.145-blue" alt="Latest GitHub release"></a>
   <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-101820" alt="macOS 14 or later"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a>
 </p>

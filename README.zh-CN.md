@@ -5,7 +5,7 @@
 <p align="center"><strong>写代码时，一眼知道 Codex 剩余额度。</strong></p>
 <p align="center"><a href="README.md">English</a> · 简体中文</p>
 <p align="center">
-  <a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/github/v/release/whnnick/readycheck?label=release" alt="GitHub 最新发布版"></a>
+  <a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/badge/release-v0.1.145-blue" alt="GitHub 最新发布版"></a>
   <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-101820" alt="macOS 14 或更新版本"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a>
 </p>
