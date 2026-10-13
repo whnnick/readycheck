@@ -1,168 +1,93 @@
-# ReadyCheck
-
-[English](README.md) | 中文
-
-ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex 订阅额度窗口；刷新不会发送模型推理请求。
-
 <p align="center">
-  <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
+  <img src="docs/assets/readycheck-app-icon.png" alt="ReadyCheck 应用图标" width="72">
+</p>
+<h1 align="center">ReadyCheck</h1>
+<p align="center"><strong>写代码时，一眼知道 Codex 剩余额度。</strong></p>
+<p align="center"><a href="README.md">English</a> · 简体中文</p>
+<p align="center">
+  <a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/github/v/release/whnnick/readycheck?label=release" alt="GitHub 最新发布版"></a>
+  <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-101820" alt="macOS 14 或更新版本"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/whnnick/readycheck/releases/latest"><strong>下载安装</strong></a> ·
+  <a href="docs/INSTALL.zh-CN.md">从这里开始</a> ·
+  <a href="https://www.youtube.com/shorts/bb5wakVj4Do">33 秒演示</a> ·
+  <a href="docs/VERSIONS.md">版本与验收</a>
 </p>
 
-> 最新发布版：[`0.1.144`](https://github.com/whnnick/readycheck/releases/tag/v0.1.144)。圆球详情固定后，点击外部或失去焦点保持展开；取消固定恢复悬停预览。保留紧凑表盘间距及直接向内拖动。新增浮窗行为仅支持macOS，Windows同步版本信息。
+ReadyCheck 是一款免费的开源 Mac 额度监控工具，为使用 Codex 写代码的人把剩余额度和重置时间放在手边，减少切换页面。刷新只读取授权后的用量数据，不发送模型推理请求。
 
-**0.1.145 候选版**优化原生弧线边缘，保持额度、固定与拖动行为。[计划](docs/versions/0.1.145/PLAN.zh-CN.md) · [验收](docs/versions/0.1.145/QA.zh-CN.md)。正式发布验证前，公开latest仍为0.1.144。
+<p align="center">
+  <img src="docs/versions/0.1.145/assets/details-zh.png" alt="ReadyCheck 原生详情面板，展示演示额度、重置时间和常驻固定按钮" width="780">
+</p>
+<p align="center"><sub>0.1.145 原生 macOS 界面 · 合成演示数据 · 实际额度窗口以账号返回为准。</sub></p>
 
-**0.1.144**修复圆球详情固定：点击外部或失去焦点时，固定详情保持展开。取消固定恢复悬停预览，保留Esc手动收起，移除详情减号按钮；Bubble提示独立更新，EdgeRail样式语义保持不变。公开源码278项测试全部通过，发布包、本机安装及部分原生UI操作已验证；证据与待补手工抽查见[计划](docs/versions/0.1.144/PLAN.zh-CN.md)和[验收](docs/versions/0.1.144/QA.zh-CN.md)。
+## 从这里开始
 
-**0.1.143**缩小紧凑表盘C标志，并将百分比移回内圈，避免数字压线；包含上一版贴边直接拖动修复。参见[计划](docs/versions/0.1.143/PLAN.zh-CN.md)与[验收](docs/versions/0.1.143/QA.zh-CN.md)。
+1. 从[最新 Release](https://github.com/whnnick/readycheck/releases/latest)下载 macOS DMG，将 ReadyCheck.app 拖入“应用程序”。
+2. 启动 ReadyCheck，使用本机已登录的 Codex 账号，或选择单独 OAuth 登录。
+3. 开启桌面 widget：悬停预览、点击保持详情，圆盘可在桌面与左右屏幕边缘之间直接拖动。
 
-**0.1.142 本地预览**修复贴边竖条及展开表盘直接向内拖动，按下鼠标后捕获拖动，避免悬停展开打断。参见[计划](docs/versions/0.1.142/PLAN.zh-CN.md)与[验收](docs/versions/0.1.142/QA.zh-CN.md)。
+当前 macOS DMG 是 **Apple 芯片 arm64 包，要求 macOS 14+**，使用稳定预览签名，尚未采用 Developer ID 签名或公证；安装步骤见[安装说明](docs/INSTALL.zh-CN.md)。Windows 可从同一 Release 下载 x64 便携 ZIP，解压后运行 ReadyCheck.exe。
 
-**0.1.135** 新增全屏隐藏开关和Token时段对比，不新增监控请求。参见[计划](docs/versions/0.1.135/PLAN.zh-CN.md)与[验收](docs/versions/0.1.135/QA.zh-CN.md)。
+## 需要时展开，不用时贴边
 
-**0.1.141**将最近一小时额度消耗改回柱状图，每五分钟一根柱，暗色短刻度表示零，缺失数据留空。参见[计划](docs/versions/0.1.141/PLAN.zh-CN.md)与[验收](docs/versions/0.1.141/QA.zh-CN.md)。 [宣传素材验收](docs/versions/0.1.141/PROMO.zh-CN.md).
+<table>
+  <tr>
+    <th>桌面圆球</th>
+    <th>贴边竖条</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/versions/0.1.145/assets/compact-80.png" alt="原生紧凑圆球，演示剩余 80%" width="120"></td>
+    <td align="center"><img src="docs/versions/0.1.145/assets/edge-right.png" alt="原生贴边竖条，展示两个演示额度指示器" width="36"></td>
+  </tr>
+  <tr>
+    <td>剩余额度，一眼就能看见。</td>
+    <td>贴边收起，向内一拖即可回到桌面。</td>
+  </tr>
+</table>
 
-**0.1.140**让详情固定按钮持续显示，固定后高亮，悬停提示明确用途；再次点击恢复悬停预览，不改变窗口置顶。参见[计划](docs/versions/0.1.140/PLAN.zh-CN.md)与[验收](docs/versions/0.1.140/QA.zh-CN.md)。
+详情固定后，点击外部或切换焦点也会保持展开。取消固定恢复悬停预览；详情获得焦点后，Esc 可手动收起。固定控制详情是否常驻，与窗口置顶设置分开。
 
-**0.1.134 本地预览** 新增重置倒计时，统一圆形气泡与贴边圆环的悬停预览、点击固定和 Esc 收起操作。参见[计划](docs/versions/0.1.134/PLAN.zh-CN.md)和[验收](docs/versions/0.1.134/QA.zh-CN.md)。
+## 可以查看什么
 
-**0.1.133 本地预览** 更新 macOS 应用图标注册，保留应用身份。10月10日，用户确认在安装本地0.1.134后重启Mac，通知图标已恢复正确。本机修复过程参见[验收清单](docs/versions/0.1.133/QA.zh-CN.md)。
+- **额度与重置：**展示账号实际返回并验证过的额度窗口、剩余比例和重置倒计时；授权响应提供时显示 Credits。
+- **用量历史：**本机 Codex app-server 返回且账号匹配时展示官方 Token 活动；否则明确显示本地额度下降，单位为百分点，不冒充 Token。
+- **及时提醒：**保持运行时提供低额度和已验证恢复提醒，以及未使用重置券即将过期的提醒。
+- **合适的显示方式：**主窗口、菜单栏、可拖动圆球/卡片/贴边样式，以及支持的 Mac 屏幕上的刘海配额条。内置简体中文和英文。
 
-**0.1.132 预览版**同时包含 0.1.131 的登录启动安装完整性检查。参见[计划](docs/versions/0.1.132/PLAN.zh-CN.md)与[验收清单](docs/versions/0.1.132/QA.zh-CN.md)。
+数据不可用或未通过验证时，会显示不可用，不估算剩余额度。恢复提醒依赖新鲜且验证过的读数；应用关闭期间未观测到的恢复不会事后重放。
 
-**0.1.130 预览发布版**让圆形气泡详情保留全部配额窗口，在原有面板内滚动；主显示配额用于气泡和刘海，已选窗口暂缺时保留偏好并临时回退。参见 [0.1.130 验收清单](docs/versions/0.1.130/QA.zh-CN.md)。
+| 平台 | 当前范围 |
+| --- | --- |
+| macOS | 原生界面、widget、刘海配额条及通知流程。已测条件和待补检查见[真实场景 QA](docs/QA.zh-CN.md)与[0.1.145 验收](docs/versions/0.1.145/QA.zh-CN.md)。 |
+| Windows x64 | 独立便携预览；近期圆球、固定和边缘渲染调整仅支持 macOS。真实功能范围见[Windows 计划](docs/WINDOWS.zh-CN.md)与[Windows 验收](docs/WINDOWS_QA.zh-CN.md)。 |
 
-**0.1.129 预览发布版**让 macOS 贴边圆环及详情跟随账号实际返回的配额窗口。仅有周配额时显示一个圆环，额外窗口保留独立名称，刷新后胶囊同步调整尺寸。参见 [0.1.129 验收清单](docs/versions/0.1.129/QA.zh-CN.md)。
+## 隐私与账号访问
 
-## 可以做什么
+额度访问只读。可以跟随本机已登录 Codex 账号，或单独 OAuth 登录；macOS OAuth 凭据保存在系统 Keychain。刷新额度无需发送提示词或调用模型推理。发布日志和截图到 Issue 前，请移除账号信息和凭据。
 
-ReadyCheck **0.1.118** 在本机 Codex app-server 或独立 OAuth 用量响应中读取明确的普通用量使用许可。即使配额百分比有效，许可字段缺失时仍显示“未确认”。参见 [0.1.118 验收](docs/versions/0.1.118/QA.zh-CN.md)。
+ReadyCheck 是独立项目，与 OpenAI 无隶属或背书关系。Codex、ChatGPT 及其标志属于 OpenAI。
 
-**0.1.128 预览发布版**在独立 OAuth 登录账号与本机 Codex 账号一致时，恢复每日 Token 柱图和悬停数量。没有匹配的 Token 记录时，图表仍显示以百分点为单位的本地额度下降。参见 [0.1.128 验收清单](docs/versions/0.1.128/QA.zh-CN.md)。
+## 文档与开发
 
-气泡在运行时读取已安装 Codex 或 ChatGPT 的应用图标。Codex、ChatGPT 及其标志归 OpenAI 所有；ReadyCheck 是独立项目，并[遵循 OpenAI 品牌规范](https://openai.com/brand/)。
+| 入口 | 内容 |
+| --- | --- |
+| [安装说明](docs/INSTALL.zh-CN.md) | 设置、平台条件及预览签名说明 |
+| [版本索引](docs/VERSIONS.md) · [更新日志](CHANGELOG.zh-CN.md) | 产品需求、黑盒验收及发布历史 |
+| [最新版验收](docs/versions/0.1.145/QA.zh-CN.md) | 原生边缘修复、测试证据和覆盖边界 |
+| [真实场景 QA](docs/QA.zh-CN.md) | 实际安装与交互检查 |
+| [贡献指南](CONTRIBUTING.md) · [发布流程](docs/RELEASE.zh-CN.md) | 开发与分发流程 |
+| [安全政策](SECURITY.md) · [GitHub Issues](https://github.com/whnnick/readycheck/issues) | 安全报告、缺陷和反馈 |
 
-- 根据 Codex 当前实际返回动态展示经过验证的额度窗口，不预设固定为 5 小时或 7 天。
-- 当已授权的用量数据提供对应字段时，在主窗口和详细 Widget 中显示 Credits 余额或无限额度状态。
-- 本机 Codex 已安装且登录同一账户时，优先使用官方 app-server，并提供 7/30/90 天账户 Token 使用看板。
-- 提供主窗口、菜单栏摘要和可选的桌面悬浮 widget。
-- 在支持的 Mac 内置刘海屏下方提供可选的紧凑额度状态条。
-- 官方本机 Codex app-server 报告额度变化时及时刷新，同时保留手动刷新和每 1、3、5 分钟只读轮询作为兜底；所有刷新均不调用模型推理接口。
-- 对仍未使用的主动重置，在到期前 72、48、24、12 小时分别发送系统提醒；额度用尽后再次开始消耗 Codex Credits 时也会提醒。
-- 官方 Token 历史不可用时，保留明确标注的本地额度下降看板作为降级方案。
-- OAuth 凭据存储在 macOS Keychain 中。
-- 支持简体中文和英文。
-
-ReadyCheck 采用保守策略：无法安全读取或验证额度数据时，显示不可用，而不会猜测百分比。
-
-## 额度恢复自动提醒（macOS 0.1.98）
-
-**额度恢复自动提醒** 默认开启，始终显示在主窗口和菜单栏的额度区域下方。任一已观察窗口的剩余额度回升就提醒，无需先耗尽，也无需等待其他窗口恢复。正常消耗和重复刷新不提醒，首次读取只建立基线。请保持 ReadyCheck 运行；未观察到的历史恢复不会补发通知。
-
-恢复后的额度再次开始下降时，ReadyCheck 会自动从通知中心移除对应的持续提醒。新的恢复会替换旧恢复提醒，已完成的提醒不会不断堆积。
-
-关闭开关会停止监听并取消当前等待。开关与等待状态在重启后保留，切换账号会清除旧账号的等待。连接、数据或投递异常会就地说明；系统通知关闭时提供设置入口。“测试通知”按钮在测试后仍可点击，结果单独显示。
-
-本次恢复提醒仅支持 macOS；Windows 同步版本号。参见[功能与黑盒验收清单](docs/QA.zh-CN.md#0193-自动恢复提醒交互)。
-
-## 安装
-
-从[最新发布页](https://github.com/whnnick/readycheck/releases/latest)下载已发布的 macOS DMG，打开 DMG 后将 `ReadyCheck.app` 拖入“应用程序”。
-
-Windows 10/11 预览测试可从同一个发布页下载已发布的 Windows 便携 ZIP，解压后运行 `ReadyCheck.exe`。
-
-当前预览构建使用稳定的 ReadyCheck 自签名身份，但尚未使用 Developer ID 签名或经过 Apple notarization。首次打开时，macOS 可能需要在“系统设置 > 隐私与安全性”中确认。详见[安装说明](docs/INSTALL.zh-CN.md)。
-
-## 连接 Codex
-
-1. 打开 ReadyCheck，保持选择“跟随本机 Codex”，直接复用这台 Mac 上 Codex 或 ChatGPT 已登录的账号。
-2. 如果本机 app-server 不可用，选择“单独登录”，点击“连接”并在浏览器完成授权。
-3. ReadyCheck 只刷新该连接返回的额度与用量数据。
-
-OAuth 回调监听 `localhost:1455`。若本地回调未成功接收，仍可手动粘贴回调 URL 完成授权。
-
-## 从源码构建
-
-要求：macOS 14 或更高版本、Xcode Command Line Tools、Swift 6。
+源码构建需要 macOS 14+ 和支持 Swift 6 的工具链：
 
 ```bash
 swift test
 scripts/package_app.sh
-scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.145-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.145-windows-x64-portable.zip`。
+本地 GUI 调试使用 `scripts/build_and_run.sh`；正式打包沿用[发布流程](docs/RELEASE.zh-CN.md)。当前脚本产物命名为 `ReadyCheck-0.1.145-macos.dmg` 和 `ReadyCheck-0.1.145-windows-x64-portable.zip`。
 
-本地启动图形界面请运行 `scripts/build_and_run.sh`。它在 `.build/run` 中打包并打开完整应用，与发布暂存目录分开。日常使用时，请先把完整应用安装到“应用程序”，再设置登录启动。
-
-## Windows 预览版开发
-
-Windows 客户端已作为 Electron 桌面应用在 [`apps/windows`](apps/windows/README.md) 启动。当前包含托盘、主窗口、桌面 widget、Codex OAuth、安全 token 存储和只读 usage 刷新；已提供便携版 zip 供 Windows 10/11 黑盒测试，但还没有签名安装器。
-
-## 产品动效
-
-README 预览动图从 [`marketing/remotion`](marketing/remotion/README.md) 的 Remotion 产品介绍视频生成。
-
-```bash
-cd marketing/remotion
-npm install
-npm run dev
-```
-
-## 准确性与隐私
-
-- 应用优先使用官方本地 Codex app-server，否则读取已授权的 Codex 用量端点；两条路径都不会发送 prompt 或调用模型。
-- 本机模式在官方账号 ID 可用时用它隔离提醒状态；独立 OAuth 仅接受与 OAuth 账号匹配的 app-server 补充数据。降级用量响应属于内部服务接口，可能变化，因此 ReadyCheck 只显示可以验证的字段。
-- OAuth token 存储在 Keychain 中；提交 GitHub Issue 时不要包含 token、回调 URL、账户 ID 或原始用量数据。
-- 本项目与 OpenAI 没有隶属或背书关系。
-
-## 文档
-
-- [0.1.132 新功能宣传素材](docs/versions/0.1.132/PROMO.zh-CN.md) | [Version index / 版本索引](docs/VERSIONS.md)
-- [0.1.130 小红书宣传素材](docs/versions/0.1.130/PROMO.zh-CN.md) | [English campaign](docs/versions/0.1.130/PROMO.md)
-- [0.1.130 气泡详情与配额选择验收](docs/versions/0.1.130/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.130/QA.md)
-- [0.1.129 动态贴边圆环验收](docs/versions/0.1.129/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.129/QA.md)
-- [0.1.128 Token 图恢复验收](docs/versions/0.1.128/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.128/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.127 图标一致性验收](docs/versions/0.1.127/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.127/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.126 C 形图标验收](docs/versions/0.1.126/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.126/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.125 应用图标验收](docs/versions/0.1.125/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.125/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.124 账号来源排版验收](docs/versions/0.1.124/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.124/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.123 贴边胶囊颜色与悬停验收](docs/versions/0.1.123/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.123/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.122 贴边胶囊交互验收](docs/versions/0.1.122/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.122/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.121 贴边圆环比例与动效验收](docs/versions/0.1.121/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.121/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.120 贴边圆环找回验收](docs/versions/0.1.120/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.120/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.119 贴边配额条验收](docs/versions/0.1.119/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.119/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.118 OAuth 可用性验收](docs/versions/0.1.118/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.118/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.114 账号来源与动效验收](docs/versions/0.1.114/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.114/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.113 悬浮窗遮罩验收](docs/versions/0.1.113/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.113/QA.md) | [版本索引](docs/VERSIONS.md)
-- [0.1.112 气泡轮廓验收](docs/versions/0.1.112/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.112/QA.md)
-- [0.1.111 气泡圆角验收](docs/versions/0.1.111/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.111/QA.md)
-- [0.1.110 气泡可读性验收](docs/versions/0.1.110/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.110/QA.md)
-- [0.1.109 Widget 间距验收](docs/versions/0.1.109/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.109/QA.md)
-- [0.1.108 共用配额选择验收](docs/versions/0.1.108/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.108/QA.md)
-- [0.1.107 显示间距验收](docs/versions/0.1.107/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.107/QA.md)
-- [0.1.106 显示控件分组验收](docs/versions/0.1.106/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.106/QA.md)
-- [0.1.105 圆球收起验收](docs/versions/0.1.105/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.105/QA.md)
-- [0.1.104 形状切换验收](docs/versions/0.1.104/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.104/QA.md)
-- [0.1.103 动效与玻璃验收](docs/versions/0.1.103/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.103/QA.md)
-- [0.1.102 额度切换验收](docs/versions/0.1.102/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.102/QA.md)
-- [0.1.101 贴边标签验收](docs/versions/0.1.101/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.101/QA.md)
-- [0.1.100 气泡验收](docs/versions/0.1.100/QA.zh-CN.md) | [English acceptance](docs/versions/0.1.100/QA.md)
-- [0.1.99 气泡计划](docs/versions/0.1.99/PLAN.zh-CN.md) | [English plan](docs/versions/0.1.99/PLAN.md)
-
-- [安装说明](docs/INSTALL.zh-CN.md) | [Install guide](docs/INSTALL.md)
-- [真实场景验收](docs/QA.zh-CN.md) | [Real-world QA checklist](docs/QA.md)
-- [Windows 开发计划](docs/WINDOWS.zh-CN.md) | [Windows development plan](docs/WINDOWS.md)
-- [Windows 黑盒测试](docs/WINDOWS_QA.zh-CN.md) | [Windows black-box QA](docs/WINDOWS_QA.md)
-- [发布流程](docs/RELEASE.zh-CN.md) | [Release process](docs/RELEASE.md)
-- [参与贡献](CONTRIBUTING.md)
-- [安全策略](SECURITY.md)
-- [更新日志](CHANGELOG.zh-CN.md) | [Changelog](CHANGELOG.md)
-
-## 反馈
-
-请通过 [GitHub Issues](https://github.com/whnnick/readycheck/issues) 报告问题或提出建议。提交前请移除所有账号数据和凭据。
-
-## 许可证
-
-本项目使用 [MIT License](LICENSE)。
+采用 [MIT](LICENSE) 许可。

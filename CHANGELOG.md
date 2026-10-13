@@ -3,6 +3,7 @@
 ## 0.1.145 - 2026-10-13
 
 - Supersample the native floating-window silhouette before compositing to soften curved-edge aliasing, while preserving bubble/ring geometry, quota values, pinning and dragging. Match mask rasterization to its render scale and refresh it when display backing changes. Windows receives version metadata only.
+- Refresh the bilingual GitHub homepage with current native demo components, clear download/setup entries and explicit platform scope; replace the historical release-paragraph stack with the version/acceptance index.
 
 ## 0.1.144 - 2026-10-13
 

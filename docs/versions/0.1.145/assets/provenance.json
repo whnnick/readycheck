@@ -1,0 +1,17 @@
+{
+  "version": "0.1.145",
+  "data": "synthetic: primary 80%, weekly 70%; compact fixtures also cover 0/5/100/unknown",
+  "renderer": "native SwiftUI components; compact and edge use ImageRenderer 4x, expanded NSScrollView uses a screen-backed NSHostingView capture",
+  "privacy": "no live account captures or private paths",
+  "assets": {
+    "details-zh.png": "da199fd8e04a1176bbafba2d462cf450b2243f1e606f6cb2a1393ca5d96bcddc",
+    "details-en.png": "d7db9e0cba939baf1ed83a4236b07084c9bafed822f397379f05075cc2a2e348",
+    "edge-right.png": "e025cfa8b6a9ccbb83183c79620a3f743467564e96a3b53d2f5b62bb6f14612c",
+    "edge-left.png": "e025cfa8b6a9ccbb83183c79620a3f743467564e96a3b53d2f5b62bb6f14612c",
+    "compact-80.png": "6954bb6128f20a6a9733090aa3743bfe0b14f125584ca75694a889585c95cbab",
+    "compact-5.png": "48b90d75fee624e552806a412adc32c931dfe7dfb1b058fc8b1cd7ee8d61cd52",
+    "compact-zero.png": "f175713fa580aa768d8ea448f7f708eb9ca0ea4bd45ca5c0eec3fa76de6a6645",
+    "compact-full.png": "76672c5fe299cb20454c605d0ab96f6a8f53bc85554a88252728997fb32b2b0e",
+    "compact-unknown.png": "dade3de9c22be36b3839f92e4f3ae14ef96e83c59a7ada0a8439b760f9d21d53"
+  }
+}

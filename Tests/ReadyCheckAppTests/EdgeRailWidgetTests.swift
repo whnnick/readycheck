@@ -137,7 +137,7 @@ final class EdgeRailWidgetTests: XCTestCase {
             }
         }
         let weekly = window(id: "weekly", minutes: 10_080, remaining: 70)
-        let hourly = window(id: "hourly", minutes: 300, remaining: 13)
+        let hourly = window(id: "hourly", minutes: 300, remaining: 80)
         let extra = window(id: "extra", minutes: 300, remaining: 85, name: "Additional allowance")
         model.notchQuotaSelection = .window(extra.id)
         let view = BubbleWidgetView(model: model, isExpanded: true, tabEdge: nil,
@@ -162,7 +162,7 @@ final class EdgeRailWidgetTests: XCTestCase {
         model.quotaHistorySamples = (0..<12).map { index in
             QuotaHistorySample(providerID: "codex-oauth", recordedAt: capturedAt.addingTimeInterval(Double(index - 12) * 300),
                 values: [QuotaHistoryValue(windowID: hourly.id, labelKey: hourly.labelKey,
-                    remainingRatio: 0.24 - drops.prefix(index).reduce(0, +), resetAt: hourly.resetAt)])
+                    remainingRatio: 0.91 - drops.prefix(index).reduce(0, +), resetAt: hourly.resetAt)])
         }
         let finalHost = NSHostingView(rootView: view)
         finalHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
@@ -206,7 +206,7 @@ final class EdgeRailWidgetTests: XCTestCase {
             railHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.tabSize)
             try capture(railHost, name: "bubble-rail-" + edge.rawValue)
         }
-        for remaining: Double in [0, 80, 100] {
+        for remaining: Double in [0, 5, 80, 100] {
             let compactWindow = window(id: hourly.id, minutes: 300, remaining: remaining)
             model.snapshots = [snapshot([compactWindow, weekly])]
             let compact = BubbleWidgetView(model: model, isExpanded: false, tabEdge: nil,
@@ -291,8 +291,31 @@ final class EdgeRailWidgetTests: XCTestCase {
         guard let directory = ProcessInfo.processInfo.environment["READYCHECK_UI_EVIDENCE_DIR"], let view else { return }
         view.layoutSubtreeIfNeeded()
         RunLoop.main.run(until: Date().addingTimeInterval(0.1))
-        let bitmap = try XCTUnwrap(view.bitmapImageRepForCachingDisplay(in: view.bounds))
-        view.cacheDisplay(in: view.bounds, to: bitmap)
+        let bitmap: NSBitmapImageRep
+        if let host = view as? NSHostingView<BubbleWidgetView>, !host.rootView.isExpanded {
+            let renderer = ImageRenderer(content: host.rootView.frame(width: view.bounds.width,
+                height: view.bounds.height))
+            renderer.scale = 4
+            bitmap = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+        } else {
+            var fixtureWindow: NSWindow?
+            var captureView = view
+            if let host = view as? NSHostingView<BubbleWidgetView> {
+                let window = NSWindow(contentRect: view.bounds, styleMask: .borderless,
+                    backing: .buffered, defer: false)
+                window.isReleasedWhenClosed = false
+                let attachedHost = NSHostingView(rootView: host.rootView)
+                window.contentView = attachedHost
+                attachedHost.frame = view.bounds
+                attachedHost.layoutSubtreeIfNeeded()
+                RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+                fixtureWindow = window
+                captureView = attachedHost
+            }
+            defer { fixtureWindow?.close() }
+            bitmap = try XCTUnwrap(captureView.bitmapImageRepForCachingDisplay(in: captureView.bounds))
+            captureView.cacheDisplay(in: captureView.bounds, to: bitmap)
+        }
         let data = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
         try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
         try data.write(to: URL(fileURLWithPath: directory).appendingPathComponent("\(name).png"))
