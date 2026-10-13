@@ -89,7 +89,7 @@ final class EdgeRailWidgetTests: XCTestCase {
         let container = try XCTUnwrap(panel.contentViewController)
         let host = try XCTUnwrap(container.children.first as? NSHostingController<BubbleWidgetView>)
         host.rootView.onTap()
-        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+        waitForBubbleLayout(panel: panel, hostedView: host.view, size: BubbleWidgetPlacement.expandedSize)
         if !NSApp.isActive && !panel.isKeyWindow {
             throw XCTSkip("Pinned-window sizing needs an unlocked foreground session; the panel could not retain keyboard focus.")
         }
@@ -102,9 +102,18 @@ final class EdgeRailWidgetTests: XCTestCase {
         host.rootView.onTogglePin()
         XCTAssertTrue(panel.canBecomeKey)
         host.rootView.onCollapse()
-        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+        waitForBubbleLayout(panel: panel, hostedView: host.view, size: BubbleWidgetPlacement.tabSize)
         XCTAssertEqual(panel.frame.size, BubbleWidgetPlacement.tabSize)
         XCTAssertEqual(host.view.bounds.size, panel.frame.size)
+    }
+
+    private func waitForBubbleLayout(panel: NSWindow, hostedView: NSView, size: CGSize) {
+        let deadline = Date().addingTimeInterval(1)
+        repeat {
+            panel.contentView?.layoutSubtreeIfNeeded()
+            if panel.frame.size == size, hostedView.bounds.size == size { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.01))
+        } while Date() < deadline
     }
 
     func testBubbleDetailsRetainEveryWindowAndRecoverSavedSelectionAfterRefresh() throws {

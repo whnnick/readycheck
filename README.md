@@ -10,6 +10,8 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
 
 > Latest release: [`0.1.143`](https://github.com/whnnick/readycheck/releases/tag/v0.1.143). Clear compact dial spacing and direct inward dragging from either edge, with single recent-hour consumption bars and a persistent detail pin. New widget features and recovery reminders are macOS-only.
 
+**0.1.144 local preview** repairs the round bubble's keep-open pin: clicking the desktop, another app or another ReadyCheck window no longer closes pinned details. Unpinning restores hover preview, Esc still dismisses manually, and the detail minus button is removed. Bubble tooltips are updated separately from the EdgeRail style. Verification is pending; see the [plan](docs/versions/0.1.144/PLAN.md) and [acceptance](docs/versions/0.1.144/QA.md). The public download remains 0.1.143.
+
 **0.1.143** reduces the compact dial's C mark and moves its percentage away from the inner ring. It includes the preceding direct-drag repair. See the [plan](docs/versions/0.1.143/PLAN.md) and [acceptance](docs/versions/0.1.143/QA.md).
 
 **0.1.142 local preview** fixes dragging edge rails and expanded dials directly inward, with mouse-down capture preventing hover from interrupting a drag. See the [plan](docs/versions/0.1.142/PLAN.md) and [acceptance](docs/versions/0.1.142/QA.md).
@@ -87,7 +89,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.143-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.143-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.144-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.144-windows-x64-portable.zip`.
 
 For a local GUI launch, run `scripts/build_and_run.sh`. It packages and opens a complete app under `.build/run`, separate from release staging. Install the packaged app in Applications before configuring login startup for daily use.
 

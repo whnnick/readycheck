@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.144 - 2026-10-13 (local preview)
+
+- Keep pinned round-bubble details expanded when clicking the desktop, another app or another ReadyCheck window, and when the detail window loses focus. Unpinning restores hover preview; Esc remains a manual dismissal.
+- Remove the detail minus button and update Bubble-specific pin/hover help without changing EdgeRail-style semantics. Preserve circle geometry and existing dragging behavior. Windows version metadata only. Functional, UI and installation verification is pending.
+
 ## 0.1.143 - 2026-10-13
 
 - Reduce the compact dial's C mark from 24 to 18 points, its percentage font from 13 to 11 points and the percentage's downward offset from 16 to 8 points. Keep the label inside the inner ring while preserving ring geometry, widget sizes, expanded logo size and interactions. Windows version metadata only.

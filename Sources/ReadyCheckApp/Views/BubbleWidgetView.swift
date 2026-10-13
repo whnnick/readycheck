@@ -133,7 +133,7 @@ struct BubbleWidgetView: View {
                     .contextMenu { contextMenu }
                     .accessibilityAddTraits(.isButton)
                     .accessibilityAction { onTap() }
-                    .help(model.localization.text(isPinned && isExpanded ? "widget.pinnedHint" : "widget.previewHint"))
+                    .help(model.localization.text(isPinned && isExpanded ? "bubble.pinnedHint" : "widget.previewHint"))
                     .accessibilityLabel(model.localization.text("bubble.accessibility") + " "
                         + (expandedWindows.isEmpty ? QuotaFormatters.percentageText(for: nil) : expandedWindows.prefix(2).map {
                             QuotaWindowDisplay.title(for: $0, localization: model.localization) + " "
@@ -202,19 +202,9 @@ struct BubbleWidgetView: View {
                         .background(Circle().fill(isPinned ? Color.blue.opacity(0.15) : .clear))
                 }
                 .buttonStyle(.plain)
-                .help(model.localization.text(isPinned ? "widget.unpinHelp" : "widget.pinHelp"))
+                .help(model.localization.text(isPinned ? "bubble.unpinHelp" : "bubble.pinHelp"))
                 .accessibilityLabel(model.localization.text(isPinned ? "widget.unpinDetails" : "widget.pinDetails"))
                 .accessibilityValue(model.localization.text(isPinned ? "widget.pinStateOn" : "widget.pinStateOff"))
-                Button(action: onCollapse) {
-                    Image(systemName: "minus").font(.system(size: 13, weight: .semibold))
-                        .frame(width: 26, height: 26)
-                        .background(Circle().fill(LinearGradient(colors: [.white.opacity(0.20), .white.opacity(0.06)],
-                            startPoint: .top, endPoint: .bottom)))
-                        .overlay(Circle().stroke(.white.opacity(0.18), lineWidth: 0.7))
-                }
-                .buttonStyle(.plain)
-                .help(model.localization.text("bubble.collapse"))
-                .accessibilityLabel(model.localization.text("bubble.collapse"))
             }
 
             if let snapshot, !windows.isEmpty {

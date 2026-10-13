@@ -165,9 +165,9 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
     }
 
     func windowDidResignKey(_ notification: Notification) {
-        guard let window = notification.object as? NSWindow, window === panel,
-              interaction.state == .pinned else { return }
-        interaction.collapse()
+        guard let window = notification.object as? NSWindow, let panel, window === panel,
+              panel.allowsKeyboard else { return }
+        dismissFromExternalInteraction()
     }
 
     @objc private func screenParametersDidChange() {
@@ -240,6 +240,11 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
     private func collapse() { interaction.collapse() }
 
+    func dismissFromExternalInteraction() {
+        guard interaction.state == .preview else { return }
+        collapse()
+    }
+
     private func dragChanged(_ firstTranslation: CGSize) {
         let pointer = NSEvent.mouseLocation
         dragChanged(pointerStart: CGPoint(x: pointer.x - firstTranslation.width,
@@ -311,7 +316,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         stopDismissMonitors()
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             guard let self, let panel = self.panel else { return }
-            if !panel.frame.contains(NSEvent.mouseLocation) { self.collapse() }
+            if !panel.frame.contains(NSEvent.mouseLocation) { self.dismissFromExternalInteraction() }
         }
         escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown, .rightMouseDown]) { [weak self] event in
             guard let self, let panel = self.panel, self.isExpanded else { return event }
@@ -320,7 +325,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
                 self.collapse()
                 return nil
             }
-            if event.window !== panel { self.collapse() }
+            if event.window !== panel { self.dismissFromExternalInteraction() }
             return event
         }
     }
