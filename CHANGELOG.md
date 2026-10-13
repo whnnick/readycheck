@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.145 - 2026-10-13
+
+- Supersample the native floating-window silhouette before compositing to soften curved-edge aliasing, while preserving bubble/ring geometry, quota values, pinning and dragging. Match mask rasterization to its render scale and refresh it when display backing changes. Windows receives version metadata only.
+
 ## 0.1.144 - 2026-10-13
 
 - Keep pinned round-bubble details expanded when clicking the desktop, another app or another ReadyCheck window, and when the detail window loses focus. Unpinning restores hover preview; Esc remains a manual dismissal.

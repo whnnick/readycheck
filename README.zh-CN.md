@@ -10,6 +10,8 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
 
 > 最新发布版：[`0.1.144`](https://github.com/whnnick/readycheck/releases/tag/v0.1.144)。圆球详情固定后，点击外部或失去焦点保持展开；取消固定恢复悬停预览。保留紧凑表盘间距及直接向内拖动。新增浮窗行为仅支持macOS，Windows同步版本信息。
 
+**0.1.145 候选版**优化原生弧线边缘，保持额度、固定与拖动行为。[计划](docs/versions/0.1.145/PLAN.zh-CN.md) · [验收](docs/versions/0.1.145/QA.zh-CN.md)。正式发布验证前，公开latest仍为0.1.144。
+
 **0.1.144**修复圆球详情固定：点击外部或失去焦点时，固定详情保持展开。取消固定恢复悬停预览，保留Esc手动收起，移除详情减号按钮；Bubble提示独立更新，EdgeRail样式语义保持不变。公开源码278项测试全部通过，发布包、本机安装及部分原生UI操作已验证；证据与待补手工抽查见[计划](docs/versions/0.1.144/PLAN.zh-CN.md)和[验收](docs/versions/0.1.144/QA.zh-CN.md)。
 
 **0.1.143**缩小紧凑表盘C标志，并将百分比移回内圈，避免数字压线；包含上一版贴边直接拖动修复。参见[计划](docs/versions/0.1.143/PLAN.zh-CN.md)与[验收](docs/versions/0.1.143/QA.zh-CN.md)。
@@ -89,7 +91,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-开发版 DMG 输出到 `dist/ReadyCheck-0.1.144-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.144-windows-x64-portable.zip`。
+开发版 DMG 输出到 `dist/ReadyCheck-0.1.145-macos.dmg`；Windows 打包脚本的输出名为 `ReadyCheck-0.1.145-windows-x64-portable.zip`。
 
 本地启动图形界面请运行 `scripts/build_and_run.sh`。它在 `.build/run` 中打包并打开完整应用，与发布暂存目录分开。日常使用时，请先把完整应用安装到“应用程序”，再设置登录启动。
 

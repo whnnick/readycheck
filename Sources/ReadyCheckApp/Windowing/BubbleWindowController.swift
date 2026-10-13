@@ -432,7 +432,10 @@ private final class BubbleClippingView: NSView {
         CATransaction.setDisableActions(true)
         let scale = window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2
         layer.contentsScale = scale
-        maskLayer.contentsScale = scale
+        // Supersample only the silhouette so curved edges keep fractional coverage.
+        maskLayer.contentsScale = scale * 2
+        maskLayer.shouldRasterize = true
+        maskLayer.rasterizationScale = maskLayer.contentsScale
         maskLayer.frame = bounds
         maskLayer.path = OrbitalWidgetShape(orbOnLeft: orbOnLeft, tabProgress: tabProgress).path(in: bounds).cgPath
         layer.mask = maskLayer

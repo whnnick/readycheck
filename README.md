@@ -10,6 +10,8 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
 
 > Latest release: [`0.1.144`](https://github.com/whnnick/readycheck/releases/tag/v0.1.144). Pinned round-bubble details stay open across outside clicks and focus changes; unpinning restores hover preview. Compact dial spacing and direct inward dragging are preserved. New widget behavior is macOS-only; Windows receives version metadata.
 
+**0.1.145 candidate** improves native curved-edge rendering while retaining quota, pinning and dragging behavior. [Plan](docs/versions/0.1.145/PLAN.md) · [Acceptance](docs/versions/0.1.145/QA.md). Public latest remains 0.1.144 until release verification.
+
 **0.1.144** repairs the round bubble's keep-open pin: outside clicks and focus changes no longer close pinned details. Unpinning restores hover preview, Esc remains a manual dismissal, and the detail minus button is removed. Bubble tooltips are updated separately from the EdgeRail style. All 278 public-source tests pass; the release packages, local installation and selected native UI operations are verified. See the [plan](docs/versions/0.1.144/PLAN.md) and [acceptance](docs/versions/0.1.144/QA.md) for evidence and remaining manual spot checks.
 
 **0.1.143** reduces the compact dial's C mark and moves its percentage away from the inner ring. It includes the preceding direct-drag repair. See the [plan](docs/versions/0.1.143/PLAN.md) and [acceptance](docs/versions/0.1.143/QA.md).
@@ -89,7 +91,7 @@ scripts/package_app.sh
 scripts/package_dmg.sh
 ```
 
-The development DMG is written to `dist/ReadyCheck-0.1.144-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.144-windows-x64-portable.zip`.
+The development DMG is written to `dist/ReadyCheck-0.1.145-macos.dmg`; the Windows packaging script names its output `ReadyCheck-0.1.145-windows-x64-portable.zip`.
 
 For a local GUI launch, run `scripts/build_and_run.sh`. It packages and opens a complete app under `.build/run`, separate from release staging. Install the packaged app in Applications before configuring login startup for daily use.
 
