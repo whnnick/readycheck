@@ -47,14 +47,14 @@ struct OrbitalQuotaDial: View {
                         .animation(reduceMotion ? nil : .easeOut(duration: 0.28), value: ratio)
                 }
                 ZStack {
-                    cMark.frame(width: 24 + (diameter * 0.18 - 24) * progress,
-                        height: 24 + (diameter * 0.18 - 24) * progress)
-                        .offset(y: -7 * (1 - progress))
+                    cMark.frame(width: 18 + (diameter * 0.18 - 18) * progress,
+                        height: 18 + (diameter * 0.18 - 18) * progress)
+                        .offset(y: -10 * (1 - progress))
                         .accessibilityHidden(true)
                     Text(QuotaFormatters.percentageText(for: canShow ? windows.first?.remainingRatio : nil))
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
                         .monospacedDigit().foregroundStyle(.white)
-                        .offset(y: 16).opacity(1 - progress)
+                        .offset(y: 8).opacity(1 - progress)
                 }
                 if recoveryHighlight {
                     Circle().stroke(Color.white.opacity(0.35), lineWidth: 1).padding(2)

@@ -1,5 +1,9 @@
 # Version plans / 版本规划
 
+- [0.1.143 compact dial spacing](versions/0.1.143/PLAN.md) | [中文计划](versions/0.1.143/PLAN.zh-CN.md) | [Acceptance](versions/0.1.143/QA.md) | [中文验收](versions/0.1.143/QA.zh-CN.md)
+
+- [0.1.142 direct inward dragging](versions/0.1.142/PLAN.md) | [中文计划](versions/0.1.142/PLAN.zh-CN.md) | [Acceptance](versions/0.1.142/QA.md) | [中文验收](versions/0.1.142/QA.zh-CN.md)
+
 - [0.1.141 orbital console campaign](versions/0.1.141/PROMO.md) | [中文宣传素材](versions/0.1.141/PROMO.zh-CN.md)
 
 - [0.1.141 single consumption bars](versions/0.1.141/PLAN.md) | [中文计划](versions/0.1.141/PLAN.zh-CN.md) | [Acceptance](versions/0.1.141/QA.md) | [中文验收](versions/0.1.141/QA.zh-CN.md)

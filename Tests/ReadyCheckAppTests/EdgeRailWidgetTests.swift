@@ -7,6 +7,43 @@ import UserNotifications
 
 @MainActor
 final class EdgeRailWidgetTests: XCTestCase {
+    @MainActor
+    func testBubbleCanDragDirectlyInwardAfterDetailsOpenAtEitherEdge() throws {
+        _ = NSApplication.shared
+        let defaults = UserDefaults.standard
+        let key = "ReadyCheck.bubbleWidgetFrame.v1"
+        let saved = defaults.object(forKey: key)
+        defer {
+            if let saved { defaults.set(saved, forKey: key) }
+            else { defaults.removeObject(forKey: key) }
+        }
+        let visible = try XCTUnwrap(NSScreen.main).visibleFrame
+        for (edge, pinned) in [(BubbleWidgetPlacement.Edge.left, true), (.left, false), (.right, true), (.right, false)] {
+            let tab = BubbleWidgetPlacement.tabFrame(from: CGRect(x: visible.midX, y: visible.midY,
+                width: 92, height: 92), edge: edge, in: visible)
+            defaults.set(NSStringFromRect(tab), forKey: key)
+            let controller = BubbleWindowController()
+            let model = ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
+                client: RailTestNotificationClient(), verificationDelays: []))
+            let previous = Set(NSApp.windows.map(\.windowNumber))
+            controller.show(model: model)
+            defer { controller.close() }
+            let panel = try XCTUnwrap(NSApp.windows.first { $0 is QuotaWidgetPanel && !previous.contains($0.windowNumber) })
+            let host = try XCTUnwrap(panel.contentViewController?.children.first as? NSHostingController<BubbleWidgetView>)
+            host.rootView.onTap()
+            if !pinned { host.rootView.onTogglePin() }
+            XCTAssertTrue(host.rootView.isExpanded)
+            XCTAssertEqual(host.rootView.isPinned, pinned)
+            host.rootView.onDragChanged(CGSize(width: edge == .left ? 200 : -200, height: 0))
+            host.rootView.onDragEnded()
+            XCTAssertFalse(host.rootView.isExpanded)
+            XCTAssertNil(host.rootView.tabEdge)
+            XCTAssertEqual(panel.frame.size, BubbleWidgetPlacement.bubbleSize)
+            XCTAssertEqual(panel.frame.midY, tab.midY, accuracy: 1)
+            XCTAssertTrue(visible.contains(panel.frame))
+        }
+    }
+
     func testOrbitalMaskStaysWithinWindowThroughoutExpansion() {
         for start in [BubbleWidgetPlacement.bubbleSize, BubbleWidgetPlacement.tabSize] {
             for step in 0...20 {
@@ -158,6 +195,21 @@ final class EdgeRailWidgetTests: XCTestCase {
             railHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.tabSize)
             try capture(railHost, name: "bubble-rail-" + edge.rawValue)
         }
+        for remaining: Double in [0, 80, 100] {
+            let compactWindow = window(id: hourly.id, minutes: 300, remaining: remaining)
+            model.snapshots = [snapshot([compactWindow, weekly])]
+            let compact = BubbleWidgetView(model: model, isExpanded: false, tabEdge: nil,
+                onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
+            let compactHost = NSHostingView(rootView: compact)
+            compactHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.bubbleSize)
+            try capture(compactHost, name: "bubble-compact-\(Int(remaining))-demo")
+        }
+        model.snapshots = []
+        let unknown = BubbleWidgetView(model: model, isExpanded: false, tabEdge: nil,
+            onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
+        let unknownHost = NSHostingView(rootView: unknown)
+        unknownHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.bubbleSize)
+        try capture(unknownHost, name: "bubble-compact-unknown-demo")
     }
 
     func testModelRefreshResizesVisiblePanelWithoutMovingItsScreenEdge() throws {

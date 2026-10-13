@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.143 - 2026-10-13
+
+- Reduce the compact dial's C mark from 24 to 18 points, its percentage font from 13 to 11 points and the percentage's downward offset from 16 to 8 points. Keep the label inside the inner ring while preserving ring geometry, widget sizes, expanded logo size and interactions. Windows version metadata only.
+- Include the preceding 0.1.142 mouse-capture repair: edge rails and expanded dials drag directly inward without a preliminary vertical drag.
+
+## 0.1.142 - 2026-10-13 (local preview)
+
+- Fix directly dragging edge rails or expanded dials inward without a preliminary vertical drag. Capture the mouse on press, prevent pending hover expansion, track screen-pointer movement outside the narrow rail, and distinguish clicks from drags. Windows version metadata only.
+
 ## 0.1.141 - 2026-10-12
 
 - Document the 35-second current-widget campaign, Chinese narration, new original music, media validation and actual platform submission states; no application behavior change.

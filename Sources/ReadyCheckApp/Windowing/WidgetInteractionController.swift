@@ -124,7 +124,7 @@ final class WidgetInteractionController {
     }
 }
 
-final class QuotaWidgetPanel: NSPanel {
+class QuotaWidgetPanel: NSPanel {
     var allowsKeyboard = false
     override var canBecomeKey: Bool { allowsKeyboard }
     override var canBecomeMain: Bool { false }

@@ -52,7 +52,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             return
         }
 
-        let panel = QuotaWidgetPanel(
+        let panel = BubbleWidgetPanel(
             contentRect: CGRect(origin: .zero, size: BubbleWidgetPlacement.bubbleSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
@@ -68,6 +68,24 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         panel.delegate = self
         panel.level = model.widgetAlwaysOnTop ? .floating : .normal
         self.panel = panel
+        panel.canStartDrag = { [weak self] point in
+            guard let self, let panel = self.panel else { return false }
+            if !self.isExpanded {
+                return (self.clippingView?.layer?.mask as? CAShapeLayer)?.path?.contains(point) == true
+            }
+            let diameter = BubbleWidgetPlacement.dialDiameter(in: panel.frame.size)
+            let centerX = self.expansionSide == .left ? diameter / 2 : panel.frame.width - diameter / 2
+            return hypot(point.x - centerX, point.y - panel.frame.height / 2) <= (diameter - 16) / 2
+        }
+        panel.onPointerDown = { [weak self] in self?.interaction.beginDrag() }
+        panel.onPointerDrag = { [weak self] start, pointer in
+            self?.dragChanged(pointerStart: start, pointer: pointer)
+        }
+        panel.onPointerUp = { [weak self] moved in
+            guard let self else { return }
+            if moved { self.dragEnded() }
+            else { self.interaction.endDrag(); self.interaction.click() }
+        }
 
         let view = makeView(model: model)
         let host = NSHostingController(rootView: view)
@@ -199,9 +217,11 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             stopDismissMonitors()
             panel.allowsKeyboard = false
             panel.resignKey()
-            clippingView?.morph(from: .expanded, to: edge == nil ? .circle : .edgeTab,
-                fromWidth: BubbleWidgetPlacement.expandedSize.width, toWidth: restingFrame.width)
-            setFrame(restingFrame, animated: true)
+            if !interaction.isDragging {
+                clippingView?.morph(from: .expanded, to: edge == nil ? .circle : .edgeTab,
+                    fromWidth: BubbleWidgetPlacement.expandedSize.width, toWidth: restingFrame.width)
+            }
+            setFrame(restingFrame, animated: !interaction.isDragging)
         } else {
             let visible = targetScreen(savedFrame: restingFrame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
             let expandedFrame = BubbleWidgetPlacement.expandedFrame(from: restingFrame, edge: edge, in: visible)
@@ -221,12 +241,18 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
     private func collapse() { interaction.collapse() }
 
     private func dragChanged(_ firstTranslation: CGSize) {
-        guard !isExpanded, let panel else { return }
-        interaction.beginDrag()
         let pointer = NSEvent.mouseLocation
+        dragChanged(pointerStart: CGPoint(x: pointer.x - firstTranslation.width,
+            y: pointer.y + firstTranslation.height), pointer: pointer)
+    }
+
+    private func dragChanged(pointerStart: CGPoint, pointer: CGPoint) {
+        guard let panel else { return }
+        interaction.beginDrag()
         if dragStartFrame == nil {
+            if isExpanded { interaction.collapse() }
             dragStartFrame = panel.frame
-            dragStartPointer = CGPoint(x: pointer.x - firstTranslation.width, y: pointer.y + firstTranslation.height)
+            dragStartPointer = pointerStart
         }
         guard let start = dragStartFrame, let pointerStart = dragStartPointer else { return }
         panel.setFrameOrigin(BubbleWidgetPlacement.draggedFrame(from: start, pointerStart: pointerStart, pointerNow: pointer).origin)
