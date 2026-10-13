@@ -1,6 +1,6 @@
 # Version plans / 版本规划
 
-- [0.1.144 reliable detail pin (local preview)](versions/0.1.144/PLAN.md) | [中文计划](versions/0.1.144/PLAN.zh-CN.md) | [Acceptance — pending](versions/0.1.144/QA.md) | [中文验收 — 待验证](versions/0.1.144/QA.zh-CN.md)
+- [0.1.144 reliable detail pin](versions/0.1.144/PLAN.md) | [中文计划](versions/0.1.144/PLAN.zh-CN.md) | [Acceptance](versions/0.1.144/QA.md) | [中文验收](versions/0.1.144/QA.zh-CN.md) | [Release](https://github.com/whnnick/readycheck/releases/tag/v0.1.144)
 
 - [0.1.143 compact dial spacing](versions/0.1.143/PLAN.md) | [中文计划](versions/0.1.143/PLAN.zh-CN.md) | [Acceptance](versions/0.1.143/QA.md) | [中文验收](versions/0.1.143/QA.zh-CN.md)
 

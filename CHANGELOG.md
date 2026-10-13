@@ -1,9 +1,10 @@
 # Changelog
 
-## 0.1.144 - 2026-10-13 (local preview)
+## 0.1.144 - 2026-10-13
 
 - Keep pinned round-bubble details expanded when clicking the desktop, another app or another ReadyCheck window, and when the detail window loses focus. Unpinning restores hover preview; Esc remains a manual dismissal.
-- Remove the detail minus button and update Bubble-specific pin/hover help without changing EdgeRail-style semantics. Preserve circle geometry and existing dragging behavior. Windows version metadata only. Functional, UI and installation verification is pending.
+- Remove the detail minus button and update Bubble-specific pin/hover help without changing EdgeRail-style semantics. Preserve circle geometry and existing dragging behavior. Windows version metadata only.
+- Wait for actual AppKit content layout in the existing sizing test while retaining every target-size assertion; production geometry and animation are unchanged. All 278 public-source tests pass with no failures or skips. Release assets, CI, strict Mac signing, local installation and downloaded-package hashes are verified; see [acceptance](docs/versions/0.1.144/QA.md) for the original failure and manual coverage limits.
 
 ## 0.1.143 - 2026-10-13
 

@@ -8,9 +8,9 @@ ReadyCheck is a macOS menu-bar and desktop-widget app for monitoring Codex subsc
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck product preview" width="860">
 </p>
 
-> Latest release: [`0.1.143`](https://github.com/whnnick/readycheck/releases/tag/v0.1.143). Clear compact dial spacing and direct inward dragging from either edge, with single recent-hour consumption bars and a persistent detail pin. New widget features and recovery reminders are macOS-only.
+> Latest release: [`0.1.144`](https://github.com/whnnick/readycheck/releases/tag/v0.1.144). Pinned round-bubble details stay open across outside clicks and focus changes; unpinning restores hover preview. Compact dial spacing and direct inward dragging are preserved. New widget behavior is macOS-only; Windows receives version metadata.
 
-**0.1.144 local preview** repairs the round bubble's keep-open pin: clicking the desktop, another app or another ReadyCheck window no longer closes pinned details. Unpinning restores hover preview, Esc still dismisses manually, and the detail minus button is removed. Bubble tooltips are updated separately from the EdgeRail style. Verification is pending; see the [plan](docs/versions/0.1.144/PLAN.md) and [acceptance](docs/versions/0.1.144/QA.md). The public download remains 0.1.143.
+**0.1.144** repairs the round bubble's keep-open pin: outside clicks and focus changes no longer close pinned details. Unpinning restores hover preview, Esc remains a manual dismissal, and the detail minus button is removed. Bubble tooltips are updated separately from the EdgeRail style. All 278 public-source tests pass; the release packages, local installation and selected native UI operations are verified. See the [plan](docs/versions/0.1.144/PLAN.md) and [acceptance](docs/versions/0.1.144/QA.md) for evidence and remaining manual spot checks.
 
 **0.1.143** reduces the compact dial's C mark and moves its percentage away from the inner ring. It includes the preceding direct-drag repair. See the [plan](docs/versions/0.1.143/PLAN.md) and [acceptance](docs/versions/0.1.143/QA.md).
 

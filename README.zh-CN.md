@@ -8,9 +8,9 @@ ReadyCheck 是一款 macOS 菜单栏和桌面 widget 应用，用于查看 Codex
   <img src="docs/assets/readycheck-preview.gif" alt="ReadyCheck 产品预览" width="860">
 </p>
 
-> 最新发布版：[`0.1.143`](https://github.com/whnnick/readycheck/releases/tag/v0.1.143)。清晰的紧凑表盘间距、左右贴边直接向内拖动、最近一小时单柱消耗图及常驻详情固定按钮；新增浮窗功能及恢复提醒仅支持 macOS。
+> 最新发布版：[`0.1.144`](https://github.com/whnnick/readycheck/releases/tag/v0.1.144)。圆球详情固定后，点击外部或失去焦点保持展开；取消固定恢复悬停预览。保留紧凑表盘间距及直接向内拖动。新增浮窗行为仅支持macOS，Windows同步版本信息。
 
-**0.1.144 本地预览**修复圆球详情固定：点击桌面、其他应用或ReadyCheck其他窗口时，固定详情保持展开。取消固定恢复悬停预览，保留Esc手动收起，移除详情减号按钮；Bubble提示独立更新，EdgeRail样式语义保持不变。验证待完成，参见[计划](docs/versions/0.1.144/PLAN.zh-CN.md)与[验收](docs/versions/0.1.144/QA.zh-CN.md)。当前公开下载仍为0.1.143。
+**0.1.144**修复圆球详情固定：点击外部或失去焦点时，固定详情保持展开。取消固定恢复悬停预览，保留Esc手动收起，移除详情减号按钮；Bubble提示独立更新，EdgeRail样式语义保持不变。公开源码278项测试全部通过，发布包、本机安装及部分原生UI操作已验证；证据与待补手工抽查见[计划](docs/versions/0.1.144/PLAN.zh-CN.md)和[验收](docs/versions/0.1.144/QA.zh-CN.md)。
 
 **0.1.143**缩小紧凑表盘C标志，并将百分比移回内圈，避免数字压线；包含上一版贴边直接拖动修复。参见[计划](docs/versions/0.1.143/PLAN.zh-CN.md)与[验收](docs/versions/0.1.143/QA.zh-CN.md)。
 

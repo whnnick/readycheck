@@ -1,4 +1,4 @@
-# 0.1.144: Reliable detail pin (local preview)
+# 0.1.144: Reliable detail pin
 
 [中文](PLAN.zh-CN.md) · [Acceptance](QA.md) · [Version index](../../VERSIONS.md)
 
@@ -12,4 +12,4 @@ Problem: round-bubble details can close after an outside click or focus loss eve
 | Clear help | Bubble-only help explains the current pinned or hover-preview state. EdgeRail-style help and interaction semantics remain unchanged. |
 | Preserve scope | Keep circle/ring geometry, compact and expanded sizes, direct inward dragging and quota handling unchanged. Windows receives version metadata only. |
 
-Scope: macOS round-bubble detail pin behavior, its controls and Bubble-specific help. Use the existing test and packaging workflow for local verification and installation. Local regression checks, packaging and installation are recorded in the acceptance document; additional manual scenarios remain listed there. This version remains a local preview while public publication is incomplete; the current public release and download remain [0.1.143](https://github.com/whnnick/readycheck/releases/tag/v0.1.143). Campaign media remains a separate deliverable.
+Scope: macOS round-bubble detail pin behavior, its controls and Bubble-specific help. Use the existing test and packaging workflow for local verification and installation. Local regression checks, packaging and installation are recorded in the acceptance document; additional manual scenarios remain listed there. The public [0.1.144 release](https://github.com/whnnick/readycheck/releases/tag/v0.1.144), latest status, CI and downloaded package hashes are verified in the acceptance document. Campaign media remains a separate deliverable.
