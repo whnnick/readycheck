@@ -3,6 +3,13 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class UpdateCheckerTests: XCTestCase {
+    func testDevelopmentBuildCanUpdateToStableRelease() {
+        XCTAssertLessThan(SoftwareVersion("0.2.0-dev.3"), SoftwareVersion("0.2.0"))
+        XCTAssertLessThan(SoftwareVersion("0.2.0-dev.3"), SoftwareVersion("0.2.0-dev.10"))
+        XCTAssertLessThan(SoftwareVersion("0.2.0-rc.1"), SoftwareVersion("0.2.0"))
+        XCTAssertEqual(SoftwareVersion("0.2.0+build.123"), SoftwareVersion("0.2.0"))
+    }
+
     func testSoftwareVersionComparesSemanticTags() {
         XCTAssertLessThan(SoftwareVersion("0.1.46"), SoftwareVersion("v0.1.47"))
         XCTAssertLessThan(SoftwareVersion("0.1.9"), SoftwareVersion("0.1.10"))

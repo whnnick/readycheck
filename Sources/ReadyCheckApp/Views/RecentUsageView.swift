@@ -27,7 +27,6 @@ struct RecentUsageView: View {
     }
 
     let samples: [QuotaHistorySample]
-    let tokenUsage: AccountTokenUsage?
     let localization: LocalizationService
     let now: Date
 
@@ -36,31 +35,26 @@ struct RecentUsageView: View {
     @State private var selectedWindowID = "codex-primary"
     @State private var chartRevealProgress = 0.0
     @State private var didRevealChart = false
+    @State private var inspectedBucketID: TimeInterval?
 
     var body: some View {
-        if let tokenUsage {
-            AccountTokenUsageView(
-                usage: tokenUsage,
-                localization: localization,
-                now: now
-            )
-        } else {
-            localQuotaUsage
-        }
+        localQuotaUsage
     }
 
     private var localQuotaUsage: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
-                Label(localization.text("usage.title"), systemImage: "chart.bar.xaxis")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 4) {
+                    Label(localization.text("usage.title"), systemImage: "chart.bar.xaxis")
+                        .font(.headline)
 
-                Text(localization.text("usage.localRecord"))
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.primary.opacity(0.07), in: Capsule())
+                    Text(localization.text("usage.localRecord"))
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color.primary.opacity(0.07), in: Capsule())
+                }
 
                 Spacer()
 
@@ -71,12 +65,13 @@ struct RecentUsageView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 184)
+                .frame(width: localization.language == .enUS ? 224 : 184)
             }
 
             Text(localization.text("usage.subtitle"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             if windows.isEmpty {
                 collectingState
@@ -104,52 +99,13 @@ struct RecentUsageView: View {
                 } else {
                     Text(chartTitle)
                         .font(.subheadline.weight(.semibold))
+                    Text(barIntervalTitle + " · " + localization.text("usage.consumptionUnit"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
 
-                    Chart(displayBuckets) { bucket in
-                        BarMark(
-                            x: .value(localization.text("usage.time"), bucketKey(bucket)),
-                            y: .value(
-                                localization.text("usage.consumedPercent"),
-                                bucket.consumedRatio * 100 * chartRevealProgress
-                            ),
-                            width: .fixed(12)
-                        )
-                        .foregroundStyle(Color.accentColor.gradient)
-                        .clipShape(RoundedRectangle(cornerRadius: 3))
-                        .annotation(position: .top, alignment: .center) {
-                            if bucket.consumedRatio > 0 {
-                                Text(String(format: "%.0f%%", bucket.consumedRatio * 100))
-                                    .font(.system(size: 9, weight: .semibold))
-                                    .foregroundStyle(.secondary)
-                                    .fixedSize()
-                            }
-                        }
-                    }
-                    .chartYScale(domain: 0...chartMaximum)
-                    .chartYAxis {
-                        AxisMarks(position: .leading, values: yAxisValues) { value in
-                            AxisGridLine()
-                            AxisValueLabel {
-                                if let amount = value.as(Double.self) {
-                                    Text("\(Int(amount))")
-                                }
-                            }
-                        }
-                    }
-                    .chartXAxis {
-                        AxisMarks(values: xAxisKeys) { value in
-                            AxisValueLabel {
-                                if let key = value.as(String.self),
-                                   let date = bucketDateByKey[key] {
-                                    Text(date, format: axisFormat)
-                                }
-                            }
-                        }
-                    }
-                    .chartPlotStyle { plotArea in
-                        plotArea.background(Color.primary.opacity(0.025))
-                    }
-                    .frame(height: 178)
+                    LocalQuotaUsageChart(buckets: displayBuckets, localization: localization,
+                        axisFormat: axisFormat, revealProgress: chartRevealProgress,
+                        inspectedBucketID: $inspectedBucketID)
                     .animation(reduceMotion ? nil : .easeOut(duration: 0.28), value: samples)
                     .onAppear(perform: revealChartOnce)
 
@@ -162,6 +118,7 @@ struct RecentUsageView: View {
                     Text((currentRemainingRatio ?? 1) <= 0 ? localization.text("usage.zeroExplanation") : localization.text("usage.help"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 7)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -201,10 +158,6 @@ struct RecentUsageView: View {
         }
     }
 
-    private var rangeStart: Date {
-        now.addingTimeInterval(-selectedRange.rawValue)
-    }
-
     private var selectedRangePoints: [(date: Date, ratio: Double)] {
         selectedPoints.filter { $0.date >= aggregationRangeStart && $0.date <= now }
     }
@@ -223,23 +176,13 @@ struct RecentUsageView: View {
     private var buckets: [QuotaUsageBucket] {
         guard let window = activeWindow else { return [] }
         return QuotaUsageAggregation.buckets(
-            samples: providerSamples,
+            samples: providerSamples.filter { $0.recordedAt <= now },
             providerID: "codex-oauth",
             windowID: window.id,
             rangeStart: aggregationRangeStart,
             rangeEnd: aggregationRangeEnd,
             bucketInterval: selectedRange.bucketInterval
         )
-    }
-
-    private var chartMaximum: Double {
-        QuotaUsageAggregation.chartMaximumPercent(
-            for: displayBuckets.map { $0.consumedRatio * 100 }
-        )
-    }
-
-    private var yAxisValues: [Double] {
-        [0, chartMaximum / 2, chartMaximum]
     }
 
     private var displayBuckets: [QuotaUsageBucket] {
@@ -249,30 +192,12 @@ struct RecentUsageView: View {
         )
     }
 
-    private var xAxisKeys: [String] {
-        guard !displayBuckets.isEmpty else { return [] }
-        let indexes = [0, displayBuckets.count / 2, displayBuckets.count - 1]
-        return indexes.reduce(into: []) { keys, index in
-            let key = bucketKey(displayBuckets[index])
-            if keys.last != key {
-                keys.append(key)
-            }
-        }
-    }
-
-    private var bucketDateByKey: [String: Date] {
-        Dictionary(uniqueKeysWithValues: displayBuckets.map { (bucketKey($0), $0.start) })
-    }
-
-    private func bucketKey(_ bucket: QuotaUsageBucket) -> String {
-        String(Int(bucket.start.timeIntervalSince1970))
-    }
-
     private var axisFormat: Date.FormatStyle {
+        let format = Date.FormatStyle.dateTime.locale(Locale(identifier: localization.language.rawValue))
         switch selectedRange {
-        case .day: .dateTime.hour()
-        case .week: .dateTime.weekday(.abbreviated).hour()
-        case .month: .dateTime.month().day()
+        case .day: return format.hour()
+        case .week: return format.weekday(.abbreviated).hour()
+        case .month: return format.month().day()
         }
     }
 
@@ -287,7 +212,18 @@ struct RecentUsageView: View {
 
     private var chartTitle: String {
         guard let window = activeWindow else { return "" }
-        return "\(usageWindowTitle(window)) · \(localization.text("usage.barTitle"))"
+        return String(format: localization.text("usage.consumptionRangeFormat"),
+            usageWindowTitle(window), rangeTitle(selectedRange))
+    }
+
+    private var barIntervalTitle: String {
+        let intervalKey: String
+        switch selectedRange {
+        case .day: intervalKey = "usage.barInterval.hour"
+        case .week: intervalKey = "usage.barInterval.sixHours"
+        case .month: intervalKey = "usage.barInterval.day"
+        }
+        return localization.text(intervalKey)
     }
 
     private var collectingState: some View {
@@ -346,18 +282,10 @@ struct RecentUsageView: View {
     }
 
     private func consumedRatio(windowID: String) -> Double? {
-        let points = providerSamples.compactMap { sample -> (date: Date, ratio: Double)? in
-            guard sample.recordedAt >= rangeStart,
-                  let value = sample.values.first(where: { $0.windowID == windowID })
-            else { return nil }
-            return (sample.recordedAt, value.remainingRatio)
-        }
-        guard points.count > 1 else { return nil }
-        return zip(points, points.dropFirst()).reduce(0) { result, pair in
-            let gap = pair.1.date.timeIntervalSince(pair.0.date)
-            guard gap > 0, gap <= 10 * 60 else { return result }
-            return result + max(0, pair.0.ratio - pair.1.ratio)
-        }
+        let decreases = QuotaUsageAggregation.observedDecreases(samples: providerSamples,
+            providerID: "codex-oauth", windowID: windowID, rangeStart: aggregationRangeStart, rangeEnd: now)
+        guard !decreases.isEmpty else { return nil }
+        return decreases.reduce(0) { $0 + $1.consumedRatio }
     }
 
     private func rangeTitle(_ range: Range) -> String {
@@ -380,6 +308,24 @@ struct RecentUsageView: View {
         DispatchQueue.main.async {
             withAnimation(.easeOut(duration: 0.55)) {
                 chartRevealProgress = 1
+            }
+        }
+    }
+}
+
+struct TokenUsageView: View {
+    let usage: AccountTokenUsage?
+    let localization: LocalizationService
+    let now: Date
+
+    var body: some View {
+        if let usage {
+            AccountTokenUsageView(usage: usage, localization: localization, now: now)
+        } else {
+            ContentUnavailableView {
+                Label(localization.text("usage.tokenUnavailableTitle"), systemImage: "chart.bar.xaxis")
+            } description: {
+                Text(localization.text("usage.tokenUnavailableMessage"))
             }
         }
     }
@@ -414,15 +360,17 @@ private struct AccountTokenUsageView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
-                Label(localization.text("usage.tokenTitle"), systemImage: "chart.bar.xaxis")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 4) {
+                    Label(localization.text("usage.tokenTitle"), systemImage: "chart.bar.xaxis")
+                        .font(.headline)
 
-                Text(localization.text("usage.officialRecord"))
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.primary.opacity(0.07), in: Capsule())
+                    Text(localization.text("usage.officialRecord"))
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color.primary.opacity(0.07), in: Capsule())
+                }
 
                 Spacer()
 
@@ -433,12 +381,13 @@ private struct AccountTokenUsageView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 184)
+                .frame(width: localization.language == .enUS ? 224 : 184)
             }
 
             Text(localization.text("usage.tokenSubtitle"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 10) {
                 summaryMetric(
@@ -502,22 +451,24 @@ private struct AccountTokenUsageView: View {
                             }
                     }
                 }
+                .environment(\.calendar, tokenCalendar)
+                .environment(\.timeZone, TimeZone(secondsFromGMT: 0)!)
                 .chartYAxis {
                     AxisMarks(position: .leading) { value in
                         AxisGridLine()
                         AxisValueLabel {
                             if let amount = value.as(Double.self) {
-                                Text(Int64(amount).formatted(.number.notation(.compactName)))
+                                Text(formattedTokenCount(Int64(amount)))
                             }
                         }
                     }
                 }
                 .chartXAxis {
-                    AxisMarks(values: .automatic(desiredCount: selectedRange == .week ? 7 : 5)) {
+                    AxisMarks(values: .automatic(desiredCount: selectedRange == .week ? 7 : 5)) { value in
                         AxisGridLine()
-                        AxisValueLabel(format: selectedRange == .week
-                            ? .dateTime.weekday(.abbreviated)
-                            : .dateTime.month().day())
+                        AxisValueLabel {
+                            if let date = value.as(Date.self) { Text(date.formatted(tokenAxisFormat)) }
+                        }
                     }
                 }
                 .chartPlotStyle { plotArea in
@@ -658,7 +609,20 @@ private struct AccountTokenUsageView: View {
     }
 
     private func formattedTokenCount(_ value: Int64?) -> String {
-        value?.formatted(.number.notation(.compactName)) ?? "--"
+        value?.formatted(.number.notation(.compactName).locale(Locale(identifier: localization.language.rawValue))) ?? "--"
+    }
+
+    private var tokenAxisFormat: Date.FormatStyle {
+        var format = selectedRange == .week ? Date.FormatStyle.dateTime.weekday(.abbreviated) : .dateTime.month().day()
+        format.locale = Locale(identifier: localization.language.rawValue)
+        format.timeZone = TimeZone(secondsFromGMT: 0)!
+        return format
+    }
+
+    private var tokenCalendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar
     }
 
     private func tokenTooltip(for bucket: DatedBucket) -> some View {

@@ -66,12 +66,12 @@ final class BubbleWidgetPlacementTests: XCTestCase {
         XCTAssertEqual(moved.size, start.size)
     }
 
-    func testFreeBubbleExpandsTowardRoomWhileKeepingDialCenter() {
+    func testFreeBubbleExpandsTowardRoomWhileKeepingRestingEdge() {
         for x: CGFloat in [-1600, -400] {
             let rest = CGRect(origin: CGPoint(x: x, y: 400), size: BubbleWidgetPlacement.bubbleSize)
             let expanded = BubbleWidgetPlacement.expandedFrame(from: rest, edge: nil, in: display)
             let side = BubbleWidgetPlacement.expansionEdge(from: rest, edge: nil, in: display)
-            let radius = BubbleWidgetPlacement.dialDiameter(in: expanded.size) / 2
+            let radius = BubbleWidgetPlacement.bubbleSize.width / 2
             let dialX = side == .left ? expanded.minX + radius : expanded.maxX - radius
             XCTAssertEqual(dialX, rest.midX)
             XCTAssertEqual(expanded.midY, rest.midY)
@@ -79,13 +79,9 @@ final class BubbleWidgetPlacementTests: XCTestCase {
         }
     }
 
-    func testExpandedDialLeavesMoreWidthForDetails() {
-        let size = BubbleWidgetPlacement.expandedSize
-        let diameter = BubbleWidgetPlacement.dialDiameter(in: size)
-        XCTAssertEqual(diameter, 176)
-        XCTAssertGreaterThan(size.width - diameter, diameter)
-        XCTAssertEqual(BubbleWidgetPlacement.dialDiameter(in: BubbleWidgetPlacement.bubbleSize), 92)
-        XCTAssertEqual(BubbleWidgetPlacement.dialDiameter(in: BubbleWidgetPlacement.tabSize), 28)
+    func testExpandedCardReservesSpaceForQuotaAndLastHourChart() {
+        XCTAssertEqual(BubbleWidgetPlacement.expandedSize, CGSize(width: 380, height: 304))
+        XCTAssertLessThan(BubbleWidgetPlacement.tabSize.width, 30)
     }
 
     func testExpandedSurfaceFitsSmallDisplay() {

@@ -4,6 +4,24 @@ import XCTest
 final class LowQuotaReminderTests: XCTestCase {
     private let start = Date(timeIntervalSince1970: 1_900_000_000)
 
+    func testFivePercentCrossingAndRestartDoNotReplayDelivery() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("reminders.json")
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let store = QuotaReminderStore(fileURL: url)
+        let saved = await store.setLowQuotaThreshold(5)
+        XCTAssertTrue(saved)
+        let baseline = await store.prepare(snapshot([0.06], tick: 0), now: start, account: "account")
+        await store.commit(baseline, deliveredEvents: [], now: start)
+        let crossing = await store.prepare(snapshot([0.05], tick: 1), now: start.addingTimeInterval(1), account: "account")
+        XCTAssertEqual(lowAlerts(crossing.events).map(\.threshold), [5])
+        await store.commit(crossing, deliveredEvents: crossing.events, now: start.addingTimeInterval(1))
+        let restarted = QuotaReminderStore(fileURL: url)
+        let threshold = await restarted.lowQuotaThreshold()
+        XCTAssertEqual(threshold, 5)
+        let next = await restarted.prepare(snapshot([0.04], tick: 2), now: start.addingTimeInterval(2), account: "account")
+        XCTAssertTrue(lowAlerts(next.events).isEmpty)
+    }
+
     func testFirstLowReadingDoesNotReplayAnAlert() {
         XCTAssertTrue(evaluate([0.15], tick: 0).alerts.isEmpty)
         XCTAssertTrue(evaluate([0.35], tick: 0, threshold: 0).alerts.isEmpty)

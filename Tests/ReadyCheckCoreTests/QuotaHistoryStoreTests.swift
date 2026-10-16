@@ -48,7 +48,7 @@ final class QuotaHistoryStoreTests: XCTestCase {
             _ = await store.record(makeSnapshot(at: TimeInterval(600 + minute * 60), remaining: 0.8))
         }
 
-        let samples = await store.load()
+        let samples = await store.load(accountID: "A")
         XCTAssertEqual(samples.count, 7)
         XCTAssertEqual(samples.map { Int($0.recordedAt.timeIntervalSince1970) }, [600, 660, 720, 780, 840, 900, 960])
     }
@@ -62,12 +62,12 @@ final class QuotaHistoryStoreTests: XCTestCase {
         _ = await store.record(makeSnapshot(at: now.timeIntervalSince1970 - 31 * 86_400, remaining: 0.9))
         _ = await store.record(makeSnapshot(at: now.timeIntervalSince1970 - 1_000, remaining: 0.6))
 
-        let reloaded = await QuotaHistoryStore(fileURL: fileURL, now: { now }).load()
+        let reloaded = await QuotaHistoryStore(fileURL: fileURL, now: { now }).load(accountID: "A")
         XCTAssertEqual(reloaded.count, 1)
         XCTAssertEqual(reloaded[0].values[0].remainingRatio, 0.6)
     }
 
-    func testLoadsHistoryWrittenBeforeDisplayLabelsWereAdded() async throws {
+    func testLegacyUnownedHistoryIsNotAssignedToCurrentAccount() async throws {
         let fileURL = temporaryFileURL()
         defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
         try FileManager.default.createDirectory(
@@ -94,11 +94,92 @@ final class QuotaHistoryStoreTests: XCTestCase {
             now: { Date(timeIntervalSince1970: 10_000) }
         )
 
-        let samples = await store.load()
+        let samples = await store.load(accountID: "A")
 
-        let sample = try XCTUnwrap(samples.first)
-        let value = try XCTUnwrap(sample.values.first)
-        XCTAssertNil(value.displayLabel)
+        XCTAssertTrue(samples.isEmpty)
+        let original = try Data(contentsOf: fileURL)
+        let decoded = try JSONDecoder().decode([QuotaHistorySample].self, from: original)
+        XCTAssertNil(decoded.first?.values.first?.displayLabel)
+    }
+
+    func testAccountSwitchAndRestartKeepIndependentHistory() async {
+        let fileURL = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
+        let store = QuotaHistoryStore(fileURL: fileURL, now: { Date(timeIntervalSince1970: 10_000) })
+        _ = await store.record(makeSnapshot(at: 9_000, remaining: 0.8, accountID: "A"))
+        let b = await store.record(makeSnapshot(at: 9_030, remaining: 0.4, accountID: "B"))
+        XCTAssertEqual(b.count, 1)
+        XCTAssertEqual(b.first?.values.first?.remainingRatio, 0.4)
+        let a = await store.load(accountID: "A")
+        XCTAssertEqual(a.first?.values.first?.remainingRatio, 0.8)
+        let restarted = QuotaHistoryStore(fileURL: fileURL, now: { Date(timeIntervalSince1970: 10_000) })
+        let reloaded = await restarted.load(accountID: "B")
+        XCTAssertEqual(reloaded, b)
+        let unknown = await restarted.record(makeSnapshot(at: 9_060, remaining: 0.1, accountID: nil))
+        XCTAssertTrue(unknown.isEmpty)
+        let loggedOut = await restarted.load(accountID: nil)
+        XCTAssertTrue(loggedOut.isEmpty)
+    }
+
+    func testLegacyFileIsBackedUpByteForByteAndUntouchedByNewWrites() async throws {
+        let fileURL = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
+        try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let legacy = fileURL.deletingLastPathComponent().appendingPathComponent("legacy.json")
+        let original = Data("[broken legacy data preserved]".utf8)
+        try original.write(to: legacy)
+        let store = QuotaHistoryStore(fileURL: fileURL, legacyFileURL: legacy, now: { Date(timeIntervalSince1970: 10_000) })
+        let samples = await store.record(makeSnapshot(at: 9_000, remaining: 0.8))
+        XCTAssertEqual(samples.count, 1)
+        let legacyPreserved = await store.hasUnassignedLegacyHistory()
+        XCTAssertTrue(legacyPreserved)
+        XCTAssertEqual(try Data(contentsOf: legacy), original)
+        XCTAssertEqual(try Data(contentsOf: legacy.appendingPathExtension("legacy-backup")), original)
+        let restarted = QuotaHistoryStore(fileURL: fileURL, legacyFileURL: legacy, now: { Date(timeIntervalSince1970: 10_000) })
+        let loaded = await restarted.load(accountID: "A")
+        XCTAssertEqual(loaded, samples)
+        let stored = try String(contentsOf: fileURL, encoding: .utf8)
+        XCTAssertFalse(stored.contains("\"accountID\""))
+        XCTAssertFalse(stored.contains("\"A\""))
+    }
+
+    func testCorruptScopedFileIsNeverOverwritten() async throws {
+        let fileURL = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
+        try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let original = Data("not JSON".utf8)
+        try original.write(to: fileURL)
+        let store = QuotaHistoryStore(fileURL: fileURL, now: { Date(timeIntervalSince1970: 10_000) })
+        _ = await store.record(makeSnapshot(at: 9_000, remaining: 0.8))
+        XCTAssertEqual(try Data(contentsOf: fileURL), original)
+    }
+
+    func testStaleAndOutOfOrderReadingsCannotRewriteHistory() async {
+        let fileURL = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
+        let store = QuotaHistoryStore(fileURL: fileURL, now: { Date(timeIntervalSince1970: 10_000) })
+        let first = await store.record(makeSnapshot(at: 9_000, remaining: 0.8))
+        let earlier = await store.record(makeSnapshot(at: 8_000, remaining: 0.9))
+        XCTAssertEqual(earlier, first)
+        let stale = makeSnapshot(at: -4_000_000, remaining: 0.1)
+        let unchanged = await store.record(stale)
+        XCTAssertEqual(unchanged, first)
+    }
+
+    func testBlockedLegacyBackupDoesNotReplaceLegacyOrCreateScopedFile() async throws {
+        let fileURL = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
+        try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let legacy = fileURL.deletingLastPathComponent().appendingPathComponent("legacy.json")
+        let original = Data("legacy bytes".utf8)
+        try original.write(to: legacy)
+        // A broken symlink cannot be mistaken for a completed backup or overwritten.
+        try FileManager.default.createSymbolicLink(atPath: legacy.appendingPathExtension("legacy-backup").path, withDestinationPath: fileURL.appendingPathExtension("missing").path)
+        let store = QuotaHistoryStore(fileURL: fileURL, legacyFileURL: legacy, now: { Date(timeIntervalSince1970: 10_000) })
+        let result = await store.record(makeSnapshot(at: 9_000, remaining: 0.8))
+        XCTAssertTrue(result.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fileURL.path))
+        XCTAssertEqual(try Data(contentsOf: legacy), original)
     }
 
     private func temporaryFileURL() -> URL {
@@ -110,7 +191,8 @@ final class QuotaHistoryStoreTests: XCTestCase {
     private func makeSnapshot(
         at timestamp: TimeInterval,
         remaining: Double,
-        status: ProviderStatus = .available
+        status: ProviderStatus = .available,
+        accountID: String? = "A"
     ) -> ProviderQuotaSnapshot {
         let date = Date(timeIntervalSince1970: timestamp)
         return ProviderQuotaSnapshot(
@@ -119,7 +201,7 @@ final class QuotaHistoryStoreTests: XCTestCase {
             status: status,
             source: .oauthAPI,
             refreshedAt: date,
-            staleAfter: date.addingTimeInterval(300),
+            staleAfter: date.addingTimeInterval(40 * 86_400),
             windows: [
                 QuotaWindow(
                     id: "codex-primary",
@@ -145,7 +227,7 @@ final class QuotaHistoryStoreTests: XCTestCase {
                     confidence: .verified
                 )
             ],
-            errors: []
+            errors: [], accountID: accountID
         )
     }
 }

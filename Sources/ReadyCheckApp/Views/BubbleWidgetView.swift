@@ -22,7 +22,6 @@ struct BubbleWidgetView: View {
     var onPin: () -> Void = {}
     var onTogglePin: () -> Void = {}
     let tabEdge: BubbleWidgetPlacement.Edge?
-    var expansionSide: BubbleWidgetPlacement.Edge = .right
     let onTap: () -> Void
     let onDragChanged: (CGSize) -> Void
     let onDragEnded: () -> Void
@@ -45,28 +44,19 @@ struct BubbleWidgetView: View {
 
     private var primaryRatio: Double? {
         guard snapshot?.canShowPercentages(now: now) == true else { return nil }
-        return primaryWindow?.remainingRatio
+        return primaryWindow?.displayableRemainingRatio
     }
 
     private var displayedQuota: BubbleQuotaDisplay {
         BubbleQuotaDisplay(selection: model.notchQuotaSelection, windowID: primaryWindow?.id, ratio: primaryRatio)
     }
 
-    private var refreshDate: String? {
-        guard let snapshot else { return nil }
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: snapshot.refreshedAt)
-    }
-
     private var primaryWindowShortLabel: String {
-        primaryWindow.map(QuotaWindowDisplay.shortLabel) ?? "—"
+        expandedWindows.first.map(QuotaWindowDisplay.shortLabel) ?? "—"
     }
 
     var expandedWindows: [QuotaWindow] {
-        guard let primaryWindow else { return windows }
-        return [primaryWindow] + windows.filter { $0.id != primaryWindow.id }
+        model.notchQuotaSelection.displayWindows(in: windows)
     }
 
     private var floatingSurfaceColor: Color {
@@ -105,43 +95,36 @@ struct BubbleWidgetView: View {
 
     private var orbitalSurface: some View {
         GeometryReader { geometry in
-            let size = geometry.size
-            let orbWidth = BubbleWidgetPlacement.dialDiameter(in: size)
-            let detailWidth = max(0, size.width - orbWidth)
-            let reveal = min(1, max(0, (detailWidth - 24) / 200))
-            let shape = OrbitalWidgetShape(orbOnLeft: expansionSide == .left)
+            let reveal = min(1, max(0, (geometry.size.width - 140) / 200))
+            let shape = WidgetPanelShape()
             ZStack {
-                shape.fill(LinearGradient(colors: [Color(red: 0.13, green: 0.15, blue: 0.18),
-                    Color(red: 0.055, green: 0.065, blue: 0.075)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.38), .white.opacity(0.10),
-                        .white.opacity(0.27)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
+                shape.fill(floatingSurfaceColor)
+                    .overlay(shape.strokeBorder(.white.opacity(0.22), lineWidth: 1))
                 expandedDetails
-                    .frame(width: max(190, detailWidth - 48), height: max(0, size.height - 32))
-                    .frame(width: detailWidth, height: size.height)
-                    .clipped()
-                    .opacity(reveal)
-                    .allowsHitTesting(isExpanded && reveal > 0.9)
+                    .frame(width: max(0, geometry.size.width - 32), height: max(0, geometry.size.height - 32))
+                    .clipped().padding(16)
+                    .opacity(reveal).allowsHitTesting(isExpanded && reveal > 0.9)
                     .accessibilityHidden(!isExpanded)
-                    .position(x: expansionSide == .left ? orbWidth + detailWidth / 2 : detailWidth / 2,
-                              y: size.height / 2)
-                OrbitalQuotaDial(windows: expandedWindows, canShow: snapshot?.canShowPercentages(now: now) == true,
-                    expansion: reveal, recoveryHighlight: recoveryHighlight)
-                    .frame(width: max(0, orbWidth - 16), height: max(0, orbWidth - 16))
-                    .contentShape(Circle())
-                    .onTapGesture(perform: onTap)
-                    .simultaneousGesture(dragGesture)
-                    .contextMenu { contextMenu }
-                    .accessibilityAddTraits(.isButton)
-                    .accessibilityAction { onTap() }
-                    .help(model.localization.text(isPinned && isExpanded ? "bubble.pinnedHint" : "widget.previewHint"))
+                OrbitalQuotaDial(windows: expandedWindows, primaryLabel: primaryWindowShortLabel,
+                    canShow: snapshot?.canShowPercentages(now: now) == true, recoveryHighlight: recoveryHighlight)
+                    .overlay(alignment: .topTrailing) {
+                        if snapshot?.isCached == true {
+                            Image(systemName: "clock.badge.exclamationmark").font(.caption).foregroundStyle(.orange)
+                        }
+                    }
+                    .frame(width: 76, height: 76).opacity(1 - reveal)
+                    .contentShape(Circle()).onTapGesture(perform: onTap)
+                    .simultaneousGesture(dragGesture).contextMenu { contextMenu }
+                    .allowsHitTesting(!isExpanded).accessibilityHidden(isExpanded)
+                    .accessibilityAddTraits(.isButton).accessibilityAction { onTap() }
+                    .help(model.localization.text("widget.previewHint"))
                     .accessibilityLabel(model.localization.text("bubble.accessibility") + " "
-                        + (expandedWindows.isEmpty ? QuotaFormatters.percentageText(for: nil) : expandedWindows.prefix(2).map {
+                        + expandedWindows.prefix(2).map {
                             QuotaWindowDisplay.title(for: $0, localization: model.localization) + " "
-                                + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.remainingRatio : nil)
-                        }.joined(separator: ", ")))
-                    .position(x: expansionSide == .left ? orbWidth / 2 : size.width - orbWidth / 2,
-                              y: size.height / 2)
+                                + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.displayableRemainingRatio : nil)
+                        }.joined(separator: ", "))
             }
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
     }
 
@@ -149,7 +132,7 @@ struct BubbleWidgetView: View {
         VStack(spacing: 10) {
             codexIcon.frame(width: 16, height: 16)
             ForEach(expandedWindows.prefix(2)) { window in
-                let ratio = snapshot?.canShowPercentages(now: now) == true ? window.remainingRatio : nil
+                let ratio = snapshot?.canShowPercentages(now: now) == true ? window.displayableRemainingRatio : nil
                 Capsule().fill(Color.white.opacity(0.18))
                     .overlay(alignment: .bottom) {
                         Capsule().fill(quotaColor(for: ratio))
@@ -170,36 +153,27 @@ struct BubbleWidgetView: View {
         .accessibilityAction { onTap() }
         .accessibilityLabel(model.localization.text("bubble.accessibility") + " " + expandedWindows.prefix(2).map {
             QuotaWindowDisplay.title(for: $0, localization: model.localization) + " "
-                + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.remainingRatio : nil)
+                + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.displayableRemainingRatio : nil)
         }.joined(separator: ", "))
     }
 
     private var expandedDetails: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 4) {
-                VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                Text("ReadyCheck")
-                    .font(.system(size: 15, weight: .bold))
-                    .lineLimit(1).fixedSize(horizontal: true, vertical: false)
-                Text("· Codex")
-                    .font(.system(size: 13, weight: .semibold))
-                    .lineLimit(1)
-                    .foregroundStyle(.white.opacity(0.55))
-                }
-                .layoutPriority(1)
-                if let refreshDate {
-                    Text(refreshDate)
-                        .font(.system(size: 10)).foregroundStyle(.white.opacity(0.5))
-                }
+            HStack(spacing: 8) {
+                codexIcon.frame(width: 24, height: 24)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("ReadyCheck").font(.system(size: 14, weight: .semibold))
+                    Text("Codex · " + model.localization.text(snapshot?.availabilityTextKey(now: now) ?? "status.unavailable"))
+                        .font(.system(size: 10)).foregroundStyle(.white.opacity(0.55)).lineLimit(1)
                 }
                 Spacer()
                 Button(action: onTogglePin) {
-                    Image(systemName: isPinned ? "pin.fill" : "pin")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isPinned ? Color(red: 0.20, green: 0.70, blue: 1) : .white.opacity(0.75))
-                        .frame(width: 26, height: 26)
-                        .background(Circle().fill(isPinned ? Color.blue.opacity(0.15) : .clear))
+                    Label(model.localization.text(isPinned ? "widget.pinStateOn" : "widget.pinStateOff"),
+                        systemImage: isPinned ? "pin.fill" : "pin")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(isPinned ? Color.cyan : .white.opacity(0.75))
+                        .padding(.horizontal, 9).padding(.vertical, 6)
+                        .background(isPinned ? Color.blue.opacity(0.15) : .white.opacity(0.06), in: RoundedRectangle(cornerRadius: 9))
                 }
                 .buttonStyle(.plain)
                 .help(model.localization.text(isPinned ? "bubble.unpinHelp" : "bubble.pinHelp"))
@@ -225,6 +199,9 @@ struct BubbleWidgetView: View {
             }
 
             miniTrend
+            if snapshot?.isCached == true {
+                Text(model.localization.text("status.stale")).font(.caption2).foregroundStyle(.orange)
+            }
 
             HStack {
                 Text(snapshot.map { model.localization.text("status.lastUpdated") + " "
@@ -232,8 +209,17 @@ struct BubbleWidgetView: View {
                     .font(.system(size: 10)).foregroundStyle(.white.opacity(0.5))
                 Spacer(minLength: 6)
                 Button {
+                    model.mainWindowPage = .settings
+                    model.mainSettingsSection = .reminders
                     model.openMainWindowFromWidget()
-                    onCollapse()
+                } label: {
+                    Image(systemName: "bell")
+                }
+                .buttonStyle(.plain)
+                .help(model.localization.text("navigation.reminders"))
+                .accessibilityLabel(model.localization.text("navigation.reminders"))
+                Button {
+                    openMainWindow()
                 } label: {
                     Text(model.localization.text("bubble.openMainWindow"))
                         .font(.system(size: 11, weight: .medium))
@@ -249,27 +235,21 @@ struct BubbleWidgetView: View {
         .onTapGesture { if !isPinned { onPin() } }
     }
 
+    func openMainWindow() {
+        model.mainWindowPage = .overview
+        model.openMainWindowFromWidget()
+        if !isPinned { onCollapse() }
+    }
+
     private func quotaRow(_ window: QuotaWindow, canShow: Bool) -> some View {
-        let ratio = canShow ? window.remainingRatio : nil
-        return HStack(alignment: .top, spacing: 12) {
-            Circle().fill(quotaColor(for: ratio)).frame(width: 10, height: 10).padding(.top, 5)
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 8) {
-                    Text(QuotaWindowDisplay.title(for: window, localization: model.localization))
-                        .font(.system(size: 14, weight: .semibold))
-                        .lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
-                    Text(QuotaFormatters.percentageText(for: ratio))
-                        .font(.system(size: 16, weight: .bold).monospacedDigit())
-                        .foregroundStyle(quotaColor(for: ratio))
-                }
-                Text(QuotaResetCountdown(window: window, snapshot: snapshot, now: now).text(localization: model.localization))
-                    .font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
-                    .lineLimit(2).monospacedDigit()
+        HStack(alignment: .top, spacing: 10) {
+            Circle().fill(quotaColor(for: canShow ? window.displayableRemainingRatio : nil))
+                .frame(width: 8, height: 8).padding(.top, 16)
+            if let snapshot {
+                CompactQuotaRow(window: window, snapshot: snapshot, localization: model.localization, now: now)
+                    .environment(\.colorScheme, .dark)
             }
         }
-        .padding(.bottom, 10)
-        .overlay(alignment: .bottom) { Rectangle().fill(.white.opacity(0.18)).frame(height: 1) }
-        .accessibilityElement(children: .combine)
     }
 
     private var codexIcon: some View {
@@ -277,14 +257,21 @@ struct BubbleWidgetView: View {
             .resizable().scaledToFit().accessibilityHidden(true)
     }
 
-    private var miniTrend: some View {
-        let values = primaryWindow.map {
+    var lastHourValues: [Double?] {
+        primaryWindow.map {
             QuotaMiniTrend.values(samples: model.quotaHistorySamples, providerID: "codex-oauth",
                                   windowID: $0.id, now: now)
         } ?? [Double?](repeating: nil, count: 12)
+    }
+
+    private var miniTrend: some View {
+        let values = lastHourValues
         return VStack(alignment: .leading, spacing: 4) {
-            Text(String(format: model.localization.text("orbital.recentConsumption"), primaryWindowShortLabel))
+            Text(String(format: model.localization.text("orbital.recentConsumption"),
+                primaryWindow.map { QuotaWindowDisplay.title(for: $0, localization: model.localization) } ?? "—"))
                 .font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
+            Text(model.localization.text("orbital.trendCaption"))
+                .font(.system(size: 9)).foregroundStyle(.white.opacity(0.5))
             if values.contains(where: { $0 != nil }) {
                 QuotaMiniTrendChart(values: values)
                 .frame(height: 22)

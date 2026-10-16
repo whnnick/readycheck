@@ -8,20 +8,23 @@ final class AboutWindowController: NSObject, NSWindowDelegate {
 
     func show(localization: LocalizationService) {
         if let window, window.isVisible {
+            window.title = localization.text("about.title")
+            window.contentView = NSHostingView(rootView: AboutView(localization: localization))
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 360, height: 300),
-            styleMask: [.titled, .closable],
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 640),
+            styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = localization.text("about.title")
         window.contentView = NSHostingView(rootView: AboutView(localization: localization))
         window.isReleasedWhenClosed = false
+        window.minSize = NSSize(width: 420, height: 440)
         window.collectionBehavior = [.moveToActiveSpace, .managed]
         window.level = .floating
         window.delegate = self

@@ -7,168 +7,146 @@ struct SettingsView: View {
 
     @State private var now = Date()
     @State private var isReminderHistoryPresented = false
-    @State private var isDisplaySettingsExpanded = false
 
     private let refreshIntervalOptions: [TimeInterval] = [60, 180, 300]
 
     var body: some View {
-        ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 14) {
-                hero
-
-                updateBanner
-
-                GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
-                    quotaControls
-                }
-
-                GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
-                    DisclosureGroup(isExpanded: $isDisplaySettingsExpanded) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            quotaWindowControls
-                            VStack(alignment: .leading, spacing: 5) {
-                                Toggle(model.localization.text("settings.hideInFullscreen"), isOn: $model.widgetHideInFullscreen)
-                                    .toggleStyle(.switch)
-                                    .controlSize(.small)
-                                Text(model.localization.text("settings.hideInFullscreenHelp"))
-                                    .font(.caption).foregroundStyle(.secondary)
-                            }
-                            .padding(.horizontal, 14)
-                            HStack(alignment: .top, spacing: 12) {
-                                widgetControls
-                                notchControls
-                            }
-                            Divider()
-                            productSummary
-                        }
-                        .padding(.top, 12)
-                    } label: {
-                        Label(model.localization.text("settings.display"), systemImage: "macwindow.on.rectangle")
-                            .font(.headline)
+        HStack(spacing: 0) {
+            MainWindowSidebar(model: model)
+            Divider()
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 18) {
+                    pageHeader
+                    updateBanner
+                    switch model.mainWindowPage {
+                    case .overview: overviewContent
+                    case .usage: usageContent
+                    case .settings: settingsContent
                     }
                 }
-
-                GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
-                    RecentUsageView(
-                        samples: model.quotaHistorySamples,
-                        tokenUsage: model.snapshots
-                            .first(where: { $0.providerId == "codex-oauth" })?
-                            .details?
-                            .accountTokenUsage,
-                        localization: model.localization,
-                        now: now
-                    )
-                }
-
-                GlassSurface(cornerRadius: 24, renderingMode: .staticSurface) {
-                    ReminderHistorySummaryView(
-                        records: model.reminderHistoryRecords,
-                        localization: model.localization,
-                        showAll: { isReminderHistoryPresented = true }
-                    )
-                }
-
-                HStack(alignment: .top, spacing: 14) {
-                    GlassSurface(cornerRadius: 20, renderingMode: .staticSurface) {
-                        codexOAuthProviderControls
-                    }
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-
-                    GlassSurface(cornerRadius: 20, renderingMode: .staticSurface) {
-                        generalControls
-                    }
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-                }
+                .padding(24)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            .padding(18)
         }
-        .frame(width: 740, height: 760, alignment: .topLeading)
-        .background {
-            ZStack {
-                LinearGradient(
-                    colors: [
-                        Color(nsColor: .windowBackgroundColor),
-                        Color.accentColor.opacity(0.12),
-                        Color.black.opacity(0.18)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-
-            }
-            .ignoresSafeArea()
-        }
-        .task {
-            await updateNowWhileVisible()
-        }
+        .frame(minWidth: 740, idealWidth: 900, minHeight: 620, idealHeight: 760)
+        .task { await updateNowWhileVisible() }
         .sheet(isPresented: $isReminderHistoryPresented) {
-            ReminderHistoryListView(
-                records: model.reminderHistoryRecords,
-                localization: model.localization
-            )
+            ReminderHistoryListView(records: model.reminderHistoryRecords, localization: model.localization)
         }
     }
 
-    private var hero: some View {
-        GlassSurface(cornerRadius: 28, renderingMode: .staticSurface) {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .center, spacing: 14) {
-                    Image(nsImage: NSApplication.shared.applicationIconImage)
-                        .resizable()
-                        .interpolation(.high)
-                        .frame(width: 54, height: 54)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(model.localization.text("app.name"))
-                            .font(.title2.weight(.semibold))
-
-                        Text(model.localization.text("dashboard.subtitle"))
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer()
-
-                    DataStatusButton(model: model).controlSize(.small)
-
-                    Label(codexOAuthStatusText, systemImage: codexOAuthStatusIcon)
-                        .font(.footnote.weight(.medium))
-                        .foregroundStyle(codexOAuthStatusColor)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 5)
-                        .background(codexOAuthStatusColor.opacity(0.12), in: Capsule())
+    private var pageHeader: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(model.localization.text(model.mainWindowPage.titleKey)).font(.title2.weight(.semibold))
+                    Text(model.localization.text(model.mainWindowPage == .usage ? "usage.pageSubtitle" : "dashboard.subtitle"))
+                        .font(.caption).foregroundStyle(.secondary)
                 }
+                Spacer(minLength: 8)
+                DataStatusButton(model: model).controlSize(.small)
+                Button {
+                    Task { await model.reloadCodexOAuthConnectionStatus(); await model.refresh(reason: .manual) }
+                } label: { Image(systemName: "arrow.clockwise") }
+                .disabled(model.isRefreshing)
+                .help(model.localization.text("action.refresh"))
+                .accessibilityLabel(model.localization.text("action.refresh"))
+            }
+            refreshStatusView
+        }
+    }
 
-                HStack(spacing: 10) {
-                    refreshStatusView
-
+    private var overviewContent: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            OverviewQuotaView(model: model, now: now)
+            if model.snapshots.isEmpty {
+                Text(quotaEmptyMessage).font(.callout).foregroundStyle(.secondary)
+                Button(model.localization.text("navigation.connection")) {
+                    model.mainWindowPage = .settings; model.mainSettingsSection = .connection
+                }
+            }
+            ForEach(model.snapshots.filter { $0.providerId == "codex-oauth" }) { snapshot in
+                quotaRecoveryActions(for: snapshot)
+                QuotaCardView(snapshot: snapshot, localization: model.localization, now: now, displayMode: .accountDetails)
+            }
+            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                RecentUsageView(samples: model.quotaHistorySamples,
+                    localization: model.localization, now: now)
+            }
+            legacyHistoryNotice
+            Button {
+                model.mainWindowPage = .settings; model.mainSettingsSection = .reminders
+            } label: {
+                HStack {
+                    Label(model.localization.text("navigation.reminders"), systemImage: "bell")
                     Spacer()
+                    Text(model.lowQuotaThreshold == 0 ? model.localization.text("lowQuota.off") : "\(model.lowQuotaThreshold)%")
+                    Image(systemName: "chevron.right").font(.caption)
+                }.padding(14)
+            }
+            .buttonStyle(.plain)
+            .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 14))
+        }
+    }
 
-                    Button {
-                        Task {
-                            await model.refresh(reason: .manual)
-                            now = Date()
-                        }
-                    } label: {
-                        Label(model.localization.text("action.refresh"), systemImage: "arrow.clockwise")
-                    }
-                    .disabled(model.isRefreshing || model.codexOAuthStatus != .connected)
+    @ViewBuilder private var legacyHistoryNotice: some View {
+        if model.hasUnassignedLegacyHistory {
+            Label(model.localization.text("usage.legacyPreserved"), systemImage: "archivebox")
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
+    }
 
-                    Button {
-                        model.showAboutWindow()
-                    } label: {
-                        Label(model.localization.text("about.title"), systemImage: "info.circle")
+    private var usageContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                TokenUsageView(usage: model.snapshots.first { $0.providerId == "codex-oauth" }?.details?.accountTokenUsage,
+                    localization: model.localization, now: now)
+            }
+            legacyHistoryNotice
+        }
+    }
+
+    private var settingsContent: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Picker(model.localization.text("navigation.settings"), selection: $model.mainSettingsSection) {
+                ForEach(MainSettingsSection.allCases) { section in
+                    Text(model.localization.text(section.titleKey)).tag(section)
+                }
+            }.pickerStyle(.segmented)
+            switch model.mainSettingsSection {
+            case .reminders:
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                    VStack(alignment: .leading, spacing: 18) {
+                        QuotaRecoveryReminderView(model: model, now: now)
+                        Divider()
+                        notificationControls
                     }
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                    ReminderHistorySummaryView(records: model.reminderHistoryRecords,
+                        localization: model.localization, showAll: { isReminderHistoryPresented = true })
+                }
+            case .display:
+                quotaWindowControls
+                widgetControls
+                notchControls
+                Toggle(model.localization.text("settings.hideInFullscreen"), isOn: $model.widgetHideInFullscreen)
+                    .toggleStyle(.switch).controlSize(.small)
+                Text(model.localization.text("settings.hideInFullscreenHelp")).font(.caption).foregroundStyle(.secondary)
+            case .connection:
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { codexOAuthProviderControls }
+                productSummary
+            case .general:
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { generalControls }
+                Button(model.localization.text("about.title")) { model.showAboutWindow() }
             }
         }
     }
 
     private var productSummary: some View {
         VStack(alignment: .leading, spacing: 10) {
+            ReleaseHighlightsView(localization: model.localization)
+            Divider()
             Text(model.localization.text("productBrief.summary"))
                 .font(.footnote)
                 .foregroundStyle(Color.primary.opacity(0.76))
@@ -241,13 +219,8 @@ struct SettingsView: View {
                 .pickerStyle(.menu)
                 .frame(width: 250)
             }
-            if !availableQuotaWindows.isEmpty,
-               !model.notchQuotaSelection.hasPreferredWindow(in: availableQuotaWindows),
-               let fallback = model.notchQuotaSelection.resolve(in: availableQuotaWindows) {
-                Text(String(
-                    format: model.localization.text("settings.quotaWindowFallback"),
-                    QuotaWindowDisplay.title(for: fallback, localization: model.localization)
-                ))
+            if !model.notchQuotaSelection.hasPreferredWindow(in: availableQuotaWindows) {
+                Text(model.localization.text("settings.quotaWindowMissingHelp"))
                 .font(.caption)
                 .foregroundStyle(.orange)
             }
@@ -451,10 +424,6 @@ struct SettingsView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-
-            Divider()
-
-            notificationControls
 
             Divider()
 
@@ -804,68 +773,6 @@ struct SettingsView: View {
         }
     }
 
-    private var quotaControls: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Label(model.localization.text("settings.quota"), systemImage: "chart.bar.fill")
-                    .font(.headline)
-
-                Spacer()
-
-                Text(refreshSummary)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
-            if model.snapshots.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(model.isRefreshing ? model.localization.text("status.refreshing") : quotaEmptyMessage)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
-
-                    if model.codexOAuthStatus != .connected {
-                        Button {
-                            if model.codexConnectionMode == .localCodex {
-                                Task { await model.retryLocalCodexConnection() }
-                            } else if let url = model.beginCodexOAuthConnection() {
-                                NSWorkspace.shared.open(url)
-                            }
-                        } label: {
-                            Label(
-                                model.localization.text(
-                                    model.codexConnectionMode == .localCodex
-                                        ? "action.retryLocalCodex"
-                                        : "action.connectCodex"
-                                ),
-                                systemImage: model.codexConnectionMode == .localCodex
-                                    ? "arrow.clockwise"
-                                    : "key.horizontal"
-                            )
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 8)
-            } else {
-                ForEach(model.snapshots) { snapshot in
-                    VStack(alignment: .leading, spacing: 8) {
-                        QuotaCardView(
-                            snapshot: snapshot,
-                            localization: model.localization,
-                            now: now,
-                            displayMode: .full
-                        )
-
-                        quotaRecoveryActions(for: snapshot)
-                    }
-                }
-            }
-            QuotaRecoveryReminderView(model: model, now: now)
-        }
-    }
-
     @ViewBuilder
     private func quotaRecoveryActions(for snapshot: ProviderQuotaSnapshot) -> some View {
         switch snapshot.recoveryAction {
@@ -1046,12 +953,12 @@ struct SettingsView: View {
     }
 
     private var refreshSummary: String {
-        guard let lastRefreshAt = model.lastRefreshAt else {
+        guard let lastRefreshAt = model.lastSuccessfulRefreshAt else {
             return model.localization.text("status.notUpdatedYet")
         }
 
         let time = DateFormatter.localizedString(from: lastRefreshAt, dateStyle: .none, timeStyle: .short)
-        return "\(model.localization.text("status.lastUpdated")) \(time)"
+        return "\(model.localization.text("dataStatus.lastSuccess")) \(time)"
     }
 
     private var quotaEmptyMessage: String {

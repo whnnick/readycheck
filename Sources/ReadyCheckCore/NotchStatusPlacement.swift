@@ -15,10 +15,11 @@ public enum NotchStatusPlacement {
     public static func frame(
         notchGap: CGRect,
         screenFrame: CGRect,
-        height: CGFloat = defaultHeight
+        height: CGFloat = defaultHeight,
+        width: CGFloat? = nil
     ) -> CGRect {
         let safeHeight = min(max(1, height), max(1, screenFrame.height))
-        let safeWidth = min(max(1, notchGap.width), max(1, screenFrame.width))
+        let safeWidth = min(max(1, width ?? notchGap.width), max(1, screenFrame.width))
         let preferredX = notchGap.midX - safeWidth / 2
         let x = min(max(preferredX, screenFrame.minX), screenFrame.maxX - safeWidth)
         let preferredY = notchGap.minY - safeHeight + 1

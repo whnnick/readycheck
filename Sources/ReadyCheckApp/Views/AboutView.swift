@@ -6,36 +6,45 @@ struct AboutView: View {
     let localization: LocalizationService
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(nsImage: NSApplication.shared.applicationIconImage)
-                .resizable()
-                .interpolation(.high)
-                .frame(width: 72, height: 72)
+        ScrollView {
+            VStack(spacing: 16) {
+                Image(nsImage: NSApplication.shared.applicationIconImage)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 72, height: 72)
 
-            VStack(spacing: 5) {
-                Text(localization.text("app.name"))
-                    .font(.title2.weight(.semibold))
+                VStack(spacing: 5) {
+                    Text(localization.text("app.name"))
+                        .font(.title2.weight(.semibold))
 
-                Text("\(localization.text("about.version")) \(ReadyCheckCore.version)")
+                    Text("\(localization.text("about.version")) \(ReadyCheckCore.version)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Label(localization.text("about.safeRefresh"), systemImage: "checkmark.shield")
+                    Label(localization.text("about.source"), systemImage: "network")
+                    Label(localization.text("about.precision"), systemImage: "scope")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Divider()
+                ReleaseHighlightsView(localization: localization)
+                Link(localization.text("release.readNotes"),
+                     destination: URL(string: "https://github.com/whnnick/readycheck/releases/tag/v\(ReadyCheckCore.version)")!)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Label(localization.text("about.safeRefresh"), systemImage: "checkmark.shield")
-                Label(localization.text("about.source"), systemImage: "network")
-                Label(localization.text("about.precision"), systemImage: "scope")
+                Text(localization.text("about.copyright"))
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text(localization.text("about.copyright"))
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
+            .padding(24)
         }
-        .padding(24)
-        .frame(width: 360)
+        .defaultScrollAnchor(.top)
+        .frame(minWidth: 420, minHeight: 420)
         .background(.regularMaterial)
     }
 }

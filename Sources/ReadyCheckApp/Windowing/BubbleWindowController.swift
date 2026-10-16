@@ -73,9 +73,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             if !self.isExpanded {
                 return (self.clippingView?.layer?.mask as? CAShapeLayer)?.path?.contains(point) == true
             }
-            let diameter = BubbleWidgetPlacement.dialDiameter(in: panel.frame.size)
-            let centerX = self.expansionSide == .left ? diameter / 2 : panel.frame.width - diameter / 2
-            return hypot(point.x - centerX, point.y - panel.frame.height / 2) <= (diameter - 16) / 2
+            return point.y >= panel.frame.height - 56 && point.x < panel.frame.width - 124
         }
         panel.onPointerDown = { [weak self] in self?.interaction.beginDrag() }
         panel.onPointerDrag = { [weak self] start, pointer in
@@ -84,7 +82,11 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         panel.onPointerUp = { [weak self] moved in
             guard let self else { return }
             if moved { self.dragEnded() }
-            else { self.interaction.endDrag(); self.interaction.click() }
+            else {
+                self.interaction.endDrag()
+                if self.isExpanded { self.interaction.pinPreview() }
+                else { self.interaction.click() }
+            }
         }
 
         let view = makeView(model: model)
@@ -190,7 +192,6 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             onPin: { [weak self] in self?.interaction.pinPreview() },
             onTogglePin: { [weak self] in self?.interaction.togglePin() },
             tabEdge: isExpanded ? nil : edge,
-            expansionSide: expansionSide,
             onTap: { [weak self] in self?.interaction.click() },
             onDragChanged: { [weak self] translation in self?.dragChanged(translation) },
             onDragEnded: { [weak self] in self?.dragEnded() },
@@ -200,15 +201,8 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
     private func updateView() {
         guard let model else { return }
-        clippingView?.orbOnLeft = expansionSide == .left
         clippingView?.silhouette = isExpanded ? .expanded : (edge == nil ? .circle : .edgeTab)
         hostingController?.rootView = makeView(model: model)
-    }
-
-    private var expansionSide: BubbleWidgetPlacement.Edge {
-        guard let restingFrame else { return .right }
-        let visible = targetScreen(savedFrame: restingFrame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
-        return BubbleWidgetPlacement.expansionEdge(from: restingFrame, edge: edge, in: visible)
     }
 
     private func applyInteraction(_ state: WidgetInteractionController.State) {
@@ -366,7 +360,6 @@ private final class BubbleClippingView: NSView {
     }
 
     var onPointerChange: ((Bool) -> Void)?
-    var orbOnLeft = false { didSet { updateMask() } }
 
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
@@ -437,7 +430,7 @@ private final class BubbleClippingView: NSView {
         maskLayer.shouldRasterize = true
         maskLayer.rasterizationScale = maskLayer.contentsScale
         maskLayer.frame = bounds
-        maskLayer.path = OrbitalWidgetShape(orbOnLeft: orbOnLeft, tabProgress: tabProgress).path(in: bounds).cgPath
+        maskLayer.path = WidgetPanelShape(tabProgress: tabProgress).path(in: bounds).cgPath
         layer.mask = maskLayer
         CATransaction.commit()
     }

@@ -27,7 +27,7 @@ public actor QuotaStore {
             do {
                 let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: reason))
                 nextSnapshotByProvider[provider.id] = preservingSupplementalDetails(
-                    in: snapshot,
+                    in: preservingLastKnownReading(in: snapshot, previous: snapshotByProvider[provider.id]),
                     previous: snapshotByProvider[provider.id]
                 )
             } catch {
@@ -58,11 +58,30 @@ public actor QuotaStore {
         }
     }
 
+    private func preservingLastKnownReading(
+        in snapshot: ProviderQuotaSnapshot,
+        previous: ProviderQuotaSnapshot?
+    ) -> ProviderQuotaSnapshot {
+        guard snapshot.status != .available,
+              snapshot.errors == ["quota.error.requestFailed"],
+              let accountID = snapshot.accountID,
+              let previous, previous.accountID == accountID,
+              previous.source == snapshot.source, previous.refreshedAt <= snapshot.refreshedAt,
+              previous.status == .available || previous.isCached == true,
+              previous.windows.contains(where: { $0.confidence == .verified && $0.remainingRatio != nil })
+        else { return snapshot }
+        return ProviderQuotaSnapshot(providerId: snapshot.providerId, displayName: snapshot.displayName,
+            status: snapshot.status, source: previous.source, refreshedAt: previous.refreshedAt,
+            staleAfter: previous.staleAfter, windows: previous.windows, errors: snapshot.errors,
+            details: previous.details, accountID: accountID, isCached: true)
+    }
+
     private func preservingSupplementalDetails(
         in snapshot: ProviderQuotaSnapshot,
         previous: ProviderQuotaSnapshot?
     ) -> ProviderQuotaSnapshot {
         guard snapshot.status == .available,
+              let accountID = snapshot.accountID, accountID == previous?.accountID,
               let details = snapshot.details,
               let previousDetails = previous?.details
         else {
@@ -82,7 +101,9 @@ public actor QuotaStore {
                 from: previousDetails,
                 now: snapshot.refreshedAt
             ),
-            ordinaryUsageAllowed: snapshot.ordinaryUsageAllowed
+            ordinaryUsageAllowed: snapshot.ordinaryUsageAllowed,
+            accountID: snapshot.accountID,
+            isCached: snapshot.isCached
         )
     }
 }

@@ -18,9 +18,9 @@ if [[ -n "${READYCHECK_NODE_BIN:-}" ]]; then
   export PATH="$(dirname "$READYCHECK_NODE_BIN"):$PATH"
 fi
 
-NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
-if (( NODE_MAJOR > 24 )); then
-  echo "Windows packaging requires the tested Node.js 24 or earlier; found $(node --version)." >&2
+NODE_SUPPORTED="$(node -p 'const [major, minor] = process.versions.node.split(".").map(Number); (major > 22 || (major === 22 && minor >= 12)) && major <= 24')"
+if [[ "$NODE_SUPPORTED" != true ]]; then
+  echo "Windows packaging requires Node.js 22.12–24 (tested with 24); found $(node --version)." >&2
   echo "Set READYCHECK_NODE_BIN to a compatible Node.js executable." >&2
   exit 1
 fi

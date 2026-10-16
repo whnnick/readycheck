@@ -1,6 +1,17 @@
 import AppKit
+import Observation
 import ReadyCheckCore
 import SwiftUI
+
+enum MenuBarQuotaLabel {
+    static func text(snapshot: ProviderQuotaSnapshot?, selection: NotchQuotaSelection, now: Date) -> String {
+        let primary = selection.displayWindows(in: snapshot?.windows ?? []).first
+        let label = primary.map(QuotaWindowDisplay.shortLabel) ?? "—"
+        let ratio = snapshot?.canShowPercentages(now: now) == true && snapshot?.isCached != true
+            ? primary?.displayableRemainingRatio : nil
+        return label + " " + QuotaFormatters.percentageText(for: ratio)
+    }
+}
 
 @MainActor
 final class StatusBarController: NSObject, NSPopoverDelegate {
@@ -9,16 +20,45 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
     private var outsideClickMonitor: Any?
+    private var statusClock: Task<Void, Never>?
 
     init(model: ReadyCheckAppModel, openSettings: @escaping @MainActor () -> Void) {
         self.model = model
         self.openSettings = openSettings
-        self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         super.init()
 
         configureStatusItem()
         configurePopover()
+        observeQuotaChanges()
+        statusClock = Task { [weak self] in
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(30)) } catch { return }
+                self?.updateQuotaLabel()
+            }
+        }
+    }
+
+    deinit { statusClock?.cancel() }
+
+    private func updateQuotaLabel() {
+        statusItem.button?.title = MenuBarQuotaLabel.text(
+            snapshot: model.snapshots.first { $0.providerId == "codex-oauth" },
+            selection: model.notchQuotaSelection, now: Date())
+        let snapshot = model.snapshots.first { $0.providerId == "codex-oauth" }
+        statusItem.button?.toolTip = "ReadyCheck · " + (statusItem.button?.title ?? "—") + " · "
+            + model.localization.text(snapshot?.availabilityTextKey(now: Date()) ?? "status.unavailable")
+    }
+
+    private func observeQuotaChanges() {
+        withObservationTracking {
+            _ = model.snapshots
+            _ = model.notchQuotaSelection
+            updateQuotaLabel()
+        } onChange: { [weak self] in
+            Task { @MainActor in self?.observeQuotaChanges() }
+        }
     }
 
     func closePopover() {
@@ -30,7 +70,8 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         guard let button = statusItem.button else { return }
 
         button.image = makeMenuBarMark()
-        button.imagePosition = .imageOnly
+        button.imagePosition = .imageLeading
+        button.font = .monospacedDigitSystemFont(ofSize: 11, weight: .medium)
         button.toolTip = "ReadyCheck"
         button.target = self
         button.action = #selector(togglePopover(_:))
@@ -62,7 +103,7 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private func configurePopover() {
         popover.behavior = .transient
         popover.delegate = self
-        popover.contentSize = NSSize(width: 340, height: 420)
+        popover.contentSize = NSSize(width: 340, height: 470)
         popover.contentViewController = NSHostingController(
             rootView: MenuBarQuotaView(
                 model: model,

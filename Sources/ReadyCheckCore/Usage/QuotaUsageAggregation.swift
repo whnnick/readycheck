@@ -15,6 +15,30 @@ public struct QuotaUsageBucket: Identifiable, Equatable, Sendable {
 }
 
 public enum QuotaUsageAggregation {
+    public static func observedDecreases(
+        samples: [QuotaHistorySample], providerID: String, windowID: String,
+        rangeStart: Date, rangeEnd: Date, maximumAttributableGap: TimeInterval = 600
+    ) -> [(date: Date, consumedRatio: Double)] {
+        let recent = samples.filter {
+            $0.providerID == providerID && $0.recordedAt >= rangeStart && $0.recordedAt <= rangeEnd
+        }.sorted { $0.recordedAt < $1.recordedAt }
+        var previous: (date: Date, value: QuotaHistoryValue)?
+        var decreases: [(date: Date, consumedRatio: Double)] = []
+        for sample in recent {
+            guard let value = sample.values.first(where: { $0.windowID == windowID }),
+                  value.remainingRatio.isFinite, (0...1).contains(value.remainingRatio) else {
+                previous = nil
+                continue
+            }
+            defer { previous = (sample.recordedAt, value) }
+            guard let previous else { continue }
+            let gap = sample.recordedAt.timeIntervalSince(previous.date)
+            guard gap > 0, gap <= maximumAttributableGap, value.resetAt == previous.value.resetAt else { continue }
+            decreases.append((sample.recordedAt, max(0, previous.value.remainingRatio - value.remainingRatio)))
+        }
+        return decreases
+    }
+
     public static func alignedRangeEnd(containing date: Date, bucketInterval: TimeInterval) -> Date {
         guard bucketInterval > 0 else { return date }
         let bucket = floor(date.timeIntervalSince1970 / bucketInterval) + 1
@@ -50,23 +74,10 @@ public enum QuotaUsageAggregation {
         guard count > 0 else { return [] }
 
         var values = Array(repeating: 0.0, count: count)
-        let points = samples
-            .filter { $0.providerID == providerID }
-            .compactMap { sample -> (date: Date, ratio: Double)? in
-                guard let value = sample.values.first(where: { $0.windowID == windowID }) else { return nil }
-                return (sample.recordedAt, value.remainingRatio)
-            }
-            .sorted { $0.date < $1.date }
-
-        for (previous, current) in zip(points, points.dropFirst()) {
-            let interval = current.date.timeIntervalSince(previous.date)
-            guard interval > 0, interval <= maximumAttributableGap, current.date >= rangeStart, current.date <= rangeEnd else {
-                continue
-            }
-
-            let consumed = max(0, previous.ratio - current.ratio)
-            let index = min(count - 1, max(0, Int(current.date.timeIntervalSince(rangeStart) / bucketInterval)))
-            values[index] += consumed
+        for decrease in observedDecreases(samples: samples, providerID: providerID, windowID: windowID,
+            rangeStart: rangeStart, rangeEnd: rangeEnd, maximumAttributableGap: maximumAttributableGap) {
+            let index = min(count - 1, max(0, Int(decrease.date.timeIntervalSince(rangeStart) / bucketInterval)))
+            values[index] += decrease.consumedRatio
         }
 
         return values.enumerated().map { index, consumedRatio in

@@ -44,7 +44,8 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertEqual(snapshot.ordinaryUsageAllowed, false)
         XCTAssertEqual(snapshot.windows.first?.remainingRatio, 0.75)
         XCTAssertEqual(snapshot.windows.first?.durationMinutes, 300)
-        XCTAssertEqual(NotchQuotaSelection.sevenDay.resolve(in: snapshot.windows)?.id, "codex-primary")
+        XCTAssertNil(NotchQuotaSelection.sevenDay.resolve(in: snapshot.windows))
+        XCTAssertEqual(snapshot.accountID, "account-local")
         XCTAssertTrue(snapshot.errors.isEmpty)
     }
 
@@ -615,6 +616,20 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertEqual(snapshot.windows, [])
     }
 
+    func testServerFailureRetainsOnlyVerifiedRequestIdentity() async throws {
+        let credentials = InMemoryCredentialStore()
+        try await CodexOAuthTokenStore(credentialStore: credentials).saveToken(CodexOAuthToken(
+            accessToken: "test-access", refreshToken: "test-refresh", idToken: nil, tokenType: "Bearer",
+            expiresAt: Date(timeIntervalSince1970: 4600), accountID: "test-account", email: nil))
+        let provider = CodexOAuthQuotaProvider(credentialStore: credentials, resetCreditsEndpoint: nil,
+            quotaClient: CodexQuotaHTTPClient(loader: QuotaRecordingHTTPDataLoader(data: Data(), statusCode: 503)),
+            now: { Date(timeIntervalSince1970: 1000) })
+        let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: .manual))
+        XCTAssertEqual(snapshot.accountID, "test-account")
+        XCTAssertEqual(snapshot.errors, ["quota.error.requestFailed"])
+        XCTAssertTrue(snapshot.windows.isEmpty)
+    }
+
     func testProviderRequestsReauthenticationOnlyWhenUsageAuthorizationIsRejected() async throws {
         let credentialStore = InMemoryCredentialStore()
         let tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)
@@ -640,6 +655,7 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: .manual))
 
         XCTAssertEqual(snapshot.errors, ["quota.error.authorizationRejected"])
+        XCTAssertNil(snapshot.accountID)
         XCTAssertEqual(snapshot.recoveryAction, .reconnect)
     }
 }

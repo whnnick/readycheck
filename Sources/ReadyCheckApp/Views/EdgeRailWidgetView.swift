@@ -28,7 +28,7 @@ struct EdgeRailWidgetView: View {
     private var canShowPercentages: Bool { snapshot?.canShowPercentages(now: now) == true }
 
     private func ratio(for window: QuotaWindow) -> Double? {
-        canShowPercentages ? window.remainingRatio : nil
+        canShowPercentages ? window.displayableRemainingRatio : nil
     }
 
     private func color(for ratio: Double?) -> Color {

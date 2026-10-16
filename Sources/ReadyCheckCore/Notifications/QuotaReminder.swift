@@ -61,6 +61,7 @@ public struct QuotaReminderHistoryRecord: Codable, Equatable, Identifiable, Send
 }
 
 public struct QuotaReminderState: Codable, Equatable, Sendable {
+    public var detailsAccount: String? = nil
     public var lowQuotaThreshold: Int? = nil
     public var lowQuotaState: LowQuotaReminderState? = nil
     public var lowQuotaRevision: Int? = nil
@@ -455,6 +456,7 @@ public actor QuotaReminderStore {
 
         // A user may cancel or replace a request while system delivery is awaiting confirmation.
         let currentState = load()
+        guard currentState.detailsAccount == batch.previousState.detailsAccount else { return }
         if currentState.lowQuotaRevision != batch.previousState.lowQuotaRevision {
             state.lowQuotaThreshold = currentState.lowQuotaThreshold
             state.lowQuotaState = currentState.lowQuotaState
@@ -482,7 +484,7 @@ public actor QuotaReminderStore {
 
     @discardableResult
     public func setLowQuotaThreshold(_ threshold: Int) -> Bool {
-        guard [0, 10, 20].contains(threshold) else { return false }
+        guard [0, 5, 10, 20].contains(threshold) else { return false }
         var state = migrateHistoryIfNeeded(load())
         state.lowQuotaThreshold = threshold
         state.lowQuotaState = nil
@@ -549,6 +551,19 @@ public actor QuotaReminderStore {
             migrateHistoryIfNeeded(load()),
             nowTimestamp: nowTimestamp
         ).map { Date(timeIntervalSince1970: TimeInterval($0)) }
+    }
+
+    public func updateDetailsAccount(_ account: String?) {
+        var state = load()
+        guard state.detailsAccount != account else { return }
+        state.detailsAccount = account
+        state.knownManualResetExpirations = []
+        state.notifiedManualResetExpirations = []
+        state.notifiedManualResetThresholds = []
+        state.previousCreditBalance = nil
+        state.creditsReminderSentForCurrentExhaustion = false
+        state.creditExhaustionCycleKey = nil
+        save(state)
     }
 
     public func clearKnownManualResetExpirations() {

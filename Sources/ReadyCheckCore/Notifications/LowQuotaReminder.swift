@@ -31,7 +31,7 @@ public enum LowQuotaReminderEvaluator {
         threshold: Int,
         state previous: LowQuotaReminderState?
     ) -> (state: LowQuotaReminderState?, alerts: [LowQuotaAlert]) {
-        guard [10, 20].contains(threshold) else { return (nil, []) }
+        guard [5, 10, 20].contains(threshold) else { return (nil, []) }
         guard let account, !account.isEmpty,
               snapshot.providerId == "codex-oauth",
               snapshot.source == .appServer || snapshot.source == .oauthAPI,

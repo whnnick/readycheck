@@ -2,6 +2,44 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class QuotaReminderTests: XCTestCase {
+    func testInFlightOldAccountBatchCannotRestoreOldAccountDetails() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("reminders.json")
+        let store = QuotaReminderStore(fileURL: url)
+        await store.updateDetailsAccount("A")
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let batch = await store.prepare(snapshot(remaining: 0.5, credits: "10", expirations: [now.addingTimeInterval(3600)], manualResetCount: 1), now: now, account: "A")
+        await store.updateDetailsAccount("B")
+        await store.commit(batch, deliveredEvents: batch.events, now: now)
+        let stored = try JSONDecoder().decode(QuotaReminderState.self, from: Data(contentsOf: url))
+        XCTAssertEqual(stored.detailsAccount, "B")
+        XCTAssertEqual(stored.knownManualResetExpirations, [])
+        XCTAssertNil(stored.previousCreditBalance)
+    }
+
+    func testAccountScopedSupplementalBaselineSurvivesRestartAndClearsOnSwitch() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent("reminders.json")
+        var state = QuotaReminderState()
+        state.detailsAccount = "A"
+        state.knownManualResetExpirations = [20_000]
+        state.previousCreditBalance = "5"
+        try JSONEncoder().encode(state).write(to: url)
+        let store = QuotaReminderStore(fileURL: url)
+        await store.updateDetailsAccount("A")
+        let retained = await store.knownManualResetExpirations(now: Date(timeIntervalSince1970: 10_000))
+        XCTAssertEqual(retained, [Date(timeIntervalSince1970: 20_000)])
+        await store.updateDetailsAccount("B")
+        let cleared = await store.knownManualResetExpirations(now: Date(timeIntervalSince1970: 10_000))
+        XCTAssertTrue(cleared.isEmpty)
+        let reloaded = try JSONDecoder().decode(QuotaReminderState.self, from: Data(contentsOf: url))
+        XCTAssertNil(reloaded.previousCreditBalance)
+        XCTAssertEqual(reloaded.detailsAccount, "B")
+    }
+
     func testCreditsReminderTriggersOncePerExhaustedQuotaCycle() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         var state = QuotaReminderState()

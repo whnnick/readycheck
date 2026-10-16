@@ -44,23 +44,22 @@ final class EdgeRailWidgetTests: XCTestCase {
         }
     }
 
-    func testOrbitalMaskStaysWithinWindowThroughoutExpansion() {
+    func testWidgetMaskStaysWithinWindowThroughoutExpansion() {
         for start in [BubbleWidgetPlacement.bubbleSize, BubbleWidgetPlacement.tabSize] {
             for step in 0...20 {
                 let t = CGFloat(step) / 20
                 let end = BubbleWidgetPlacement.expandedSize
                 let bounds = CGRect(x: 0, y: 0, width: start.width + (end.width - start.width) * t,
                     height: start.height + (end.height - start.height) * t)
-                for left in [false, true] {
-                    let path = OrbitalWidgetShape(orbOnLeft: left, tabProgress: start == BubbleWidgetPlacement.tabSize ? 1 - t : 0)
+                for inset in [CGFloat(0), 1] {
+                    let path = WidgetPanelShape(tabProgress: start == BubbleWidgetPlacement.tabSize ? 1 - t : 0).inset(by: inset)
                         .path(in: bounds)
-                    // Non-cardinal circular arcs are approximated with cubic segments.
                     let subpixelTolerance: CGFloat = 0.1
                     XCTAssertGreaterThanOrEqual(path.boundingRect.minX, -subpixelTolerance)
                     XCTAssertLessThanOrEqual(path.boundingRect.maxX, bounds.width + subpixelTolerance)
                     XCTAssertGreaterThanOrEqual(path.boundingRect.minY, -subpixelTolerance)
                     XCTAssertLessThanOrEqual(path.boundingRect.maxY, bounds.height + subpixelTolerance)
-                    XCTAssertTrue(path.contains(CGPoint(x: bounds.midX, y: bounds.midY)))
+                    XCTAssertTrue(path.contains(CGPoint(x: bounds.midX, y: bounds.midY)), "start=\(start), step=\(step), inset=\(inset), bounds=\(bounds), path=\(path.boundingRect)")
                 }
             }
         }
@@ -75,8 +74,11 @@ final class EdgeRailWidgetTests: XCTestCase {
         defaults.set(NSStringFromRect(CGRect(x: visible.maxX - 66, y: visible.minY + 150,
             width: 66, height: 114)), forKey: key)
         let controller = BubbleWindowController()
+        let visibilitySuite = "ReadyCheck.edge-test." + UUID().uuidString
+        let visibilityDefaults = try XCTUnwrap(UserDefaults(suiteName: visibilitySuite))
+        defer { visibilityDefaults.removePersistentDomain(forName: visibilitySuite) }
         let model = ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
-            client: RailTestNotificationClient(), verificationDelays: []))
+            client: RailTestNotificationClient(), verificationDelays: []), widgetVisibilityDefaults: visibilityDefaults)
         let previous = Set(NSApp.windows.map(\.windowNumber))
         defer {
             controller.close()
@@ -125,7 +127,7 @@ final class EdgeRailWidgetTests: XCTestCase {
             NSApp.applicationIconImage = image
         }
         defer { NSApp.applicationIconImage = previousIcon }
-        let keys = ["ReadyCheck.quotaWindowSelection.v2", "ReadyCheck.notchQuotaSelection.v1"]
+        let keys = ["ReadyCheck.quotaWindowSelection.v2", "ReadyCheck.notchQuotaSelection.v1", "ReadyCheck.quotaWindowLabel.v1", "ReadyCheck.language.v1"]
         let defaults = UserDefaults.standard
         let saved = keys.map { defaults.object(forKey: $0) }
         let model = ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
@@ -144,8 +146,8 @@ final class EdgeRailWidgetTests: XCTestCase {
             onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
         for (name, windows, expectedIDs) in [
             ("bubble-extra", [hourly, weekly, extra], [extra.id, hourly.id, weekly.id]),
-            ("bubble-weekly", [weekly], [weekly.id]),
-            ("bubble-empty", [], []),
+            ("bubble-weekly", [weekly], [extra.id, weekly.id]),
+            ("bubble-empty", [], [extra.id]),
             ("bubble-restored", [weekly, extra], [extra.id, weekly.id])
         ] {
             model.snapshots = [snapshot(windows)]
@@ -194,11 +196,6 @@ final class EdgeRailWidgetTests: XCTestCase {
             try capture(chartHost, name: name)
         }
         model.quotaHistorySamples = observedSamples
-        let mirrored = BubbleWidgetView(model: model, isExpanded: true, tabEdge: nil, expansionSide: .left,
-            onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
-        let leftHost = NSHostingView(rootView: mirrored)
-        leftHost.frame = CGRect(origin: .zero, size: BubbleWidgetPlacement.expandedSize)
-        try capture(leftHost, name: "bubble-left-demo")
         for edge in [BubbleWidgetPlacement.Edge.left, .right] {
             let rail = BubbleWidgetView(model: model, isExpanded: false, tabEdge: edge,
                 onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})

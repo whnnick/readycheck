@@ -8,15 +8,8 @@ public enum BubbleWidgetPlacement {
 
     public static let bubbleSize = CGSize(width: 92, height: 92)
     public static let tabSize = CGSize(width: 28, height: 144)
-    public static let expandedSize = CGSize(width: 500, height: 248)
-    public static let expandedDialDiameter: CGFloat = 176
+    public static let expandedSize = CGSize(width: 380, height: 304)
     public static let snapDistance: CGFloat = 34
-
-    public static func dialDiameter(in size: CGSize) -> CGFloat {
-        let circle = min(size.width, size.height)
-        let reveal = min(1, max(0, (size.width - size.height) / (expandedSize.width - expandedSize.height)))
-        return circle + (min(expandedDialDiameter, circle) - circle) * reveal
-    }
 
     public static func defaultFrame(in visibleFrame: CGRect) -> CGRect {
         CGRect(
@@ -65,7 +58,7 @@ public enum BubbleWidgetPlacement {
         if let edge {
             proposedX = edge == .left ? visibleFrame.minX : visibleFrame.maxX - size.width
         } else {
-            let radius = dialDiameter(in: size) / 2
+            let radius = min(bubbleSize.width, size.width) / 2
             proposedX = side == .left ? restingFrame.midX - radius
                 : restingFrame.midX + radius - size.width
         }

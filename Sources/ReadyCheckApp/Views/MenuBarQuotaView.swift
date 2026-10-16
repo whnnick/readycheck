@@ -7,6 +7,7 @@ struct MenuBarQuotaView: View {
     let openSettings: @MainActor () -> Void
 
     @State private var now = Date()
+    @State private var quotaContentHeight: CGFloat = 0
 
     private var localization: LocalizationService {
         model.localization
@@ -15,35 +16,63 @@ struct MenuBarQuotaView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
-
+            Divider()
             if model.snapshots.isEmpty {
                 emptyState
             } else {
-                VStack(spacing: 10) {
-                    ForEach(model.snapshots) { snapshot in
-                        QuotaCardView(
-                            snapshot: snapshot,
-                            localization: localization,
-                            now: now,
-                            displayMode: .compact
-                        )
+                ScrollView(.vertical) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(model.snapshots) { snapshot in
+                            ForEach(displayWindows(snapshot)) { window in
+                                CompactQuotaRow(window: window, snapshot: snapshot, localization: localization, now: now)
+                            }
+                            if snapshot.isCached == true {
+                                Label(localization.text("status.stale"), systemImage: "clock.badge.exclamationmark")
+                                    .font(.caption).foregroundStyle(.orange)
+                            } else if !snapshot.errors.isEmpty {
+                                Text(localization.text(snapshot.errors[0])).font(.caption).foregroundStyle(.secondary)
+                            } else if snapshot.availabilityTextKey(now: now) != "status.available" {
+                                Text(localization.text(snapshot.availabilityTextKey(now: now))).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .background(GeometryReader { geometry in
+                        Color.clear.preference(key: MenuQuotaContentHeight.self, value: geometry.size.height)
+                    })
                 }
+                .frame(height: min(280, quotaContentHeight))
+                .onPreferenceChange(MenuQuotaContentHeight.self) { quotaContentHeight = $0 }
             }
-
-            QuotaRecoveryReminderView(model: model, now: now)
+            Divider()
+            Button {
+                model.mainWindowPage = .settings
+                model.mainSettingsSection = .reminders
+                openSettings()
+            } label: {
+                HStack {
+                    Label(localization.text("navigation.reminders"), systemImage: "bell")
+                    Spacer()
+                    Text(model.lowQuotaThreshold == 0 ? localization.text("lowQuota.off") : "\(model.lowQuotaThreshold)%")
+                    Image(systemName: "chevron.right").font(.caption2)
+                }
+            }.buttonStyle(.plain)
+            Toggle(isOn: $model.widgetVisible) {
+                Label(localization.text("settings.desktopWidget"), systemImage: "macwindow.on.rectangle")
+            }.toggleStyle(.switch).controlSize(.small)
             WidgetSnoozeStatusView(model: model)
-
             footer
         }
-        .padding(14)
+        .padding(16)
         .frame(width: 340)
-        .task {
-            await refreshOnOpenIfNeeded()
-        }
-        .task {
-            await updateNowWhileVisible()
-        }
+        .task { await refreshOnOpenIfNeeded() }
+        .task { await updateNowWhileVisible() }
+    }
+
+    private func displayWindows(_ snapshot: ProviderQuotaSnapshot) -> [QuotaWindow] {
+        snapshot.providerId == "codex-oauth"
+            ? model.notchQuotaSelection.displayWindows(in: snapshot.windows, primaryFirst: false) : snapshot.windows
     }
 
     private var header: some View {
@@ -74,12 +103,8 @@ struct MenuBarQuotaView: View {
                 ProgressView()
                     .controlSize(.small)
             } else {
-                Text(localization.text("status.autoUpdate"))
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(.secondary.opacity(0.12), in: Capsule())
+                DataStatusButton(model: model).labelStyle(.iconOnly).controlSize(.small)
+                    .help(localization.text("dataStatus.title"))
             }
         }
     }
@@ -115,116 +140,41 @@ struct MenuBarQuotaView: View {
 
     private var footer: some View {
         VStack(spacing: 10) {
-            HStack(spacing: 10) {
-                DataStatusButton(model: model)
+            Divider()
+            HStack {
                 Button {
-                    Task {
-                        await model.refresh(reason: .manual)
-                        now = Date()
-                    }
-                } label: {
-                    Label(localization.text("action.refresh"), systemImage: "arrow.clockwise")
-                }
-                .disabled(model.isRefreshing)
-
-                Spacer()
-
-                Button {
+                    model.mainWindowPage = .overview
                     openSettings()
                 } label: {
-                    Label(localization.text("action.settings"), systemImage: "gearshape")
+                    Label(localization.text("bubble.openMainWindow"), systemImage: "arrow.up.forward.square")
                 }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Toggle(isOn: $model.widgetVisible) {
-                    Label(localization.text("action.pinWidget"), systemImage: "macwindow.on.rectangle")
-                }
-                .toggleStyle(.switch)
-
-                Toggle(isOn: $model.widgetAlwaysOnTop) {
-                    Label(localization.text("settings.widgetAlwaysOnTop"), systemImage: "rectangle.on.rectangle")
-                }
-                .toggleStyle(.switch)
-
-                Toggle(isOn: $model.notchStatusVisible) {
-                    Label(localization.text("settings.notchStatus"), systemImage: "macbook")
-                }
-                .toggleStyle(.switch)
-                .disabled(!model.notchStatusAvailable)
-                .help(
-                    localization.text(
-                        model.notchStatusAvailable
-                            ? "settings.notchStatusHelp"
-                            : "settings.notchStatusUnavailable"
-                    )
-                )
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Label(localization.text("settings.widgetStyle"), systemImage: "rectangle.split.2x1")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
-
-                    WidgetPresentationPicker(selection: $model.widgetPresentation, localization: localization)
-
-                    if model.widgetPresentation == .card {
-                        WidgetStyleSwitcherView(selection: $model.widgetDisplayMode, localization: localization)
-                    }
-                }
-
+                Spacer()
                 Button {
-                    model.resetFloatingWidgetPosition()
-                } label: {
-                    Label(localization.text("action.resetWidgetPosition"), systemImage: "arrow.down.forward.and.arrow.up.backward")
-                }
-                WidgetSnoozeMenu(model: model)
-            }
-
-            Divider()
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text(updateStatusText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-
-                HStack(spacing: 8) {
-                    Button {
-                        Task {
-                            await model.checkForUpdates(isManual: true)
-                        }
-                    } label: {
-                        if model.updateStatus == .checking {
-                            Label(localization.text("update.checking"), systemImage: "arrow.triangle.2.circlepath")
-                        } else {
-                            Label(localization.text("action.checkForUpdates"), systemImage: "arrow.triangle.2.circlepath")
-                        }
+                    Task { await model.refresh(reason: .manual); now = Date() }
+                } label: { Image(systemName: "arrow.clockwise") }
+                .disabled(model.isRefreshing)
+                .help(localization.text("action.refresh"))
+                .accessibilityLabel(localization.text("action.refresh"))
+                Menu {
+                    Button(localization.text("navigation.display")) {
+                        model.mainWindowPage = .settings; model.mainSettingsSection = .display; openSettings()
                     }
-                    .disabled(model.updateStatus == .checking)
-
-                    if case .updateAvailable = model.updateStatus {
-                        Button {
-                            model.openUpdateReleasePage()
-                        } label: {
-                            Label(localization.text("action.downloadUpdate"), systemImage: "arrow.down.circle.fill")
-                        }
+                    Button(localization.text("navigation.connection")) {
+                        model.mainWindowPage = .settings; model.mainSettingsSection = .connection; openSettings()
                     }
-                }
+                    Button(localization.text("navigation.general")) {
+                        model.mainWindowPage = .settings; model.mainSettingsSection = .general; openSettings()
+                    }
+                    Divider()
+                    Button(localization.text("about.menuItem")) { model.showAboutWindow() }
+                    Button(localization.text("action.quit"), role: .destructive) { NSApp.terminate(nil) }
+                } label: { Image(systemName: "ellipsis") }
+                .menuStyle(.borderlessButton).fixedSize()
+                .help(localization.text("navigation.settings"))
+                .accessibilityLabel(localization.text("navigation.settings"))
             }
-
-            Divider()
-
-            Button(role: .destructive) {
-                NSApp.terminate(nil)
-            } label: {
-                Label(localization.text("action.quit"), systemImage: "power")
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
+        .buttonStyle(.bordered).controlSize(.small)
     }
 
     @MainActor
@@ -261,12 +211,12 @@ struct MenuBarQuotaView: View {
     }
 
     private var refreshSummary: String {
-        guard let lastRefreshAt = model.lastRefreshAt else {
+        guard let lastRefreshAt = model.lastSuccessfulRefreshAt else {
             return localization.text("status.notUpdatedYet")
         }
 
         let time = DateFormatter.localizedString(from: lastRefreshAt, dateStyle: .none, timeStyle: .short)
-        return "\(localization.text("status.lastUpdated")) \(time)"
+        return "\(localization.text("dataStatus.lastSuccess")) \(time)"
     }
 
     private var emptyStateMessage: String {
@@ -277,26 +227,16 @@ struct MenuBarQuotaView: View {
         return localization.text("empty.quota.codexMessage")
     }
 
-    private var updateStatusText: String {
-        switch model.updateStatus {
-        case .idle:
-            "\(localization.text("about.version")) \(ReadyCheckCore.version)"
-        case .checking:
-            localization.text("update.checking")
-        case .upToDate:
-            localization.text("update.upToDate")
-        case .failed:
-            localization.text("update.failed")
-        case .updateAvailable(let update):
-            "\(localization.text("update.available")) \(update.version)"
-        }
-    }
-
     private var accountSummary: String {
         if let email = model.codexOAuthLoginEmail, !email.isEmpty {
             return "\(localization.text("oauth.account.connectedAs")) \(email)"
         }
 
-        return localization.text("oauth.status.notConnected")
+        return localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected")
     }
+}
+
+private struct MenuQuotaContentHeight: PreferenceKey {
+    static var defaultValue: CGFloat { 0 }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }

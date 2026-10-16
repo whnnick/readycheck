@@ -6,6 +6,13 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 cd "${REPO_ROOT}"
 
+DEVELOPMENT=false
+case "${1:-}" in
+    "") ;;
+    --development) DEVELOPMENT=true ;;
+    *) echo "Usage: $0 [--development]" >&2; exit 2 ;;
+esac
+
 swift_version="$(sed -n 's/.*public static let version = "\([^"]*\)".*/\1/p' Sources/ReadyCheckCore/ReadyCheckCore.swift)"
 swift_test_version="$(sed -n 's/.*XCTAssertEqual(ReadyCheckCore.version, "\([^"]*\)").*/\1/p' Tests/ReadyCheckCoreTests/ScaffoldTests.swift)"
 app_version="$(sed -n 's/^VERSION="\([^"]*\)"/\1/p' scripts/package_app.sh)"
@@ -32,14 +39,23 @@ for entry in \
     fi
 done
 
+if [[ "${DEVELOPMENT}" == true && "${swift_version}" != *-* ]]; then
+    echo "Development validation requires a prerelease version" >&2
+    exit 1
+fi
+
 required_references=(
+    "CHANGELOG.md:## ${swift_version} -"
+    "CHANGELOG.zh-CN.md:## ${swift_version} -"
+)
+if [[ "${DEVELOPMENT}" == false ]]; then
+    required_references+=(
     "README.md:ReadyCheck-${swift_version}-macos.dmg"
     "README.md:ReadyCheck-${swift_version}-windows-x64-portable.zip"
     "README.zh-CN.md:ReadyCheck-${swift_version}-macos.dmg"
     "README.zh-CN.md:ReadyCheck-${swift_version}-windows-x64-portable.zip"
-    "CHANGELOG.md:## ${swift_version} -"
-    "CHANGELOG.zh-CN.md:## ${swift_version} -"
-)
+    )
+fi
 
 for entry in "${required_references[@]}"; do
     file="${entry%%:*}"
@@ -50,4 +66,8 @@ for entry in "${required_references[@]}"; do
     fi
 done
 
-echo "Release version references are consistent: ${swift_version}"
+if [[ "${DEVELOPMENT}" == true ]]; then
+    echo "Development metadata is consistent: ${swift_version}; public download references intentionally not checked"
+else
+    echo "Release version references are consistent: ${swift_version}"
+fi

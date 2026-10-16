@@ -2,6 +2,54 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class QuotaStoreTests: XCTestCase {
+    func testTransportFailureKeepsOnlySameAccountLastKnownValuesAndOriginalTime() async throws {
+        let provider = AccountSequenceProvider(accounts: ["A", "A", "A"], statuses: [.available, .unavailable, .unavailable], errors: [[], ["quota.error.requestFailed"], ["quota.error.requestFailed"]])
+        let store = QuotaStore(registry: ProviderRegistry(providers: [provider]))
+        await store.refreshAll(reason: .manual)
+        let originals = await store.snapshots
+        let original = try XCTUnwrap(originals.first)
+        await store.refreshAll(reason: .manual)
+        let cachedSnapshots = await store.snapshots
+        let cached = try XCTUnwrap(cachedSnapshots.first)
+        XCTAssertEqual(cached.windows, original.windows)
+        XCTAssertEqual(cached.refreshedAt, original.refreshedAt)
+        XCTAssertEqual(cached.accountID, "A")
+        XCTAssertEqual(cached.isCached, true)
+        XCTAssertEqual(cached.status, .unavailable)
+        XCTAssertTrue(cached.isStale(now: cached.refreshedAt))
+        XCTAssertTrue(cached.canShowPercentages(now: cached.refreshedAt.addingTimeInterval(3600)))
+        XCTAssertNil(cached.ordinaryUsageAllowed)
+        let baseline = LowQuotaReminderState(account: "A", windows: [:])
+        XCTAssertTrue(LowQuotaReminderEvaluator.evaluate(snapshot: cached, now: cached.refreshedAt, account: "A", threshold: 5, state: baseline).alerts.isEmpty)
+        XCTAssertFalse(QuotaRecoveryRequest.canArm(cached, now: cached.refreshedAt))
+        await store.refreshAll(reason: .manual)
+        let repeated = await store.snapshots.first
+        XCTAssertEqual(repeated?.refreshedAt, original.refreshedAt)
+    }
+
+    func testAccountChangeMissingIdentityAndAuthorizationNeverBorrowCachedValues() async {
+        for (account, error) in [("B", "quota.error.requestFailed"), (nil, "quota.error.requestFailed"), ("A", "quota.error.authorizationRejected"), ("A", "quota.error.tokenRefreshFailed"), ("A", "quota.error.parserUnavailable")] as [(String?, String)] {
+            let provider = AccountSequenceProvider(accounts: ["A", account], statuses: [.available, .unavailable], errors: [[], [error]])
+            let store = QuotaStore(registry: ProviderRegistry(providers: [provider]))
+            await store.refreshAll(reason: .manual)
+            await store.refreshAll(reason: .manual)
+            let failed = await store.snapshots.first
+            XCTAssertTrue(failed?.windows.isEmpty == true)
+            XCTAssertNotEqual(failed?.isCached, true)
+        }
+    }
+
+    func testAccountSwitchDoesNotCarrySupplementalDetails() async {
+        let provider = AccountSequenceProvider(accounts: ["A", "B"], statuses: [.available, .available], errors: [[], []])
+        let store = QuotaStore(registry: ProviderRegistry(providers: [provider]))
+        await store.refreshAll(reason: .manual)
+        await store.refreshAll(reason: .manual)
+        let switched = await store.snapshots.first
+        XCTAssertEqual(switched?.accountID, "B")
+        XCTAssertNil(switched?.details?.accountTokenUsage)
+        XCTAssertEqual(switched?.details?.manualResetExpirations, [])
+    }
+
     func testRefreshStoresSnapshot() async {
         let provider = MockQuotaProvider(now: { Date(timeIntervalSince1970: 1_000) })
         let store = QuotaStore(registry: ProviderRegistry(providers: [provider]))
@@ -321,4 +369,35 @@ private func makeSnapshot(providerId: String, displayName: String, batch: Int) -
         ],
         errors: []
     )
+}
+
+private actor AccountSequenceProvider: QuotaProvider {
+    nonisolated let id = "codex-oauth"
+    nonisolated let displayName = "Codex"
+    let accounts: [String?]
+    let statuses: [ProviderStatus]
+    let errors: [[String]]
+    var index = 0
+
+    init(accounts: [String?], statuses: [ProviderStatus], errors: [[String]]) {
+        self.accounts = accounts
+        self.statuses = statuses
+        self.errors = errors
+    }
+
+    func fetchSnapshot(context: ProviderRefreshContext) async throws -> ProviderQuotaSnapshot {
+        let tick = min(index, accounts.count - 1)
+        index += 1
+        let date = Date(timeIntervalSince1970: TimeInterval(10_000 + tick))
+        let available = statuses[tick] == .available
+        return ProviderQuotaSnapshot(providerId: id, displayName: displayName, status: statuses[tick],
+            source: .oauthAPI, refreshedAt: date, staleAfter: date.addingTimeInterval(300),
+            windows: available ? [QuotaWindow(id: "short", labelKey: "quota.fiveHour", kind: .rolling,
+                used: 96, limit: 100, remaining: 4, unit: .percent, resetAt: date.addingTimeInterval(300), confidence: .verified)] : [],
+            errors: errors[tick], details: available ? ProviderQuotaDetails(
+                manualResetCount: tick == 0 ? 1 : nil,
+                manualResetExpirations: tick == 0 ? [date.addingTimeInterval(3600)] : [],
+                accountTokenUsage: tick == 0 ? AccountTokenUsage(summary: AccountTokenUsageSummary(lifetimeTokens: 123), dailyBuckets: []) : nil) : nil,
+            ordinaryUsageAllowed: available ? true : nil, accountID: accounts[tick])
+    }
 }

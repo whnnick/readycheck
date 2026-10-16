@@ -4,6 +4,7 @@ import SwiftUI
 struct QuotaCardView: View {
     enum DisplayMode {
         case full
+        case accountDetails
         case widgetDetailed
         case compact
     }
@@ -44,18 +45,24 @@ struct QuotaCardView: View {
     var body: some View {
         GlassSurface {
             VStack(alignment: .leading, spacing: 12) {
-                header
-
-                if visibleWindows.isEmpty {
-                    errorContent
+                if displayMode == .accountDetails {
+                    Label(localization.text("quota.accountDetails"), systemImage: "person.crop.rectangle")
+                        .font(.headline)
+                    detailGrid
                 } else {
-                    if showsDetails {
-                        detailGrid
-                    }
+                    header
 
-                    VStack(spacing: 10) {
-                        ForEach(visibleWindows) { window in
-                            windowRow(window)
+                    if visibleWindows.isEmpty {
+                        errorContent
+                    } else {
+                        if showsDetails {
+                            detailGrid
+                        }
+
+                        VStack(spacing: 10) {
+                            ForEach(visibleWindows) { window in
+                                windowRow(window)
+                            }
                         }
                     }
                 }
@@ -113,21 +120,29 @@ struct QuotaCardView: View {
         .padding(.top, 2)
     }
 
-    private var summaryRows: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .firstTextBaseline, spacing: 18) {
+    @ViewBuilder private var summaryRows: some View {
+        if displayMode == .accountDetails {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), alignment: .leading)], alignment: .leading, spacing: 14) {
                 subscriptionSummaryItems
+                inlineDetail(label: localization.text("quota.manualResetCount"),
+                    value: manualResetCount.map(String.init) ?? localization.text("quota.manualResetUnavailable"))
             }
+        } else {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: 18) {
+                    subscriptionSummaryItems
+                }
 
-            VStack(alignment: .leading, spacing: 5) {
-                subscriptionSummaryItems
+                VStack(alignment: .leading, spacing: 5) {
+                    subscriptionSummaryItems
+                }
             }
         }
     }
 
     private func inlineDetail(label: String, value: String) -> some View {
         Group {
-            if displayMode == .widgetDetailed {
+            if displayMode == .widgetDetailed || displayMode == .accountDetails {
                 VStack(alignment: .leading, spacing: 2) {
                     if !label.isEmpty {
                         Text(label)
@@ -138,7 +153,7 @@ struct QuotaCardView: View {
                     }
 
                     Text(value)
-                        .font(.caption.weight(.semibold))
+                        .font(displayMode == .widgetDetailed ? .caption.weight(.semibold) : .subheadline.weight(.semibold))
                         .foregroundStyle(Color.primary.opacity(0.92))
                         .monospacedDigit()
                         .lineLimit(2)
@@ -187,6 +202,8 @@ struct QuotaCardView: View {
                 label: localization.text("quota.codexCredits"),
                 value: creditBalanceText
             )
+        } else if displayMode == .accountDetails {
+            inlineDetail(label: localization.text("quota.codexCredits"), value: localization.text("quota.notProvided"))
         }
     }
 
@@ -203,7 +220,7 @@ struct QuotaCardView: View {
         .lineLimit(2)
     }
 
-    private var displayPlanName: String {
+    var displayPlanName: String {
         guard let plan = nonEmpty(snapshot.details?.planName) else {
             return localization.text("quota.notProvided")
         }
@@ -215,12 +232,12 @@ struct QuotaCardView: View {
         snapshot.details?.manualResetExpirations ?? []
     }
 
-    private var manualResetCount: Int? {
+    var manualResetCount: Int? {
         snapshot.details?.manualResetCount
             ?? (manualResetExpirations.isEmpty ? nil : manualResetExpirations.count)
     }
 
-    private var creditBalanceText: String? {
+    var creditBalanceText: String? {
         if snapshot.details?.creditsUnlimited == true {
             return localization.text("quota.creditsUnlimited")
         }
@@ -238,7 +255,7 @@ struct QuotaCardView: View {
         return formatter.string(from: NSDecimalNumber(decimal: decimal)) ?? rawBalance
     }
 
-    private func manualResetExpirationText(index: Int) -> String {
+    func manualResetExpirationText(index: Int) -> String {
         let prefix = "\(localization.text("quota.manualResetIndex")) \(index + 1) \(localization.text("quota.manualResetTimes"))"
         let expirationText = manualResetExpirations.indices.contains(index)
             ? dateText(for: manualResetExpirations[index], forceFullDate: true)
@@ -279,7 +296,7 @@ struct QuotaCardView: View {
     }
 
     private func windowRow(_ window: QuotaWindow) -> some View {
-        let ratio = canShowPercentages ? window.remainingRatio : nil
+        let ratio = canShowPercentages ? window.displayableRemainingRatio : nil
         let showsProgress = ratio != nil
         let progress = ratio ?? 0
 
@@ -373,7 +390,7 @@ struct QuotaCardView: View {
 
     private var showsDetails: Bool {
         switch displayMode {
-        case .full, .widgetDetailed:
+        case .full, .widgetDetailed, .accountDetails:
             true
         case .compact:
             false
@@ -473,6 +490,14 @@ struct QuotaCardView: View {
     }
 
     private func dateText(for date: Date, forceFullDate: Bool = false) -> String {
+        if displayMode == .accountDetails {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: localization.language.rawValue)
+            formatter.timeZone = TimeZone(secondsFromGMT: 8 * 3600)
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            return formatter.string(from: date)
+        }
         let calendar = Calendar.current
         let dateStyle: DateFormatter.Style = forceFullDate || !calendar.isDate(date, inSameDayAs: now) ? .short : .none
         return DateFormatter.localizedString(from: date, dateStyle: dateStyle, timeStyle: .short)

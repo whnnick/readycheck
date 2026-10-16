@@ -19,7 +19,7 @@ public enum NotchQuotaSelection: Hashable, Sendable {
         let preferred: QuotaWindow?
         switch self {
         case .automatic:
-            preferred = nil
+            preferred = windows.first
         case let .window(id):
             preferred = windows.first { $0.id == id }
         case .fiveHour:
@@ -27,7 +27,31 @@ public enum NotchQuotaSelection: Hashable, Sendable {
         case .sevenDay:
             preferred = windows.first { $0.labelKey == "quota.window.codex.7d" || $0.labelKey == "quota.sevenDay" }
         }
-        return preferred ?? windows.first
+        return preferred
+    }
+
+    /// Keeps a missing explicit selection in the primary position without borrowing another window's value.
+    public func displayWindows(in windows: [QuotaWindow], defaults: UserDefaults = .standard, primaryFirst: Bool = true) -> [QuotaWindow] {
+        if let selected = resolve(in: windows) {
+            return primaryFirst ? [selected] + windows.filter { $0.id != selected.id } : windows
+        }
+        guard self != .automatic else { return windows }
+        let id: String
+        let labelKey: String
+        switch self {
+        case .fiveHour: (id, labelKey) = ("missing-5h", "quota.window.codex.5h")
+        case .sevenDay: (id, labelKey) = ("missing-7d", "quota.window.codex.7d")
+        case let .window(savedID): (id, labelKey) = (savedID, "settings.quotaWindowMissing")
+        case .automatic: return windows
+        }
+        let saved = defaults.dictionary(forKey: Self.labelDefaultsKey)
+        let matchesSaved = saved?["id"] as? String == id
+        let missing = QuotaWindow(id: id,
+            labelKey: matchesSaved ? (saved?["labelKey"] as? String ?? labelKey) : labelKey,
+            displayLabel: matchesSaved ? saved?["displayLabel"] as? String : nil, kind: .rolling,
+            used: 0, limit: 0, remaining: 0, unit: .unknown, resetAt: nil, confidence: .unknown,
+            durationMinutes: matchesSaved ? saved?["durationMinutes"] as? Int : nil)
+        return primaryFirst ? [missing] + windows : windows + [missing]
     }
 
     public func pickerSelection(in windows: [QuotaWindow]) -> Self {
@@ -47,7 +71,13 @@ public enum NotchQuotaSelection: Hashable, Sendable {
         }
     }
 
-    public func persist(defaults: UserDefaults = .standard) {
+    public func persist(defaults: UserDefaults = .standard, windows: [QuotaWindow] = []) {
+        if self != .automatic, let window = resolve(in: windows) {
+            var label: [String: Any] = ["id": window.id, "labelKey": window.labelKey]
+            if let value = window.displayLabel { label["displayLabel"] = value }
+            if let value = window.durationMinutes { label["durationMinutes"] = value }
+            defaults.set(label, forKey: Self.labelDefaultsKey)
+        }
         switch self {
         case .automatic:
             defaults.set("", forKey: Self.currentDefaultsKey)
@@ -62,6 +92,7 @@ public enum NotchQuotaSelection: Hashable, Sendable {
         }
     }
 
+    private static let labelDefaultsKey = "ReadyCheck.quotaWindowLabel.v1"
     private static let currentDefaultsKey = "ReadyCheck.quotaWindowSelection.v2"
     private static let legacyDefaultsKey = "ReadyCheck.notchQuotaSelection.v1"
 }

@@ -34,6 +34,7 @@ struct QuotaRecoveryReminderView: View {
                 Text(model.localization.text("lowQuota.off")).tag(0)
                 Text("20%").tag(20)
                 Text("10%").tag(10)
+                Text("5%").tag(5)
             }
             .pickerStyle(.menu)
             .disabled(model.isUpdatingLowQuotaReminder)

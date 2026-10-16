@@ -2,6 +2,22 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class QuotaModelsTests: XCTestCase {
+    func testAvailabilityCannotTreatBlockedUnknownOrCachedAsCurrentPermission() {
+        let now = Date()
+        for (allowed, cached, expected) in [(true, false, "status.available"), (false, false, "status.ordinaryUsageBlocked"), (nil, false, "status.ordinaryUsageUnknown"), (true, true, "status.stale")] as [(Bool?, Bool, String)] {
+            let snapshot = ProviderQuotaSnapshot(providerId: "codex-oauth", displayName: "Codex", status: .available,
+                source: .appServer, refreshedAt: now, staleAfter: now.addingTimeInterval(300), windows: [], errors: [], ordinaryUsageAllowed: allowed, isCached: cached)
+            XCTAssertEqual(snapshot.availabilityTextKey(now: now), expected)
+        }
+    }
+
+    func testUnknownWindowDoesNotBorrowConfidenceFromAnotherWindow() {
+        let unknown = QuotaWindow(id: "unknown", labelKey: "quota.fiveHour", kind: .rolling,
+            used: 20, limit: 100, remaining: 80, unit: .percent, resetAt: nil, confidence: .unknown)
+        XCTAssertEqual(unknown.remainingRatio, 0.8)
+        XCTAssertNil(unknown.displayableRemainingRatio)
+    }
+
     func testRecoveryActionMatchesFailureType() {
         XCTAssertEqual(errorSnapshot("quota.error.requestFailed").recoveryAction, .retry)
         XCTAssertEqual(errorSnapshot("quota.error.tokenRefreshFailed").recoveryAction, .reconnect)

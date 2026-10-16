@@ -1,5 +1,89 @@
 # Changelog
 
+## 0.2.0 - 2026-10-16
+
+- Update the Windows runtime to Electron 43.5.0 and packager to 20.3.0, validating the Node.js 22.12–24 requirement; retain the existing interface.
+- Reorganize the native Mac app into Overview, Token usage and Settings, with a compact menu-bar panel and persistent About entry in the sidebar and More menu. About and the product explanation now highlight this release.
+- Retain Widget's last-hour consumption chart, persistent pin and slim vertical edge tab. Preserve explicit show/hide across relaunches. Join the built-in notch and open its details only on click.
+- Align Widget and Overview on account-scoped local quota decreases in percentage points; explain history ranges and bar intervals. Inspect Overview bars by hover or click. Keep official daily Token counts separate, with an honest unavailable state.
+- Preserve subscription validity, Credits, reset count and every returned expiration. Keep missing quota selections unknown, separate account history, retain legacy backups and handle same-account refresh failures without inventing fresh data.
+- Add 5% low-quota reminders, localized native menus and fullscreen shortcuts. This monitor does not stop or resume Codex tasks.
+- macOS arm64 self-signed preview; not Developer ID signed/notarized. Windows x64 portable preview retains its previous interface; the native redesign is Mac-only. See versioned QA for remaining device/lifecycle coverage.
+
+## 0.2.0-dev.13 - 2026-10-16 (unreleased native development)
+
+- Separate the allowance period from the displayed history range in Widget and Overview titles. Show bar duration and percentage-point units separately, with the 80% to 70% example; name the Token chart Daily Token counts and state its daily UTC grouping. Calculations, data sources and existing features are unchanged. Windows receives version metadata only.
+
+## 0.2.0-dev.12 - 2026-10-16 (unreleased native development)
+
+- Use one observed-decrease rule for Widget bars, Overview bars and Overview totals, excluding reset changes, missing/invalid readings and long gaps. Match totals to their displayed chart range.
+- Name Widget/Overview consistently as quota consumption in percentage points, show each bar interval and their shared local-history relationship, and keep Codex daily Token counts explicitly separate. Preserve Widget last-hour history, account details and chart inspection. Windows receives version metadata only.
+
+## 0.2.0-dev.11 - 2026-10-16 (unreleased native development)
+
+- Inspect Overview quota-consumption bars by hovering or clicking to see the period and precise percentage-point decrease. Keep the tooltip inside the plot, clear it when leaving the chart or changing data, and preserve existing aggregation and Token charts. Windows receives version metadata only.
+
+## 0.2.0-dev.10 - 2026-10-16 (unreleased native development)
+
+- Add an explicit localized fullscreen toggle and Control-Command-F shortcut in both languages, so entering/exiting fullscreen does not depend on AppKit recognizing an English View menu title. Preserve existing navigation, close and quit commands.
+
+## 0.2.0-dev.9 - 2026-10-16 (unreleased native development)
+
+- Preserve an explicitly hidden desktop widget across relaunches; new installations still default to showing it. Temporary window closure during presentation changes does not replace the saved choice.
+- Refresh the native File/View/navigation/Quit menus when language changes and name the edge strip consistently with its collapsed appearance.
+
+## 0.2.0-dev.8 - 2026-10-16 (unreleased native development)
+
+- Restore Overview account benefits: plan, subscription validity or billing link, manual reset count and each expiration, and Credits balance. Show exact quota reset dates alongside countdowns. Preserve unknown/zero distinctions and historical subscription labels; retain the new quota/Token charts.
+
+## 0.2.0-dev.7 - 2026-10-16 (unreleased native development)
+
+- Keep first/last quota bars and time labels inside the plot with horizontal padding and clipping; preserve fractional axis labels. Keep bilingual descriptions readable at the minimum window width.
+- Distinguish local allowance decreases in percentage points from official daily Token counts. Rename the Usage entry to Token usage and show an explicit unavailable state when Codex returns no Token statistics, instead of substituting a second quota chart. Match chart dates and compact counts to the selected language. Windows receives version metadata only.
+
+## 0.2.0-dev.6 - 2026-10-15 (unreleased native development)
+
+- Remove the redundant normal “Available” line from the menu popover and fit its quota section to measured content instead of reserving empty space. Preserve cache/error/unknown/restricted messages and the scrolling limit for long content. Windows receives version metadata only.
+
+## 0.2.0-dev.5 - 2026-10-15 (unreleased native development)
+
+- Open notch details only on click to prevent pointer-hover activation. Keep outside-click/Escape dismissal and the physical-notch geometry; update both-language help. Bubble and edge-widget hover behavior is unchanged. Windows receives version metadata only.
+
+## 0.2.0-dev.4 - 2026-10-15 (unreleased native development)
+
+- Keep explicitly pinned widget details open when opening the main window. Temporary previews still close; unpinning and Escape retain their existing behavior. Windows receives version metadata only.
+
+## 0.2.0-dev.3 - 2026-10-15 (unreleased native development)
+
+- Rebuild the menu-bar popover around quota/reset/freshness and quick actions. Show the selected verified allowance in the status item; stale/cached/unknown values stay unknown there.
+- Replace the expanded bubble’s large decorative dial with a compact branded card while preserving its selected-window last-hour consumption chart, explicit keep-open state, pin/drag behavior and thin vertical edge tabs. Keep the supersampled native silhouette mask.
+- Add native notch hover/click-hold details. Both frames overlap the physical-notch bottom by one point to prevent a wallpaper gap; outside click/Esc dismisses the notch hold independently of widget pinning. Hardware/fullscreen acceptance remains pending.
+- Preserve missing selected labels across surfaces and suppress per-window unknown confidence even when another window is verified. Windows receives metadata only; the public stable release remains 0.1.145.
+- Compare development versions below the same stable version, preserve build-metadata equality and explain preserved unassigned history in the native UI.
+
+## 0.2.0-dev.2 - 2026-10-15 (unreleased native development)
+
+- Implement the native Overview/Usage/Settings sidebar, paired quota cards, dedicated reminder/display/connection/general sections and resizable main window. Connect the existing real quota, history, connection and notification services; add Command-1/2/3 navigation.
+- Ask for notification permission from reminder/test actions rather than at launch. Persist language/refresh interval and label refresh status with the last successful reading. Reduce chart label crowding and keep percentage-point units explicit. Windows receives version metadata only; stable downloads remain 0.1.145.
+
+## 0.2.0-dev.1 - 2026-10-15 (unreleased native development)
+
+- Keep an explicitly selected missing allowance unknown, including the bubble dial and notch; retain its last known label across restart without retaining a quota value. Only automatic selection may fall back.
+- Support the 5% low-quota threshold in native settings, persistence and the existing deduplicated reminder evaluator. Windows changes are version metadata only. Installed/public stable remains 0.1.145; the new native layout is still pending.
+- Isolate new quota history by verified account with preserved legacy files; retain marked last-known values only for same-account transport failures, and reject cross-account supplemental details or delayed batches.
+
+## 0.2.0-preview.3 - 2026-10-15 (design preview only)
+
+- Join both notch states seamlessly to the physical notch and restore thin vertical edge-rail tracks. Native implementation remains pending.
+
+## 0.2.0-preview.2 - 2026-10-15 (design preview only)
+
+- Add the five-state widget/notch concept board to the preview and a bilingual cross-version review covering confirmed source gaps, migration, account history, notifications, lifecycle, accessibility and release gates. Native implementation remains pending.
+
+## 0.2.0-preview.1 - 2026-10-15 (design preview only)
+
+- Add the selected sidebar interaction prototype with Overview, Usage and Settings, synthetic quota states, reminder controls and widget interaction previews. Add paired product/acceptance documents. The installed/released native application remains 0.1.145; no native 0.2.0 feature or release is claimed.
+
 ## 0.1.145 - 2026-10-13
 
 - Supersample the native floating-window silhouette before compositing to soften curved-edge aliasing, while preserving bubble/ring geometry, quota values, pinning and dragging. Match mask rasterization to its render scale and refresh it when display backing changes. Windows receives version metadata only.

@@ -4,7 +4,9 @@ public enum QuotaDataDiagnostics {
     public static func issueKeys(snapshot: ProviderQuotaSnapshot?, now: Date) -> [String] {
         guard let snapshot else { return ["dataStatus.noSnapshot"] }
         var keys: [String] = []
-        if snapshot.status != .available {
+        if snapshot.isCached == true {
+            return ["dataStatus.stale"]
+        } else if snapshot.status != .available {
             return ["dataStatus.unavailable"]
         } else if snapshot.isStale(now: now) {
             keys.append("dataStatus.stale")

@@ -4,9 +4,26 @@ import SwiftUI
 struct NotchStatusView: View {
     @Bindable var model: ReadyCheckAppModel
 
+    var isExpanded = false
+    var onClick: () -> Void = {}
+    var onDismiss: () -> Void = {}
+
     @State private var now = Date()
 
     var body: some View {
+        Group {
+            if isExpanded { NotchDetailsView(model: model, now: now, onDismiss: onDismiss) }
+            else { compactStatus }
+        }
+        .task {
+            while !Task.isCancelled {
+                now = Date()
+                try? await Task.sleep(for: .seconds(30))
+            }
+        }
+    }
+
+    private var compactStatus: some View {
         VStack(spacing: 5) {
             HStack(spacing: 8) {
                 Circle()
@@ -46,7 +63,7 @@ struct NotchStatusView: View {
                 topTrailingRadius: 0,
                 style: .continuous
             )
-            .fill(Color.black.opacity(0.94))
+            .fill(Color.black)
             .overlay {
                 UnevenRoundedRectangle(
                     topLeadingRadius: 0,
@@ -59,16 +76,10 @@ struct NotchStatusView: View {
             }
         }
         .contentShape(Rectangle())
-        .onTapGesture {
-            model.openMainWindowFromWidget()
-        }
-        .help(model.localization.text("notch.openMainWindow"))
-        .task {
-            while !Task.isCancelled {
-                now = Date()
-                try? await Task.sleep(for: .seconds(30))
-            }
-        }
+        .onTapGesture(perform: onClick)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { onClick() }
+        .help(model.localization.text("notch.previewHint"))
     }
 
     private var snapshot: ProviderQuotaSnapshot? {
@@ -81,12 +92,12 @@ struct NotchStatusView: View {
 
     private var displayedWindow: QuotaWindow? {
         let windows = snapshot?.windows.filter(QuotaWindowPresentation.shouldShow) ?? []
-        return model.notchQuotaSelection.resolve(in: windows)
+        return model.notchQuotaSelection.displayWindows(in: windows).first
     }
 
     private var displayedRatio: Double? {
         guard snapshot?.canShowPercentages(now: now) == true else { return nil }
-        return displayedWindow?.remainingRatio
+        return displayedWindow?.displayableRemainingRatio
     }
 
     private var displayedWindowLabel: String {
@@ -95,6 +106,10 @@ struct NotchStatusView: View {
 
     private var quotaItem: some View {
         HStack(spacing: 4) {
+            if snapshot?.isCached == true {
+                Image(systemName: "clock.badge.exclamationmark")
+                    .accessibilityLabel(model.localization.text("status.stale"))
+            }
             Text(displayedWindowLabel)
                 .foregroundStyle(.white.opacity(0.58))
             Text(QuotaFormatters.percentageText(for: displayedRatio))

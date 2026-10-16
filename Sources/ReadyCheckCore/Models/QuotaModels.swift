@@ -157,9 +157,11 @@ public struct QuotaWindow: Identifiable, Codable, Equatable, Sendable {
         return remaining / limit
     }
 
-    var hasDisplayableRatioIgnoringSnapshotState: Bool {
-        remainingRatio != nil && confidence != .unknown
+    public var displayableRemainingRatio: Double? {
+        confidence == .unknown ? nil : remainingRatio
     }
+
+    var hasDisplayableRatioIgnoringSnapshotState: Bool { displayableRemainingRatio != nil }
 }
 
 public enum QuotaWindowPresentation {
@@ -294,6 +296,8 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
     public let windows: [QuotaWindow]
     public let errors: [String]
     public let details: ProviderQuotaDetails?
+    public let accountID: String?
+    public let isCached: Bool?
     public let ordinaryUsageAllowed: Bool?
 
     public init(
@@ -306,7 +310,9 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
         windows: [QuotaWindow],
         errors: [String],
         details: ProviderQuotaDetails? = nil,
-        ordinaryUsageAllowed: Bool? = nil
+        ordinaryUsageAllowed: Bool? = nil,
+        accountID: String? = nil,
+        isCached: Bool? = nil
     ) {
         self.providerId = providerId
         self.displayName = displayName
@@ -318,6 +324,9 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
         self.errors = errors
         self.details = details
         self.ordinaryUsageAllowed = ordinaryUsageAllowed
+        let identity = accountID?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.accountID = identity?.isEmpty == false ? identity : nil
+        self.isCached = isCached
     }
 
     var hasDisplayablePercentageWindowIgnoringStaleness: Bool {
@@ -327,12 +336,28 @@ public struct ProviderQuotaSnapshot: Identifiable, Codable, Equatable, Sendable 
     }
 
     public func canShowPercentages(now: Date) -> Bool {
+        if isCached == true {
+            return windows.contains(where: \.hasDisplayableRatioIgnoringSnapshotState)
+        }
         guard !isStale(now: now) else { return false }
         return hasDisplayablePercentageWindowIgnoringStaleness
     }
 
     public func isStale(now: Date) -> Bool {
-        now >= staleAfter
+        isCached == true || now >= staleAfter
+    }
+
+    public func availabilityTextKey(now: Date) -> String {
+        if isStale(now: now) { return "status.stale" }
+        guard status == .available else { return "status.unavailable" }
+        if providerId == "codex-oauth" {
+            switch ordinaryUsageAllowed {
+            case true: return "status.available"
+            case false: return "status.ordinaryUsageBlocked"
+            case nil: return "status.ordinaryUsageUnknown"
+            }
+        }
+        return "status.available"
     }
 
     public var recoveryAction: QuotaRecoveryAction {
@@ -382,7 +407,9 @@ public extension ProviderQuotaSnapshot {
             windows: windows,
             errors: errors,
             details: details.preservingSupplementalDetails(from: fallback, now: now),
-            ordinaryUsageAllowed: ordinaryUsageAllowed
+            ordinaryUsageAllowed: ordinaryUsageAllowed,
+            accountID: accountID,
+            isCached: isCached
         )
     }
 }

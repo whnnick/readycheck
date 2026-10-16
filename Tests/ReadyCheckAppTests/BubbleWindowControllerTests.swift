@@ -6,6 +6,36 @@ import XCTest
 
 @MainActor
 final class BubbleWindowControllerTests: XCTestCase {
+    func testOpeningMainWindowKeepsPinnedDetailsExpanded() throws {
+        try withBubble { _, _, host in
+            var opened = false
+            host.rootView.model.openMainWindow = { opened = true }
+            host.rootView.model.mainWindowPage = .settings
+            host.rootView.onTap()
+
+            host.rootView.openMainWindow()
+
+            XCTAssertTrue(opened)
+            XCTAssertEqual(host.rootView.model.mainWindowPage, .overview)
+            XCTAssertTrue(host.rootView.isExpanded)
+            XCTAssertTrue(host.rootView.isPinned)
+        }
+    }
+
+    func testOpeningMainWindowDismissesTemporaryPreview() throws {
+        try withBubble { _, _, host in
+            var opened = false
+            host.rootView.model.openMainWindow = { opened = true }
+            host.rootView.onTap()
+            host.rootView.onTogglePin()
+
+            host.rootView.openMainWindow()
+
+            XCTAssertTrue(opened)
+            XCTAssertFalse(host.rootView.isExpanded)
+        }
+    }
+
     func testPinnedDetailsSurviveWindowFocusLoss() throws {
         try withBubble { controller, panel, host in
             host.rootView.onTap()

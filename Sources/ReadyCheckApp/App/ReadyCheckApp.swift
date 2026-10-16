@@ -55,6 +55,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
             self?.showMainWindow()
             NSApp.activate(ignoringOtherApps: true)
         }
+        appModel.onLanguageChanged = { [weak self] in self?.configureMainMenu() }
     }
 
     static func main() {
@@ -88,7 +89,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         configureStatusBarItem()
         showMainWindow()
         Task {
-            await appModel.requestNotificationAuthorizationIfNeeded()
+            await appModel.reloadNotificationReadiness()
             await appModel.reloadQuotaHistory()
             await appModel.reloadReminderHistory()
             await appModel.reloadCodexOAuthConnectionStatus()
@@ -146,20 +147,24 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
     }
 
     private func configureMainMenu() {
+        NSApp.mainMenu = Self.makeMainMenu(localization: appModel.localization, target: self)
+    }
+
+    static func makeMainMenu(localization: LocalizationService, target: AnyObject) -> NSMenu {
         let mainMenu = NSMenu()
         let appMenuItem = NSMenuItem()
         let appMenu = NSMenu()
         let fileMenuItem = NSMenuItem()
-        let fileMenu = NSMenu(title: "File")
+        let fileMenu = NSMenu(title: localization.text("menu.file"))
 
         appMenu.addItem(
-            withTitle: appModel.localization.text("about.menuItem"),
+            withTitle: localization.text("about.menuItem"),
             action: #selector(showAboutWindow),
             keyEquivalent: ""
-        ).target = self
+        ).target = target
         appMenu.addItem(.separator())
         appMenu.addItem(
-            withTitle: "Quit ReadyCheck",
+            withTitle: localization.text("action.quit"),
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         )
@@ -168,18 +173,46 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         mainMenu.addItem(appMenuItem)
 
         fileMenu.addItem(
-            withTitle: appModel.localization.text("action.closeWindow"),
+            withTitle: localization.text("action.closeWindow"),
             action: #selector(NSWindow.performClose(_:)),
             keyEquivalent: "w"
         )
         fileMenuItem.submenu = fileMenu
         mainMenu.addItem(fileMenuItem)
-        NSApp.mainMenu = mainMenu
+        let viewItem = NSMenuItem()
+        let viewMenu = NSMenu(title: localization.text("menu.view"))
+        for (index, page) in MainWindowPage.allCases.enumerated() {
+            let item = NSMenuItem(title: localization.text(page.titleKey),
+                action: #selector(showPage(_:)), keyEquivalent: String(index + 1))
+            item.tag = index
+            item.target = target
+            viewMenu.addItem(item)
+        }
+        viewMenu.addItem(.separator())
+        let fullscreen = NSMenuItem(title: localization.text("menu.fullscreen"),
+            action: #selector(toggleFullScreen(_:)), keyEquivalent: "f")
+        fullscreen.keyEquivalentModifierMask = [.command, .control]
+        fullscreen.target = target
+        viewMenu.addItem(fullscreen)
+        viewItem.submenu = viewMenu
+        mainMenu.addItem(viewItem)
+        return mainMenu
     }
 
     @objc
     private func showAboutWindow() {
         appModel.showAboutWindow()
+    }
+
+    @objc private func showPage(_ item: NSMenuItem) {
+        guard MainWindowPage.allCases.indices.contains(item.tag) else { return }
+        appModel.mainWindowPage = MainWindowPage.allCases[item.tag]
+        showMainWindow()
+    }
+
+    @objc private func toggleFullScreen(_ sender: Any?) {
+        showMainWindow()
+        mainWindow?.toggleFullScreen(sender)
     }
 
     fileprivate func showMainWindow() {
@@ -191,10 +224,12 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
 
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 740, height: 760),
-            styleMask: [.titled, .closable, .miniaturizable],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
+        window.minSize = NSSize(width: 740, height: 648)
+        window.setContentSize(NSSize(width: 900, height: 760))
         window.title = "ReadyCheck"
         window.isReleasedWhenClosed = false
         window.collectionBehavior = [.moveToActiveSpace, .managed]
@@ -216,13 +251,27 @@ final class ReadyCheckAppModel {
     private static let codexConnectionModeDefaultsKey = "ReadyCheck.codexConnectionMode.v1"
     private static let oauthLogger = Logger(subsystem: "com.readycheck.app", category: "oauth")
 
-    var language: AppLanguage = .zhCN
-    var refreshInterval: TimeInterval = 60
-    var widgetVisible: Bool = WidgetVisibilityPreference.value() {
+    var mainWindowPage: MainWindowPage = .overview
+    var mainSettingsSection: MainSettingsSection = .reminders
+    var language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "ReadyCheck.language.v1") ?? "") ?? .zhCN {
+        didSet {
+            guard language != oldValue else { return }
+            UserDefaults.standard.set(language.rawValue, forKey: "ReadyCheck.language.v1")
+            onLanguageChanged?()
+        }
+    }
+    var refreshInterval: TimeInterval = {
+        let saved = UserDefaults.standard.double(forKey: "ReadyCheck.refreshInterval.v1")
+        return [60.0, 180, 300].contains(saved) ? saved : 60
+    }() {
+        didSet { UserDefaults.standard.set(refreshInterval, forKey: "ReadyCheck.refreshInterval.v1") }
+    }
+    var widgetVisible: Bool {
         didSet {
             guard widgetVisible != oldValue else { return }
 
             guard !isSyncingWidgetVisibilityFromWindow else { return }
+            WidgetVisibilityPreference.set(widgetVisible, defaults: widgetVisibilityDefaults)
 
             if widgetVisible {
                 showSelectedWidget()
@@ -275,7 +324,7 @@ final class ReadyCheckAppModel {
         }
     }
     var notchQuotaSelection = NotchQuotaSelection.value() {
-        didSet { notchQuotaSelection.persist() }
+        didSet { notchQuotaSelection.persist(windows: snapshots.first { $0.providerId == "codex-oauth" }?.windows ?? []) }
     }
     var notchStatusVisible: Bool = UserDefaults.standard.bool(forKey: notchStatusVisibleDefaultsKey) {
         didSet {
@@ -308,6 +357,7 @@ final class ReadyCheckAppModel {
         didSet { edgeRailWindowController.updateQuotaLayout() }
     }
     var quotaHistorySamples: [QuotaHistorySample] = []
+    var hasUnassignedLegacyHistory = false
     var recoveryReminderRequest: QuotaRecoveryRequest?
     var automaticRecoveryEnabled = true
     var recoveryReminderSaveFailed = false
@@ -332,6 +382,9 @@ final class ReadyCheckAppModel {
     var updateStatus: AppUpdateStatus = .idle
     var launchAtLoginStatus: LaunchAtLoginStatus = .disabled
     var updatePromptState = UpdatePromptState()
+
+    @ObservationIgnored
+    private let widgetVisibilityDefaults: UserDefaults
 
     @ObservationIgnored
     private let credentialStore: any CredentialStore
@@ -379,6 +432,9 @@ final class ReadyCheckAppModel {
     private let aboutWindowController = AboutWindowController()
 
     @ObservationIgnored
+    var onLanguageChanged: (() -> Void)?
+
+    @ObservationIgnored
     var openMainWindow: (() -> Void)?
 
     @ObservationIgnored
@@ -407,10 +463,14 @@ final class ReadyCheckAppModel {
         codexOAuthClient: CodexOAuthClient = CodexOAuthClient(),
         updateChecker: GitHubReleaseUpdateChecker = GitHubReleaseUpdateChecker(),
         quotaHistoryStore: QuotaHistoryStore? = nil,
+        quotaReminderStore: QuotaReminderStore? = nil,
         codexAppServerClient: any CodexAppServerReading = CodexAppServerClient(),
         rateLimitMonitor: CodexAppServerRateLimitMonitor = CodexAppServerRateLimitMonitor(),
-        quotaNotificationService: QuotaNotificationService? = nil
+        quotaNotificationService: QuotaNotificationService? = nil,
+        widgetVisibilityDefaults: UserDefaults = .standard
     ) {
+        self.widgetVisibilityDefaults = widgetVisibilityDefaults
+        self.widgetVisible = WidgetVisibilityPreference.value(defaults: widgetVisibilityDefaults)
         let initialConnectionMode = CodexConnectionMode(
             rawValue: UserDefaults.standard.string(forKey: Self.codexConnectionModeDefaultsKey) ?? ""
         ) ?? .localCodex
@@ -420,8 +480,11 @@ final class ReadyCheckAppModel {
         self.updateChecker = updateChecker
         self.codexAppServerClient = codexAppServerClient
         self.rateLimitMonitor = rateLimitMonitor
-        self.quotaHistoryStore = quotaHistoryStore ?? QuotaHistoryStore(fileURL: Self.defaultQuotaHistoryURL)
-        self.quotaReminderStore = QuotaReminderStore(fileURL: Self.defaultQuotaReminderURL)
+        self.quotaHistoryStore = quotaHistoryStore ?? QuotaHistoryStore(
+            fileURL: Self.defaultQuotaHistoryURL.deletingLastPathComponent().appendingPathComponent("quota-history-v2.json"),
+            legacyFileURL: Self.defaultQuotaHistoryURL
+        )
+        self.quotaReminderStore = quotaReminderStore ?? QuotaReminderStore(fileURL: Self.defaultQuotaReminderURL)
         self.quotaNotificationService = quotaNotificationService ?? QuotaNotificationService()
         self.store = QuotaStore(
             registry: ProviderRegistry(
@@ -1116,12 +1179,20 @@ final class ReadyCheckAppModel {
         guard activeStoreGeneration == storeGeneration else { return }
 
         let refreshCompletedAt = Date()
+        let refreshedSnapshots = await activeStore.snapshots
+        if let codex = refreshedSnapshots.first(where: { $0.providerId == "codex-oauth" }),
+           codex.status == .available || codex.recoveryAction == .connect || codex.recoveryAction == .reconnect {
+            let nextAccount = codex.accountID
+            let changed = nextAccount != recoveryReminderAccount
+            await updateRecoveryReminderAccount(nextAccount)
+            guard storeGeneration == activeStoreGeneration + (changed ? 1 : 0),
+                  recoveryReminderAccount == nextAccount else { return }
+        }
         let knownManualResetExpirations = await quotaReminderStore.knownManualResetExpirations(
             now: refreshCompletedAt
         )
-        let refreshedSnapshots = await activeStore.snapshots
         snapshots = refreshedSnapshots.map {
-            $0.providerId == "codex-oauth"
+            $0.providerId == "codex-oauth" && $0.accountID == recoveryReminderAccount && $0.accountID != nil
                 ? $0.preservingKnownManualResetExpirations(
                     knownManualResetExpirations,
                     now: refreshCompletedAt
@@ -1130,6 +1201,7 @@ final class ReadyCheckAppModel {
         }
         lastRefreshAt = refreshCompletedAt
         for snapshot in snapshots where snapshot.providerId == "codex-oauth" && snapshot.status == .available {
+            guard snapshot.accountID == recoveryReminderAccount, snapshot.accountID != nil else { continue }
             if !snapshot.isStale(now: refreshCompletedAt) { lastSuccessfulRefreshAt = snapshot.refreshedAt }
             quotaHistorySamples = await quotaHistoryStore.record(snapshot)
             let reminderBatch = await quotaReminderStore.prepare(snapshot, account: recoveryReminderAccount)
@@ -1146,7 +1218,8 @@ final class ReadyCheckAppModel {
     }
 
     func reloadQuotaHistory() async {
-        quotaHistorySamples = await quotaHistoryStore.load()
+        quotaHistorySamples = await quotaHistoryStore.load(accountID: recoveryReminderAccount)
+        hasUnassignedLegacyHistory = await quotaHistoryStore.hasUnassignedLegacyHistory()
     }
 
     func reloadReminderHistory() async {
@@ -1157,9 +1230,16 @@ final class ReadyCheckAppModel {
     }
 
     private func updateRecoveryReminderAccount(_ account: String?) async {
+        await quotaReminderStore.updateDetailsAccount(account)
         if let account { await quotaReminderStore.clearLowQuotaBaselineIfAccountChanged(account) }
-        if recoveryReminderAccount != account { lastSuccessfulRefreshAt = nil }
+        if recoveryReminderAccount != account {
+            lastSuccessfulRefreshAt = nil
+            snapshots = []
+            quotaHistorySamples = []
+            storeGeneration += 1
+        }
         recoveryReminderAccount = account
+        await reloadQuotaHistory()
         if let request = await quotaReminderStore.recoveryRequest(), request.account != account {
             await cancelRecoveryReminder()
         }

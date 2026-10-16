@@ -149,13 +149,18 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                         .compactMap(\.tokenUsage)
                         .first
                 ),
-                ordinaryUsageAllowed: usageParser.parseOrdinaryUsageAllowed(payload)
+                ordinaryUsageAllowed: usageParser.parseOrdinaryUsageAllowed(payload),
+                accountID: accountID
             )
         } catch CodexUsageParserError.noDisplayableWindows {
             return snapshot(date: date, error: "quota.error.parserUnavailable")
         } catch CodexQuotaHTTPClientError.requestFailed(let statusCode)
             where statusCode == 401 || statusCode == 403 {
             return snapshot(date: date, error: "quota.error.authorizationRejected")
+        } catch is URLError {
+            return snapshot(date: date, error: "quota.error.requestFailed", accountID: accountID)
+        } catch CodexQuotaHTTPClientError.requestFailed {
+            return snapshot(date: date, error: "quota.error.requestFailed", accountID: accountID)
         } catch {
             return snapshot(date: date, error: "quota.error.requestFailed")
         }
@@ -284,7 +289,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 creditsUnlimited: defaultLimit?.creditsUnlimited,
                 accountTokenUsage: appServerSnapshot.tokenUsage
             ),
-            ordinaryUsageAllowed: appServerSnapshot.ordinaryUsageAllowed
+            ordinaryUsageAllowed: appServerSnapshot.ordinaryUsageAllowed,
+            accountID: appServerSnapshot.accountID
         )
     }
 
@@ -376,7 +382,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         )
     }
 
-    private func snapshot(date: Date, error: String) -> ProviderQuotaSnapshot {
+    private func snapshot(date: Date, error: String, accountID: String? = nil) -> ProviderQuotaSnapshot {
         ProviderQuotaSnapshot(
             providerId: id,
             displayName: displayName,
@@ -385,7 +391,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             refreshedAt: date,
             staleAfter: date.addingTimeInterval(300),
             windows: [],
-            errors: [error]
+            errors: [error],
+            accountID: accountID
         )
     }
 }
