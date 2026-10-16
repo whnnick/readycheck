@@ -1,0 +1,271 @@
+{
+  "date": "2026-10-16",
+  "sourceVersion": "0.2.0-dev.13",
+  "stableVersion": "0.1.145",
+  "publication": "local-development-only",
+  "automatedChecks": {
+    "fullBeforeFinalPinCorrection": { "tests": 302, "failures": 0, "skips": 0 },
+    "afterCollapsedLayoutCorrection": { "tests": 27, "failures": 0, "skips": 0 },
+    "pinRegressionBeforeFix": { "tests": 7, "failedAssertions": 2 },
+    "afterPinAndVersionCorrection": { "tests": 8, "failures": 0, "skips": 0 },
+    "developmentMetadata": "passed",
+    "localPackageStrictSignature": "passed-existing-preview-identity"
+  },
+  "packagedAppObservations": {
+    "existingStandaloneCredentialRead": "restored-through-explicit-retry-without-new-login",
+    "verifiedLiveQuota": "observed-in-both-development-packages",
+    "command123Navigation": "passed",
+    "nativeFivePercentSetting": "selected-and-restored-to-existing-preference",
+    "notificationTest": "notification-center-entry-verified-banner-not-independently-observed",
+    "thinVerticalEdgeTab": "observed",
+    "firstDirectInwardDrag": "passed",
+    "lastHourConsumption": "observed-with-live-samples-in-dev3",
+    "pinnedMainWindowAction": "reproduced-in-dev3-and-passed-in-dev4",
+    "unpinCollapse": "observed",
+    "notchCollapsedAndClickExpanded": "observed-on-current-screen",
+    "notchFullDesktopSeamAndHover": "not-verified",
+    "menuBarLivePopover": "not-captured-tool-returned-main-window-after-user-open",
+    "hardwareEscape": "passed-focused-edge-docked-bubble-details-in-dev10-other-contexts-pending"
+  },
+  "preservationChecks": {
+    "allExistingReadyCheckPreferences": "equal-to-baseline-after-test-restoration",
+    "legacyHistory": "byte-equal-to-baseline-after-test-restoration",
+    "legacyBackup": "byte-equal-to-baseline",
+    "newHistory": "retained-with-hashed-account-ownership",
+    "temporaryStableAppLaunch": "exited-and-test-time-legacy-write-preserved-privately-before-restoration",
+    "credentialMaterial": "not-deleted-or-copied"
+  },
+  "notchClickOnlyCorrection": {
+    "version": "0.2.0-dev.5",
+    "previousAppearance": "dev4-manually-accepted-by-user",
+    "geometry": "unchanged",
+    "hoverCallbacksAndTimers": "removed-from-notch-only",
+    "affectedTests": {
+      "tests": 20,
+      "failures": 0,
+      "skips": 0
+    },
+    "livePackage": "collapsed-click-expanded-main-window-dismissal-and-updated-help-observed",
+    "realQuotaRead": "restored-through-explicit-existing-credential-retry",
+    "scope": "No automated pointer-hover or full-desktop seam capture; bubble/edge hover regressions pass"
+  },
+  "compactMenuCorrection": {
+    "version": "0.2.0-dev.6",
+    "before": "native-fitting-height-423-failed-under-400-assertion",
+    "after": "healthy-and-cached-native-rendering-passed-with-content-fitted-height",
+    "normalAvailabilityLine": "removed",
+    "warningStatus": "retained-and-left-aligned",
+    "tests": 2,
+    "failures": 0,
+    "scope": "synthetic-native-fixtures-local-package-not-public-release"
+  },
+  "chartAndTokenCorrection": {
+    "version": "0.2.0-dev.7",
+    "quotaChart": "24-point-horizontal-end-padding-and-clipped-plot",
+    "units": "locally-observed-percentage-point-declines-versus-Codex-daily-Token-counts",
+    "tokenDates": "UTC",
+    "missingTokenData": "explicit-empty-state-without-quota-fallback",
+    "nativeFixtures": {
+      "languages": [
+        "zh-CN",
+        "en-US"
+      ],
+      "componentWidth": 500,
+      "minimumWindowWidth": 740,
+      "records": [
+        "sparse-two-hour",
+        "single-bucket",
+        "dense"
+      ],
+      "visualInspection": "passed"
+    },
+    "fullRegression": {
+      "tests": 305,
+      "failures": 0,
+      "skips": 1,
+      "skipReason": "existing-pinned-window-sizing-could-not-retain-foreground-keyboard-focus"
+    },
+    "afterFinalUTCDisplay": {
+      "tests": 9,
+      "failures": 0,
+      "skips": 0
+    },
+    "warning": "Swift-Charts-axis-anchor-warning-rendered-labels-inspected",
+    "developmentMetadata": "passed",
+    "localPackageStrictSignature": "passed-existing-preview-identity",
+    "runtime": "dev7-and-explicit-Token-unavailable-page-observed",
+    "liveRefresh": "verified-after-user-Keychain-confirmation-live-Overview-boundaries-and-official-Token-page-inspected",
+    "assets": "synthetic-native-components-and-Token-pages-only-no-live-account-captures"
+  },
+  "accountBenefitsRestoration": {
+    "version": "0.2.0-dev.8",
+    "restored": [
+      "plan",
+      "subscription-validity-or-billing-link",
+      "manual-reset-count-and-each-expiration",
+      "Credits-balance-or-unlimited",
+      "exact-quota-reset-time"
+    ],
+    "presentation": "reuse-existing-quota-details-in-account-only-mode-on-Overview",
+    "statesChecked": [
+      "complete",
+      "zero",
+      "unknown",
+      "partial-expirations",
+      "historical-subscription",
+      "unlimited"
+    ],
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "focusedTests": {
+      "tests": 10,
+      "failures": 0,
+      "skips": 0
+    },
+    "fullRegression": {
+      "tests": 306,
+      "failures": 0,
+      "skips": 0
+    },
+    "packageAndStrictSignature": "passed-existing-preview-identity",
+    "runtime": "dev8-account-section-and-billing-fallback-observed",
+    "liveAccountValues": "verified-live-plan-count-each-returned-expiration-Credits-and-historical-subscription-label",
+    "scope": "presentation-only-no-provider-credential-or-redemption-change"
+  },
+  "desktopVisibilityAndMenus": {
+    "version": "0.2.0-dev.9",
+    "hiddenStartupRegressionBeforeFix": {
+      "failures": 1
+    },
+    "visibilitySnoozeEdgeTests": {
+      "tests": 14,
+      "failures": 0,
+      "skips": 0
+    },
+    "menuLanguageFocusedTests": {
+      "tests": 13,
+      "failures": 0,
+      "skips": 0
+    },
+    "fullRegression": {
+      "tests": 309,
+      "failures": 0,
+      "skips": 0
+    },
+    "nativeHideThenRelaunch": "remained-off",
+    "nativeShowThenRelaunch": "remained-on",
+    "nativeLanguageMenus": "Chinese-English-Chinese-and-navigation-Quit-observed",
+    "mainWindowCloseReopen": "desktop-entry-retained-and-Command-1-reopened-Overview",
+    "fullscreenBubbleTelemetry": "nonvisible-on-entry-visible-after-return-current-screen-only",
+    "preferencePreservation": "restored-runtime-visibility-and-language-other-scoped-values-and-positions-matched",
+    "fixtureCorrection": "initial-XCTest-notification-center-exception-resolved-with-injected-client-not-counted-as-pass"
+  },
+  "explicitFullscreenCommand": {
+    "version": "0.2.0-dev.10",
+    "regressionBeforeFix": {
+      "missingMenuItemFailures": 1
+    },
+    "fullRegression": {
+      "tests": 310,
+      "failures": 0,
+      "skips": 0
+    },
+    "menuContract": "both-languages-navigation-quit-and-Control-Command-F",
+    "packageAndStrictSignature": "passed-existing-preview-identity",
+    "nativeRuntime": "exact-dev10-preview-launched-and-inspected",
+    "nativeFullscreen": "both-language-menu-entry-and-Control-Command-F-enter-exit-passed",
+    "nativeMenuMultiplicity": "one-explicit-fullscreen-command-in-each-language",
+    "nativeEscape": "focused-pinned-details-collapsed-back-to-tab",
+    "nativePin": "retained-through-main-window-open-Settings-click-close-unpin-collapsed",
+    "preferences": "Chinese-windowed-widget-on-notch-off-fullscreen-hide-on",
+    "liveData": "restored-after-explicit-retry-and-user-confirmation-quota-benefits-Token-and-last-hour-chart-visually-checked",
+    "pending": "other-overlay-focus-contexts-and-noninteractive-rebuilt-package-credential-access",
+    "securityScope": "no-credential-or-system-trust-change"
+  },
+  "quotaBarInspection": {
+    "version": "0.2.0-dev.11",
+    "unit": "consumed-percentage-points-not-remaining-or-Tokens",
+    "interaction": "onContinuousHover-and-click-bar-inspection-clear-on-leave-or-data-change",
+    "focusedTests": {
+      "tests": 5,
+      "failures": 0,
+      "skips": 0
+    },
+    "fullRegression": {
+      "tests": 315,
+      "failures": 0,
+      "skips": 0
+    },
+    "nativeFixtures": "430pt-first-middle-last-both-languages-visually-inspected",
+    "initialVisualIssue": "edge-cropped-annotation-replaced-with-bounded-plot-overlay",
+    "aggregation": "unchanged",
+    "package": "strict-signature-and-development-metadata-passed-existing-preview-identity",
+    "liveInteraction": "exact-dev11-first-last-bar-clicks-match-time-and-consumption-gap-click-clears",
+    "hardwareHover": "not-independently-observed"
+  },
+  "unifiedConsumptionSemantics": {
+    "version": "0.2.0-dev.12",
+    "dataTypes": {
+      "Widget-and-Overview": "local-quota-consumption-percentage-points",
+      "Token-usage": "Codex-returned-daily-Token-counts-UTC"
+    },
+    "sharedRule": "same-observedDecreases-helper-for-widget-overview-bars-and-overview-totals",
+    "excluded": "reset-changes-missing-invalid-reading-increases-and-gaps-over-600s",
+    "range": "totals-match-plotted-range-widget-1h-at-5min-overview-24h-at-1h-7d-at-6h-30d-at-1d",
+    "verticalScale": "widget-relative-to-local-maximum-compare-values-not-bar-heights",
+    "regressionBeforeFix": {
+      "tests": 6,
+      "failedTests": 2,
+      "failedAssertions": 3
+    },
+    "focusedAfterFix": {
+      "tests": 15,
+      "failures": 0,
+      "skips": 0
+    },
+    "fullAfterRuleFix": {
+      "tests": 317,
+      "failures": 0,
+      "skips": 0
+    },
+    "afterFinalTextVersionAndEnglishWidgetFixture": {
+      "tests": 7,
+      "failures": 0,
+      "skips": 0
+    },
+    "package": "strict-signature-and-development-metadata-passed-existing-preview-identity",
+    "native": "dev12-real-widget-overview-and-Token-labels-inspected-all-overview-ranges-switched-and-restored",
+    "credentials": "existing-login-restored-through-user-confirmed-retry-no-material-copied",
+    "publicFixtures": "synthetic-only",
+    "unchanged": "credentials-account-history-notification-engine-Token-counts-stable-installation"
+  },
+  "quotaPeriodAndHistoryWording": {
+    "version": "0.2.0-dev.13",
+    "scope": "presentation-only-no-calculation-or-data-source-changes",
+    "titles": "full-quota-name-plus-viewed-history-range-Widget-1h-Overview-selected-range",
+    "unit": "bar-interval-and-percentage-point-unit-on-separate-line-80-to-70-example",
+    "TokenTitle": "Daily-Token-counts-daily-UTC-grouping",
+    "affectedChecks": {
+      "tests": 7,
+      "failures": 0,
+      "skips": 0
+    },
+    "fixtures": "bilingual-Widget-500pt-quota-and-740pt-main-window-Token-visually-inspected",
+    "calculationRegression": "reuse-dev12-full317-no-new-full-suite-claim",
+    "package": "strict-signature-and-development-metadata-passed-existing-preview-identity",
+    "runtime": "dev13-real-Overview-all-ranges-daily-Token-and-user-opened-Widget-title-unit-lines-verified"
+  },
+  "remaining": [
+    "menu-bar-popover-placement-and-shortcuts",
+    "new-notch-pointer-behavior-on-hardware",
+    "fullscreen-spaces-multiple-displays",
+    "voiceover-contrast-reduced-motion-and-display-scale",
+    "real-quota-cycle-and-notification-lifecycle",
+    "rebuilt-package-noninteractive-credential-access",
+    "interrupted-upgrade-and-rollback",
+    "windows-feature-work-and-release-delivery"
+  ],
+  "privacy": "No account IDs, quota readings, credential data, private paths or real desktop captures included."
+}

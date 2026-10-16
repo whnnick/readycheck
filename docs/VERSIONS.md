@@ -1,5 +1,11 @@
 # Version plans / 版本规划
 
+- [0.2.0 release highlights](versions/0.2.0/RELEASE_NOTES.md) | [中文更新重点](versions/0.2.0/RELEASE_NOTES.zh-CN.md) — Native Mac upgrade; preview delivery preparation / 原生 Mac 升级，预览版交付准备。
+
+- [0.2.0 cross-version review](versions/0.2.0/UPGRADE_REVIEW.md) | [中文完整检查](versions/0.2.0/UPGRADE_REVIEW.zh-CN.md) — Widget/notch concept, confirmed source gaps and upgrade gates / 桌面形态、源码差距与升级门槛。
+
+- [0.2.0 native upgrade](versions/0.2.0/PLAN.md) | [中文计划](versions/0.2.0/PLAN.zh-CN.md) | [Prototype](versions/0.2.0/prototype/README.md) | [中文演示](versions/0.2.0/prototype/README.zh-CN.md) | [Checks](versions/0.2.0/QA.md) | [中文检查](versions/0.2.0/QA.zh-CN.md) — Native 0.2.0 retains account benefits and display choices, with bilingual native menus/fullscreen commands and quota-bar inspection; release acceptance recorded below / 原生 0.2.0 保留账户权益与显示选择，补齐双语系统菜单、全屏命令及额度柱子提示，发布验收见版本文档。
+
 - [0.1.145 smooth edges and current homepage](versions/0.1.145/PLAN.md) | [中文计划](versions/0.1.145/PLAN.zh-CN.md) | [Acceptance](versions/0.1.145/QA.md) | [中文验收](versions/0.1.145/QA.zh-CN.md)
 
 - [0.1.144 reliable detail pin](versions/0.1.144/PLAN.md) | [中文计划](versions/0.1.144/PLAN.zh-CN.md) | [Acceptance](versions/0.1.144/QA.md) | [中文验收](versions/0.1.144/QA.zh-CN.md) | [Release](https://github.com/whnnick/readycheck/releases/tag/v0.1.144)

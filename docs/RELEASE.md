@@ -11,7 +11,7 @@ Use this flow for every user-visible ReadyCheck release. Do not publish from an 
 
 ## 2. Verify The Development Worktree
 
-Run from `.worktrees/readycheck-macos-mvp`:
+Run from the active ReadyCheck development worktree:
 
 ```bash
 scripts/check_release_consistency.sh
@@ -27,7 +27,7 @@ scripts/package_dmg.sh
 scripts/package_windows_portable.sh
 ```
 
-Windows packaging is validated through Node.js 24. If a newer system Node is installed, set `READYCHECK_NODE_BIN` to a compatible Node executable; the script fails before packaging rather than accepting an empty Electron Packager result.
+Windows packaging requires Node.js 22.12–24 and is validated with Node.js 24. If a newer system Node is installed, set `READYCHECK_NODE_BIN` to a compatible Node executable; the script fails before packaging rather than accepting an empty Electron Packager result.
 
 `scripts/package_dmg.sh` is the only standard local packaging entry point. It cleans old `ReadyCheck-*-macos.dmg` files from `dist` before writing the current DMG.
 
@@ -99,11 +99,11 @@ Then commit, tag, push, and create the GitHub Release:
 
 ```bash
 git add -A
-git commit -m "Update ReadyCheck macOS preview to <version>"
+git commit -m "Release ReadyCheck <version> / 发布 ReadyCheck <version>"
 git tag -a v<version> -m "ReadyCheck <version>"
 git push origin HEAD:main
 git push origin v<version>
-gh release create v<version> dist/ReadyCheck-<version>-macos.dmg dist/windows/ReadyCheck-<version>-windows-x64-portable.zip --repo whnnick/readycheck --title "ReadyCheck <version>" --notes "<release notes>"
+gh release create v<version> dist/ReadyCheck-<version>-macos.dmg dist/windows/ReadyCheck-<version>-windows-x64-portable.zip --repo whnnick/readycheck --title "ReadyCheck <version>" --verify-tag --latest --notes-file <bilingual-release-notes.md>
 ```
 
 If the local network cannot upload the large Windows release zip reliably, run the `Upload Windows Release Asset` GitHub Actions workflow with:
@@ -122,3 +122,5 @@ gh api repos/whnnick/readycheck/releases/latest --jq '{tag_name, name, draft, pr
 `tag_name` must match the version just released.
 
 The preview signing identity keeps local Keychain identity stable but is not a Developer ID certificate. A production Gatekeeper-ready release still requires Developer ID signing, hardened runtime configuration, notarization, and stapling.
+
+Public sync excludes internal hosting/agent metadata (`.openai`, `.superpowers`) as well as all dependency `node_modules` directories and generated prototype output. Keep commit messages, README, changelogs and release notes bilingual.

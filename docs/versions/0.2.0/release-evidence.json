@@ -1,0 +1,89 @@
+{
+  "version": "0.2.0",
+  "date": "2026-10-16",
+  "scope": "macOS self-signed preview; Windows portable keeps prior interface",
+  "about": {
+    "entries": [
+      "sidebar footer",
+      "menu bar More",
+      "application menu",
+      "Settings General"
+    ],
+    "retainedContent": true,
+    "sharedReleaseHighlights": true,
+    "bilingualNativeComponentInspected": true,
+    "exactMountedBundleInspected": true,
+    "englishInitialScrollRegression": "reproduced; top anchor corrected and observed"
+  },
+  "verification": {
+    "fullSwift": {
+      "executed": 319,
+      "failures": 0,
+      "skipped": 1,
+      "skipReason": "pinned sizing could not retain foreground focus"
+    },
+    "finalAffectedSwift": {
+      "executed": 3,
+      "failures": 0,
+      "skipped": 0
+    },
+    "releaseScreenshotRender": {
+      "executed": 1,
+      "failures": 0
+    },
+    "localMacDMG": {
+      "mountedVersion": "0.2.0",
+      "strictDeepSignature": true
+    },
+    "localWindows": [
+      "check",
+      "smoke",
+      "smoke:ui",
+      "zip integrity"
+    ],
+    "windowsRuntime": "Electron43.5.0",
+    "windowsPackager": "20.3.0",
+    "npmAuditAdvisories": 0,
+    "windowsFailedIntermediateDiscarded": true,
+    "publicSwift": {
+      "executed": 319,
+      "failures": 0,
+      "skipped": 0
+    },
+    "publicWindows": [
+      "check",
+      "smoke",
+      "smoke:ui",
+      "zip integrity",
+      "ASAR version/prune/content checks",
+      "Electron runtime version"
+    ],
+    "publicMac": {
+      "architecture": "arm64",
+      "mountedVersion": "0.2.0",
+      "strictDeepSignature": true,
+      "identity": "ReadyCheck Preview Signing",
+      "notarized": false
+    }
+  },
+  "privacy": {
+    "images": "native components with synthetic data only",
+    "liveAccountValuesPublished": false,
+    "publicHistoryTextBlobsScanned": 1479
+  },
+  "remaining": [
+    "remote push/tag/Release/latest and downloaded-asset checks",
+    "live credential confirmation for rebuilt bundle",
+    "device and lifecycle matrix still open in QA"
+  ],
+  "artifacts": {
+    "ReadyCheck-0.2.0-macos.dmg": {
+      "bytes": 2809065,
+      "sha256": "5a2a6af2efad0ada10c634bc3f4bcdcf8e262ea6b770b8746052025872205550"
+    },
+    "ReadyCheck-0.2.0-windows-x64-portable.zip": {
+      "bytes": 151013053,
+      "sha256": "f273584eb056d9f5947dd157513fe3a8b4c58cc708a95a172d35b8215748065e"
+    }
+  }
+}

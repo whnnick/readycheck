@@ -2,7 +2,7 @@
 
 ## 系统要求
 
-- macOS 14 Sonoma 或更高版本
+- Apple 芯片（arm64），macOS 14 Sonoma 或更高版本
 - 连接 Codex OAuth 和刷新用量时需要网络
 
 ## 从发布页安装
@@ -18,3 +18,7 @@
 在应用中点击“连接”，完成浏览器 OAuth 授权。正常情况下会通过 `localhost:1455` 回到应用；未能自动回调时，可在 ReadyCheck 中粘贴最终回调 URL。
 
 点击“断开”会从 Keychain 移除 ReadyCheck 保存的 OAuth 凭据。
+
+## 升级到 0.2.0
+
+替换应用前请退出 ReadyCheck。既有设置、凭据和历史会保留；重建预览包可能仍需 macOS 钥匙串确认，必要时在设置 → 连接中重试读取凭据。总览保留订阅／主动重置／Credits 信息，侧栏底部或菜单栏更多可打开关于查看更新重点。Windows 为独立便携预览，沿用原界面。

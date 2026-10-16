@@ -27,7 +27,7 @@ scripts/package_dmg.sh
 scripts/package_windows_portable.sh
 ```
 
-Windows 打包已验证到 Node.js 24。如果系统安装了更新的 Node，请用 `READYCHECK_NODE_BIN` 指定兼容的 Node 可执行文件；脚本会在打包前失败，不再接受 Electron Packager 未生成产物的假成功结果。
+Windows 打包要求 Node.js 22.12–24，并使用 Node.js 24 验证。如果系统安装了更新的 Node，请用 `READYCHECK_NODE_BIN` 指定兼容的 Node 可执行文件；脚本会在打包前失败，不再接受 Electron Packager 未生成产物的假成功结果。
 
 `scripts/package_dmg.sh` 是标准本地打包入口。它会在写入当前版本 DMG 前自动清理 `dist` 中的旧 `ReadyCheck-*-macos.dmg`。
 
@@ -99,11 +99,11 @@ public sync 的 `dist` 只能包含：
 
 ```bash
 git add -A
-git commit -m "Update ReadyCheck macOS preview to <version>"
+git commit -m "Release ReadyCheck <version> / 发布 ReadyCheck <version>"
 git tag -a v<version> -m "ReadyCheck <version>"
 git push origin HEAD:main
 git push origin v<version>
-gh release create v<version> dist/ReadyCheck-<version>-macos.dmg dist/windows/ReadyCheck-<version>-windows-x64-portable.zip --repo whnnick/readycheck --title "ReadyCheck <version>" --notes "<release notes>"
+gh release create v<version> dist/ReadyCheck-<version>-macos.dmg dist/windows/ReadyCheck-<version>-windows-x64-portable.zip --repo whnnick/readycheck --title "ReadyCheck <version>" --verify-tag --latest --notes-file <bilingual-release-notes.md>
 ```
 
 如果本地网络无法稳定上传较大的 Windows zip，运行 GitHub Actions 里的 `Upload Windows Release Asset` 手动 workflow：
@@ -122,3 +122,5 @@ gh api repos/whnnick/readycheck/releases/latest --jq '{tag_name, name, draft, pr
 `tag_name` 必须是刚发布的版本。
 
 预览签名身份只用于保持 Keychain 应用身份稳定，并不是 Developer ID 证书。面向正式 Gatekeeper 分发仍需要 Developer ID 签名、Hardened Runtime、notarization 和 stapling。
+
+公开同步排除内部托管／协作元数据（`.openai`、`.superpowers`）及所有 `node_modules` 依赖目录及原型构建输出；提交说明、README、更新日志及 Release 说明均中英文同步。
