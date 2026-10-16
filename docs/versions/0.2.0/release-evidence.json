@@ -72,7 +72,6 @@
     "publicHistoryTextBlobsScanned": 1479
   },
   "remaining": [
-    "live credential confirmation for installed bundle",
     "device and lifecycle matrix still open in QA"
   ],
   "artifacts": {
@@ -97,7 +96,25 @@
     "downloadedDMGMountedSignature": true,
     "installedVersion": "0.2.0",
     "previousApplicationBackupPreserved": true,
-    "installedLiveQuota": "awaiting user-handled macOS credential confirmation",
-    "homepageBrowserObserved": true
+    "installedLiveQuota": "passed after user-handled macOS credential confirmation",
+    "homepageBrowserObserved": true,
+    "installedReadback": {
+      "version": "0.2.0",
+      "credentialRetry": "user-confirmed success",
+      "freshSuccessfulRefreshObserved": true,
+      "quotaWindowsAndResetsObserved": true,
+      "accountBenefitsObserved": [
+        "plan",
+        "subscription validity",
+        "Credits",
+        "manual reset count",
+        "each returned reset expiration"
+      ],
+      "officialDailyTokensObserved": true,
+      "aboutEntryObserved": true,
+      "restoredView": "Chinese Overview",
+      "privateLiveValuesPublished": false,
+      "silentAccessAcrossFutureRebuildsVerified": false
+    }
   }
 }

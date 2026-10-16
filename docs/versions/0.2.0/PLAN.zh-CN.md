@@ -4,7 +4,7 @@
 
 [跨版本完整检查与五形态规范](UPGRADE_REVIEW.zh-CN.md)：包含已确认源码差距、迁移、账号隔离、生命周期及发布阻塞项。
 
-2026-10-16。当前阶段：**0.2.0 已公开发布并在本机安装**。公开源码测试、安装包及实际下载通过，包含新侧栏／菜单栏、Widget／刘海、统一消耗口径、保留账户权益及常驻关于入口。自签名 macOS 预览，Windows 沿用原便携界面；设备／生命周期待验项保留。最终安装包读取凭据仍待 macOS 确认。[Release](https://github.com/whnnick/readycheck/releases/tag/v0.2.0) · [更新重点](RELEASE_NOTES.zh-CN.md)。
+2026-10-16。当前阶段：**0.2.0 已公开发布并在本机安装**。公开源码测试、安装包及实际下载通过，包含新侧栏／菜单栏、Widget／刘海、统一消耗口径、保留账户权益及常驻关于入口。自签名 macOS 预览，Windows 沿用原便携界面；设备／生命周期待验项保留。用户完成 macOS 系统确认后，安装版 0.2.0 已成功刷新真实额度、账户权益及官方每日 Token 数据。[Release](https://github.com/whnnick/readycheck/releases/tag/v0.2.0) · [更新重点](RELEASE_NOTES.zh-CN.md)。
 
 ## 用户结果与范围
 

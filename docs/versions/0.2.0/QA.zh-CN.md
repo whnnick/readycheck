@@ -2,7 +2,7 @@
 
 [English](QA.md) · [需求](PLAN.zh-CN.md) · [交互演示](prototype/README.zh-CN.md) · [版本索引](../../VERSIONS.md)
 
-2026-10-16。当前阶段：**0.2.0 已公开发布并在本机安装**。公开源码测试、安装包及实际下载通过，包含新侧栏／菜单栏、Widget／刘海、统一消耗口径、保留账户权益及常驻关于入口。自签名 macOS 预览，Windows 沿用原便携界面；设备／生命周期待验项保留。最终安装包读取凭据仍待 macOS 确认。[Release](https://github.com/whnnick/readycheck/releases/tag/v0.2.0) · [更新重点](RELEASE_NOTES.zh-CN.md)。
+2026-10-16。当前阶段：**0.2.0 已公开发布并在本机安装**。公开源码测试、安装包及实际下载通过，包含新侧栏／菜单栏、Widget／刘海、统一消耗口径、保留账户权益及常驻关于入口。自签名 macOS 预览，Windows 沿用原便携界面；设备／生命周期待验项保留。用户完成 macOS 系统确认后，安装版 0.2.0 已成功刷新真实额度、账户权益及官方每日 Token 数据。[Release](https://github.com/whnnick/readycheck/releases/tag/v0.2.0) · [更新重点](RELEASE_NOTES.zh-CN.md)。
 
 ## 0.2.0 发布候选与关于 — 2026-10-16
 
@@ -12,7 +12,7 @@
 
 ## 公开交付验收 — 2026-10-16
 
-[GitHub v0.2.0](https://github.com/whnnick/readycheck/releases/tag/v0.2.0) 已发布（draft=false、prerelease=false）并确认为 latest。公开 main 和注释 tag 指向已审查的发布源码。两个上传产物与 GitHub digest、本地构建及实际重新下载文件的校验值完全一致。下载 ZIP 完整性通过，下载 DMG 已挂载且盘内应用严格深度签名通过。常规安装位置已更新为这个下载的 0.2.0，原 0.1.145 应用保留私有备份；安装版版本／签名及侧栏关于入口已观察。未重置设置／历史／凭据；仍待用户处理 macOS 凭据确认，因此不声称精确安装包的新一次真实额度读取通过。
+[GitHub v0.2.0](https://github.com/whnnick/readycheck/releases/tag/v0.2.0) 已发布（draft=false、prerelease=false）并确认为 latest。公开 main 和注释 tag 指向已审查的发布源码。两个上传产物与 GitHub digest、本地构建及实际重新下载文件的校验值完全一致。下载 ZIP 完整性通过，下载 DMG 已挂载且盘内应用严格深度签名通过。常规安装位置已更新为这个下载的 0.2.0，原 0.1.145 应用保留私有备份；安装版版本／签名及侧栏关于入口已观察。未重置设置／历史／凭据；用户完成 macOS 确认后，此精确安装版 0.2.0 已显示新一次成功刷新。已目视核对原生总览的两类额度、重置倒计时及准确时间、套餐、订阅有效期、Credits、主动重置次数及每次返回的到期时间；Token 页已显示返回的每日数量及独立 UTC／来源说明。侧栏关于入口仍可见，最终恢复中文总览。这验证本次用户确认后的凭据重试，不等于未来重建包可静默访问凭据。公开证据不包含私人账号标识、实际读数或真实界面截图。
 
 已在浏览器打开中文 GitHub 首页，检查新版特性、合成数据原生图片、下载名称与数据／平台边界，并修正中文粗体前缀排版。其余设备／生命周期及预览签名边界仍保留，打包成功不等于 Windows 设备或公证验收。
 
