@@ -1,6 +1,6 @@
 # Version plans / 版本规划
 
-- [0.2.0 release highlights](versions/0.2.0/RELEASE_NOTES.md) | [中文更新重点](versions/0.2.0/RELEASE_NOTES.zh-CN.md) — Native Mac upgrade; preview delivery preparation / 原生 Mac 升级，预览版交付准备。
+- [0.2.0 release highlights](versions/0.2.0/RELEASE_NOTES.md) | [中文更新重点](versions/0.2.0/RELEASE_NOTES.zh-CN.md) — [Published v0.2.0](https://github.com/whnnick/readycheck/releases/tag/v0.2.0) — Verified preview downloads / 预览版下载已核验。
 
 - [0.2.0 cross-version review](versions/0.2.0/UPGRADE_REVIEW.md) | [中文完整检查](versions/0.2.0/UPGRADE_REVIEW.zh-CN.md) — Widget/notch concept, confirmed source gaps and upgrade gates / 桌面形态、源码差距与升级门槛。
 

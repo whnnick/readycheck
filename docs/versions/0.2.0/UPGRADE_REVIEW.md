@@ -2,7 +2,7 @@
 
 [中文](UPGRADE_REVIEW.zh-CN.md) · [Plan](PLAN.md) · [Black-box checks](QA.md) · [Version index](../../VERSIONS.md)
 
-2026-10-16. Scope: the complete 0.1.145→0.2.0 journey. The observation column below records the starting revision, not unfixed current behavior. Native changes have reached the `0.2.0` release candidate; consult [QA](QA.md) for current implementation, packaged-app evidence and remaining device/release gates. Source observations alone do not establish live-account/device acceptance.
+2026-10-16. Scope: the complete 0.1.145→0.2.0 journey. The observation column below records the starting revision, not unfixed current behavior. Native changes are included in the published `0.2.0` macOS preview; consult [QA](QA.md) for current implementation, packaged-app evidence and remaining device/release gates. Source observations alone do not establish live-account/device acceptance.
 
 ## Existing capability preservation
 

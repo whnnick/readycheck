@@ -72,8 +72,7 @@
     "publicHistoryTextBlobsScanned": 1479
   },
   "remaining": [
-    "remote push/tag/Release/latest and downloaded-asset checks",
-    "live credential confirmation for rebuilt bundle",
+    "live credential confirmation for installed bundle",
     "device and lifecycle matrix still open in QA"
   ],
   "artifacts": {
@@ -85,5 +84,20 @@
       "bytes": 151013053,
       "sha256": "f273584eb056d9f5947dd157513fe3a8b4c58cc708a95a172d35b8215748065e"
     }
+  },
+  "delivery": {
+    "releaseURL": "https://github.com/whnnick/readycheck/releases/tag/v0.2.0",
+    "latest": "v0.2.0",
+    "draft": false,
+    "prerelease": false,
+    "annotatedTag": true,
+    "releaseSourceCommit": "d571c5c",
+    "assetDigestsMatchLocalAndDownloaded": true,
+    "downloadedZipIntegrity": true,
+    "downloadedDMGMountedSignature": true,
+    "installedVersion": "0.2.0",
+    "previousApplicationBackupPreserved": true,
+    "installedLiveQuota": "awaiting user-handled macOS credential confirmation",
+    "homepageBrowserObserved": true
   }
 }

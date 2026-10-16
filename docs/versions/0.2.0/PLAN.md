@@ -4,7 +4,7 @@
 
 [Cross-version review and five-state specification](UPGRADE_REVIEW.md): confirmed source gaps, migration, account boundaries, lifecycle checks and release blockers.
 
-2026-10-16. Current stage: 0.2.0 release preparation. The native redesign and dev.13 real-data acceptance are recorded below; About discoverability and release highlights are being verified. Packaging and public remote delivery are pending. This is a scoped self-signed macOS preview, with the existing Windows preview interface. [Release notes](RELEASE_NOTES.md).
+2026-10-16. Current stage: **0.2.0 is published and installed locally**. Public-source tests, packages and actual downloads passed. The release includes the native sidebar/menu, Widget/notch, shared consumption rules, retained account benefits and discoverable About. Self-signed macOS preview; Windows retains its prior portable interface. Device/lifecycle limits stay open. Final installed credential reading awaits macOS confirmation. [Release](https://github.com/whnnick/readycheck/releases/tag/v0.2.0) · [Highlights](RELEASE_NOTES.md).
 
 ## User outcome and scope
 
