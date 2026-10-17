@@ -4,7 +4,7 @@
 
 Current 0.2.1 release acceptance is recorded at the end. Development-preview entries below are historical evidence; their no-public-release statements describe those earlier stages. See [release notes](RELEASE_NOTES.md).
 
-2026-10-16. Local development preview `0.2.1-dev.1` is installed and running; public release remains 0.2.0. No push or release performed.
+Historical baseline on 2026-10-16: preview `0.2.1-dev.1` was installed; public release was 0.2.0 and no publication was performed at that stage.
 
 | Requirement | Evidence | Status |
 | --- | --- | --- |
@@ -77,3 +77,11 @@ The existing Keychain confirmation/live-data follow-up from dev.4 remains separa
 Device limits remain: other displays, Spaces, reduced-motion hardware and physical Windows acceptance are not newly claimed. macOS is Apple silicon / macOS 14+ with self-signed preview identity, not Developer ID signed/notarized. Windows keeps its previous interface with version metadata only. No task-stop/resume capability or automatic credit redemption is introduced.
 
 [0.2.1 package evidence](release-evidence.json). The mounted DMG app was installed and opened; its signed executable is byte-identical to the installed copy. Existing Keychain confirmation has been requested; this is not recorded as completed live-data acceptance.
+
+### Final public and live-data follow-up
+
+GitHub v0.2.1 is public, non-draft, non-prerelease and latest. The annotated tag resolves to release code commit `3c0ed0a`; main receives this documentation-only acceptance follow-up. Both uploaded asset sizes and GitHub SHA-256 digests match the local packages. Actual public downloads of the DMG and Windows ZIP match those same hashes.
+
+The user completed the existing macOS Keychain confirmation. The installed final 0.2.1 app is connected and refreshed successfully, showing numeric values for both quota windows, subscription validity, Credits, reset count/expirations and local history. The stable Widget opens pinned details with live values and the last-hour/five-minute/percentage-point chart labels. Escape returns it to the original right rail. About shows the actual 0.2.1 features and release URL. No private values or account details are included in these records.
+
+These follow-up results supersede the pending packaging/remote/live-Keychain statuses above. Remaining limits are the documented device coverage, Windows physical acceptance and self-signed/not-notarized distribution boundary, rather than unfinished package uploads. [Release](https://github.com/whnnick/readycheck/releases/tag/v0.2.1).

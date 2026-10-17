@@ -33,8 +33,18 @@
     "ZIP and ASAR content checks"
   ],
   "publicSource": "sanitized sync checked; no internal collaboration files in visible public history",
-  "installedMac": "mounted-DMG app installed; exact signed executable comparison passed",
-  "liveAccount": "existing Keychain confirmation requested; real-data follow-up not yet verified",
+  "installedMac": "mounted-DMG app installed; exact signed executable comparison passed; native About shows current 0.2.1 highlights and correct release link; Widget restored to original collapsed right rail after acceptance",
+  "liveAccount": "passed after user completed existing macOS Keychain confirmation: connected, recent successful refresh, both quota windows, subscription, Credits, reset count/expirations, local history, pinned Widget details and last-hour chart; no private values included",
   "distribution": "self-signed macOS preview, not Developer ID signed or notarized; Windows UI unchanged",
-  "remoteVerification": "pending upload and download verification"
+  "remoteVerification": {
+    "tag": "v0.2.1",
+    "releaseCodeCommit": "3c0ed0a4fcb3d8169acd0fe7f1ea59ad8f2780e4",
+    "url": "https://github.com/whnnick/readycheck/releases/tag/v0.2.1",
+    "draft": false,
+    "prerelease": false,
+    "latest": true,
+    "assetCount": 2,
+    "serverDigestsMatchLocal": true,
+    "publicDownloadsMatchLocal": true
+  }
 }

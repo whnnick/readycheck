@@ -17,4 +17,4 @@
 - macOS：`ReadyCheck-0.2.1-macos.dmg`，Apple 芯片／macOS 14+。退出旧应用，替换应用程序内的 ReadyCheck 后重开。仍为自签名预览，**未经 Developer ID 签名或公证**。macOS 可能要求确认已有钥匙串访问，必要时在“设置 → 连接”重试读取；不因本次升级而要求重新 OAuth 登录。
 - Windows：`ReadyCheck-0.2.1-windows-x64-portable.zip`，独立 x64 便携预览。本次仅同步版本元数据，沿用 Windows 原界面，Mac 原生 Widget 改动不适用于 Windows；自动打包检查不代替 Windows 实机验收。
 
-截图使用最新版原生界面和虚构演示数据。真实验收、设备边界及待完成的钥匙串数据补验见[功能检查](QA.zh-CN.md)，不宣称新增凭据恢复能力。
+截图使用最新版原生界面和虚构演示数据。真实验收、已完成的钥匙串数据补验及剩余设备边界见[功能检查](QA.zh-CN.md)，不宣称新增凭据恢复能力。

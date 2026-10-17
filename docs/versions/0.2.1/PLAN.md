@@ -4,7 +4,7 @@
 
 Release 0.2.1 combines the validated development changes below. See [release notes](RELEASE_NOTES.md) and [functional checks](QA.md). Earlier preview descriptions are historical scope records.
 
-Local development preview `0.2.1-dev.1`; public download remains 0.2.0. No push or release is part of this patch validation.
+Initial scope on 2026-10-16: local preview `0.2.1-dev.1`, with public download still at 0.2.0. The paragraphs below describe that earlier patch validation.
 
 The edge-attached Widget must unfold directly from its vertical rail into details and return to that rail. It must not briefly display the free-floating quota dial. Keep the selected screen edge anchored and preserve hover/pin, outside-click rules, inward dragging, Escape and the last-hour chart. Free-floating dial behavior stays the same.
 

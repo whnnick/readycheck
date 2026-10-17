@@ -2,7 +2,7 @@
 
 - [0.2.1 depth-focus campaign](versions/0.2.1/PROMO.md) | [中文宣传片记录](versions/0.2.1/PROMO.zh-CN.md) — New31-second film published to both platforms / 新31秒宣传片已发布双平台。
 
-- [0.2.1 release highlights](versions/0.2.1/RELEASE_NOTES.md) | [中文更新重点](versions/0.2.1/RELEASE_NOTES.zh-CN.md) | [Plan](versions/0.2.1/PLAN.md) | [中文计划](versions/0.2.1/PLAN.zh-CN.md) | [Checks](versions/0.2.1/QA.md) | [中文检查](versions/0.2.1/QA.zh-CN.md) — Adaptive floating Widget, freely movable information card and consistent details / 自适应悬浮浮窗、自由移动的信息卡片与一致的详情交互。
+- [0.2.1 release highlights](versions/0.2.1/RELEASE_NOTES.md) | [中文更新重点](versions/0.2.1/RELEASE_NOTES.zh-CN.md) | [Plan](versions/0.2.1/PLAN.md) | [中文计划](versions/0.2.1/PLAN.zh-CN.md) | [Checks](versions/0.2.1/QA.md) | [中文检查](versions/0.2.1/QA.zh-CN.md) — [Published v0.2.1](https://github.com/whnnick/readycheck/releases/tag/v0.2.1): both downloads and installed live data verified / 已发布：双平台下载及安装版真实数据已核验。
 
 - [0.2.0 release highlights](versions/0.2.0/RELEASE_NOTES.md) | [中文更新重点](versions/0.2.0/RELEASE_NOTES.zh-CN.md) — [Published v0.2.0](https://github.com/whnnick/readycheck/releases/tag/v0.2.0) — Verified preview downloads / 预览版下载已核验。
 
