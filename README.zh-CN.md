@@ -3,32 +3,31 @@
 <p align="center"><img src="docs/assets/readycheck-app-icon.png" alt="ReadyCheck 图标" width="72"></p>
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>工作时，一眼掌握 Codex 剩余额度。</strong></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/badge/release-v0.2.0-blue" alt="发布 0.2.0"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-101820" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><strong>下载</strong></a> · <a href="docs/versions/0.2.0/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装</a> · <a href="docs/VERSIONS.md">版本与验收</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/badge/release-v0.2.1-blue" alt="发布 0.2.1"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-101820" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><strong>下载</strong></a> · <a href="docs/versions/0.2.1/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装</a> · <a href="docs/VERSIONS.md">版本与验收</a></p>
 
 ReadyCheck 是免费开源的 Codex 额度监控工具。在原生 Mac 窗口、菜单栏或可选桌面 Widget 中查看剩余额度、重置时间和账户权益。刷新只读取已授权的用量数据，不发送模型生成请求。
 
-## 0.2.0 更新重点
+## 0.2.1 更新重点
 
-- **查看更有条理**：总览、Token 用量和设置独立分区，菜单栏收紧为常用信息与操作。
-- **桌面详情更实用**：保留最近一小时消耗图、固定详情及细窄贴边竖条，显隐选择重启后仍保留。
-- **刘海减少误触**：与电脑内置刘海相连，只在点击时展开详情，鼠标经过不再自动弹出。
-- **数据口径更清楚**：Widget 与总览共用本机额度记录，讲清配额周期、查看范围和单位；总览柱子可悬停或点击查看精确数值。
-- **既有功能继续保留**：订阅有效期、Credits、主动重置次数及每次到期时间仍在总览；低额度提醒支持 5%、10%、20%。
-- **关于更容易找到**：侧栏底部或菜单栏 → 更多 → 关于可查看版本与更新重点，原应用菜单及设置入口也保留。
+- **圆球与竖条合并**：靠边收成细竖条，向内拖回圆球，共用详情、最近一小时图和固定状态，保留旧贴边位置。
+- **信息卡片自由移动**：拖动标题即可移动，按钮操作独立，位置继续记忆。
+- **详情固定更一致**：点击预览内容或空白区都可保持展开，主动取消固定后恢复原有收起规则。
+- **边缘和动效修复**：贴边展开不再闪出圆圈，轮廓内描边避免裁切。
+- **更新要点归入关于**：连接设置不再重复展示；配额窗口、提醒、账户权益和历史继续保留。
 
-<p align="center"><img src="docs/versions/0.2.0/assets/release-overview-zh.png" alt="ReadyCheck 0.2.0 原生总览，使用合成演示数据" width="900"></p>
+<p align="center"><img src="docs/versions/0.2.1/assets/release-overview-zh.png" alt="ReadyCheck 0.2.1 原生总览，使用合成演示数据" width="900"></p>
 <p align="center"><sub>最新版原生 macOS 界面 · 合成演示数据，不含私人账户截图。</sub></p>
 
-[完整更新说明](docs/versions/0.2.0/RELEASE_NOTES.zh-CN.md) · [黑盒检查与覆盖边界](docs/versions/0.2.0/QA.zh-CN.md)
+[完整更新说明](docs/versions/0.2.1/RELEASE_NOTES.zh-CN.md) · [黑盒检查与覆盖边界](docs/versions/0.2.1/QA.zh-CN.md)
 
 ## 从这里开始
 
-1. 在[最新发布](https://github.com/whnnick/readycheck/releases/latest)下载 **ReadyCheck-0.2.0-macos.dmg**，将 ReadyCheck.app 拖到“应用程序”。
+1. 在[最新发布](https://github.com/whnnick/readycheck/releases/latest)下载 **ReadyCheck-0.2.1-macos.dmg**，将 ReadyCheck.app 拖到“应用程序”。
 2. 启动后跟随本机 Codex 登录账号，或使用独立 OAuth 登录；如 macOS 请求钥匙串访问，请完成系统确认。
 3. 在“设置 → 提醒”选择门槛，在“设置 → 显示”开启 Widget 或刘海。
 
-Mac 下载为 **arm64 / Apple 芯片、macOS 14+**，沿用稳定的**自签名预览**身份，**未经 Developer ID 签名或公证**，见[安装说明](docs/INSTALL.zh-CN.md)。Windows 可在同一发布页下载 **ReadyCheck-0.2.0-windows-x64-portable.zip**，解压运行 ReadyCheck.exe。
+Mac 下载为 **arm64 / Apple 芯片、macOS 14+**，沿用稳定的**自签名预览**身份，**未经 Developer ID 签名或公证**，见[安装说明](docs/INSTALL.zh-CN.md)。Windows 可在同一发布页下载 **ReadyCheck-0.2.1-windows-x64-portable.zip**，解压运行 ReadyCheck.exe。
 
 ## 三处界面，两类数据
 
@@ -42,13 +41,15 @@ Mac 下载为 **arm64 / Apple 芯片、macOS 14+**，沿用稳定的**自签名�
 
 ## 桌面交互与平台范围
 
-<p align="center"><img src="docs/versions/0.2.0/assets/widget-last-hour.png" alt="原生 Widget 最近一小时消耗，合成演示数据" width="380"></p>
+<p align="center"><img src="docs/versions/0.2.1/assets/bubble-compact-80-demo.png" alt="悬浮圆球，合成演示数据" width="92"> &nbsp; <img src="docs/versions/0.2.1/assets/bubble-rail-right.png" alt="同一 Widget 贴边后的细竖条" width="28"></p>
 
-Widget 固定详情后，点击其他区域或切换焦点仍保持展开；取消固定恢复预览行为，Esc 可收起获得焦点的详情。支持桌面与左右贴边之间直接拖动。刘海点击展开，点击外部或 Esc 收起。
+<p align="center"><img src="docs/versions/0.2.1/assets/widget-last-hour.png" alt="原生 Widget 最近一小时消耗，合成演示数据" width="380"></p>
 
-| 平台 | 0.2.0 范围 |
+在“设置 → 显示”选择悬浮气泡或信息卡片；悬浮气泡拖到边缘收成细竖条，向内拖回圆球，信息卡片通过标题拖动。Widget 固定详情后，点击其他区域或切换焦点仍保持展开；取消固定恢复预览行为，Esc 可收起获得焦点的详情。支持桌面与左右贴边之间直接拖动。刘海点击展开，点击外部或 Esc 收起。
+
+| 平台 | 0.2.1 范围 |
 | --- | --- |
-| macOS | 新侧栏／菜单栏、Widget／刘海交互、图表详情及账户历史改进；真实设备已验项目与剩余覆盖见[验收文档](docs/versions/0.2.0/QA.zh-CN.md)。 |
+| macOS | 自适应悬浮 Widget、卡片拖动和交互／轮廓修复，保留原生侧栏／菜单栏、刘海及账户历史；真实设备已验项目与剩余覆盖见[验收文档](docs/versions/0.2.1/QA.zh-CN.md)。 |
 | Windows x64 | 独立便携预览，保留原界面；本次没有把 Mac 重构移植到 Windows，见 [Windows 说明](docs/WINDOWS.zh-CN.md)和[验收](docs/WINDOWS_QA.zh-CN.md)。 |
 
 ReadyCheck 提供提醒，**不会自动停止或恢复 Codex 任务**，也不自动使用重置券。恢复提醒只依据新鲜且可验证的读数，关闭期间未观测到的恢复不会补发。多显示器／Spaces、专注／睡眠、VoiceOver 及正式分发签名仍未宣称全面验收。
@@ -60,6 +61,8 @@ ReadyCheck 提供提醒，**不会自动停止或恢复 Codex 任务**，也不�
 ReadyCheck 是独立项目，与 OpenAI 无隶属或背书关系；Codex、ChatGPT 及其标识归 OpenAI 所有。
 
 ## 文档与开发
+
+[0.2.1 计划](docs/versions/0.2.1/PLAN.zh-CN.md) · [功能检查](docs/versions/0.2.1/QA.zh-CN.md)。0.2.0 基础版本的完整检查归档见下方。
 
 - [安装](docs/INSTALL.zh-CN.md) · [更新日志](CHANGELOG.zh-CN.md) · [版本索引](docs/VERSIONS.md)
 - [0.2.0 计划](docs/versions/0.2.0/PLAN.zh-CN.md) · [完整检查](docs/versions/0.2.0/UPGRADE_REVIEW.zh-CN.md) · [黑盒检查](docs/versions/0.2.0/QA.zh-CN.md)

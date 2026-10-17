@@ -3,32 +3,31 @@ English · [简体中文](README.zh-CN.md)
 <p align="center"><img src="docs/assets/readycheck-app-icon.png" alt="ReadyCheck icon" width="72"></p>
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Keep Codex quota in view while you work.</strong></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/badge/release-v0.2.0-blue" alt="Release 0.2.0"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-101820" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><strong>Download</strong></a> · <a href="docs/versions/0.2.0/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Setup</a> · <a href="docs/VERSIONS.md">Versions &amp; acceptance</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/badge/release-v0.2.1-blue" alt="Release 0.2.1"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-101820" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><strong>Download</strong></a> · <a href="docs/versions/0.2.1/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Setup</a> · <a href="docs/VERSIONS.md">Versions &amp; acceptance</a></p>
 
 ReadyCheck is a free, open-source Codex quota monitor. Check remaining allowance, reset times and account benefits in a native Mac window, menu bar or optional desktop Widget. Refreshing reads authorized usage data without sending model-generation requests.
 
-## What's new in 0.2.0
+## What's new in 0.2.1
 
-- **A clearer workspace:** Overview, Token usage and Settings have their own pages; the compact menu bar keeps the essentials nearby.
-- **Useful desktop detail:** keep the last-hour consumption chart, pinned details and slim vertical edge tabs. Explicit show/hide survives a restart.
-- **A calmer notch:** joins the built-in notch and opens on click, avoiding accidental hover activation.
-- **Data you can interpret:** Widget and Overview share local quota history; chart labels explain quota period, viewing range and units. Hover or click Overview bars for exact values.
-- **Your existing features stay:** subscription validity, Credits, reset count and every expiration remain on Overview. Low-quota reminders include 5%, 10% and 20%.
-- **About is easy to find:** use the sidebar footer or menu bar → More → About. It includes version details and release highlights; existing app-menu and Settings entries remain.
+- **One floating Widget:** drag to an edge for a slim strip, or inward for a bubble. Both share details, the last-hour chart and pin state; previous edge positions are retained.
+- **Cards move freely:** drag the information card by its title, with buttons and saved positions preserved.
+- **Predictable details:** clicks on preview content or padding keep it open. Explicit unpinning and outside-dismissal behavior stay consistent.
+- **Smoother edges:** no dial flash during attached transitions; an inset outline avoids clipping.
+- **Highlights in About:** read what's new there, without a duplicate block in Connection settings. Quota windows, reminders, account benefits and history remain available.
 
-<p align="center"><img src="docs/versions/0.2.0/assets/release-overview-en.png" alt="Native ReadyCheck 0.2.0 Overview with synthetic demo data" width="900"></p>
+<p align="center"><img src="docs/versions/0.2.1/assets/release-overview-en.png" alt="Native ReadyCheck 0.2.1 Overview with synthetic demo data" width="900"></p>
 <p align="center"><sub>Current native macOS interface · Synthetic demo data, never a private account capture.</sub></p>
 
-[Full release notes](docs/versions/0.2.0/RELEASE_NOTES.md) · [Black-box checks and coverage limits](docs/versions/0.2.0/QA.md)
+[Full release notes](docs/versions/0.2.1/RELEASE_NOTES.md) · [Black-box checks and coverage limits](docs/versions/0.2.1/QA.md)
 
 ## Start here
 
-1. Download **ReadyCheck-0.2.0-macos.dmg** from the [latest release](https://github.com/whnnick/readycheck/releases/latest) and drag ReadyCheck.app to Applications.
+1. Download **ReadyCheck-0.2.1-macos.dmg** from the [latest release](https://github.com/whnnick/readycheck/releases/latest) and drag ReadyCheck.app to Applications.
 2. Launch it and follow the signed-in local Codex account, or sign in separately with OAuth. Approve macOS Keychain access if requested.
 3. Choose your reminder threshold in Settings → Reminders. Enable Widget or the notch in Settings → Display.
 
-The Mac download is **arm64 / Apple silicon, macOS 14+**, using the stable **self-signed preview** identity. It is **not Developer ID signed or notarized**; see the [install guide](docs/INSTALL.md). Windows users can unzip **ReadyCheck-0.2.0-windows-x64-portable.zip** from the same release and run ReadyCheck.exe.
+The Mac download is **arm64 / Apple silicon, macOS 14+**, using the stable **self-signed preview** identity. It is **not Developer ID signed or notarized**; see the [install guide](docs/INSTALL.md). Windows users can unzip **ReadyCheck-0.2.1-windows-x64-portable.zip** from the same release and run ReadyCheck.exe.
 
 ## Two data types, clearly labelled
 
@@ -42,13 +41,15 @@ Remaining 80%→70% consumes **10 percentage points**. It does not mean 10 Token
 
 ## Desktop behavior and platform scope
 
-<p align="center"><img src="docs/versions/0.2.0/assets/widget-last-hour-en.png" alt="Native Widget last-hour consumption, synthetic demo data" width="380"></p>
+<p align="center"><img src="docs/versions/0.2.1/assets/bubble-compact-80-demo.png" alt="Floating bubble with synthetic demo values" width="92"> &nbsp; <img src="docs/versions/0.2.1/assets/bubble-rail-right.png" alt="The same Widget attached as a slim edge strip" width="28"></p>
 
-Pinned Widget details stay open across outside clicks and focus changes. Unpin to return to preview behavior; Esc dismisses focused details. Drag directly between the desktop and either screen edge. The notch uses click to expand and outside click/Esc to dismiss.
+<p align="center"><img src="docs/versions/0.2.1/assets/widget-last-hour-en.png" alt="Native Widget last-hour consumption, synthetic demo data" width="380"></p>
 
-| Platform | 0.2.0 scope |
+Choose Floating widget or Information card in Settings → Display. Drag the floating Widget to either edge for a slim strip, or inward for a bubble; drag the card by its title. Pinned Widget details stay open across outside clicks and focus changes. Unpin to return to preview behavior; Esc dismisses focused details. Drag directly between the desktop and either screen edge. The notch uses click to expand and outside click/Esc to dismiss.
+
+| Platform | 0.2.1 scope |
 | --- | --- |
-| macOS | New native sidebar/menu, Widget/notch interactions, chart inspection and account/history improvements. See [QA](docs/versions/0.2.0/QA.md) for observed device checks and remaining coverage. |
+| macOS | Adaptive floating Widget, card dragging and interaction/outline fixes, retaining the native sidebar/menu, notch and account/history features. See [QA](docs/versions/0.2.1/QA.md) for observed device checks and remaining coverage. |
 | Windows x64 | Separate portable preview retaining its previous interface. This release does not bring the Mac redesign to Windows. See [Windows](docs/WINDOWS.md) and [acceptance](docs/WINDOWS_QA.md). |
 
 ReadyCheck provides reminders; **it does not automatically stop or resume Codex tasks** and never redeems reset credits automatically. Recovery alerts require fresh verified readings; unobserved recovery while the app was closed is not replayed. Multi-display/Spaces, Focus/sleep, VoiceOver and production signing are not claimed fully validated.
@@ -60,6 +61,8 @@ Quota access is read-only. Follow the local Codex account or use separate OAuth;
 ReadyCheck is independent, not affiliated with or endorsed by OpenAI. Codex, ChatGPT and their marks belong to OpenAI.
 
 ## Documentation and development
+
+[0.2.1 plan](docs/versions/0.2.1/PLAN.md) · [Functional checks](docs/versions/0.2.1/QA.md). The 0.2.0 foundation review remains archived below.
 
 - [Install](docs/INSTALL.md) · [Changelog](CHANGELOG.md) · [Version index](docs/VERSIONS.md)
 - [0.2.0 plan](docs/versions/0.2.0/PLAN.md) · [Upgrade review](docs/versions/0.2.0/UPGRADE_REVIEW.md) · [Black-box checks](docs/versions/0.2.0/QA.md)

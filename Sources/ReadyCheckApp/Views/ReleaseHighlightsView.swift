@@ -5,10 +5,10 @@ struct ReleaseHighlightsView: View {
     let localization: LocalizationService
 
     private let features = [
-        ("sidebar.left", "release.overview", "release.overviewDetail"),
-        ("macwindow.on.rectangle", "release.widget", "release.widgetDetail"),
-        ("hand.tap", "release.notch", "release.notchDetail"),
-        ("chart.bar.xaxis", "release.history", "release.historyDetail")
+        ("circle.lefthalf.filled", "release.floating", "release.floatingDetail"),
+        ("macwindow.on.rectangle", "release.card", "release.cardDetail"),
+        ("pin.fill", "release.details", "release.detailsDetail"),
+        ("sparkles", "release.polish", "release.polishDetail")
     ]
 
     var body: some View {

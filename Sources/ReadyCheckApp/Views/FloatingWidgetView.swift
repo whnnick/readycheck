@@ -1,3 +1,4 @@
+import AppKit
 import ReadyCheckCore
 import SwiftUI
 
@@ -65,24 +66,28 @@ struct FloatingWidgetView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(localization.text("app.name"))
-                        .font(.headline)
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(localization.text("app.name"))
+                            .font(.headline)
 
-                    Text(refreshSummary)
-                        .font(.caption2)
-                        .foregroundStyle(Color.primary.opacity(0.72))
+                        Text(refreshSummary)
+                            .font(.caption2)
+                            .foregroundStyle(Color.primary.opacity(0.72))
+                    }
+
+                    Text(localization.text("status.autoUpdate"))
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(Color.primary.opacity(0.78))
+                        .lineLimit(1)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Color.primary.opacity(0.10), in: Capsule())
+
+                    Spacer()
                 }
-
-                Text(localization.text("status.autoUpdate"))
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(Color.primary.opacity(0.78))
-                    .lineLimit(1)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(Color.primary.opacity(0.10), in: Capsule())
-
-                Spacer()
+                .overlay { WidgetDragRegion() }
+                .help(localization.text("widget.dragHint"))
 
                 Button {
                     Task {
@@ -156,5 +161,17 @@ struct FloatingWidgetView: View {
 
         let time = DateFormatter.localizedString(from: lastRefreshAt, dateStyle: .none, timeStyle: .short)
         return "\(localization.text("status.lastUpdated")) \(time)"
+    }
+}
+
+private struct WidgetDragRegion: NSViewRepresentable {
+    func makeNSView(context: Context) -> WidgetDragView { WidgetDragView() }
+    func updateNSView(_ nsView: WidgetDragView, context: Context) {}
+}
+
+final class WidgetDragView: NSView {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+    override func mouseDown(with event: NSEvent) {
+        window?.performDrag(with: event)
     }
 }

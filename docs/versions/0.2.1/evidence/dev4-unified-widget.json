@@ -1,0 +1,53 @@
+{
+  "version": "0.2.1-dev.4",
+  "date": "2026-10-17",
+  "delivery": "local self-signed macOS preview; not public",
+  "tests": {
+    "focusedBeforeContourAdjustment": 30,
+    "fullSwift": 322,
+    "failures": 0,
+    "skips": 0,
+    "additionalOneTimesRenderCases": 2,
+    "retiredStandaloneRailTests": 8,
+    "newMigrationTests": 3,
+    "finalLocalizationChecks": 4
+  },
+  "migration": {
+    "previousSelection": "edgeRail",
+    "currentSelection": "bubble",
+    "legacyRailRecordPreserved": true,
+    "oldBubblePositionBackedUp": true,
+    "cardFrameModeAndVisibilityPreserved": true,
+    "verticalCenterWithinOnePointAfterRoundTrip": true
+  },
+  "installedNativeInput": [
+    "right rail click opens pinned common details",
+    "inward title drag restores circle",
+    "circle click opens same pinned details",
+    "outward title drag restores right slim rail"
+  ],
+  "contour": {
+    "change": "inset attached stroke avoids clipping; existing supersampled native mask retained",
+    "componentScales": [
+      1,
+      2
+    ],
+    "attachedWidthsInPoints": [
+      28,
+      92,
+      180,
+      380
+    ],
+    "installedDisplayScale": 2,
+    "observation": "no obvious jagged outline at inspected sizes; no universal pixel-perfect claim"
+  },
+  "signature": "strict final installed verification passed; ReadyCheck Preview Signing",
+  "metadata": "development consistency check passed",
+  "liveAccount": "awaiting macOS confirmation for existing Keychain access; no credential/history removal",
+  "limits": [
+    "Other displays, Spaces and reduced-motion hardware not observed in this pass.",
+    "Full test count decreased because separate rail implementation and its obsolete tests were retired.",
+    "No push, public release or social publication; public download remains 0.2.0.",
+    "Windows metadata only."
+  ]
+}

@@ -191,7 +191,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             isPinned: interaction.state == .pinned,
             onPin: { [weak self] in self?.interaction.pinPreview() },
             onTogglePin: { [weak self] in self?.interaction.togglePin() },
-            tabEdge: isExpanded ? nil : edge,
+            tabEdge: edge,
             onTap: { [weak self] in self?.interaction.click() },
             onDragChanged: { [weak self] translation in self?.dragChanged(translation) },
             onDragEnded: { [weak self] in self?.dragEnded() },
@@ -292,7 +292,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             return
         }
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.30
+            context.duration = edge == nil ? 0.30 : (frame.width < panel.frame.width ? 0.18 : 0.22)
             context.timingFunction = CAMediaTimingFunction(controlPoints: 0.2, 0.8, 0.2, 1)
             panel.animator().setFrame(frame, display: true)
         }

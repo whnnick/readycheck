@@ -50,7 +50,43 @@ final class WidgetVisibilityPreferenceTests: XCTestCase {
         WidgetPresentationPreference.set(.card, defaults: defaults)
         XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .card)
 
-        WidgetPresentationPreference.set(.edgeRail, defaults: defaults)
-        XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .edgeRail)
+        XCTAssertEqual(Set(WidgetPresentation.allCases), [.bubble, .card])
     }
+
+    func testLegacyRailMigratesOnceWithPositionAndBackupPreserved() {
+        let original = "{{600, 200}, {92, 92}}"
+        let rail = "{{1200, 300}, {84, 176}}"
+        defaults.set("edgeRail", forKey: WidgetPresentationPreference.defaultsKey)
+        defaults.set(original, forKey: "ReadyCheck.bubbleWidgetFrame.v1")
+        defaults.set(rail, forKey: "ReadyCheck.edgeRailFrame.v1")
+
+        XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .bubble)
+        XCTAssertEqual(defaults.string(forKey: WidgetPresentationPreference.defaultsKey), "bubble")
+        XCTAssertEqual(defaults.string(forKey: "ReadyCheck.bubbleWidgetFrame.v1"), rail)
+        XCTAssertEqual(defaults.string(forKey: "ReadyCheck.bubbleWidgetFrame.beforeUnified.v1"), original)
+        XCTAssertEqual(defaults.string(forKey: "ReadyCheck.edgeRailFrame.v1"), rail)
+
+        defaults.set(original, forKey: "ReadyCheck.bubbleWidgetFrame.v1")
+        _ = WidgetPresentationPreference.value(defaults: defaults)
+        XCTAssertEqual(defaults.string(forKey: "ReadyCheck.bubbleWidgetFrame.v1"), original)
+    }
+
+    func testLegacyRailWithoutValidFrameKeepsExistingBubblePosition() {
+        let original = "{{600, 200}, {92, 92}}"
+        for invalid in ["", "invalid", "{{0, 0}, {0, 0}}", "{{0, 0}, {-20, 10}}"] {
+            defaults.set("edgeRail", forKey: WidgetPresentationPreference.defaultsKey)
+            defaults.set(original, forKey: "ReadyCheck.bubbleWidgetFrame.v1")
+            defaults.set(invalid, forKey: "ReadyCheck.edgeRailFrame.v1")
+            XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .bubble)
+            XCTAssertEqual(defaults.string(forKey: "ReadyCheck.bubbleWidgetFrame.v1"), original)
+        }
+    }
+
+    func testCardSelectionDoesNotMigrateUnusedRailPosition() {
+        defaults.set("card", forKey: WidgetPresentationPreference.defaultsKey)
+        defaults.set("{{1200, 300}, {84, 176}}", forKey: "ReadyCheck.edgeRailFrame.v1")
+        XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .card)
+        XCTAssertNil(defaults.object(forKey: "ReadyCheck.bubbleWidgetFrame.v1"))
+    }
+
 }

@@ -34,7 +34,9 @@ struct AboutView: View {
                 Divider()
                 ReleaseHighlightsView(localization: localization)
                 Link(localization.text("release.readNotes"),
-                     destination: URL(string: "https://github.com/whnnick/readycheck/releases/tag/v\(ReadyCheckCore.version)")!)
+                     destination: URL(string: ReadyCheckCore.version.contains("-")
+                        ? "https://github.com/whnnick/readycheck/releases/latest"
+                        : "https://github.com/whnnick/readycheck/releases/tag/v\(ReadyCheckCore.version)")!)
                     .font(.caption)
 
                 Text(localization.text("about.copyright"))

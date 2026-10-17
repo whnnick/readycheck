@@ -145,8 +145,6 @@ struct SettingsView: View {
 
     private var productSummary: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ReleaseHighlightsView(localization: model.localization)
-            Divider()
             Text(model.localization.text("productBrief.summary"))
                 .font(.footnote)
                 .foregroundStyle(Color.primary.opacity(0.76))
@@ -286,25 +284,6 @@ struct SettingsView: View {
 
             if model.widgetPresentation == .card {
                 WidgetStyleSwitcherView(selection: $model.widgetDisplayMode, localization: model.localization)
-            } else if model.widgetPresentation == .edgeRail {
-                HStack(spacing: 8) {
-                    Text(model.localization.text("edgeRail.side"))
-                    Spacer(minLength: 0)
-                    Picker("", selection: Binding(
-                        get: { model.edgeRailSide },
-                        set: { model.moveEdgeRail(to: $0) }
-                    )) {
-                        Text(model.localization.text("edgeRail.left")).tag(EdgeRailPlacement.Edge.left)
-                        Text(model.localization.text("edgeRail.right")).tag(EdgeRailPlacement.Edge.right)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .frame(width: 130)
-                    Button(model.localization.text("edgeRail.reveal")) {
-                        model.revealEdgeRail()
-                    }
-                }
-                .font(.caption)
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)

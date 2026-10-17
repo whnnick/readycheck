@@ -279,7 +279,6 @@ final class ReadyCheckAppModel {
                 clearWidgetSnooze()
                 floatingWindowController.close()
                 bubbleWindowController.close()
-                edgeRailWindowController.close()
             }
         }
     }
@@ -288,7 +287,6 @@ final class ReadyCheckAppModel {
             UserDefaults.standard.set(widgetAlwaysOnTop, forKey: Self.widgetAlwaysOnTopDefaultsKey)
             floatingWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
             bubbleWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
-            edgeRailWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
         }
     }
     var widgetHideInFullscreen: Bool = UserDefaults.standard.object(forKey: "ReadyCheck.widgetHideInFullscreen.v1") as? Bool ?? true {
@@ -297,7 +295,6 @@ final class ReadyCheckAppModel {
             UserDefaults.standard.set(widgetHideInFullscreen, forKey: "ReadyCheck.widgetHideInFullscreen.v1")
             floatingWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
             bubbleWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
-            edgeRailWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
             notchWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
         }
     }
@@ -312,12 +309,10 @@ final class ReadyCheckAppModel {
             isSwitchingWidgetPresentation = true
             floatingWindowController.close()
             bubbleWindowController.close()
-            edgeRailWindowController.close()
             isSwitchingWidgetPresentation = false
             showSelectedWidget()
         }
     }
-    var edgeRailSide: EdgeRailPlacement.Edge = .right
     var widgetDisplayMode: WidgetDisplayMode = WidgetDisplayModePreference.value() {
         didSet {
             WidgetDisplayModePreference.set(widgetDisplayMode)
@@ -353,9 +348,7 @@ final class ReadyCheckAppModel {
             rebuildStoreIfConfigurationChanged(oldValue: oldValue, newValue: codexOAuthProviderEnabled)
         }
     }
-    var snapshots: [ProviderQuotaSnapshot] = [] {
-        didSet { edgeRailWindowController.updateQuotaLayout() }
-    }
+    var snapshots: [ProviderQuotaSnapshot] = []
     var quotaHistorySamples: [QuotaHistorySample] = []
     var hasUnassignedLegacyHistory = false
     var recoveryReminderRequest: QuotaRecoveryRequest?
@@ -421,9 +414,6 @@ final class ReadyCheckAppModel {
 
     @ObservationIgnored
     private let bubbleWindowController = BubbleWindowController()
-
-    @ObservationIgnored
-    private let edgeRailWindowController = EdgeRailWindowController()
 
     @ObservationIgnored
     private let notchWindowController = NotchWindowController()
@@ -500,13 +490,6 @@ final class ReadyCheckAppModel {
         self.bubbleWindowController.onVisibilityChanged = { [weak self] isVisible in
             self?.syncWidgetVisibilityFromWindow(isVisible)
         }
-        self.edgeRailWindowController.onVisibilityChanged = { [weak self] isVisible in
-            self?.syncWidgetVisibilityFromWindow(isVisible)
-        }
-        self.edgeRailSide = edgeRailWindowController.savedEdge()
-        self.edgeRailWindowController.onEdgeChanged = { [weak self] edge in
-            self?.edgeRailSide = edge
-        }
         reloadLaunchAtLoginStatus()
     }
 
@@ -546,7 +529,6 @@ final class ReadyCheckAppModel {
         switch widgetPresentation {
         case .card: floatingWindowController.show(model: self)
         case .bubble: bubbleWindowController.show(model: self)
-        case .edgeRail: edgeRailWindowController.show(model: self)
         }
     }
 
@@ -655,7 +637,6 @@ final class ReadyCheckAppModel {
         isSwitchingWidgetPresentation = true
         floatingWindowController.close()
         bubbleWindowController.close()
-        edgeRailWindowController.close()
         isSwitchingWidgetPresentation = false
         scheduleWidgetResume()
     }
@@ -683,18 +664,6 @@ final class ReadyCheckAppModel {
         }
     }
 
-    func moveEdgeRail(to edge: EdgeRailPlacement.Edge) {
-        clearWidgetSnooze()
-        if !widgetVisible { widgetVisible = true }
-        edgeRailWindowController.move(to: edge, model: self)
-    }
-
-    func revealEdgeRail() {
-        clearWidgetSnooze()
-        if !widgetVisible { widgetVisible = true }
-        edgeRailWindowController.reveal(model: self)
-    }
-
     func resetFloatingWidgetPosition() {
         clearWidgetSnooze()
         if widgetVisible {
@@ -702,7 +671,6 @@ final class ReadyCheckAppModel {
             switch widgetPresentation {
             case .card: floatingWindowController.resetPosition(model: self)
             case .bubble: bubbleWindowController.resetPosition(model: self)
-            case .edgeRail: edgeRailWindowController.resetPosition(model: self)
             }
             isSwitchingWidgetPresentation = false
         } else {

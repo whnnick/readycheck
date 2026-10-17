@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import ReadyCheckCore
 import UserNotifications
 import XCTest
 @testable import ReadyCheckApp
@@ -102,14 +103,69 @@ final class BubbleWindowControllerTests: XCTestCase {
         }
     }
 
-    private func withBubble(_ body: (BubbleWindowController, QuotaWidgetPanel, NSHostingController<BubbleWidgetView>) throws -> Void) throws {
+    func testClickingPreviewPaddingPinsDetailsAtEveryPlacement() throws {
+        for edge in [nil, BubbleWidgetPlacement.Edge.left, .right] {
+            try withBubble(edge: edge) { controller, panel, host in
+                host.rootView.onTap()
+                RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+                host.rootView.onTogglePin()
+                XCTAssertFalse(host.rootView.isPinned)
+                try clickPreviewPadding(panel)
+                XCTAssertTrue(host.rootView.isExpanded)
+                XCTAssertTrue(host.rootView.isPinned, "A click on preview padding must keep details open")
+                try clickPreviewPadding(panel)
+                controller.dismissFromExternalInteraction()
+                XCTAssertTrue(host.rootView.isPinned, "Further background and outside clicks must not unpin")
+            }
+        }
+    }
+
+    func testClickingPreviewBackgroundDuringExpansionPinsDetails() throws {
+        for edge in [nil, BubbleWidgetPlacement.Edge.left, .right] {
+            try withBubble(edge: edge) { _, panel, host in
+                host.rootView.onTap()
+                host.rootView.onTogglePin()
+                panel.setFrame(CGRect(origin: panel.frame.origin, size: CGSize(width: 180, height: 220)), display: true)
+                panel.contentView?.layoutSubtreeIfNeeded()
+                try clickPreviewPadding(panel)
+                XCTAssertTrue(host.rootView.isExpanded)
+                XCTAssertTrue(host.rootView.isPinned)
+            }
+        }
+    }
+
+    private func clickPreviewPadding(_ panel: QuotaWidgetPanel) throws {
+        let point = CGPoint(x: 8, y: panel.frame.height / 2)
+        for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+            let event = try XCTUnwrap(NSEvent.mouseEvent(with: type, location: point,
+                modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                windowNumber: panel.windowNumber, context: nil, eventNumber: 0,
+                clickCount: 1, pressure: type == .leftMouseUp ? 0 : 1))
+            panel.sendEvent(event)
+        }
+    }
+
+    func testUnifiedWidgetRestoresAttachedStripAndOpensSharedPinnedDetails() throws {
+        for edge in [BubbleWidgetPlacement.Edge.left, .right] {
+            try withBubble(edge: edge) { _, panel, host in
+                XCTAssertEqual(host.rootView.tabEdge, edge)
+                XCTAssertEqual(panel.frame.size, BubbleWidgetPlacement.tabSize)
+                host.rootView.onTap()
+                XCTAssertTrue(host.rootView.isPinned)
+                XCTAssertEqual(host.rootView.tabEdge, edge)
+            }
+        }
+    }
+
+    private func withBubble(edge: BubbleWidgetPlacement.Edge? = nil, _ body: (BubbleWindowController, QuotaWidgetPanel, NSHostingController<BubbleWidgetView>) throws -> Void) throws {
         _ = NSApplication.shared
         let defaults = UserDefaults.standard
         let key = "ReadyCheck.bubbleWidgetFrame.v1"
         let saved = defaults.object(forKey: key)
         let visibleFrame = try XCTUnwrap(NSScreen.main).visibleFrame
-        defaults.set(NSStringFromRect(CGRect(x: visibleFrame.midX - 46, y: visibleFrame.midY - 46,
-            width: 92, height: 92)), forKey: key)
+        let bubble = CGRect(x: visibleFrame.midX - 46, y: visibleFrame.midY - 46, width: 92, height: 92)
+        let frame = edge.map { BubbleWidgetPlacement.tabFrame(from: bubble, edge: $0, in: visibleFrame) } ?? bubble
+        defaults.set(NSStringFromRect(frame), forKey: key)
         let controller = BubbleWindowController()
         let model = ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
             client: BubbleTestNotificationClient(), verificationDelays: []))

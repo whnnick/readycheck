@@ -8,13 +8,13 @@
 
 方式 A：使用便携版 zip。
 
-1. 复制 `dist/windows/ReadyCheck-0.1.81-windows-x64-portable.zip` 到 Windows 电脑。
+1. 复制 `dist/windows/ReadyCheck-0.2.1-windows-x64-portable.zip` 到 Windows 电脑。
 2. 解压 zip。
 3. 运行 `ReadyCheck-win32-x64\ReadyCheck.exe`。
 
 方式 B：从源码运行。
 
-1. 安装 Node.js 22 或更高版本。
+1. 安装 Node.js 22.12–24。
 2. 获取仓库源码并进入 Windows 子项目：
 
 ```powershell

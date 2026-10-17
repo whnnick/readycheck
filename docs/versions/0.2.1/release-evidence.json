@@ -1,0 +1,40 @@
+{
+  "version": "0.2.1",
+  "macOS": {
+    "sha256": "125c1fb23b96a2e4986145bb79c9c67e236391de257d7f0da0d533bb0e3f305e",
+    "size": 2691743,
+    "mountedSignature": "strict deep verification passed",
+    "identity": "ReadyCheck Preview Signing",
+    "architecture": "arm64",
+    "compiledCodeComparison": "copies match after removing signatures and normalizing the signature-related LINKEDIT VM allocation; original bundle unchanged",
+    "bundleContents": "no internal development files or symlinks"
+  },
+  "windows": {
+    "sha256": "21f52710c56eb10578350015fc71f6abd279b2281ffc1ce0d4d59fb8cee38387",
+    "size": 151013055,
+    "zipIntegrity": true,
+    "asarVersion": "0.2.1",
+    "asarFiles": 20,
+    "internalFiles": false,
+    "PEHeaderVerified": true
+  },
+  "date": "2026-10-17",
+  "swiftTests": {
+    "development": 322,
+    "publicSource": 322,
+    "failures": 0,
+    "skips": 0
+  },
+  "windowsChecks": [
+    "locked npm install; audit reported zero vulnerabilities",
+    "check",
+    "smoke",
+    "smoke:ui",
+    "ZIP and ASAR content checks"
+  ],
+  "publicSource": "sanitized sync checked; no internal collaboration files in visible public history",
+  "installedMac": "mounted-DMG app installed; exact signed executable comparison passed",
+  "liveAccount": "existing Keychain confirmation requested; real-data follow-up not yet verified",
+  "distribution": "self-signed macOS preview, not Developer ID signed or notarized; Windows UI unchanged",
+  "remoteVerification": "pending upload and download verification"
+}

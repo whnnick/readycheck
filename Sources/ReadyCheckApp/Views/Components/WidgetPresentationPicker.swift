@@ -9,7 +9,6 @@ struct WidgetPresentationPicker: View {
         HStack(spacing: 6) {
             option(.bubble)
             option(.card)
-            option(.edgeRail)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(localization.text("settings.widgetStyle"))
@@ -25,7 +24,7 @@ struct WidgetPresentationPicker: View {
                     .font(.caption.weight(.medium))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                Text(localization.text(style == .edgeRail ? "widgetPreview.edge" : "widgetPreview.free"))
+                Text(localization.text(style == .bubble ? "widgetPreview.adaptive" : "widgetPreview.free"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
@@ -39,7 +38,7 @@ struct WidgetPresentationPicker: View {
         .background(selection == style ? Color.accentColor.opacity(0.14) : Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(selection == style ? Color.accentColor : Color.primary.opacity(0.10), lineWidth: selection == style ? 1.5 : 0.7))
         .accessibilityAddTraits(selection == style ? .isSelected : [])
-        .help(localization.text(style == .edgeRail ? "widgetPreview.edgeHelp" : "widgetPreview.freeHelp"))
+        .help(localization.text(style == .bubble ? "widgetPreview.adaptiveHelp" : "widgetPreview.freeHelp"))
     }
 
     @ViewBuilder
@@ -57,13 +56,6 @@ struct WidgetPresentationPicker: View {
             .padding(8)
             .frame(width: 58, height: 36)
             .background(Color.primary.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
-        case .edgeRail:
-            VStack(spacing: 4) {
-                Circle().stroke(Color.accentColor, lineWidth: 2).frame(width: 13, height: 13)
-                Circle().stroke(Color.secondary.opacity(0.6), lineWidth: 2).frame(width: 13, height: 13)
-            }
-            .frame(width: 23, height: 40)
-            .background(Color.primary.opacity(0.07), in: Capsule())
         }
     }
 }

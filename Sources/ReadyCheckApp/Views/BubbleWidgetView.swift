@@ -74,7 +74,7 @@ struct BubbleWidgetView: View {
 
     var body: some View {
         Group {
-            if !isExpanded, let tabEdge { edgeTab(tabEdge) }
+            if let tabEdge { attachedSurface(tabEdge) }
             else { orbitalSurface }
         }
         .task {
@@ -100,6 +100,7 @@ struct BubbleWidgetView: View {
             ZStack {
                 shape.fill(floatingSurfaceColor)
                     .overlay(shape.strokeBorder(.white.opacity(0.22), lineWidth: 1))
+                    .onTapGesture { if isExpanded { onPin() } }
                 expandedDetails
                     .frame(width: max(0, geometry.size.width - 32), height: max(0, geometry.size.height - 32))
                     .clipped().padding(16)
@@ -128,6 +129,28 @@ struct BubbleWidgetView: View {
         }
     }
 
+    private func attachedSurface(_ edge: BubbleWidgetPlacement.Edge) -> some View {
+        GeometryReader { geometry in
+            let progress = min(1, max(0, (geometry.size.width - BubbleWidgetPlacement.tabSize.width)
+                / (BubbleWidgetPlacement.expandedSize.width - BubbleWidgetPlacement.tabSize.width)))
+            let reveal = min(1, max(0, (geometry.size.width - 140) / 200))
+            let shape = WidgetPanelShape(tabProgress: 1 - progress)
+            ZStack(alignment: edge == .left ? .leading : .trailing) {
+                bubbleSurface(shape)
+                    .onTapGesture { if isExpanded { onPin() } }
+                expandedDetails
+                    .frame(width: max(0, geometry.size.width - 32), height: max(0, geometry.size.height - 32))
+                    .clipped().padding(16)
+                    .opacity(reveal).allowsHitTesting(isExpanded && reveal > 0.9)
+                    .accessibilityHidden(!isExpanded)
+                edgeTab(edge)
+                    .opacity(1 - min(1, progress * 4))
+                    .allowsHitTesting(!isExpanded).accessibilityHidden(isExpanded)
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+    }
+
     private func edgeTab(_ edge: BubbleWidgetPlacement.Edge) -> some View {
         VStack(spacing: 10) {
             codexIcon.frame(width: 16, height: 16)
@@ -142,7 +165,6 @@ struct BubbleWidgetView: View {
             }
         }
         .frame(width: BubbleWidgetPlacement.tabSize.width, height: BubbleWidgetPlacement.tabSize.height)
-        .background { bubbleSurface(RoundedRectangle(cornerRadius: 14, style: .continuous)) }
         .foregroundStyle(.white)
         .contentShape(RoundedRectangle(cornerRadius: 14))
         .onTapGesture(perform: onTap)
@@ -291,9 +313,9 @@ struct BubbleWidgetView: View {
             .onEnded { _ in onDragEnded() }
     }
 
-    private func bubbleSurface<S: Shape>(_ shape: S) -> some View {
+    private func bubbleSurface<S: InsettableShape>(_ shape: S) -> some View {
         shape.fill(floatingSurfaceColor)
-            .overlay(shape.stroke(Color.white.opacity(0.24), lineWidth: 0.8))
+            .overlay(shape.strokeBorder(Color.white.opacity(0.22), lineWidth: 1))
     }
 
     @ViewBuilder

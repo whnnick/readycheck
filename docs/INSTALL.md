@@ -19,6 +19,8 @@ Choose **Connect** in the app and finish the browser OAuth flow. The local callb
 
 Use **Disconnect** to remove ReadyCheck's stored OAuth credentials from Keychain.
 
-## Upgrading to 0.2.0
+## Upgrading to 0.2.1
 
 Quit ReadyCheck before replacing the app. Existing settings, credentials and history are retained. A rebuilt preview may require macOS Keychain confirmation; use Settings → Connection → Retry credential read if needed. Overview retains subscription/reset/Credits details. Find About in the sidebar footer or menu-bar More menu for release highlights. Windows is a separate portable preview and retains its previous interface.
+
+The old edge-strip choice becomes the adaptive floating Widget and retains its edge position. Information card remains separate and can be moved by its title. Release highlights live in About, not Connection settings.

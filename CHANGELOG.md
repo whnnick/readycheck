@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.2.1 - 2026-10-17
+
+- Combine the round bubble and edge strip into one adaptive floating Widget. Drag to either edge for a slim vertical strip, or inward for a bubble; share details, the last-hour chart and pin behavior. Preserve legacy edge positions and backup any replaced bubble position during one-time migration.
+- Restore free card movement through its native title drag region, keeping buttons independent and positions persistent.
+- Make clicks on preview backgrounds and padding keep details open, including during expansion; preserve explicit unpinning, outside dismissal and Escape.
+- Prevent the dial flashing during attached transitions. Retain edge anchoring, use an inset outline and preserve the supersampled mask.
+- Keep release highlights in About rather than duplicating them in Connection settings. Retain About entry points, update checks, account benefits, history and existing credentials.
+- Windows receives version metadata only and retains its existing interface. macOS arm64 remains a self-signed preview, not Developer ID signed or notarized.
+
+## 0.2.1-dev.5 - 2026-10-17 (unreleased local preview)
+
+- Remove duplicated release highlights from Settings → Connection. Keep them in About, with the full release-notes link; preserve connection guidance, About entry points and update checks. Windows receives version metadata only.
+
+## 0.2.1-dev.4 - 2026-10-17 (unreleased local preview)
+
+- Merge the round bubble and edge strip into one floating Widget: drag it to either edge for a slim vertical strip, or inward for a bubble. Both share details, the last-hour chart and pin behavior; keep the freely movable information card as the second style.
+- Migrate the previous edge-strip selection and position once, preserving old position records and backing up any replaced bubble position. Keep the supersampled native mask and draw the attached border inside it to prevent clipping. Windows receives version metadata only.
+
+## 0.2.1-dev.3 - 2026-10-17 (unreleased local preview)
+
+- Drag the card Widget by its title area using native window dragging; keep refresh/close controls separate and retain its position across reopen. Moving works independently of the always-on-top option.
+- Restore the round-bubble selection as a circle even when its saved position was attached to an edge. Start the edge-strip selection and side changes as a slim vertical strip instead of a rings preview. Preserve manual bubble edge snapping and explicit ring preview. Windows receives version metadata only.
+
+## 0.2.1-dev.2 - 2026-10-17 (unreleased local preview)
+
+- Fix clicks on the Widget preview background and padding, including during expansion, so they keep details open instead of leaving a temporary hover preview. Preserve intentional unpinning, outside dismissal, edge transitions and dragging. Windows receives version metadata only.
+
+## 0.2.1-dev.1 - 2026-10-16 (unreleased local preview)
+
+- Prevent the desktop dial flashing during edge-attached Widget transitions. Retain attachment and unfold details directly inward, returning to the same rail on collapse. Shorten edge transitions while retaining pin, drag, Escape and reduced-motion behavior. Development preview notes link to the published release. Windows receives metadata only.
+
 ## 0.2.0 - 2026-10-16
 
 - Update the Windows runtime to Electron 43.5.0 and packager to 20.3.0, validating the Node.js 22.12–24 requirement; retain the existing interface.

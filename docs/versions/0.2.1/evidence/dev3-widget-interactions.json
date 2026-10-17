@@ -1,0 +1,34 @@
+{
+  "version": "0.2.1-dev.3",
+  "date": "2026-10-17",
+  "platform": "macOS arm64",
+  "distribution": "local self-signed preview; not publicly released",
+  "tests": {
+    "focused": 22,
+    "fullSwift": 327,
+    "failures": 0,
+    "skips": 0,
+    "reusedCompletedRun": true
+  },
+  "card": {
+    "nativeDragDispatch": "passed automated check at normal and floating levels",
+    "physicalDrag": "user confirmed: 可以自由移动了",
+    "savedPosition": "updated origin observed after the user confirmation; exact coordinates omitted",
+    "restorePosition": "passed automated close/reopen check",
+    "controls": "minimal/detailed switch, refresh and open-main-window checked in installed app",
+    "closeButton": "outside drag region; existing action retained; not separately clicked in follow-up"
+  },
+  "styles": {
+    "round": "restores circle even from saved attached position; installed visual and click-to-details passed",
+    "edge": "starts as slim strip; installed click-to-details passed",
+    "manualBubbleEdgeSnap": "existing code and regression retained"
+  },
+  "account": "installed app successfully reads existing account, quotas, benefits and local history; no values included",
+  "signature": "strict installed bundle verification passed",
+  "settings": "original round selection and minimal card display mode restored after follow-up",
+  "limits": [
+    "Automated pointer-drag attempts alone did not prove physical movement; user confirmation is recorded separately.",
+    "Other hardware, multiple displays and reduced-motion device observations are not claimed.",
+    "No public push, release or social publication in this patch."
+  ]
+}

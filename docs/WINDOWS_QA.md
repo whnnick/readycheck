@@ -8,13 +8,13 @@ Use this guide to validate the ReadyCheck Windows preview on Windows 10/11. Do n
 
 Option A: use the portable zip.
 
-1. Copy `dist/windows/ReadyCheck-0.1.81-windows-x64-portable.zip` to the Windows machine.
+1. Copy `dist/windows/ReadyCheck-0.2.1-windows-x64-portable.zip` to the Windows machine.
 2. Unzip it.
 3. Run `ReadyCheck-win32-x64\ReadyCheck.exe`.
 
 Option B: run from source.
 
-1. Install Node.js 22 or later.
+1. Install Node.js 22.12–24.
 2. Check out the repository and enter the Windows subproject:
 
 ```powershell

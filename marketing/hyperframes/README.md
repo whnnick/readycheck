@@ -22,3 +22,7 @@ ffmpeg -y -i renders/readycheck-preview-hyperframes.mp4 -vf "fps=15,scale=960:-1
 The README uses `docs/assets/readycheck-preview.gif`.
 
 Do not commit `renders/` outputs unless a release explicitly needs the MP4.
+
+## Current campaign / 当前宣传片
+
+[Depth-focus source and acceptance](videos/readycheck-depth-focus/README.md) · [Version delivery record / 版本交付记录](../../docs/versions/0.2.1/PROMO.md) · [中文记录](../../docs/versions/0.2.1/PROMO.zh-CN.md). Generated media and account-console proof remain local and ignored. / 生成素材及平台凭证仅保留本地。
