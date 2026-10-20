@@ -19,7 +19,7 @@ In the prototype phase, only frontend fixtures, simplified calculation and inter
 
 [Overview](assets/overview-preview-zh.png) · [Widget](assets/widget-preview-zh.png) · [Baseline comparison](assets/baseline-comparison.png) · [Widget before/after](assets/widget-comparison.png). All images use synthetic data.
 
-## Feature-retention gate
+## Historical feature-retention gate at baseline freeze
 
 The[65-item checklist](FEATURE_RETENTION.md) and[machine-readable baseline](FEATURE_RETENTION.json) are frozen. The frozen register records historical/current source review, not final acceptance; all65 final native0.3.0 acceptance items remain pending. Native progress below does not automatically clear every item. **Prototype passed does not mean full-product acceptance.** Missing/partial prototype items explicitly include alert-off, reset/Credits notifications, history, full Token charts/comparisons and Display/Connection/General controls. No new removal approval exists. Prototype checks do not clear this production release blocker.
 
@@ -103,3 +103,9 @@ The release owner subsequently requested stopping further device checks and proc
 The actual sanitized public source passed363 Swift tests, zero failures. Windows Node24 syntax/service tests, smoke and UI behavior smoke passed. The mounted DMG contains version0.3.0/arm64/macOS14+; strict deep signature verification passed with the stable self-signed preview identity. ZIP integrity, ASAR version/privacy and executable private-string checks passed. The output directory contains exactly the current DMG and Windows ZIP. No Developer ID/notarization or physical Windows result is inferred.
 
 [Delivery evidence and artifact SHA-256](release-delivery-evidence.json). Public main/tag/Release/latest and actual-download digest checks are pending at this preparation point. The latest approved device limits above remain unverified, not passed.
+
+## Published0.3.0 — 2026-10-20
+
+[GitHub release](https://github.com/whnnick/readycheck/releases/tag/v0.3.0) is public, non-draft and non-prerelease; latest resolves tov0.3.0. Public main and the annotated tag resolve to the reviewed release source (later documentation-only delivery updates may follow on main). Both assets were downloaded from GitHub; each size/SHA-256 matches the local package and GitHub digest. [Artifact/delivery evidence](release-delivery-evidence.json).
+
+The mounted-DMG app was installed and visibly launched as0.3.0, with strict preview-signature and executable identity checks passed. All17 currently stored product-prefixed choices, the automatic-use state, all prior account-history samples and notification-history IDs were retained. Existing legacy history and the old app/package were privately preserved. After normal user Keychain confirmation, actual quotas, conditional pace, plan validity/Credits and reset counts/expirations were readable. This does not validate real redemption or its success banner. The accepted unverified menu/offline/account/multidisplay limits remain as recorded above; no feature deletion was approved or performed by this release delivery.

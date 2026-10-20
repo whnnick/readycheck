@@ -2,7 +2,7 @@
 
 [English](RELEASE_AUDIT.md) · [中文](RELEASE_AUDIT.zh-CN.md) · [Checks / 验收](QA.md) · [Itemized evidence / 逐项证据](retention-release-audit.json)
 
-Each of the65 protected capabilities has a specific functional test and a discoverable entry recorded below. This is scoped retention evidence, not a claim that every device condition was exercised. Existing device results are reused only for unchanged behavior. Menu device checks remain unverified and were accepted as a release limitation; see the latest scope decision in QA. Package and remote delivery checks remain required.
+Each of the65 protected capabilities has a specific functional test and a discoverable entry recorded below. This is scoped retention evidence, not a claim that every device condition was exercised. Existing device results are reused only for unchanged behavior. Menu device checks remain unverified and were accepted as a release limitation; see the latest scope decision in QA. Package and remote delivery checks are completed in QA.
 
 | ID | Capability / 能力 | Entry / 入口 | Specific functional check / 具体功能检查 | Status / 状态 |
 | --- | --- | --- | --- | --- |

@@ -1447,16 +1447,14 @@
       "baselineDeviceReuse": "Relevant unchanged paths reuse 0.2.1/0.2.2 QA only; those records retain their stated device limits."
     }
   ],
-  "execution": "Development and actual public source each passed363 Swift tests, zero failures. Both packages verified; remote delivery pending.",
+  "execution": "Development and public source each passed363 Swift tests, zero failures. Packages, public main/tag/latest/Release and actual downloads verified; installed0.3.0 live data readable. Accepted physical limits remain unverified.",
   "currentDeviceEvidence": [
     "Live Overview quotas/benefits/Primary label and persisted old preferences checked",
     "Widget both quota rows, pace summary, last-hour chart and footer visible; pinned details open main window",
     "User confirmed physical sleep/wake; successful refresh followed and automatic-use On/waiting persisted",
     "A clearly labelled test notification was verified in Notification Center; no real reset card consumed"
   ],
-  "pending": [
-    "Remote main/tag/Release/latest and actual-download verification"
-  ],
+  "pending": [],
   "limits": [
     "No other monitor or Windows hardware claimed",
     "No forced live OAuth sign-out/account switching or network reconfiguration; deterministic protocol/race/retention tests cover these boundaries",

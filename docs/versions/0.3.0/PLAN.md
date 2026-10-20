@@ -2,7 +2,7 @@
 
 [中文](PLAN.zh-CN.md) · [Checks](QA.md) · [Prototype](prototype/README.md) · [Version index](../../VERSIONS.md) · [Feature retention](FEATURE_RETENTION.md)
 
-2026-10-20. Current phase:0.3.0 release preparation, extending the approved `0.3.0-preview.1` direction and native development. See the latest QA scope decision for accepted device limits and delivery status. See the [native contract](TECHNICAL.md) and [checks](QA.md); this is not release acceptance.
+2026-10-20. Released [0.3.0](https://github.com/whnnick/readycheck/releases/tag/v0.3.0), extending the approved prototype direction with native quota pace and expiring-card controls. See [release notes](RELEASE_NOTES.md), the [native contract](TECHNICAL.md) and [final checks](QA.md) for delivery evidence and accepted unverified device limits.
 
 ## User problem
 

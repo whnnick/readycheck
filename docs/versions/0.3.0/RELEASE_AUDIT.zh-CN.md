@@ -2,7 +2,7 @@
 
 [English](RELEASE_AUDIT.md) · [中文](RELEASE_AUDIT.zh-CN.md) · [Checks / 验收](QA.md) · [Itemized evidence / 逐项证据](retention-release-audit.json)
 
-65项受保护能力逐项记录了具体功能测试和可发现入口。这里是有范围的保留证据，不声称覆盖每种设备条件；旧实机结果仅用于行为未改变的路径。菜单实机检查仍未验证，已被接受为发布限制，见QA中的最新范围决定；产物及远端交付检查仍须完成。
+65项受保护能力逐项记录了具体功能测试和可发现入口。这里是有范围的保留证据，不声称覆盖每种设备条件；旧实机结果仅用于行为未改变的路径。菜单实机检查仍未验证，已被接受为发布限制，见QA中的最新范围决定；产物及远端交付检查已完成，见QA。
 
 | ID | Capability / 能力 | Entry / 入口 | Specific functional check / 具体功能检查 | Status / 状态 |
 | --- | --- | --- | --- | --- |

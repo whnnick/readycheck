@@ -33,6 +33,25 @@
       "sha256": "845109481803a46dc553ce79aa26fb1f4056a9a978927facf92239c21295d50b"
     }
   ],
-  "remoteDelivery": "pending",
-  "deviceScope": "Unverified menu/offline/account-switch/multidisplay conditions accepted as limits; no real reset card spent."
+  "remoteDelivery": "verified",
+  "deviceScope": "Unverified menu/offline/account-switch/multidisplay conditions accepted as limits; no real reset card spent.",
+  "release": {
+    "url": "https://github.com/whnnick/readycheck/releases/tag/v0.3.0",
+    "tag": "v0.3.0",
+    "releaseCommit": "6d86629ac0519415cf4896c77802cdf6c6c13746",
+    "draft": false,
+    "prerelease": false,
+    "latestVerified": true,
+    "actualDownloadsMatchLocalAndGitHub": true
+  },
+  "installedMac": {
+    "version": "0.3.0",
+    "strictSignature": true,
+    "mountedExecutableMatch": true,
+    "originalProductPreferencesRetained": 17,
+    "historySamplesRetained": true,
+    "notificationHistoryIDsRetained": true,
+    "automaticCardChoiceRetained": true,
+    "liveQuotaAndBenefits": "readable after normal user Keychain confirmation"
+  }
 }

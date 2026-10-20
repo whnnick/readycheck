@@ -2,7 +2,7 @@
 
 [English](PLAN.md) · [功能检查](QA.zh-CN.md) · [原型](prototype/README.zh-CN.md) · [版本索引](../../VERSIONS.md) · [旧功能保留清单](FEATURE_RETENTION.zh-CN.md)
 
-2026-10-20。当前进入0.3.0发布准备，沿用已确认的 `0.3.0-preview.1` 方向及原生开发成果。已接受的设备范围限制及交付状态见QA中的最新决定。参见[原生契约](TECHNICAL.zh-CN.md)及[检查](QA.zh-CN.md)，不代表正式发布验收完成。
+2026-10-20。已发布[0.3.0](https://github.com/whnnick/readycheck/releases/tag/v0.3.0)，沿用已确认的原型方向，原生增加额度节奏及临期用卡控制。[更新说明](RELEASE_NOTES.zh-CN.md)、[原生契约](TECHNICAL.zh-CN.md)与[最终检查](QA.zh-CN.md)记录交付证据及已接受的实机未验限制。
 
 ## 用户问题
 

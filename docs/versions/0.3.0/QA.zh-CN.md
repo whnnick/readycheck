@@ -19,7 +19,7 @@
 
 [总览预览](assets/overview-preview-zh.png) · [Widget预览](assets/widget-preview-zh.png) · [布局对照](assets/baseline-comparison.png) · [Widget调整前后](assets/widget-comparison.png)。所有图均为合成演示。
 
-## 旧功能保留门槛
+## 冻结基线时的旧功能保留门槛（历史记录）
 
 [65项逐项清单](FEATURE_RETENTION.zh-CN.md)／[机器可读基线](FEATURE_RETENTION.json)已冻结。冻结清单登记的是旧版本与当前源码核对，不代表最终验收；65项0.3.0原生最终验收仍待完成，后文原生进展不会自动清空逐项门槛，**不能使用前文“原型通过”解读为完整产品已通过**。表中列明网页未展示和部分演示项，尤其包括关闭提醒、到期／Credits通知、通知记录、全部Token图表及对比、显示／连接／通用设置等。没有新增删除授权。原型功能检查通过不解除这项正式发布阻塞。
 
@@ -105,3 +105,9 @@ Windows除版本元数据外源码未改，Node24检查、smoke及UI行为检查
 实际脱敏公开源码通过363项Swift测试，零失败。Windows Node24语法／服务测试、smoke及UI行为smoke通过。挂载DMG内为0.3.0／arm64／macOS14+，稳定自签名预览身份的严格深度签名核验通过。ZIP完整性、ASAR版号／隐私及可执行文件私人字符串检查通过。产物目录仅含当前DMG与Windows ZIP。不据此声称Developer ID签名／公证或Windows实机通过。
 
 [交付证据与产物SHA-256](release-delivery-evidence.json)。本准备时点公共main／tag／Release／latest及实际下载哈希仍待核验；上述已接受的设备范围限制仍是未验，不是通过。
+
+## 0.3.0已发布 — 2026-10-20
+
+[GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.3.0)已公开，非草稿、非prerelease，latest指向v0.3.0。公共main与带注释tag对应已审阅发布源码（main后续可追加仅文档交付记录）。两份产物均已从GitHub实际下载，大小及SHA-256与本地包、GitHub摘要一致。[产物与交付证据](release-delivery-evidence.json)。
+
+已将DMG内应用安装并可见启动为0.3.0，严格预览签名及可执行文件一致性核验通过。当前存储的17项产品前缀偏好、自动用卡状态、全部原账号历史样本及通知记录ID均保留；旧历史、旧应用与旧安装包另有私有回退副本。用户完成正常钥匙串确认后，真实配额、条件性节奏、订阅有效期／Credits及重置次数／到期时间均可读取。这不代表真实用卡或其成功横幅已验收。前述已接受的菜单／断网／换号／多屏未验限制继续保留；本次发布交付未获准、也未执行功能删除。
