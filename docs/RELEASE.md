@@ -9,6 +9,12 @@ Use this flow for every user-visible ReadyCheck release. Do not publish from an 
 3. Update `README.md`, `README.zh-CN.md`, `CHANGELOG.md`, and `CHANGELOG.zh-CN.md`.
 4. Keep the release changelog entry under the exact version heading, not under `Unreleased`.
 
+## Feature Retention Gate (0.3.0 and later)
+
+Before packaging or publishing, reconcile the prior native version with the proposed release using the[feature-retention baseline](versions/0.3.0/FEATURE_RETENTION.md). The initial macOS register contains65 protected capabilities; extend it when a capability is discovered. For each relevant item, record its discoverable entry, retained behavior, test/device evidence and preference/history migration result. Specifically applicable unchanged-path evidence may be reused; source presence, aggregate test counts and prototype completion alone are insufficient.
+
+Missing controls, degraded behavior, data loss or unresolved relevant acceptance block release. Treat a prototype's omitted/simplified pages as unfinished work. Any removal or substantive change requires explicit user approval with the feature ID, before/after behavior, impact and rollback recorded before implementation. Do not make the user recall the old feature list. Windows needs its own acceptance; Mac results do not cover it.
+
 ## 2. Verify The Development Worktree
 
 Run from the active ReadyCheck development worktree:

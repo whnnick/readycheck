@@ -80,7 +80,7 @@ final class BubbleWidgetPlacementTests: XCTestCase {
     }
 
     func testExpandedCardReservesSpaceForQuotaAndLastHourChart() {
-        XCTAssertEqual(BubbleWidgetPlacement.expandedSize, CGSize(width: 380, height: 304))
+        XCTAssertEqual(BubbleWidgetPlacement.expandedSize, CGSize(width: 380, height: 344))
         XCTAssertLessThan(BubbleWidgetPlacement.tabSize.width, 30)
     }
 

@@ -1,5 +1,9 @@
 # Version plans / 版本规划
 
+- [0.3.0 quota pace](versions/0.3.0/PLAN.md) | [中文计划](versions/0.3.0/PLAN.zh-CN.md) | [Prototype](versions/0.3.0/prototype/README.md) | [中文原型](versions/0.3.0/prototype/README.zh-CN.md) | [Checks](versions/0.3.0/QA.md) | [中文检查](versions/0.3.0/QA.zh-CN.md) | [Retention](versions/0.3.0/FEATURE_RETENTION.md) | [保留清单](versions/0.3.0/FEATURE_RETENTION.zh-CN.md) | [Reset cards](versions/0.3.0/RESET_CARD_AUTOMATION.md) | [临期用卡](versions/0.3.0/RESET_CARD_AUTOMATION.zh-CN.md) — Release candidate0.3.0: public-source363 tests and both packages verified; remote delivery pending; [Native contract](versions/0.3.0/TECHNICAL.md) / 发布候选：公开源码363项测试及双平台产物已核验，远端交付待验；[原生契约](versions/0.3.0/TECHNICAL.zh-CN.md)。
+
+- [0.2.2 connection reliability](versions/0.2.2/PLAN.md) | [中文计划](versions/0.2.2/PLAN.zh-CN.md) | [Checks](versions/0.2.2/QA.md) | [中文检查](versions/0.2.2/QA.zh-CN.md) — Local preview: 327 tests passed; signed launch, live refresh and retained account/history checked / 本地预览：327 项测试通过，签名启动、真实刷新及账户／历史保留已验。
+
 - [0.2.1 depth-focus campaign](versions/0.2.1/PROMO.md) | [中文宣传片记录](versions/0.2.1/PROMO.zh-CN.md) — New31-second film published to both platforms / 新31秒宣传片已发布双平台。
 
 - [0.2.1 release highlights](versions/0.2.1/RELEASE_NOTES.md) | [中文更新重点](versions/0.2.1/RELEASE_NOTES.zh-CN.md) | [Plan](versions/0.2.1/PLAN.md) | [中文计划](versions/0.2.1/PLAN.zh-CN.md) | [Checks](versions/0.2.1/QA.md) | [中文检查](versions/0.2.1/QA.zh-CN.md) — [Published v0.2.1](https://github.com/whnnick/readycheck/releases/tag/v0.2.1): both downloads and installed live data verified / 已发布：双平台下载及安装版真实数据已核验。
@@ -92,3 +96,5 @@
 - [0.1.98 acceptance](versions/0.1.98/QA.md) | [中文验收](versions/0.1.98/QA.zh-CN.md)
 - [0.1.97 plan](NEXT_RELEASE.md) | [中文计划](NEXT_RELEASE.zh-CN.md)
 - [Existing release QA](QA.md) | [历史验收](QA.zh-CN.md)
+
+0.3.0 release readiness: [itemized audit](versions/0.3.0/RELEASE_AUDIT.md) · [逐项发布审计](versions/0.3.0/RELEASE_AUDIT.zh-CN.md).

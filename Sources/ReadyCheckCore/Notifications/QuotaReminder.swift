@@ -9,6 +9,7 @@ public enum QuotaReminderEvent: Equatable, Hashable, Sendable {
 }
 
 public enum QuotaReminderHistoryKind: String, Codable, Equatable, Sendable {
+    case resetCreditUsed
     case manualResetExpiring
     case creditsStarted
     case quotaLow
@@ -70,6 +71,9 @@ public struct QuotaReminderState: Codable, Equatable, Sendable {
     public var recoveryNotificationBaselineMigrationCompleted: Bool? = nil
     public var recoveryNotificationRemovalVerificationVersion: Int? = nil
     public var pendingRecoveryNotificationDismissalID: String? = nil
+    public var resetExpiryReminderEnabled: Bool? = nil
+    public var resetExpiryReminderRevision: Int? = nil
+    public var isResetExpiryReminderEnabled: Bool { resetExpiryReminderEnabled ?? true }
     public var automaticRecoveryEnabled: Bool?
     public var recoveryRevision: Int?
     public var isAutomaticRecoveryEnabled: Bool { automaticRecoveryEnabled ?? true }
@@ -216,7 +220,7 @@ public enum QuotaReminderEvaluator {
         }
         state.knownManualResetExpirations = knownExpirations
 
-        for (offset, timestamp) in knownExpirations.enumerated() {
+        for (offset, timestamp) in knownExpirations.enumerated() where state.isResetExpiryReminderEnabled {
             let expiration = Date(timeIntervalSince1970: TimeInterval(timestamp))
             let interval = expiration.timeIntervalSince(now)
             guard interval > 0 else { continue }
@@ -436,7 +440,9 @@ public actor QuotaReminderStore {
             }
         }
 
+        let expiryStillEnabled = load().isResetExpiryReminderEnabled
         for event in batch.events where !event.isDismissal {
+            if case .manualResetExpiring = event, !expiryStillEnabled, !delivered.contains(event) { continue }
             recordHistory(
                 event,
                 delivered: delivered.contains(event),
@@ -457,6 +463,13 @@ public actor QuotaReminderStore {
         // A user may cancel or replace a request while system delivery is awaiting confirmation.
         let currentState = load()
         guard currentState.detailsAccount == batch.previousState.detailsAccount else { return }
+        // Automatic-use receipts can arrive while a quota delivery batch is awaiting the system.
+        let resetReceipts = (currentState.notificationHistory ?? []).filter { $0.kind == .resetCreditUsed }
+        state.notificationHistory = prunedHistory((state.notificationHistory ?? []).filter { $0.kind != .resetCreditUsed } + resetReceipts)
+        if currentState.resetExpiryReminderRevision != batch.previousState.resetExpiryReminderRevision {
+            state.resetExpiryReminderEnabled = currentState.resetExpiryReminderEnabled
+            state.resetExpiryReminderRevision = currentState.resetExpiryReminderRevision
+        }
         if currentState.lowQuotaRevision != batch.previousState.lowQuotaRevision {
             state.lowQuotaThreshold = currentState.lowQuotaThreshold
             state.lowQuotaState = currentState.lowQuotaState
@@ -476,8 +489,41 @@ public actor QuotaReminderStore {
         load().recoveryRequest
     }
 
+    public func hasDeliveredResetCreditNotice(_ id: String) -> Bool {
+        (load().notificationHistory ?? []).contains { $0.id == "reset-used:\(id)" && $0.status == .delivered }
+    }
+
+    @discardableResult
+    public func recordResetCreditNotice(_ notice: ResetCreditSuccessNotice, delivered: Bool, now: Date = Date()) -> Bool {
+        var state = migrateHistoryIfNeeded(load())
+        var history = state.notificationHistory ?? []
+        let id = "reset-used:\(notice.id)"
+        let previous = history.first { $0.id == id }
+        if previous?.status == .delivered { return true }
+        let record = QuotaReminderHistoryRecord(id: id, kind: .resetCreditUsed,
+            status: delivered ? .delivered : .failed, lastAttemptAt: now,
+            deliveredAt: delivered ? now : nil, expiresAt: notice.expiresAt,
+            attemptCount: (previous?.attemptCount ?? 0) + 1)
+        history.removeAll { $0.id == id }
+        history.append(record)
+        state.notificationHistory = prunedHistory(history)
+        save(state)
+        return (load().notificationHistory ?? []).contains(record)
+    }
+
     public func automaticRecoveryEnabled() -> Bool {
         load().isAutomaticRecoveryEnabled
+    }
+
+    public func resetExpiryReminderEnabled() -> Bool { load().isResetExpiryReminderEnabled }
+
+    @discardableResult
+    public func setResetExpiryReminderEnabled(_ enabled: Bool) -> Bool {
+        var state = migrateHistoryIfNeeded(load())
+        state.resetExpiryReminderEnabled = enabled
+        state.resetExpiryReminderRevision = (state.resetExpiryReminderRevision ?? 0) + 1
+        save(state)
+        return load() == state
     }
 
     public func lowQuotaThreshold() -> Int { load().lowQuotaThreshold ?? 0 }

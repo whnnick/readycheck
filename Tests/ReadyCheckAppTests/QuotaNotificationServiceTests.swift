@@ -5,6 +5,83 @@ import XCTest
 
 @MainActor
 final class QuotaNotificationServiceTests: XCTestCase {
+    func testResetSuccessWithDeniedPermissionRemainsUndeliveredWithoutClaimingSuccess() async {
+        let store = makeReminderStore()
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]])
+        client.authorizationStatus = .denied
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        let result = await service.deliverResetCreditSuccess(ResetCreditSuccessNotice(id: "denied", expiresAt: Date()),
+            localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertFalse(result)
+        XCTAssertTrue(client.addedRequests.isEmpty)
+        let records = await store.history()
+        XCTAssertEqual(records.first?.status, .failed)
+    }
+
+    func testResetSuccessNotifiesWithExpiryOffAndHistoryDeduplicatesAfterDismissal() async throws {
+        let store = makeReminderStore()
+        _ = await store.setResetExpiryReminderEnabled(false)
+        _ = await store.setAutomaticRecoveryEnabled(false)
+        let notice = ResetCreditSuccessNotice(id: "fixture-request", expiresAt: Date(timeIntervalSince1970: 1_900_000_000))
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]], markDeliveredWhenAdded: true)
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        let sent = await service.deliverResetCreditSuccess(notice, localization: LocalizationService(language: .zhCN), reminderStore: store)
+        XCTAssertTrue(sent)
+        XCTAssertEqual(client.addedRequests.count, 1)
+        XCTAssertEqual(client.addedRequests[0].content.title, "重置卡已自动使用")
+        XCTAssertTrue(client.addedRequests[0].content.body.contains("服务端已确认"))
+        let dismissedClient = FakeNotificationCenterClient(deliveredSnapshots: [[]])
+        let restarted = QuotaNotificationService(client: dismissedClient, verificationDelays: [.zero])
+        let deduped = await restarted.deliverResetCreditSuccess(notice, localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertTrue(deduped)
+        XCTAssertTrue(dismissedClient.addedRequests.isEmpty)
+        let records = await store.history()
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records[0].kind, .resetCreditUsed)
+        XCTAssertEqual(records[0].status, .delivered)
+    }
+
+    func testResetSuccessFailedDeliveryRetriesSameNotificationWithoutLosingHistory() async {
+        let store = makeReminderStore()
+        let notice = ResetCreditSuccessNotice(id: "fixture-retry", expiresAt: Date())
+        let failing = FakeNotificationCenterClient(deliveredSnapshots: [[]])
+        let first = QuotaNotificationService(client: failing, verificationDelays: [.zero])
+        let failed = await first.deliverResetCreditSuccess(notice, localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertFalse(failed)
+        let previous = await store.history()
+        XCTAssertEqual(previous.first?.status, .failed)
+        let working = FakeNotificationCenterClient(deliveredSnapshots: [[]], markDeliveredWhenAdded: true)
+        let retry = QuotaNotificationService(client: working, verificationDelays: [.zero])
+        let delivered = await retry.deliverResetCreditSuccess(notice, localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertTrue(delivered)
+        XCTAssertEqual(failing.addedRequests.first?.identifier, working.addedRequests.first?.identifier)
+        let records = await store.history()
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records.first?.attemptCount, 2)
+    }
+    func testDisabledExpiryRejectsAlreadyPreparedDeliveryWithoutBlockingCredits() async {
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]], markDeliveredWhenAdded: true)
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        let store = makeReminderStore()
+        _ = await store.setResetExpiryReminderEnabled(false)
+        let expiry = QuotaReminderEvent.manualResetExpiring(index: 1, expiresAt: Date().addingTimeInterval(3600), leadHours: 12)
+        let delivered = await service.deliver([expiry, .creditsStarted], localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertEqual(delivered, [.creditsStarted])
+        XCTAssertEqual(client.addedRequests.count, 1)
+        XCTAssertEqual(client.addedRequests.first?.content.title, LocalizationService(language: .enUS).text("notification.creditsStarted.title"))
+    }
+
+    func testExpiryDisabledDuringPermissionCheckDoesNotQueueNotification() async {
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]], markDeliveredWhenAdded: true)
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        let store = makeReminderStore()
+        client.onConfiguration = { _ = await store.setResetExpiryReminderEnabled(false) }
+        let event = QuotaReminderEvent.manualResetExpiring(index: 1, expiresAt: Date().addingTimeInterval(3600), leadHours: 12)
+        let delivered = await service.deliver([event], localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertTrue(delivered.isEmpty)
+        XCTAssertTrue(client.addedRequests.isEmpty)
+    }
+
     func testDismissalWaitsUntilNotificationCenterActuallyRemovesRecoveryAlert() async {
         let identifier = "readycheck.recovered.old"
         let client = FakeNotificationCenterClient(
@@ -107,6 +184,8 @@ final class QuotaNotificationServiceTests: XCTestCase {
 
 @MainActor
 private final class FakeNotificationCenterClient: NotificationCenterClient {
+    var onConfiguration: (@MainActor () async -> Void)?
+    var authorizationStatus: UNAuthorizationStatus = .authorized
     private var deliveredSnapshots: [Set<String>]
     private let markDeliveredWhenAdded: Bool
     private var addedIdentifiers: Set<String> = []
@@ -119,8 +198,9 @@ private final class FakeNotificationCenterClient: NotificationCenterClient {
     }
 
     func configuration() async -> NotificationCenterConfiguration {
-        NotificationCenterConfiguration(
-            authorizationStatus: .authorized,
+        await onConfiguration?()
+        return NotificationCenterConfiguration(
+            authorizationStatus: authorizationStatus,
             alertSetting: .enabled,
             alertStyle: .alert
         )

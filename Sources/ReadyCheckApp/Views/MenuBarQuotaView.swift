@@ -35,6 +35,9 @@ struct MenuBarQuotaView: View {
                                 Text(localization.text(snapshot.availabilityTextKey(now: now))).font(.caption).foregroundStyle(.secondary)
                             }
                         }
+                        if let pace = model.quotaPace(now: now) {
+                            QuotaPaceView(pace: pace, localization: localization, now: now, compact: true)
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)

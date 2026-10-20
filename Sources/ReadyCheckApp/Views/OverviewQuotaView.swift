@@ -42,10 +42,15 @@ struct OverviewQuotaView: View {
                     .font(.subheadline.weight(.semibold)).lineLimit(2)
                 Spacer(minLength: 0)
                 if primary {
-                    Image(systemName: "star.fill").font(.caption2).foregroundStyle(.secondary)
+                    Text(model.localization.text("overview.primaryBadge"))
+                        .font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+                        .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(Color.primary.opacity(0.06), in: Capsule())
+                        .help(model.localization.text("settings.quotaWindowHelp"))
                         .accessibilityLabel(model.localization.text("overview.primary"))
                 }
-            }
+            }.frame(minHeight: 22)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(QuotaFormatters.percentageText(for: ratio))
                     .font(.system(size: 40, weight: .semibold, design: .rounded)).monospacedDigit()

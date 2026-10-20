@@ -1,0 +1,38 @@
+{
+  "version": "0.3.0",
+  "date": "2026-10-20",
+  "publicSourceSwiftTests": {
+    "executed": 363,
+    "failures": 0
+  },
+  "windows": [
+    "syntax/service tests passed",
+    "smoke passed",
+    "UI behavior smoke passed",
+    "ZIP integrity and ASAR privacy checks passed"
+  ],
+  "macOS": {
+    "architecture": "arm64",
+    "minimumOS": "14.0",
+    "mountedBundleVersion": "0.3.0",
+    "strictSignature": "passed",
+    "identity": "ReadyCheck Preview Signing",
+    "developerID": false,
+    "notarized": false,
+    "privateExecutableStringFindings": 0
+  },
+  "artifacts": [
+    {
+      "name": "ReadyCheck-0.3.0-macos.dmg",
+      "bytes": 2827426,
+      "sha256": "5f8c62b2aeece8500c165cf88951b8fae2a4587fb9ac16fbc128112181df5527"
+    },
+    {
+      "name": "ReadyCheck-0.3.0-windows-x64-portable.zip",
+      "bytes": 151013055,
+      "sha256": "845109481803a46dc553ce79aa26fb1f4056a9a978927facf92239c21295d50b"
+    }
+  ],
+  "remoteDelivery": "pending",
+  "deviceScope": "Unverified menu/offline/account-switch/multidisplay conditions accepted as limits; no real reset card spent."
+}

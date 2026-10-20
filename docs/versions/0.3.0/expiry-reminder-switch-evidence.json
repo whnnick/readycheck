@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "version": "0.3.0-dev.3",
+  "date": "2026-10-20",
+  "requirement": "R8 / retained D05: independent expiry reminder preference",
+  "placement": "Settings > Reminders, above automatic card use in the same section",
+  "defaults": {
+    "expiryReminder": true,
+    "automaticCardUse": false
+  },
+  "scheduleHours": [
+    72,
+    48,
+    24,
+    12
+  ],
+  "tests": {
+    "fullSwift": 356,
+    "failures": 0,
+    "newCorePreferenceTests": 3,
+    "newNotificationDeliveryTests": 2,
+    "nativeModelBilingualIntegration": "passed"
+  },
+  "verified": [
+    "legacy missing field defaults on",
+    "preference survives store restart",
+    "disabling preserves card tracking and independent reminder choices",
+    "re-enable does not replay handled thresholds",
+    "in-flight commits preserve newest preference",
+    "permission-wait disable blocks queued expiry delivery",
+    "canceled unsent event does not produce failed-delivery record",
+    "bilingual grouped native rendering fits",
+    "signed development app launched",
+    "physical toggle On-Off-On and persisted flag checked",
+    "live account quotas and retained subscription/Credits/reset details restored after normal Keychain confirmation"
+  ],
+  "existingPreferencesRetained": 18,
+  "existingHistoryRecordsRetained": true,
+  "notificationHistoryIDsRetained": true,
+  "historyNote": "Existing delivery attempt metadata may update during normal account refresh; history retention is checked by record identity, not byte equality.",
+  "nativeFinalState": {
+    "expiryReminderOn": true,
+    "automaticUseOff": true,
+    "recoveryChoiceUnchanged": true,
+    "lowQuotaChoiceUnchanged": true
+  },
+  "realCardsConsumed": 0,
+  "enabledStateFileCreated": false,
+  "publicPushOrRelease": false,
+  "limits": [
+    "No new physical banner delivery claim",
+    "Requires application running and OS notification permission",
+    "Windows version metadata only",
+    "Formal 0.3.0 retention and release gates remain open"
+  ]
+}

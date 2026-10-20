@@ -1,0 +1,57 @@
+{
+  "version": "0.2.2-dev.1",
+  "date": "2026-10-19",
+  "scope": "local-development",
+  "publicRelease": "0.2.1",
+  "connectionRaceRegression": {
+    "cases": 3,
+    "failedAssertionsBeforeFix": 12,
+    "passedAfterFix": true
+  },
+  "focusedRecoveryAndConnection": {
+    "tests": 17,
+    "failures": 0
+  },
+  "fullSwiftRegression": {
+    "tests": 327,
+    "failures": 0,
+    "unexpectedFailures": 0,
+    "skipped": 0
+  },
+  "simulation": {
+    "network": "injected transport failure and recovery",
+    "wake": "model wake callback; no host executable",
+    "realAccountSwitch": false,
+    "physicalSleepWake": false
+  },
+  "keychain": {
+    "existingAndRetainedBundleRequirementsMatch": true,
+    "aclChanged": false,
+    "credentialsRemoved": false,
+    "promptEliminationClaimed": false
+  },
+  "package": {
+    "state": "signed-local-preview-launched",
+    "strictSignatureVerified": true,
+    "sameRequirementAsStableApp": true,
+    "executableSHA256": "a275171abbc9f8a1719ed21c44c37742fae787fc2fdbca3d3de89cbbdc2d5135",
+    "installedStableAppReplaced": false
+  },
+  "published": false,
+  "native": {
+    "versionVisible": "0.2.2-dev.1",
+    "existingPreferenceKeysUnchanged": 16,
+    "existingHistoryFilesUnchanged": 2,
+    "lowThresholdPreserved": true,
+    "recoveryReminderAndHistoryPreserved": true,
+    "liveCredentialRead": "passed-after-user-system-confirmation",
+    "manualRefreshCompleted": true,
+    "bothQuotaWindowsVisible": true,
+    "accountBenefitsPreserved": true,
+    "localQuotaHistoryReadable": true,
+    "officialDailyTokenDataReadable": true,
+    "widgetDetailsAndLastHourReadable": true,
+    "escapeCollapsedWidget": true
+  },
+  "implementationCommit": "1399d2f"
+}

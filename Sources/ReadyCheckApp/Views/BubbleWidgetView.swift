@@ -220,6 +220,9 @@ struct BubbleWidgetView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
 
+            if let pace = model.quotaPace(now: now) {
+                QuotaPaceView(pace: pace, localization: model.localization, now: now, compact: true)
+            }
             miniTrend
             if snapshot?.isCached == true {
                 Text(model.localization.text("status.stale")).font(.caption2).foregroundStyle(.orange)

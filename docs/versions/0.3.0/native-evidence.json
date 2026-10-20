@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "version": "0.3.0-dev.1",
+  "date": "2026-10-19",
+  "publicRelease": false,
+  "tests": {
+    "swift": {
+      "executed": 338,
+      "failures": 0
+    },
+    "paceCore": 10,
+    "targetedLayout": 18,
+    "developmentMetadata": "passed"
+  },
+  "native": {
+    "package": "signed preview",
+    "strictSignature": "passed in user trust context",
+    "designatedRequirementMatchesInstalled": true,
+    "launchVersionVerified": true,
+    "existingPreferenceValuesRetained": 18,
+    "historyFilesUnchangedAtStartup": 2,
+    "notificationRecordsUnchangedAtStartup": true,
+    "liveData": "passed after normal user Keychain confirmation",
+    "deviceChecks": [
+      "live five-hour and seven-day readings",
+      "conditional risk summary",
+      "subscription, Credits, reset count and expirations",
+      "official Token charts and comparisons",
+      "Widget retained quota rows, summary, last-hour chart and footer",
+      "Widget Escape collapse",
+      "About entry and highlights"
+    ],
+    "menuAcceptance": "synthetic native rendering and existing size regressions only",
+    "captureHarness": "opaque dark backdrop correction; targeted test rerun passed"
+  },
+  "layout": {
+    "expandedWidgetBefore": [
+      380,
+      304
+    ],
+    "expandedWidgetAfter": [
+      380,
+      344
+    ],
+    "bothQuotaRowsVisibleAssertion": "failed before / passed after",
+    "lastHourChartAndFooterRetained": true
+  },
+  "privacy": {
+    "fixtures": "synthetic",
+    "credentialsExported": false,
+    "aclChanged": false,
+    "privateImagesPublished": false
+  },
+  "limits": [
+    "prediction error unvalidated",
+    "physical sleep/offline/account/display coverage pending",
+    "65-item final native retention acceptance pending",
+    "Windows metadata only",
+    "no push/publication"
+  ]
+}

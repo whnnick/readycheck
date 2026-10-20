@@ -92,6 +92,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
             await appModel.reloadNotificationReadiness()
             await appModel.reloadQuotaHistory()
             await appModel.reloadReminderHistory()
+            appModel.startResetCreditAutomation()
             await appModel.reloadCodexOAuthConnectionStatus()
             await appModel.refresh(reason: .openedPanel)
             appModel.startRateLimitMonitoring()
@@ -123,6 +124,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         NotificationCenter.default.removeObserver(self)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         appModel.stopRateLimitMonitoring()
+        appModel.stopResetCreditAutomation()
     }
 
     @objc private func systemDidWake() {
@@ -352,6 +354,9 @@ final class ReadyCheckAppModel {
     var quotaHistorySamples: [QuotaHistorySample] = []
     var hasUnassignedLegacyHistory = false
     var recoveryReminderRequest: QuotaRecoveryRequest?
+    var resetExpiryReminderEnabled = true
+    var isUpdatingResetExpiryReminder = false
+    var resetExpiryReminderSaveFailed = false
     var automaticRecoveryEnabled = true
     var recoveryReminderSaveFailed = false
     var lowQuotaThreshold = 0
@@ -359,6 +364,11 @@ final class ReadyCheckAppModel {
     var lowQuotaReminderSaveFailed = false
     var isUpdatingRecoveryReminder = false
     private var recoveryReminderAccount: String?
+    var resetCreditStatus = ResetCreditAutomationStatus(enabled: false, status: .off, updatedAt: nil)
+    var isUpdatingResetCreditAutomation = false
+    var resetCreditSaveFailed = false
+    var canEnableResetCredits: Bool { codexOAuthStatus == .connected && recoveryReminderAccount?.isEmpty == false }
+    var resetCreditAuthorizationAccount: String? { canEnableResetCredits ? recoveryReminderAccount : nil }
     var reminderHistoryRecords: [QuotaReminderHistoryRecord] = []
     var notificationReadiness: NotificationReadiness = .checking
     var testNotificationResult: TestNotificationResult = .idle
@@ -394,6 +404,11 @@ final class ReadyCheckAppModel {
     @ObservationIgnored
     private let quotaReminderStore: QuotaReminderStore
 
+    @ObservationIgnored private let resetCreditAutomation: ResetCreditAutomation
+    @ObservationIgnored private let resetCreditClient: any ResetCreditServicing
+    @ObservationIgnored private var resetCreditTask: Task<Void, Never>?
+    @ObservationIgnored private var resetCreditCheckRunning = false
+
     @ObservationIgnored
     private let quotaNotificationService: QuotaNotificationService
 
@@ -408,6 +423,9 @@ final class ReadyCheckAppModel {
 
     @ObservationIgnored
     private var storeGeneration = 0
+
+    @ObservationIgnored
+    private var refreshRequestID = 0
 
     @ObservationIgnored
     private let floatingWindowController = FloatingWindowController()
@@ -457,8 +475,13 @@ final class ReadyCheckAppModel {
         codexAppServerClient: any CodexAppServerReading = CodexAppServerClient(),
         rateLimitMonitor: CodexAppServerRateLimitMonitor = CodexAppServerRateLimitMonitor(),
         quotaNotificationService: QuotaNotificationService? = nil,
-        widgetVisibilityDefaults: UserDefaults = .standard
+        widgetVisibilityDefaults: UserDefaults = .standard,
+        resetCreditAutomation: ResetCreditAutomation? = nil,
+        resetCreditClient: any ResetCreditServicing = CodexResetCreditClient()
     ) {
+        self.resetCreditAutomation = resetCreditAutomation ?? ResetCreditAutomation(fileURL:
+            Self.defaultQuotaReminderURL.deletingLastPathComponent().appendingPathComponent("reset-credit-automation.json"))
+        self.resetCreditClient = resetCreditClient
         self.widgetVisibilityDefaults = widgetVisibilityDefaults
         self.widgetVisible = WidgetVisibilityPreference.value(defaults: widgetVisibilityDefaults)
         let initialConnectionMode = CodexConnectionMode(
@@ -772,9 +795,12 @@ final class ReadyCheckAppModel {
     }
 
     func reloadCodexOAuthConnectionStatus() async {
+        let activeStoreGeneration = storeGeneration
         if codexConnectionMode == .localCodex {
             do {
-                guard let snapshot = try await codexAppServerClient.readAccountSnapshots().first,
+                let accountSnapshots = try await codexAppServerClient.readAccountSnapshots()
+                guard activeStoreGeneration == storeGeneration else { return }
+                guard let snapshot = accountSnapshots.first,
                       !snapshot.rateLimits.isEmpty
                 else {
                     codexOAuthStatus = .notConnected
@@ -788,6 +814,7 @@ final class ReadyCheckAppModel {
                 codexOAuthLoginEmail = snapshot.email
                 await updateRecoveryReminderAccount(snapshot.accountID ?? snapshot.email)
             } catch {
+                guard activeStoreGeneration == storeGeneration else { return }
                 codexOAuthStatus = .notConnected
                 codexOAuthStatusMessage = localization.text("codex.local.unavailable")
                 codexOAuthLoginEmail = nil
@@ -797,7 +824,9 @@ final class ReadyCheckAppModel {
         }
         do {
             let tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)
-            if let token = try await tokenStore.loadToken() {
+            let token = try await tokenStore.loadToken()
+            guard activeStoreGeneration == storeGeneration else { return }
+            if let token {
                 codexOAuthStatus = .connected
                 codexOAuthStatusMessage = nil
                 codexOAuthLoginEmail = token.loginEmail
@@ -808,6 +837,7 @@ final class ReadyCheckAppModel {
                 codexOAuthLoginEmail = nil
             }
         } catch {
+            guard activeStoreGeneration == storeGeneration else { return }
             codexOAuthStatus = isCredentialStorageError(error) ? .credentialStorageFailed : .failed
             codexOAuthStatusMessage = codexOAuthMessage(for: error)
             codexOAuthLoginEmail = nil
@@ -1131,6 +1161,7 @@ final class ReadyCheckAppModel {
         if widgetSnoozedUntil != nil { restoreFloatingWidgetIfNeeded() }
         rateLimitMonitor.stop()
         startRateLimitMonitoring()
+        Task { await checkResetCreditAutomation() }
         scheduleRateLimitEventRefresh()
     }
 
@@ -1140,8 +1171,12 @@ final class ReadyCheckAppModel {
         let activeStore = store
         let activeStoreGeneration = storeGeneration
 
+        refreshRequestID += 1
+        let activeRefreshID = refreshRequestID
         isRefreshing = true
-        defer { isRefreshing = false }
+        defer {
+            if activeRefreshID == refreshRequestID { isRefreshing = false }
+        }
 
         await activeStore.refreshAll(reason: reason)
         guard activeStoreGeneration == storeGeneration else { return }
@@ -1185,6 +1220,13 @@ final class ReadyCheckAppModel {
         await reloadNotificationReadiness()
     }
 
+    func quotaPace(now: Date) -> QuotaPace? {
+        guard let snapshot = snapshots.first(where: { $0.providerId == "codex-oauth" }),
+              snapshot.windows.contains(where: { $0.durationMinutes == 300 }) else { return nil }
+        return QuotaPace.evaluate(snapshot: snapshot, samples: quotaHistorySamples,
+            thresholdPercent: lowQuotaThreshold, now: now)
+    }
+
     func reloadQuotaHistory() async {
         quotaHistorySamples = await quotaHistoryStore.load(accountID: recoveryReminderAccount)
         hasUnassignedLegacyHistory = await quotaHistoryStore.hasUnassignedLegacyHistory()
@@ -1194,7 +1236,9 @@ final class ReadyCheckAppModel {
         reminderHistoryRecords = await quotaReminderStore.history()
         recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
         automaticRecoveryEnabled = await quotaReminderStore.automaticRecoveryEnabled()
+        resetExpiryReminderEnabled = await quotaReminderStore.resetExpiryReminderEnabled()
         lowQuotaThreshold = await quotaReminderStore.lowQuotaThreshold()
+        resetCreditStatus = await resetCreditAutomation.status(account: recoveryReminderAccount)
     }
 
     private func updateRecoveryReminderAccount(_ account: String?) async {
@@ -1207,10 +1251,86 @@ final class ReadyCheckAppModel {
             storeGeneration += 1
         }
         recoveryReminderAccount = account
+        resetCreditStatus = await resetCreditAutomation.status(account: account)
         await reloadQuotaHistory()
         if let request = await quotaReminderStore.recoveryRequest(), request.account != account {
             await cancelRecoveryReminder()
         }
+    }
+
+    func startResetCreditAutomation() {
+        guard resetCreditTask == nil else { return }
+        resetCreditTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.checkResetCreditAutomation()
+                try? await Task.sleep(for: .seconds(60))
+            }
+        }
+    }
+
+    func stopResetCreditAutomation() { resetCreditTask?.cancel(); resetCreditTask = nil }
+
+    func setResetCreditAutomationEnabled(_ enabled: Bool, confirmedAccount: String? = nil) async {
+        guard !isUpdatingResetCreditAutomation, let account = recoveryReminderAccount,
+              !enabled || (canEnableResetCredits && confirmedAccount == account) else { return }
+        isUpdatingResetCreditAutomation = true
+        defer { isUpdatingResetCreditAutomation = false }
+        resetCreditSaveFailed = !(await resetCreditAutomation.setEnabled(enabled, account: account))
+        resetCreditStatus = await resetCreditAutomation.status(account: recoveryReminderAccount)
+        // The confirmation authorizes this account; execution starts on the next background check.
+        if enabled && !resetCreditSaveFailed { await requestNotificationAuthorizationIfNeeded() }
+    }
+
+    func checkResetCreditAutomation() async {
+        guard !resetCreditCheckRunning, let account = recoveryReminderAccount else { return }
+        resetCreditCheckRunning = true
+        defer { resetCreditCheckRunning = false }
+        resetCreditStatus = await resetCreditAutomation.status(account: account)
+        await deliverResetCreditSuccessNotices(account: account)
+        guard resetCreditStatus.enabled, canEnableResetCredits else { return }
+        let generation = storeGeneration
+        var token: CodexOAuthToken?
+        do {
+            token = codexConnectionMode == .standaloneOAuth
+                ? try await CodexOAuthTokenStore(credentialStore: credentialStore).loadToken() : nil
+            if codexConnectionMode == .standaloneOAuth && token == nil { throw CodexOAuthError.invalidStoredToken }
+            if let current = token, current.expiresAt <= Date() {
+                guard !isRefreshing else { return }
+                // Reuse the existing serialized refresh/Keychain lifecycle, including its failure UI.
+                await refresh(reason: .automatic)
+                token = try await CodexOAuthTokenStore(credentialStore: credentialStore).loadToken()
+            }
+        } catch {
+            resetCreditStatus = ResetCreditAutomationStatus(enabled: true, status: .unavailable, updatedAt: nil)
+            return
+        }
+        guard generation == storeGeneration, account == recoveryReminderAccount, !Task.isCancelled else { return }
+        let previousUpdate = resetCreditStatus.updatedAt
+        let result = await resetCreditAutomation.tick(account: account, token: token, client: resetCreditClient, now: Date())
+        guard generation == storeGeneration, account == recoveryReminderAccount else { return }
+        resetCreditStatus = result
+        if result.updatedAt != previousUpdate, result.status == .reset || result.status == .alreadyRedeemed { scheduleRateLimitEventRefresh() }
+        await deliverResetCreditSuccessNotices(account: account)
+    }
+
+    private func deliverResetCreditSuccessNotices(account: String) async {
+        let notices = await resetCreditAutomation.pendingSuccessNotices(account: account)
+        for notice in notices {
+            guard recoveryReminderAccount == account, !Task.isCancelled else { return }
+            if await quotaNotificationService.deliverResetCreditSuccess(notice, localization: localization, reminderStore: quotaReminderStore) {
+                _ = await resetCreditAutomation.acknowledgeSuccessNotice(notice.id, account: account)
+            }
+        }
+        if !notices.isEmpty { await reloadReminderHistory() }
+    }
+
+    func setResetExpiryReminderEnabled(_ enabled: Bool) async {
+        guard !isUpdatingResetExpiryReminder else { return }
+        isUpdatingResetExpiryReminder = true
+        defer { isUpdatingResetExpiryReminder = false }
+        resetExpiryReminderSaveFailed = !(await quotaReminderStore.setResetExpiryReminderEnabled(enabled))
+        resetExpiryReminderEnabled = await quotaReminderStore.resetExpiryReminderEnabled()
+        if enabled && !resetExpiryReminderSaveFailed { await requestNotificationAuthorizationIfNeeded() }
     }
 
     func setAutomaticRecoveryEnabled(_ enabled: Bool) async {
@@ -1284,6 +1404,8 @@ final class ReadyCheckAppModel {
             )
         )
         storeGeneration += 1
+        refreshRequestID += 1
+        isRefreshing = false
         snapshots = []
         lastSuccessfulRefreshAt = nil
         lastRefreshAt = nil

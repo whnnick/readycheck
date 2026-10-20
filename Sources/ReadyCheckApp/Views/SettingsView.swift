@@ -65,6 +65,9 @@ struct SettingsView: View {
                     model.mainWindowPage = .settings; model.mainSettingsSection = .connection
                 }
             }
+            if let pace = model.quotaPace(now: now) {
+                QuotaPaceView(pace: pace, localization: model.localization, now: now)
+            }
             ForEach(model.snapshots.filter { $0.providerId == "codex-oauth" }) { snapshot in
                 quotaRecoveryActions(for: snapshot)
                 QuotaCardView(snapshot: snapshot, localization: model.localization, now: now, displayMode: .accountDetails)
@@ -120,6 +123,13 @@ struct SettingsView: View {
                         QuotaRecoveryReminderView(model: model, now: now)
                         Divider()
                         notificationControls
+                    }
+                }
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ResetExpiryReminderView(model: model)
+                        Divider()
+                        ResetCreditAutomationView(model: model)
                     }
                 }
                 GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {

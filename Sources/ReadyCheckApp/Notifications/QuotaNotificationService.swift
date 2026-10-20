@@ -130,7 +130,9 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
             }
         }
 
+        let expiryEnabled = await reminderStore.resetExpiryReminderEnabled()
         let notificationEvents = events.filter {
+            if case .manualResetExpiring = $0 { return expiryEnabled }
             if case .dismissQuotaRecovered = $0 { return false }
             return true
         }
@@ -139,6 +141,8 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         }
 
         for event in notificationEvents {
+            if case .manualResetExpiring = event,
+               !(await reminderStore.resetExpiryReminderEnabled()) { continue }
             if case let .quotaLow(alert) = event,
                !(await reminderStore.isLowQuotaAlertActive(alert)) { continue }
             if case .quotaLow = event,
@@ -197,6 +201,23 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         }
 
         return deliveredEvents
+    }
+
+    func deliverResetCreditSuccess(_ notice: ResetCreditSuccessNotice, localization: LocalizationService,
+                                   reminderStore: QuotaReminderStore) async -> Bool {
+        if await reminderStore.hasDeliveredResetCreditNotice(notice.id) { return true }
+        let identifier = "readycheck.reset-used.\(notice.id)"
+        var delivered = await deliveredNotificationIdentifiers().contains(identifier)
+        if !delivered, await canDeliverNotifications() {
+            let content = UNMutableNotificationContent()
+            content.title = localization.text("notification.resetUsed.title")
+            content.body = String(format: localization.text("notification.resetUsed.body"),
+                Self.dateFormatter(language: localization.language).string(from: notice.expiresAt))
+            content.sound = .default
+            delivered = await addAndVerify(UNNotificationRequest(identifier: identifier, content: content, trigger: nil))
+        }
+        let saved = await reminderStore.recordResetCreditNotice(notice, delivered: delivered)
+        return delivered && saved
     }
 
     private func canDeliverNotifications() async -> Bool {

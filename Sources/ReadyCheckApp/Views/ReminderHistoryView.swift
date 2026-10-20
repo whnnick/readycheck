@@ -153,6 +153,8 @@ private struct ReminderHistoryRow: View {
 
     private var title: String {
         switch record.kind {
+        case .resetCreditUsed:
+            return localization.text("notification.resetUsed.title")
         case .quotaLow:
             return localization.text("notification.lowQuota.title")
         case .manualResetExpiring:

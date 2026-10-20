@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "version": "0.3.0-dev.2",
+  "date": "2026-10-20",
+  "officialMethod": "account/rateLimitResetCredit/consume",
+  "officialDocumentation": "https://learn.chatgpt.com/docs/app-server#8-earned-rate-limit-resets-chatgpt",
+  "localSchemaVersion": "codex-cli 0.162.1",
+  "schemaConfirms": [
+    "creditId",
+    "idempotencyKey",
+    "reset",
+    "alreadyRedeemed",
+    "nothingToReset",
+    "noCredit"
+  ],
+  "tests": {
+    "fullSwift": 351,
+    "failures": 0,
+    "policy": 8,
+    "processProtocol": 4,
+    "nativeModelUI": 1
+  },
+  "verifiedWithFakes": [
+    "off makes no service calls",
+    "account-owned consent",
+    "earliest specified valid card in final hour",
+    "expiry and unknown dates",
+    "invalid type and duplicate IDs rejected",
+    "durable request key reused across restart",
+    "unknown disappearance pauses other cards",
+    "disable during preflight and revocation at RPC write",
+    "overlapping checks serialized",
+    "known no-eligible outcome distinct from unknown outcome",
+    "corrupt/unwritable state blocks use",
+    "exact consume and post-read RPC sequence",
+    "isolated external-token home removed",
+    "unsupported RPC fails closed",
+    "old reminder-off and recovery choices retained",
+    "confirmation account cannot carry over",
+    "bilingual control rendering"
+  ],
+  "nativePackage": "0.3.0-dev.2 built, strict preview signature verified, launched",
+  "deviceControl": "Passed on 0.3.0-dev.2 after normal user Keychain confirmation: account restored, Settings / Reminders entry available and off, account-specific confirmation and irreversible-use conditions visible, Cancel returns to Off. No enabling or redemption performed.",
+  "liveRedemption": "not performed",
+  "realCardsConsumed": 0,
+  "automationEnabledForUser": false,
+  "publication": false,
+  "limits": [
+    "application must remain running and awake",
+    "offline or authentication failures may miss expiry",
+    "standalone external-token login is experimental",
+    "live redemption acceptance remains unverified",
+    "Windows metadata only",
+    "formal 0.3.0 release gates remain open"
+  ],
+  "existingPreferencesRetained": 18,
+  "existingHistoryRecordsRetained": true,
+  "automationEnabledStateFileCreated": false,
+  "physicalCancelFlowPassed": true,
+  "liveAccountRead": "Both quota windows and retained subscription/Credits/reset details readable; no private values recorded."
+}

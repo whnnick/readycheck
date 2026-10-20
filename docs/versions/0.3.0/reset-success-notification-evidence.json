@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "version": "0.3.0-dev.4",
+  "date": "2026-10-20",
+  "requirement": "Dedicated notification after confirmed automatic reset-card use",
+  "tests": {
+    "fullSwift": 362,
+    "failures": 0,
+    "newTests": 6,
+    "newCoreReceiptTests": 2,
+    "newHistoryMergeTest": 1,
+    "newNotificationTests": 3,
+    "nativeModelIntegration": "confirmed fake receipt flows to verified notification and history"
+  },
+  "verifiedWithFakes": [
+    "reset and alreadyRedeemed create account-owned pending notice",
+    "unknown and nothingToReset do not create success notice",
+    "pending notice survives restart and disabling future use",
+    "acknowledgement survives restart",
+    "legacy receipts are not replayed",
+    "success notification works with expiry/recovery switches off",
+    "delivered history deduplicates after dismissal/restart",
+    "failure retries same stable notification ID",
+    "denied permission never claims delivery",
+    "stale quota batches retain concurrently recorded use receipt",
+    "late failed result cannot downgrade delivered history"
+  ],
+  "notificationContent": {
+    "zhTitle": "\u91cd\u7f6e\u5361\u5df2\u81ea\u52a8\u4f7f\u7528",
+    "enTitle": "Reset card used automatically",
+    "body": "Service confirmation plus original card expiry; no account or request identifiers"
+  },
+  "nativePackage": "built, strict preview-signature verified and launched",
+  "bilingualNativeRendering": "passed",
+  "retention": {
+    "oldPreferenceCount": 18,
+    "oldPreferencesRetained": true,
+    "quota-history.jsonRetained": true,
+    "quota-history-v2.jsonRetained": true,
+    "notificationHistoryIDsRetained": true,
+    "automaticUsePreferenceFilePresent": true,
+    "automaticUsePreferenceFileUnchanged": true
+  },
+  "userAutomaticUseChoice": "Observed On before replacement; enabled-state file preserved byte-for-byte. Agent did not enable or disable it.",
+  "liveAccountRead": "Passed after normal user Keychain confirmation: both quota windows and retained subscription/Credits/reset details readable; no private values recorded.",
+  "realRedemptionAcceptance": "not performed",
+  "realCardsConsumedByVerification": 0,
+  "physicalSuccessBannerAcceptance": "not performed; no synthetic success notification sent to user Notification Center",
+  "publicPushOrRelease": false,
+  "limits": [
+    "OS notification permission and Focus govern banner visibility",
+    "A crash between OS delivery and local acknowledgement cannot provide transactional exactly-once semantics",
+    "Formal 0.3.0 release and retention gates remain open",
+    "Windows metadata only"
+  ],
+  "nativeAutomaticUseState": "On, waiting for an eligible card to enter its final hour; expiry reminder On and system persistent notifications enabled. User choice unchanged."
+}

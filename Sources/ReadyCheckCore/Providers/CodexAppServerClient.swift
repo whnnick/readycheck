@@ -93,6 +93,7 @@ public struct CodexAppServerRateLimitSnapshot: Equatable, Sendable {
 
 public struct CodexAppServerResetCredit: Equatable, Sendable {
     public let id: String?
+    public let resetType: String?
     public let title: String?
     public let detail: String?
     public let status: String?
@@ -100,12 +101,14 @@ public struct CodexAppServerResetCredit: Equatable, Sendable {
 
     public init(
         id: String? = nil,
+        resetType: String? = nil,
         title: String? = nil,
         detail: String? = nil,
         status: String?,
         expiresAt: Date?
     ) {
         self.id = id
+        self.resetType = resetType
         self.title = title
         self.detail = detail
         self.status = status
@@ -397,6 +400,7 @@ public enum CodexAppServerResponseParser {
             resetCredits: limits.rateLimitResetCredits?.credits?.map {
                 CodexAppServerResetCredit(
                     id: $0.id,
+                    resetType: $0.resetType,
                     title: $0.title,
                     detail: $0.description,
                     status: $0.status,
@@ -485,6 +489,7 @@ private struct RateLimitsResponse: Decodable {
 
     struct Credit: Decodable {
         let id: String?
+        let resetType: String?
         let title: String?
         let description: String?
         let status: String?

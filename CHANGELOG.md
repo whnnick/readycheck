@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.3.0 - 2026-10-20
+
+- Add a shared five-hour quota-pace reference in Overview, menu and Widget. It uses recent contiguous account-owned observations, states its constant-rate assumption, and suppresses estimates when history is missing, stale or unstable. It is not an accurate time-left guarantee and never controls Codex tasks.
+- Add optional account-authorized reset-card use in the card’s final hour, earliest expiry first. Automatic use is off by default; confirmed use produces a dedicated success notification and history record, with persistent notification retry/deduplication.
+- Add an independent, default-on72/48/24/12-hour expiry-reminder switch. Keep recovery/low-quota preferences, account benefits, official Token usage and the Widget’s last-hour chart.
+- Label the selected primary quota explicitly; protect late connection results and independent refreshes. Preserve existing settings, account histories and credentials.
+- macOS-only feature additions. Windows retains its existing interface with synchronized version metadata. Distribution remains a self-signed, non-notarized preview; real redemption is not consumed for release verification.
+
+## 0.3.0-dev.5 - 2026-10-20 (unpublished local development build)
+
+- Replace the Overview quota card’s unexplained star with a localized “Primary” label and existing display-purpose help. Primary-quota selection and all quota/reminder behavior remain unchanged. Windows metadata only.
+
+## 0.3.0-dev.4 - 2026-10-20 (unpublished local development build)
+
+- Send a dedicated automatic-card-use success notification after the service confirms `reset` or an idempotent `alreadyRedeemed` result, identifying the card by its original expiry time.
+- Persist account-owned pending notices, verify Notification Center delivery, and retry notification failures without consuming another card. Verified notices are deduplicated across checks/restarts and recorded in notification history.
+- Success notices are independent of expiry/recovery reminder switches. Allow system notifications; macOS controls banner visibility. No real card consumed in verification; Windows metadata only.
+
+## 0.3.0-dev.3 - 2026-10-20 (unpublished local development build)
+
+- Add a separate “Reset-card expiry reminders” switch above automatic card use in Settings → Reminders, with the existing72/48/24/12-hour schedule visible. Old settings default to On.
+- Persist this choice independently from recovery/low-quota reminders and automatic card redemption. Disabled reminders keep card details, notification history and deduplication; re-enabling does not replay handled thresholds.
+- Recheck the switch before delivery and preserve preference changes across in-flight batches; canceled, unsent expiry events are not logged as failed deliveries. Windows metadata only; no public release or real card use.
+
+## 0.3.0-dev.2 - 2026-10-20 (unpublished local development build)
+
+- Add an independent, default-off, account-scoped setting to use a specified earned reset card during its final hour, using the documented Codex app-server consume method.
+- Check each minute while the app runs and on wake; persist the exact card/request identity before sending. Reuse that identity on retries, distinguish service outcomes, and stop other card use when a prior outcome cannot be verified until that card expires. No credits are purchased.
+- Keep existing expiry/low-quota/recovery reminders and all previous controls. Enabling requires explicit in-app confirmation. Quitting, sleep, network/auth failures and unsupported clients can prevent timely use. Real redemption is not tested; Windows metadata only.
+
+## 0.3.0-dev.1 - 2026-10-19 (unpublished native development build)
+
+- Incrementally add one shared five-hour quota-pace evaluator to existing Overview, Widget and menu surfaces, preserving account, Token, desktop and settings entries.
+- Compare the alert level with reset using contiguous account/cycle-owned history; suppress extrapolation for stale, cached, missing, reset, invalid, uneven or restricted readings.
+- Retain Off/5/10/20% reminders. Off uses10% as a reference without changing notification state. Estimates are conditional, not guaranteed runtime. Update About highlights; Windows metadata only. Prediction error and device coverage remain pending; no publication.
+
+## 0.3.0-preview.1 - 2026-10-19 (unpublished browser prototype)
+
+- Document65 retained native capabilities, prototype omissions and per-item acceptance gates. Removals require explicit user approval; unfinished relevant checks block production release.
+
+
+- Explore quota pace versus reset, with conditional estimates, seven synthetic scenarios and shared Overview/Widget/menu summaries. Retain the last-hour chart and account/Token/About entries.
+- Preview5/10/20% target changes and clearer reminder wording in Chinese and English. No live quota, native integration, actual notification or task control; native development version remains0.2.2-dev.1.
+
+## 0.2.2-dev.1 - 2026-10-19 (unpublished local preview)
+
+- Ignore late connection results and credential-read failures after changing account source, keeping current account status and history isolated.
+- Allow a new connection to refresh while the superseded request finishes; an old completion no longer clears the new request's activity indicator.
+- Add synthetic transport recovery, wake-callback and connection-race regressions; retain existing low-quota/recovery reminders and their deduplication. Keychain access protections are unchanged; normal system confirmation may still be needed. Windows version metadata only.
+
 ## 0.2.1 - 2026-10-17
 
 - Combine the round bubble and edge strip into one adaptive floating Widget. Drag to either edge for a slim vertical strip, or inward for a bubble; share details, the last-hour chart and pin behavior. Preserve legacy edge positions and backup any replaced bubble position during one-time migration.

@@ -95,7 +95,7 @@ final class EdgeRailWidgetTests: XCTestCase {
                 let view = BubbleWidgetView(model: model, isExpanded: true, tabEdge: edge,
                     onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})
                 let host = NSHostingView(rootView: view)
-                host.frame = CGRect(x: 0, y: 0, width: width, height: 144 + (304 - 144) * progress)
+                host.frame = CGRect(x: 0, y: 0, width: width, height: 144 + (BubbleWidgetPlacement.expandedSize.height - 144) * progress)
                 try capture(host, name: "attached-\(edge.rawValue)-\(Int(width))")
             }
         }

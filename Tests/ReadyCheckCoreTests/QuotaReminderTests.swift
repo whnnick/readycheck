@@ -2,6 +2,91 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class QuotaReminderTests: XCTestCase {
+    func testQuotaBatchDoesNotOverwriteConcurrentAutomaticUseNotice() async {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json"))
+        let now = Date(timeIntervalSince1970: 1_900_000_000)
+        let batch = await store.prepare(snapshot(remaining: 0.5, credits: "10", expirations: []), now: now)
+        let notice = ResetCreditSuccessNotice(id: "fixture-request", expiresAt: now.addingTimeInterval(3600))
+        let saved = await store.recordResetCreditNotice(notice, delivered: true, now: now)
+        XCTAssertTrue(saved)
+        await store.commit(batch, deliveredEvents: [], now: now)
+        let delivered = await store.hasDeliveredResetCreditNotice(notice.id)
+        XCTAssertTrue(delivered)
+        let lateFailure = await store.recordResetCreditNotice(notice, delivered: false, now: now)
+        XCTAssertTrue(lateFailure)
+        let records = await store.history()
+        XCTAssertEqual(records.first?.status, .delivered)
+        XCTAssertEqual(records.first?.attemptCount, 1)
+    }
+
+    func testResetExpiryToggleDefaultsOnAndPersistsWithoutChangingOtherPreferences() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent("reminders.json")
+        var legacy = QuotaReminderState(knownManualResetExpirations: [1_800_100_000])
+        legacy.lowQuotaThreshold = 0
+        legacy.automaticRecoveryEnabled = true
+        try JSONEncoder().encode(legacy).write(to: url)
+        let store = QuotaReminderStore(fileURL: url)
+        let initial = await store.resetExpiryReminderEnabled()
+        XCTAssertTrue(initial, "Old files without this field retain the existing enabled behavior")
+        let saved = await store.setResetExpiryReminderEnabled(false)
+        XCTAssertTrue(saved)
+        let reloaded = QuotaReminderStore(fileURL: url)
+        let enabled = await reloaded.resetExpiryReminderEnabled()
+        let low = await reloaded.lowQuotaThreshold()
+        let recovery = await reloaded.automaticRecoveryEnabled()
+        XCTAssertFalse(enabled)
+        XCTAssertEqual(low, 0)
+        XCTAssertTrue(recovery)
+        let state = try JSONDecoder().decode(QuotaReminderState.self, from: Data(contentsOf: url))
+        XCTAssertEqual(state.knownManualResetExpirations, legacy.knownManualResetExpirations)
+    }
+
+    func testDisabledExpiryKeepsCardDetailsAndCreditsAndDoesNotConsumeThresholds() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiration = now.addingTimeInterval(3600)
+        var state = QuotaReminderState()
+        state.resetExpiryReminderEnabled = false
+        state = evaluate(snapshot(remaining: 0, credits: "10", expirations: [expiration]), now: now, state: state).state
+        var result = evaluate(snapshot(remaining: 0, credits: "9", expirations: [expiration]), now: now, state: state)
+        XCTAssertEqual(result.events, [.creditsStarted])
+        XCTAssertEqual(result.state.knownManualResetExpirations, [Int64(expiration.timeIntervalSince1970)])
+        state = result.state
+        state.resetExpiryReminderEnabled = true
+        result = evaluate(snapshot(remaining: 0, credits: "9", expirations: [expiration]), now: now, state: state)
+        XCTAssertEqual(result.events, [.manualResetExpiring(index: 1, expiresAt: expiration, leadHours: 12)])
+        state = result.state
+        state.resetExpiryReminderEnabled = false
+        state = evaluate(snapshot(remaining: 0, credits: "9", expirations: [expiration]), now: now, state: state).state
+        state.resetExpiryReminderEnabled = true
+        XCTAssertEqual(evaluate(snapshot(remaining: 0, credits: "9", expirations: [expiration]), now: now, state: state).events, [])
+    }
+
+    func testInFlightBatchCannotRestoreDisabledExpiryPreference() async {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json"))
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let quota = snapshot(remaining: 0.5, credits: "10", expirations: [now.addingTimeInterval(3600)])
+        let batch = await store.prepare(quota, now: now)
+        XCTAssertEqual(batch.events.count, 1)
+        _ = await store.setResetExpiryReminderEnabled(false)
+        await store.commit(batch, deliveredEvents: [], now: now)
+        let enabled = await store.resetExpiryReminderEnabled()
+        XCTAssertFalse(enabled)
+        let history = await store.history()
+        XCTAssertTrue(history.isEmpty, "Cancellation must not be recorded as delivery failure")
+        let disabledBatch = await store.prepare(quota, now: now)
+        XCTAssertTrue(disabledBatch.events.isEmpty)
+        _ = await store.setResetExpiryReminderEnabled(true)
+        let retry = await store.prepare(quota, now: now)
+        XCTAssertEqual(retry.events, batch.events)
+    }
+
     func testInFlightOldAccountBatchCannotRestoreOldAccountDetails() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

@@ -6,6 +6,44 @@ import UserNotifications
 
 @MainActor
 final class AccountHistoryTests: XCTestCase {
+    func testDisconnectRemovesOnlyOAuthTokenAndPreservesHistoryAndReminderChoices() async throws {
+        _ = NSApplication.shared
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let credentials = InMemoryCredentialStore()
+        let unrelated = CredentialKey(providerId: "other-provider", name: "retained")
+        try await credentials.saveCredential("fixture-secret", for: unrelated)
+        let tokens = CodexOAuthTokenStore(credentialStore: credentials)
+        try await tokens.saveToken(CodexOAuthToken(accessToken: "fixture-access", refreshToken: "fixture-refresh",
+            idToken: nil, tokenType: "Bearer", expiresAt: Date().addingTimeInterval(3600), accountID: "fixture-account", email: nil))
+        let historyURL = directory.appendingPathComponent("history.json")
+        let original = try JSONEncoder().encode([QuotaHistorySample(providerID: "codex-oauth", recordedAt: Date(),
+            values: [QuotaHistoryValue(windowID: "short", labelKey: "quota.fiveHour", remainingRatio: 0.5, resetAt: nil)], accountKey: "fixture-owner")])
+        try original.write(to: historyURL)
+        let reminders = QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json"))
+        _ = await reminders.setLowQuotaThreshold(10)
+        _ = await reminders.setAutomaticRecoveryEnabled(true)
+        _ = await reminders.setResetExpiryReminderEnabled(false)
+        let model = ReadyCheckAppModel(credentialStore: credentials,
+            quotaHistoryStore: QuotaHistoryStore(fileURL: historyURL), quotaReminderStore: reminders,
+            quotaNotificationService: QuotaNotificationService(client: SilentHistoryNotificationClient(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("reset.json")))
+        await model.disconnectCodexOAuth()
+        let token = try await tokens.loadToken()
+        let other = try await credentials.loadCredential(for: unrelated)
+        let threshold = await reminders.lowQuotaThreshold()
+        let recovery = await reminders.automaticRecoveryEnabled()
+        let expiry = await reminders.resetExpiryReminderEnabled()
+        XCTAssertNil(token)
+        XCTAssertEqual(other, "fixture-secret")
+        XCTAssertEqual(try Data(contentsOf: historyURL), original)
+        XCTAssertEqual(threshold, 10)
+        XCTAssertTrue(recovery)
+        XCTAssertFalse(expiry)
+        XCTAssertEqual(model.codexOAuthStatus, .notConnected)
+    }
+
     func testRefreshBindsQuotaHistoryToVerifiedSnapshotAccount() async throws {
         _ = NSApplication.shared
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

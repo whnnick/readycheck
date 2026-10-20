@@ -27,6 +27,34 @@ final class QuotaStoreTests: XCTestCase {
         XCTAssertEqual(repeated?.refreshedAt, original.refreshedAt)
     }
 
+    func testTransportRecoveryReplacesCachedSnapshotWithFreshReading() async throws {
+        let provider = AccountSequenceProvider(accounts: ["A", "A", "A"], statuses: [.available, .unavailable, .available], errors: [[], ["quota.error.requestFailed"], []])
+        let store = QuotaStore(registry: ProviderRegistry(providers: [provider]))
+        await store.refreshAll(reason: .manual)
+        let originalSnapshots = await store.snapshots
+        let original = try XCTUnwrap(originalSnapshots.first)
+        await store.refreshAll(reason: .manual)
+        let cachedSnapshots = await store.snapshots
+        let cached = try XCTUnwrap(cachedSnapshots.first)
+        XCTAssertEqual(cached.isCached, true)
+        await store.refreshAll(reason: .manual)
+        let recoveredSnapshots = await store.snapshots
+        let recovered = try XCTUnwrap(recoveredSnapshots.first)
+        XCTAssertEqual(recovered.accountID, "A")
+        XCTAssertEqual(recovered.status, .available)
+        XCTAssertNotEqual(recovered.isCached, true)
+        XCTAssertFalse(recovered.isStale(now: recovered.refreshedAt))
+        XCTAssertGreaterThan(recovered.refreshedAt, original.refreshedAt)
+        XCTAssertEqual(recovered.ordinaryUsageAllowed, true)
+        XCTAssertTrue(recovered.errors.isEmpty)
+        let baseline = LowQuotaReminderState(account: "A", windows: [:])
+        let result = LowQuotaReminderEvaluator.evaluate(snapshot: recovered, now: recovered.refreshedAt, account: "A", threshold: 5, state: baseline)
+        XCTAssertTrue(result.alerts.isEmpty, "Recovery establishes a fresh baseline; it must not replay an initial low reading")
+        XCTAssertEqual(result.state?.windows.count, 1)
+        let repeated = LowQuotaReminderEvaluator.evaluate(snapshot: recovered, now: recovered.refreshedAt, account: "A", threshold: 5, state: result.state)
+        XCTAssertTrue(repeated.alerts.isEmpty)
+    }
+
     func testAccountChangeMissingIdentityAndAuthorizationNeverBorrowCachedValues() async {
         for (account, error) in [("B", "quota.error.requestFailed"), (nil, "quota.error.requestFailed"), ("A", "quota.error.authorizationRejected"), ("A", "quota.error.tokenRefreshFailed"), ("A", "quota.error.parserUnavailable")] as [(String?, String)] {
             let provider = AccountSequenceProvider(accounts: ["A", account], statuses: [.available, .unavailable], errors: [[], [error]])
