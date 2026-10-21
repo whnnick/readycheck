@@ -29,3 +29,7 @@ Artifact hashes and remote delivery status are recorded in [release evidence](re
 ## Design archive
 
 The selected [prototype](prototype/README.md) and its [visual checks](prototype/design-qa.md) remain historical design evidence, not native acceptance. Model/template checks, bilingual narrow layouts, click-only details, Escape/focus, pin behavior and five walkthrough states were checked there with fixed synthetic data only.
+
+## Public delivery
+
+[ReadyCheck v0.4.0](https://github.com/whnnick/readycheck/releases/tag/v0.4.0) is published and verified as latest, not draft/prerelease. Public main and the annotated tag matched the release commit. Both assets were downloaded from GitHub; SHA256, GitHub digest and file sizes matched the verified local packages. Installed0.4.0 continues to refresh real data, with the original automatic-use authorization and ledger unchanged. The one-time continuation reminder remains paused.

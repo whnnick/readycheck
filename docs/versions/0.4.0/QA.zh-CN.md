@@ -29,3 +29,7 @@
 ## 设计归档
 
 已选[原型](prototype/README.zh-CN.md)及[视觉检查](prototype/design-qa.zh-CN.md)作为历史设计证据，不替代原生验收。其模型／模板、中英文窄布局、点击详情、Esc／焦点、固定及五场景演练仅使用合成数据。
+
+## 公开交付
+
+[ReadyCheck v0.4.0](https://github.com/whnnick/readycheck/releases/tag/v0.4.0)已发布并核验为latest，非草稿、非预发布。公开main及注解标签与发布提交一致。两个安装包均从GitHub实际下载，SHA256、GitHub摘要及大小与已验证本地产物一致。正式安装0.4.0持续正常刷新真实数据，原自动用卡授权及账本未改动。一次性续接提醒保持停用。
