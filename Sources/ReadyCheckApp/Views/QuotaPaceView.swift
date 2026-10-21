@@ -24,35 +24,45 @@ struct QuotaPaceView: View {
     }
 
     private var expandedContent: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(localization.text("pace.title"), systemImage: "chart.line.uptrend.xyaxis")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.secondary)
-            Text(headline)
-                .font(.headline)
-                .foregroundStyle(pace.state == .risk ? Color.orange : Color.primary)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(compactSummary)
+                .font(.caption)
+                .foregroundStyle(pace.state == .risk ? Color.orange : Color.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            if let comparison {
-                Text(comparison).font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            if !pace.reminderEnabled {
-                Text(localization.text("pace.off")).font(.caption2).foregroundStyle(.secondary)
-            }
-            if let rate = pace.ratePointsPerHour {
-                Text(String(format: localization.text("pace.rate"), duration(pace.observedDuration), rate))
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            Text(localization.text("pace.assumption")).font(.caption).foregroundStyle(.secondary)
-            DisclosureGroup(localization.text("pace.basis")) {
-                Text(localization.text("pace.help")).font(.caption)
-                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            DisclosureGroup(explanationTitle) {
+                explanation.padding(.top, 4)
             }.font(.caption)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 16))
-        .help(localization.text("pace.help"))
+    }
+
+    private var explanationTitle: String {
+        switch pace.state {
+        case .risk, .safe: localization.text("pace.basis")
+        case .atThreshold: localization.text("pace.statusExplanation")
+        default: localization.text("pace.whyPaused")
+        }
+    }
+
+    var explanation: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if pace.state != .risk && pace.state != .safe {
+                Text(localization.text("pace.reason." + pace.state.rawValue))
+                    .font(.caption)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if !pace.reminderEnabled {
+                Text(localization.text("pace.off")).font(.caption2)
+            }
+            if let rate = pace.ratePointsPerHour {
+                Text(String(format: localization.text("pace.rate"), duration(pace.observedDuration), rate))
+                    .font(.caption)
+                Text(localization.text("pace.assumption")).font(.caption)
+            }
+            Text(localization.text("pace.help")).font(.caption)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .foregroundStyle(.secondary)
     }
 
     private var compactSummary: String {

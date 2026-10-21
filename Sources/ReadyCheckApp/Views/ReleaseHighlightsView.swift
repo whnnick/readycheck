@@ -5,8 +5,8 @@ struct ReleaseHighlightsView: View {
     let localization: LocalizationService
 
     private let features = [
-        ("bell.badge", "release.expiryOnce", "release.expiryOnceDetail"),
-        ("clock.arrow.circlepath", "release.next", "release.nextDetail"),
+        ("cursorarrow.click", "release.clearActions", "release.clearActionsDetail"),
+        ("text.alignleft", "release.flatExplanation", "release.flatExplanationDetail"),
         ("creditcard", "release.cardResult", "release.cardResultDetail"),
         ("checkmark.shield", "release.conditional", "release.conditionalDetail"),
         ("square.stack", "release.retained", "release.retainedDetail"),

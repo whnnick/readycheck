@@ -1,5 +1,7 @@
 # Version plans / 版本规划
 
+- [0.4.2 clear actions](versions/0.4.2/RELEASE_NOTES.md) / [明确操作与单层说明](versions/0.4.2/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.4.2/QA.md) / [验收](versions/0.4.2/QA.zh-CN.md) — release candidate / 发布候选。
+
 - [0.4.1 expiry-reminder fix](versions/0.4.1/PLAN.md) / [到期提醒去重修复](versions/0.4.1/PLAN.zh-CN.md) · [Checks](versions/0.4.1/QA.md) / [验收](versions/0.4.1/QA.zh-CN.md) — release candidate / 发布候选。
 - [0.4.0 next events and card outcomes](versions/0.4.0/RELEASE_NOTES.md) | [下一步与用卡结果](versions/0.4.0/RELEASE_NOTES.zh-CN.md) | [Checks](versions/0.4.0/QA.md) | [验收](versions/0.4.0/QA.zh-CN.md) | [Retention audit](versions/0.4.0/RELEASE_AUDIT.md) / [功能保留](versions/0.4.0/RELEASE_AUDIT.zh-CN.md) — native implementation, conditional next events and read-only card results; Windows retains its prior interface / 原生共享摘要及只读用卡详情，Windows保留原界面。
 

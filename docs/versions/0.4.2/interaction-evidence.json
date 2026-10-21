@@ -1,0 +1,23 @@
+{
+  "version": "0.4.2-dev.1",
+  "scope": "Local macOS interaction correction; not publicly released",
+  "tests": {
+    "full": 380,
+    "failures": 0,
+    "minimumFollowup": 2
+  },
+  "deviceChecks": {
+    "resetInfo": "Explicit button opens explanation; Escape dismisses",
+    "paceDisclosure": "One click reveals current reason; no nested card or second disclosure",
+    "widgetPace": "One click opens full explanation; quotas, last-hour chart and pinned state retained",
+    "connectionAction": "Routes directly to Connection settings",
+    "liveData": "Recovered after user Keychain confirmation",
+    "preservation": "Original consent bytes and expiry-attempt baseline unchanged; reminder and auto-use switches On"
+  },
+  "limits": [
+    "Bilingual minimum and unstable states use synthetic native rendering",
+    "Menu uses shared compact component; no separate physical status-item click claimed",
+    "No real card redemption or Windows-device claims"
+  ],
+  "realCardSpent": false
+}

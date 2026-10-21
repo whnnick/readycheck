@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2 - 2026-10-21
+
+- Replace ambiguous next-event arrows with explicit action buttons. Flatten usage-pace explanations to one disclosure without nested cards or repeated conclusions; compact surfaces open the full explanation in one click. Preserve estimates, reminders, card-use consent and history.
+
 ## 0.4.1 - 2026-10-21
 
 - Suppress repeated reset-expiry banners after macOS accepts one submission for a card/milestone, including dismissal, refresh and restart. Preserve deduplication through temporary Keychain/account uncertainty, isolate account receipts, and retain72/48/24/12-hour nodes and retry after explicit submission failure. Distinguish submitted from verified delivery; other reminders and automatic use remain unchanged.

@@ -81,8 +81,20 @@ final class NextEventsViewTests: XCTestCase {
                     try render(SettingsView(model: model), name: "next-settings-\(suffix)", size: CGSize(width: 740, height: 900))
                 }
             }
-            model.snapshots = [fixtureSnapshot(now: now)]
+            model.snapshots = [fixtureSnapshot(now: now, distant: true)]
             model.resetCreditRecords = []
+            model.resetCreditStatus = .init(enabled: true, status: .waiting, updatedAt: nil)
+            let originalSamples = model.quotaHistorySamples
+            model.quotaHistorySamples = (0...12).compactMap { index in
+                let remaining = index <= 6 ? 64.0 : 64.0 - Double(index - 6) * 5
+                return QuotaHistorySample(snapshot: fixtureSnapshot(now: now,
+                    sampledAt: now.addingTimeInterval(Double(index - 12) * 300), remaining: remaining))
+            }
+            XCTAssertEqual(model.quotaPace(now: now)?.state, .unstable)
+            try render(NextEventsView(model: model, now: now).padding(16), name: "next-paused-\(language.rawValue)", size: CGSize(width: 680, height: 210))
+            model.quotaHistorySamples = originalSamples
+            model.snapshots = [fixtureSnapshot(now: now)]
+            model.mainWindowPage = .overview
             try render(SettingsView(model: model), name: "next-minimum-\(language.rawValue)", size: CGSize(width: 740, height: 760))
         }
     }
