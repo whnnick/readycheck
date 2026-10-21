@@ -24,3 +24,5 @@ Release preparation / 发布准备：0.4.1 metadata and bilingual About targeted
 发布检查：公开源码380项Swift测试零失败，Windows检查／smoke／界面smoke及ZIP／ASAR校验通过；挂载DMG版号0.4.1、稳定预览严格签名、内部文件检查及两包目录不变量通过。302处文档链接已检查，公开main历史无匹配内部协作路径。公开推送／下载及最终安装待完成。
 
 最终交付：[v0.4.1](https://github.com/whnnick/readycheck/releases/tag/v0.4.1)已公开，为非草稿、非预发布且已设latest。远端main／tag对应已验证发布源码。两个资产均已实际下载，SHA256与本地包及GitHub摘要一致；线上新版首页已视觉检查。最终安装版0.4.1与挂载DMG可执行文件一致，严格签名通过；恢复实时数据仍等待用户确认macOS钥匙串，既有授权文件保持不变。
+
+最终安装验收：用户完成钥匙串确认，真实额度和账户权益已恢复；自动用卡及到期提醒仍开启，授权文件与到期提醒尝试基线均未改变，未使用真实卡。
