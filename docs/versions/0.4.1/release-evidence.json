@@ -22,7 +22,9 @@
     "ReadyCheck-0.4.1-macos.dmg": "6a1ed4976379a2d4b206360edc53577b7018325eaaaad0e6955bd67f09083908",
     "ReadyCheck-0.4.1-windows-x64-portable.zip": "e7054497a747b351f4a3d37695addb66aaba06c579f917c0f25c58d43e9c75c4"
   },
-  "remote": "pending",
+  "remote": "Published v0.4.1 latest; public main/tag e2d1de0 verified; both actual asset downloads match local and GitHub SHA256",
   "realCardRedeemedForAcceptance": false,
-  "scope": "macOS notification correction; Windows previous interface; self-signed non-notarized preview"
+  "scope": "macOS notification correction; Windows previous interface; self-signed non-notarized preview",
+  "installed": "Final DMG copied to Applications, executable identical and strict signature valid; Keychain confirmation pending",
+  "homepage": "Bilingual README and synthetic native assets published; English live GitHub layout visually checked"
 }

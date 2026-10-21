@@ -15,10 +15,12 @@
 
 安装验收：0.4.1-dev.1已从正常应用安装位置运行，已安装可执行文件与签名开发包一致，严格签名检查通过。用户完成macOS钥匙串确认后，真实额度与账户读取恢复。两次手动刷新均成功；每次与安装前提醒历史做只读比较，到期提醒的尝试次数、最后尝试时间及状态均未增加或改变。到期提醒和自动用卡开关仍为开启，自动用卡授权文件逐字节保持不变。验收未使用真实重置卡。
 
-上述图片使用合成数据，私有账号读数、投递标识和本地基线不进入公开证据。重启／关闭通知、延迟确认及账号切换由自动化场景覆盖；安装版真实验收覆盖凭据恢复与刷新，不冒充新的真实到期事件或全部设备／平台验收。公开稳定版仍为0.4.0，本地修复尚未推送或发布。
+上述图片使用合成数据，私有账号读数、投递标识和本地基线不进入公开证据。重启／关闭通知、延迟确认及账号切换由自动化场景覆盖；安装版真实验收覆盖凭据恢复与刷新，不冒充新的真实到期事件或全部设备／平台验收。本段记录本地开发验收，最终发布状态见下文。
 
 [Feature-retention delta / 功能保留增量审计](RELEASE_AUDIT.zh-CN.md)
 
 Release preparation / 发布准备：0.4.1 metadata and bilingual About targeted checks: 10 passed, plus an exported bilingual About render check passed. 65-capability delta audit retained; public-source, artifact and remote delivery checks remain pending.
 
 发布检查：公开源码380项Swift测试零失败，Windows检查／smoke／界面smoke及ZIP／ASAR校验通过；挂载DMG版号0.4.1、稳定预览严格签名、内部文件检查及两包目录不变量通过。302处文档链接已检查，公开main历史无匹配内部协作路径。公开推送／下载及最终安装待完成。
+
+最终交付：[v0.4.1](https://github.com/whnnick/readycheck/releases/tag/v0.4.1)已公开，为非草稿、非预发布且已设latest。远端main／tag对应已验证发布源码。两个资产均已实际下载，SHA256与本地包及GitHub摘要一致；线上新版首页已视觉检查。最终安装版0.4.1与挂载DMG可执行文件一致，严格签名通过；恢复实时数据仍等待用户确认macOS钥匙串，既有授权文件保持不变。
