@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0 - 2026-10-21
+
+- Share a compact next-event summary across Overview, menu and Widget, with at most two Overview items, conditional card windows and reset-reading confirmation.
+- Open read-only card details and existing account-owned use records; separate redemption from exact notification delivery, without inventing old process timelines or adding another redemption action.
+- Preserve actual card-detail read times through the existing15-minute supplemental cycle; stale or incomplete details cannot promise a use window. Preserve the65-item baseline, account benefits, all reminder switches, desktop controls, Token data and last-hour Widget chart.
+- New features are macOS-only. Windows metadata stays synchronized; distribution remains a self-signed, non-notarized preview.
+- If macOS temporarily protects the card-use ledger, show an unconfirmed authorization state instead of claiming automatic use was disabled; preserve the original ledger and consent.
+
+## 0.4.0-dev.1 - 2026-10-21 (unpublished native development build)
+
+- Connect the shared next-event summary and read-only account-owned card records to native Overview, menu and Widget. Separate confirmed card use from notification delivery; retained card dates cannot promise a fresh attempt window.
+- Preserve reminder authorization, history, benefits and existing desktop controls. Native visual and live acceptance remain in progress; Windows metadata only.
+
+## 0.4.0-preview.1 - 2026-10-21 (local design prototype)
+
+- Add the selected quotas-first clickable design: compact Next summary, click-only card details, shared menu/Widget scenarios and separate redemption/notification outcomes.
+- Use synthetic data only. No native app, authorization, stored settings or release changes.
+
 ## 0.3.0 - 2026-10-20
 
 - Add a shared five-hour quota-pace reference in Overview, menu and Widget. It uses recent contiguous account-owned observations, states its constant-rate assumption, and suppresses estimates when history is missing, stale or unstable. It is not an accurate time-left guarantee and never controls Codex tasks.

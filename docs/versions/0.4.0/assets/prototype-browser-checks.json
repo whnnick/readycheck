@@ -1,0 +1,51 @@
+{
+  "menu": [
+    {
+      "scenario": "normal",
+      "nextCount": 1,
+      "menu": "ReadyCheck\n\n上次刷新 10:20\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n今天 12:20 · 5h 额度预计重置\n时间来自当前读数，需刷新确认额度恢复。\n提醒\n10%\n桌面 Widget\n打开 ReadyCheck"
+    },
+    {
+      "scenario": "off",
+      "nextCount": 1,
+      "menu": "ReadyCheck\n\n上次刷新 10:20\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n今天 13:00 · 重置卡今天 13:00 到期\n自动使用未开启；是否开启由你决定。\n提醒\n10%\n桌面 Widget\n打开 ReadyCheck"
+    },
+    {
+      "scenario": "authorized",
+      "nextCount": 1,
+      "menu": "ReadyCheck\n\n上次刷新 10:20\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n今天 12:00 · 进入自动使用窗口\n最早到期卡今天 13:00 到期；条件满足时尝试。\n提醒\n10%\n桌面 Widget\n打开 ReadyCheck"
+    },
+    {
+      "scenario": "unknown",
+      "nextCount": 1,
+      "menu": "ReadyCheck\n\n显示上次读数，尚未确认最新条件\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n待确认 — · 最新条件尚未确认\n当前显示上次读数，不能确认用卡条件。\n提醒\n10%\n桌面 Widget\n打开 ReadyCheck"
+    },
+    {
+      "scenario": "notificationPending",
+      "nextCount": 1,
+      "menu": "ReadyCheck\n\n上次刷新 10:20\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n昨天 18:06 · 重置卡已使用\n昨天 18:06 服务端已确认；成功通知未送达，待重试。\n提醒\n10%\n桌面 Widget\n打开 ReadyCheck"
+    }
+  ],
+  "widget": [
+    {
+      "scenario": "normal",
+      "summary": "ReadyCheck\n\n上次刷新 10:20\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n今天 12:20 · 5h 额度预计重置\n时间来自当前读数，需刷新确认额度恢复。\n5 小时配额 · 最近 1 小时消耗\n\n本地记录 · 每柱 5 分钟 · 单位：百分点\n\n点击保持展开\n打开 ReadyCheck"
+    },
+    {
+      "scenario": "off",
+      "summary": "ReadyCheck\n\n上次刷新 10:20\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n今天 13:00 · 重置卡今天 13:00 到期\n自动使用未开启；是否开启由你决定。\n5 小时配额 · 最近 1 小时消耗\n\n本地记录 · 每柱 5 分钟 · 单位：百分点\n\n点击保持展开\n打开 ReadyCheck"
+    },
+    {
+      "scenario": "authorized",
+      "summary": "ReadyCheck\n\n上次刷新 10:20\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n今天 12:00 · 进入自动使用窗口\n最早到期卡今天 13:00 到期；条件满足时尝试。\n5 小时配额 · 最近 1 小时消耗\n\n本地记录 · 每柱 5 分钟 · 单位：百分点\n\n点击保持展开\n打开 ReadyCheck"
+    },
+    {
+      "scenario": "unknown",
+      "summary": "ReadyCheck\n\n显示上次读数，尚未确认最新条件\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n待确认 — · 最新条件尚未确认\n当前显示上次读数，不能确认用卡条件。\n5 小时配额 · 最近 1 小时消耗\n\n本地记录 · 每柱 5 分钟 · 单位：百分点\n\n点击保持展开\n打开 ReadyCheck"
+    },
+    {
+      "scenario": "notificationPending",
+      "summary": "ReadyCheck\n\n上次刷新 10:20\n\n5 小时配额\n34%\n\n距重置 2 小时\n\n7 天配额\n70%\n\n距重置 2 天\n\n昨天 18:06 · 重置卡已使用\n昨天 18:06 服务端已确认；成功通知未送达，待重试。\n5 小时配额 · 最近 1 小时消耗\n\n本地记录 · 每柱 5 分钟 · 单位：百分点\n\n点击保持展开\n打开 ReadyCheck"
+    }
+  ]
+}

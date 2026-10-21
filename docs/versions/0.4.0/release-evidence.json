@@ -1,0 +1,37 @@
+{
+  "version": "0.4.0",
+  "date": "2026-10-21",
+  "publicSourceTests": {
+    "count": 372,
+    "failures": 0
+  },
+  "windowsChecks": [
+    "check",
+    "smoke",
+    "smoke:ui",
+    "ZIP integrity",
+    "ASAR version and forbidden-file scan"
+  ],
+  "macChecks": [
+    "mounted DMG version",
+    "strict signature",
+    "bundle forbidden-file scan",
+    "artifact directory invariant"
+  ],
+  "artifacts": {
+    "ReadyCheck-0.4.0-macos.dmg": "a538c7062622872a37fdda0ff66b0ffbe63b5fba5b60c989de710d12ced28d81",
+    "ReadyCheck-0.4.0-windows-x64-portable.zip": "71e0d1a4270923e679957f8a81fd1c4b143730e2fa7443f0b1fb8a621070d87c"
+  },
+  "liveReading": "Final installed0.4.0 live quota/account details, original automatic-use On, diagnostics/manual refresh, menu reminder/About routes and retained Widget observed; no real redemption",
+  "remote": "prepared; push/tag/Release/download verification pending",
+  "realCardSpentForAcceptance": false,
+  "finalCandidate": "372 full development/public passed; subsequent wording-only About bilingual check passed in both trees",
+  "artifactsStatus": "Final Mac DMG and retained Windows ZIP verified and backed up; final DMG installed with executable byte comparison",
+  "developmentTests": {
+    "count": 372,
+    "failures": 0,
+    "environment": "normal macOS; sandbox screens/loopback are unavailable"
+  },
+  "installedReading": "verified after user Keychain confirmation",
+  "publicLocalLinksVerified": 299
+}
