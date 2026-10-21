@@ -34,6 +34,8 @@ public struct QuotaReminderHistoryRecord: Codable, Equatable, Identifiable, Send
     public var leadHours: Int?
     public var resetIndex: Int?
     public var attemptCount: Int
+    public var submissionAccepted: Bool? = nil
+    public var accountKey: String? = nil
     public var quotaLabelKey: String? = nil
     public var quotaDisplayLabel: String? = nil
     public var remainingPercent: Int? = nil
@@ -73,6 +75,7 @@ public struct QuotaReminderState: Codable, Equatable, Sendable {
     public var pendingRecoveryNotificationDismissalID: String? = nil
     public var resetExpiryReminderEnabled: Bool? = nil
     public var resetExpiryReminderRevision: Int? = nil
+    public var expiryNotificationAccountKey: String? = nil
     public var isResetExpiryReminderEnabled: Bool { resetExpiryReminderEnabled ?? true }
     public var automaticRecoveryEnabled: Bool?
     public var recoveryRevision: Int?
@@ -463,6 +466,32 @@ public actor QuotaReminderStore {
         // A user may cancel or replace a request while system delivery is awaiting confirmation.
         let currentState = load()
         guard currentState.detailsAccount == batch.previousState.detailsAccount else { return }
+        state.expiryNotificationAccountKey = currentState.expiryNotificationAccountKey
+        // OS acceptance is enough to suppress another expiry banner, even after dismissal.
+        var receiptThresholds: [String] = []
+        for receipt in currentState.notificationHistory ?? [] where receipt.kind == .manualResetExpiring
+            && receipt.accountKey == QuotaHistorySample.key(for: currentState.detailsAccount)
+            && (receipt.submissionAccepted == true || receipt.status == .delivered || receipt.deliveredAt != nil) {
+            var retained = receipt
+            if let event = batch.events.first(where: { matchesExpiry(receipt, event: $0) }), delivered.contains(event) {
+                retained.status = .delivered
+                retained.deliveredAt = receipt.deliveredAt ?? now
+            }
+            var history = state.notificationHistory ?? []
+            history.removeAll { $0.id == receipt.id }
+            history.append(retained)
+            state.notificationHistory = prunedHistory(history)
+            if let expiry = receipt.expiresAt, expiry > now, let hours = receipt.leadHours {
+                receiptThresholds += QuotaReminderEvaluator.manualResetLeadHours.filter { $0 >= hours }.map {
+                    QuotaReminderEvaluator.thresholdKeyForPersistence(expirationTimestamp: Int64(expiry.timeIntervalSince1970.rounded()), leadHours: $0)
+                }
+            }
+        }
+        let nowTimestamp = Int64(now.timeIntervalSince1970.rounded())
+        let currentThresholds = (currentState.notifiedManualResetThresholds ?? []).filter {
+            Int64($0.split(separator: ":").first ?? "").map { $0 >= nowTimestamp } == true
+        }
+        state.notifiedManualResetThresholds = Array(Set((state.notifiedManualResetThresholds ?? []) + currentThresholds + receiptThresholds)).sorted()
         // Automatic-use receipts can arrive while a quota delivery batch is awaiting the system.
         let resetReceipts = (currentState.notificationHistory ?? []).filter { $0.kind == .resetCreditUsed }
         state.notificationHistory = prunedHistory((state.notificationHistory ?? []).filter { $0.kind != .resetCreditUsed } + resetReceipts)
@@ -516,6 +545,43 @@ public actor QuotaReminderStore {
     }
 
     public func resetExpiryReminderEnabled() -> Bool { load().isResetExpiryReminderEnabled }
+
+    public func hasSubmittedResetExpiryNotification(_ event: QuotaReminderEvent) -> Bool {
+        expiryReceipt(event, state: migrateHistoryIfNeeded(load())) != nil
+    }
+
+    public func resetExpiryNotificationAccountKey() -> String? {
+        QuotaHistorySample.key(for: load().detailsAccount)
+    }
+
+    @discardableResult
+    public func recordResetExpirySubmission(_ event: QuotaReminderEvent, accountKey: String?, now: Date = Date()) -> Bool {
+        guard case let .manualResetExpiring(_, expiry, hours) = event else { return false }
+        var state = migrateHistoryIfNeeded(load())
+        guard QuotaHistorySample.key(for: state.detailsAccount) == accountKey else { return false }
+        if expiryReceipt(event, state: state) != nil { return true }
+        recordHistory(event, delivered: false, cycleKey: nil, now: now, state: &state, submitted: true)
+        let timestamp = Int64(expiry.timeIntervalSince1970.rounded())
+        let handled = QuotaReminderEvaluator.manualResetLeadHours.filter { $0 >= hours }.map {
+            QuotaReminderEvaluator.thresholdKeyForPersistence(expirationTimestamp: timestamp, leadHours: $0)
+        }
+        state.notifiedManualResetThresholds = Array(Set((state.notifiedManualResetThresholds ?? []) + handled)).sorted()
+        save(state)
+        return expiryReceipt(event, state: load()) != nil
+    }
+
+    private func matchesExpiry(_ record: QuotaReminderHistoryRecord, event: QuotaReminderEvent) -> Bool {
+        guard case let .manualResetExpiring(_, expiry, hours) = event else { return false }
+        return record.kind == .manualResetExpiring && record.leadHours == hours
+            && record.expiresAt.map { abs($0.timeIntervalSince(expiry)) <= 5 } == true
+    }
+
+    private func expiryReceipt(_ event: QuotaReminderEvent, state: QuotaReminderState) -> QuotaReminderHistoryRecord? {
+        (state.notificationHistory ?? []).first {
+            matchesExpiry($0, event: event) && $0.accountKey == QuotaHistorySample.key(for: state.detailsAccount)
+                && ($0.submissionAccepted == true || $0.status == .delivered || $0.deliveredAt != nil)
+        }
+    }
 
     @discardableResult
     public func setResetExpiryReminderEnabled(_ enabled: Bool) -> Bool {
@@ -592,9 +658,11 @@ public actor QuotaReminderStore {
     }
 
     public func knownManualResetExpirations(now: Date = Date()) -> [Date] {
+        let state = migrateHistoryIfNeeded(load())
+        if state.detailsAccount == nil && state.expiryNotificationAccountKey != nil { return [] }
         let nowTimestamp = Int64(now.timeIntervalSince1970.rounded())
         return deduplicatedKnownExpirations(
-            migrateHistoryIfNeeded(load()),
+            state,
             nowTimestamp: nowTimestamp
         ).map { Date(timeIntervalSince1970: TimeInterval($0)) }
     }
@@ -602,10 +670,15 @@ public actor QuotaReminderStore {
     public func updateDetailsAccount(_ account: String?) {
         var state = load()
         guard state.detailsAccount != account else { return }
+        let previousKey = state.expiryNotificationAccountKey ?? QuotaHistorySample.key(for: state.detailsAccount)
+        let nextKey = QuotaHistorySample.key(for: account)
+        if let nextKey, nextKey != previousKey {
+            state.notifiedManualResetExpirations = []
+            state.notifiedManualResetThresholds = []
+        }
+        state.expiryNotificationAccountKey = nextKey ?? previousKey
         state.detailsAccount = account
         state.knownManualResetExpirations = []
-        state.notifiedManualResetExpirations = []
-        state.notifiedManualResetThresholds = []
         state.previousCreditBalance = nil
         state.creditsReminderSentForCurrentExhaustion = false
         state.creditExhaustionCycleKey = nil
@@ -733,7 +806,8 @@ public actor QuotaReminderStore {
         delivered: Bool,
         cycleKey: String?,
         now: Date,
-        state: inout QuotaReminderState
+        state: inout QuotaReminderState,
+        submitted: Bool = false
     ) {
         var history = state.notificationHistory ?? []
         let recordID: String
@@ -751,13 +825,15 @@ public actor QuotaReminderStore {
             resetIndex = nil
         case let .manualResetExpiring(index, expiration, hours):
             let timestamp = Int64(expiration.timeIntervalSince1970.rounded())
+            let accountKey = QuotaHistorySample.key(for: state.detailsAccount)
             recordID = history.first(where: {
                 $0.kind == .manualResetExpiring
+                    && $0.accountKey == accountKey
                     && $0.leadHours == hours
                     && $0.expiresAt.map {
                         abs($0.timeIntervalSince1970 - expiration.timeIntervalSince1970) <= 5
                     } == true
-            })?.id ?? "reset:\(timestamp):\(hours)"
+            })?.id ?? "reset:\(accountKey.map { $0 + ":" } ?? "")\(timestamp):\(hours)"
             kind = .manualResetExpiring
             expiresAt = expiration
             leadHours = hours
@@ -782,7 +858,7 @@ public actor QuotaReminderStore {
         var record = QuotaReminderHistoryRecord(
             id: recordID,
             kind: kind,
-            status: delivered ? .delivered : .failed,
+            status: delivered ? .delivered : submitted ? .legacyUnknown : .failed,
             lastAttemptAt: now,
             deliveredAt: delivered ? now : existing?.deliveredAt,
             expiresAt: expiresAt,
@@ -790,6 +866,10 @@ public actor QuotaReminderStore {
             resetIndex: resetIndex,
             attemptCount: (existing?.attemptCount ?? 0) + 1
         )
+        if case .manualResetExpiring = event {
+            record.submissionAccepted = submitted ? true : existing?.submissionAccepted
+            record.accountKey = QuotaHistorySample.key(for: state.detailsAccount)
+        }
         if case let .quotaLow(alert) = event {
             record.quotaLabelKey = alert.labelKey
             record.quotaDisplayLabel = alert.displayLabel

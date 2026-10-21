@@ -118,7 +118,7 @@ private struct ReminderHistoryRow: View {
                         .foregroundStyle(.secondary)
                 }
 
-                if record.status == .legacyUnknown {
+                if record.status == .legacyUnknown && record.submissionAccepted != true {
                     Text(localization.text("notification.history.legacyExplanation"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -188,7 +188,10 @@ private struct ReminderHistoryRow: View {
     }
 
     private var statusText: String {
-        switch record.status {
+        if record.submissionAccepted == true && record.status != .delivered {
+            return localization.text("notification.history.submitted")
+        }
+        return switch record.status {
         case .delivered:
             localization.text("notification.history.delivered")
         case .failed:
@@ -213,7 +216,8 @@ private struct ReminderHistoryRow: View {
     }
 
     private var statusIcon: String {
-        switch record.status {
+        if record.submissionAccepted == true && record.status != .delivered { return "paperplane" }
+        return switch record.status {
         case .delivered: "checkmark"
         case .failed: "exclamationmark"
         case .automaticallyWithdrawn: "bell.slash.fill"

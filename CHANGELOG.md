@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 - 2026-10-21
+
+- Suppress repeated reset-expiry banners after macOS accepts one submission for a card/milestone, including dismissal, refresh and restart. Preserve deduplication through temporary Keychain/account uncertainty, isolate account receipts, and retain72/48/24/12-hour nodes and retry after explicit submission failure. Distinguish submitted from verified delivery; other reminders and automatic use remain unchanged.
+
+- Refresh the bilingual GitHub homepage with a clearer product story, native screenshots and direct downloads; add the reminder correction to About.
+
 ## 0.4.0 - 2026-10-21
 
 - Share a compact next-event summary across Overview, menu and Widget, with at most two Overview items, conditional card windows and reset-reading confirmation.

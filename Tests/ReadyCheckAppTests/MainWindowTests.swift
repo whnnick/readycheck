@@ -7,6 +7,17 @@ import XCTest
 
 @MainActor
 final class MainWindowTests: XCTestCase {
+    func testSubmittedExpiryReceiptRendersInBothLanguages() throws {
+        _ = NSApplication.shared
+        var record = QuotaReminderHistoryRecord(id: "synthetic-expiry", kind: .manualResetExpiring, status: .legacyUnknown,
+            lastAttemptAt: Date(), expiresAt: Date().addingTimeInterval(172800), leadHours: 48, resetIndex: 1, attemptCount: 1)
+        record.submissionAccepted = true
+        for language in [AppLanguage.zhCN, .enUS] {
+            try renderDesktop(ReminderHistorySummaryView(records: [record], localization: LocalizationService(language: language), showAll: {}).padding(16),
+                name: "expiry-submitted-\(language.rawValue)", size: CGSize(width: 520, height: 280))
+        }
+    }
+
     func testAboutAndReleaseHighlightsRenderInBothLanguages() throws {
         _ = NSApplication.shared
         let oldIcon = NSApp.applicationIconImage

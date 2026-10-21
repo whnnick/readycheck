@@ -17,6 +17,8 @@ public struct LocalizationService: Equatable, Sendable {
     private static let tables: [AppLanguage: [String: String]] = [
         .enUS: [
             "card.readAt": "Card details last read",
+            "release.expiryOnce": "Expiry alerts, once per milestone",
+            "release.expiryOnceDetail": "After macOS accepts a card reminder, refresh, dismissal or restart will not submit that milestone again. Later milestones remain enabled.",
             "release.next": "Your next step at a glance",
             "release.nextDetail": "Overview, menu and Widget share the next reset, conditional card window or action needed.",
             "release.cardResult": "Card use and notification results",
@@ -308,6 +310,7 @@ public struct LocalizationService: Equatable, Sendable {
             "notification.history.creditsTitle": "Codex Credits started",
             "notification.history.expires": "Expires %@",
             "notification.history.delivered": "Verified in Notification Center",
+            "notification.history.submitted": "Submitted; unverified",
             "notification.history.failed": "Delivery failed",
             "notification.history.withdrawn": "Automatically withdrawn",
             "notification.history.withdrawalPending": "Withdrawal retry pending",
@@ -528,6 +531,8 @@ public struct LocalizationService: Equatable, Sendable {
         ],
         .zhCN: [
             "card.readAt": "卡片明细最近读取",
+            "release.expiryOnce": "到期提醒，每个节点只提醒一次",
+            "release.expiryOnceDetail": "macOS接受同卡同节点提醒后，刷新、关闭通知或重启不再重复提交；后续到期节点仍保留。",
             "release.next": "下一步，一眼清楚",
             "release.nextDetail": "总览、菜单栏和Widget共享下一次重置、条件尝试窗口或待处理事项。",
             "release.cardResult": "用卡与通知结果分开看",
@@ -819,6 +824,7 @@ public struct LocalizationService: Equatable, Sendable {
             "notification.history.creditsTitle": "已开始使用 Codex Credits",
             "notification.history.expires": "到期时间 %@",
             "notification.history.delivered": "通知中心已验证",
+            "notification.history.submitted": "已提交，送达未确认",
             "notification.history.failed": "投递失败",
             "notification.history.withdrawn": "已自动撤回",
             "notification.history.withdrawalPending": "撤回待重试",

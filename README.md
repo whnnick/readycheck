@@ -1,79 +1,81 @@
-English · [简体中文](README.zh-CN.md)
+<p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
 
-<p align="center"><img src="docs/assets/readycheck-app-icon.png" alt="ReadyCheck icon" width="72"></p>
 <h1 align="center">ReadyCheck</h1>
-<p align="center"><strong>Keep Codex quota in view while you work.</strong></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><img src="https://img.shields.io/badge/release-v0.4.0-blue" alt="Release 0.4.0"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-101820" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/latest"><strong>Download</strong></a> · <a href="docs/versions/0.4.0/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Setup</a> · <a href="docs/VERSIONS.md">Versions &amp; acceptance</a></p>
+<p align="center"><strong>See your quota. Know what comes next.</strong></p>
+<p align="center">A free, open-source Codex quota monitor, built for your Mac.</p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.4.1"><img src="https://img.shields.io/badge/release-v0.4.1-28c99b" alt="Release 0.4.1"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.4.1/ReadyCheck-0.4.1-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.4.1/ReadyCheck-0.4.1-windows-x64-portable.zip">Windows portable</a></p>
+<p align="center"><a href="docs/versions/0.4.1/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.4.1/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
 
-ReadyCheck is a free, open-source Codex quota monitor. Check remaining allowance, reset times and account benefits in a native Mac window, menu bar or optional desktop Widget. Refreshing reads authorized usage data without sending model-generation requests.
-
-## What's new in 0.4.0
-
-- **Know what happens next:** Overview, menu and Widget share the nearest reset, conditional card window or issue needing attention; Overview keeps at most two items.
-- **Separate card use from notification:** click an expiry or card-use record for the original expiry, authorization, recorded outcome and matching notice. Pending notification delivery is not failed card use.
-- **Explain data freshness:** retain the actual card-detail read time. Old or incomplete details cannot promise an attempt window; clock expiry still needs a fresh recovery reading.
-- **Keep the features you use:** account benefits, individual dates, independent reminders, Token/local charts, Widget last-hour chart, pinning, dragging, notch and About remain; see the65-item audit.
-
-<p align="center"><img src="docs/versions/0.4.0/assets/release-overview-en.png" alt="Native ReadyCheck 0.4.0, synthetic data" width="900"></p>
-<p align="center"><sub>Native macOS interface · Synthetic data, never a private account capture.</sub></p>
-
-[Full release notes](docs/versions/0.4.0/RELEASE_NOTES.md) · [Functional checks](docs/versions/0.4.0/QA.md) · [Feature retention audit](docs/versions/0.4.0/RELEASE_AUDIT.md)
+<p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-en.png" alt="ReadyCheck: See your quota. Know what comes next. Native macOS, menu bar, Widget and notch." width="960"></p>
 
 ## Start here
 
-1. Download **ReadyCheck-0.4.0-macos.dmg** from the [latest release](https://github.com/whnnick/readycheck/releases/latest) and drag ReadyCheck.app to Applications.
-2. Launch it and follow the signed-in local Codex account, or sign in separately with OAuth. Approve macOS Keychain access if requested.
-3. Choose your reminder threshold in Settings → Reminders. Enable Widget or the notch in Settings → Display.
+1. Download the **Mac DMG** above and drag ReadyCheck.app to Applications.
+2. Follow your signed-in local Codex account, or sign in separately with OAuth. Approve Keychain access if macOS asks.
+3. Choose thresholds in **Settings → Reminders**. Enable the Widget or notch in **Settings → Display**.
 
-The Mac download is **arm64 / Apple silicon, macOS 14+**, using the stable **self-signed preview** identity. It is **not Developer ID signed or notarized**; see the [install guide](docs/INSTALL.md). Windows users can unzip **ReadyCheck-0.4.0-windows-x64-portable.zip** from the same release and run ReadyCheck.exe.
+**Mac:** Apple silicon / arm64, macOS 14+. Stable **self-signed preview**, **not Developer ID signed or notarized**; read the [install guide](docs/INSTALL.md) before opening. **Windows:** unzip the portable x64 package and run ReadyCheck.exe; it retains its previous interface.
 
-## Two data types, clearly labelled
+## Beyond a remaining percentage
 
-| Entry | What the bars mean | Source |
+| Know where you stand | Know what comes next | Keep your workspace yours |
+| :--- | :--- | :--- |
+| Both **5-hour and 7-day quotas**, exact reset times, account benefits and local consumption. | One shared next event across Overview, menu and Widget: reset, conditional card-use window or an issue needing attention. | A native window, menu bar, adaptive Widget and click-to-open notch. Use the surface that fits your work. |
+
+<p align="center"><img src="docs/versions/0.4.0/assets/release-overview-en.png" alt="Native ReadyCheck Overview showing both quotas, Up next, account benefits and local quota history; synthetic demonstration data" width="900"></p>
+<p align="center"><sub>Real native interface with synthetic data. This 0.4.0 capture shows the layout retained in 0.4.1.</sub></p>
+
+### 0.4.1 — a reminder, without the repeat
+
+**One card. One expiry milestone. One submitted reminder.** After macOS accepts a reminder, a delayed delivery check, refresh, restart or temporary credential confirmation will not submit it again. The independent **72 / 48 / 24 / 12-hour** milestones remain; a failed submission can still retry.
+
+Notification history distinguishes **submitted, delivery unverified** from **verified delivery**. A reminder submission is not a guarantee that Focus or macOS will display a banner. [Release notes](docs/versions/0.4.1/RELEASE_NOTES.md) · [Verification and limits](docs/versions/0.4.1/QA.md).
+
+## Small when working. Detailed when needed.
+
+<table>
+<tr><th>Keep an eye on the last hour</th><th>Understand the card result</th></tr>
+<tr><td align="center"><img src="docs/versions/0.4.0/assets/release-widget-en.png" alt="Native Widget with both quotas, next event and last-hour consumption chart; synthetic data" width="370"></td><td align="center"><img src="docs/versions/0.4.0/assets/release-card-result-en.png" alt="Native read-only card details showing authorization, recorded outcome and notification status; synthetic data" width="420"></td></tr>
+<tr><td>The Widget keeps both quotas, the next event and the <strong>last-hour chart</strong> together. Pin it when you need it; tuck it away when you don't.</td><td>Inspect the original expiry, account authorization, recorded outcome and its matching notification. Notification delivery and card redemption are separate results.</td></tr>
+</table>
+
+<p align="center"><sub>Native 0.4.0 captures with synthetic data; these features remain in 0.4.1.</sub></p>
+
+- **One adaptive Widget.** Drag the bubble to either edge for a slim strip, or inward for the bubble. Choose an information card and drag its title. Pinned details stay open across outside clicks and focus changes; unpin to restore preview behavior. Esc dismisses focused details.
+- **A quieter notch.** Click to expand; click outside or press Esc to dismiss. Hovering alone does not open it.
+- **Account benefits stay visible.** Plan, subscription validity, Credits, reset-card count and individual expiry dates remain, alongside read-only card records and About.
+- **Separate reminder controls.** Low quota, recovery and reset-card expiry have independent controls. Expiry reminders are on by default; optional automatic card use is off by default and requires account-specific consent.
+- **Optional expiring-card use.** When authorized and conditions permit, attempt a qualifying card in its final hour. Confirmed success has its own notification and history record, independent of the expiry-reminder toggle. [Automation rules](docs/versions/0.3.0/RESET_CARD_AUTOMATION.md).
+
+## Three views. Two different measurements.
+
+| View | What it shows | Source |
 | --- | --- | --- |
-| Widget → Quota consumption | Selected allowance's last hour; five minutes per bar, in **percentage points**. | Local successful refresh samples for the current account. |
-| Overview → Quota consumption | Same metric over 24 hours / 7 days / 30 days; one hour / six hours / one day per bar. | The same local history and decrease rule as Widget. |
-| Token usage → Daily Token counts | Returned Token counts, grouped by UTC day. | Official matching-account Codex statistics, when available. |
+| Widget → Quota consumption | Last hour of the selected quota; **5 minutes per bar**, in percentage points. | Successful local refresh samples for the current account. |
+| Overview → Quota consumption | Same metric over **24 hours / 7 days / 30 days**; one hour / six hours / one day per bar. | The same local history and decrease rule as Widget. |
+| Token usage → Daily Token counts | Returned Token counts, grouped by **UTC day**. | Official matching-account Codex statistics, when available. |
 
-Remaining 80%→70% consumes **10 percentage points**. It does not mean 10 Tokens or 10% of the original 80%. Local history excludes reset changes, invalid/missing readings, increases and gaps over ten minutes. Consumption across multiple cycles can exceed 100 points. Widget bar heights scale to their own maximum. There is **no fixed conversion** between quota points and Tokens; missing Token data is never replaced by another quota chart.
+**80% → 70% means 10 percentage points consumed.** It does not mean 10 Tokens, or 10% of the original 80%. Local history excludes reset changes, invalid/missing readings, increases and gaps over ten minutes. Consumption across cycles can exceed 100 points. Widget bars scale to their own maximum. There is **no fixed conversion** to Tokens; missing Token data is never replaced by a second quota chart. Pace estimates are conditional references, not promises of available work time.
 
-## Desktop behavior and platform scope
+## Clear boundaries, by design
 
-<p align="center"><img src="docs/versions/0.2.1/assets/bubble-compact-80-demo.png" alt="Floating bubble with synthetic demo values" width="92"> &nbsp; <img src="docs/versions/0.2.1/assets/bubble-rail-right.png" alt="The same Widget attached as a slim edge strip" width="28"></p>
-
-<p align="center"><img src="docs/versions/0.4.0/assets/release-widget-en.png" alt="Native Widget last-hour consumption, synthetic demo data" width="380"></p>
-
-Choose Floating widget or Information card in Settings → Display. Drag the floating Widget to either edge for a slim strip, or inward for a bubble; drag the card by its title. Pinned Widget details stay open across outside clicks and focus changes. Unpin to return to preview behavior; Esc dismisses focused details. Drag directly between the desktop and either screen edge. The notch uses click to expand and outside click/Esc to dismiss.
-
-| Platform | 0.4.0 scope |
+| Platform | Release scope |
 | --- | --- |
-| macOS | Shared next events and read-only card results, retaining adaptive Widget, last-hour chart, movable card, sidebar/menu, click-only notch and account/history features. [Current checks and limits](docs/versions/0.4.0/QA.md). |
-| Windows x64 | Separate portable preview retaining its previous interface. This release does not bring the Mac redesign to Windows. See [Windows](docs/WINDOWS.md) and [acceptance](docs/WINDOWS_QA.md). |
+| **macOS** | Native Overview/menu, shared next events, card records, adaptive Widget, last-hour chart, movable card, click-only notch and account/history features. [0.4.1 checks](docs/versions/0.4.1/QA.md) · [65-feature retention audit](docs/versions/0.4.0/RELEASE_AUDIT.md). |
+| **Windows x64** | Separate portable preview with its previous interface. The Mac redesign and this Mac notification fix are not claimed for Windows. [Windows guide](docs/WINDOWS.md) · [Checks](docs/WINDOWS_QA.md). |
 
-ReadyCheck provides reminders; **it does not automatically stop or resume Codex tasks** and only uses reset cards automatically after separate, account-specific opt-in. Recovery alerts require fresh verified readings; unobserved recovery while the app was closed is not replayed. Multi-display/Spaces, Focus/sleep, VoiceOver and production signing are not claimed fully validated.
+ReadyCheck **does not automatically stop or resume Codex tasks**. Reset timestamps need fresh readings to confirm recovery; unobserved recovery while closed is not replayed. Real card redemption, another live account, multi-display/Spaces, Focus/sleep, VoiceOver and Windows hardware are not claimed comprehensively verified; consult the version checks for the actual coverage.
 
 ## Privacy and account access
 
-Quota refresh is read-only. Optional card redemption is a separately authorized mutation. Follow the local Codex account or use separate OAuth; Mac OAuth credentials are stored in Keychain. Account-scoped history keeps unknown legacy ownership separate. Remove account details and credentials before posting logs or screenshots.
+Refreshing reads authorized usage data **without model-generation requests**. Quota refresh is read-only; optional card redemption is a separately authorized mutation. Follow the local Codex account or use separate OAuth; Mac OAuth credentials stay in Keychain. History is account-scoped, and unknown legacy ownership is kept separate. Remove credentials and account details before sharing logs or screenshots.
 
-ReadyCheck is independent, not affiliated with or endorsed by OpenAI. Codex, ChatGPT and their marks belong to OpenAI.
+ReadyCheck is independent and is not affiliated with or endorsed by OpenAI. Codex, ChatGPT and their marks belong to OpenAI.
 
 ## Documentation and development
 
-Current version: [0.4.0 plan](docs/versions/0.4.0/PLAN.md) · [Native contract](docs/versions/0.4.0/TECHNICAL.md) · [Retention audit](docs/versions/0.4.0/RELEASE_AUDIT.md). The [clickable design prototype](docs/versions/0.4.0/prototype/README.md) remains an exploration archive.
-
-[Existing-feature retention baseline](docs/versions/0.3.0/FEATURE_RETENTION.md):65 protected native capabilities; prototype omissions remain unfinished work.
-
-Product exploration: [0.3.0 quota pace prototype](docs/versions/0.3.0/prototype/README.md) · [Plan and limits](docs/versions/0.3.0/PLAN.md). Approved synthetic direction; [native development contract](docs/versions/0.3.0/TECHNICAL.md) for the0.3.0 release candidate; publication acceptance is tracked in the audit.
-
-Local development: [0.2.2 connection reliability](docs/versions/0.2.2/PLAN.md) · [Checks and limits](docs/versions/0.2.2/QA.md). The connection fixes are included in0.3.0.
-
-[0.2.1 plan](docs/versions/0.2.1/PLAN.md) · [Functional checks](docs/versions/0.2.1/QA.md). The 0.2.0 foundation review remains archived below.
-
-- [Install](docs/INSTALL.md) · [Changelog](CHANGELOG.md) · [Version index](docs/VERSIONS.md)
-- [0.2.0 plan](docs/versions/0.2.0/PLAN.md) · [Upgrade review](docs/versions/0.2.0/UPGRADE_REVIEW.md) · [Black-box checks](docs/versions/0.2.0/QA.md)
-- [Contributing](CONTRIBUTING.md) · [Release process](docs/RELEASE.md) · [Security policy](SECURITY.md) · [Issues](https://github.com/whnnick/readycheck/issues)
+[Install](docs/INSTALL.md) · [Changelog](CHANGELOG.md) · [Versions](docs/VERSIONS.md) · [Contributing](CONTRIBUTING.md) · [Release process](docs/RELEASE.md) · [Security](SECURITY.md) · [Issues](https://github.com/whnnick/readycheck/issues)
 
 Source builds require macOS 14+ and a Swift 6-compatible toolchain:
 
@@ -82,10 +84,16 @@ swift test
 scripts/package_app.sh
 ```
 
-Use `scripts/build_and_run.sh` for development. Follow the documented release flow for distribution. Licensed under [MIT](LICENSE).
+Use `scripts/build_and_run.sh` for development; follow the release process for distribution. Licensed under [MIT](LICENSE).
 
-0.3.0 includes [expiring-card automation](docs/versions/0.3.0/RESET_CARD_AUTOMATION.md), off by default and account-authorized. Real redemption remains unverified; see the platform scope and acceptance limits above.
+<details>
+<summary>Product plans, previous designs and feature-retention records</summary>
 
-The local development build groups independent expiry reminders (On by default) and automatic card use (Off by default) in the same settings section.
+- **0.4.1:** [Plan](docs/versions/0.4.1/PLAN.md) · [Checks](docs/versions/0.4.1/QA.md).
+- **0.4.0:** [Plan](docs/versions/0.4.0/PLAN.md) · [Native contract](docs/versions/0.4.0/TECHNICAL.md) · [Release notes](docs/versions/0.4.0/RELEASE_NOTES.md) · [Checks](docs/versions/0.4.0/QA.md) · [Retention audit](docs/versions/0.4.0/RELEASE_AUDIT.md) · [Design prototype archive](docs/versions/0.4.0/prototype/README.md).
+- **0.3.0:** [65-feature retention baseline](docs/versions/0.3.0/FEATURE_RETENTION.md) · [Plan and limits](docs/versions/0.3.0/PLAN.md) · [Native contract](docs/versions/0.3.0/TECHNICAL.md) · [Quota-pace prototype](docs/versions/0.3.0/prototype/README.md). Prototype omissions do not authorize removing features.
+- **0.2.2:** [Connection reliability](docs/versions/0.2.2/PLAN.md) · [Checks](docs/versions/0.2.2/QA.md); included in 0.3.0.
+- **0.2.1:** [Plan](docs/versions/0.2.1/PLAN.md) · [Checks](docs/versions/0.2.1/QA.md).
+- **0.2.0:** [Plan](docs/versions/0.2.0/PLAN.md) · [Upgrade review](docs/versions/0.2.0/UPGRADE_REVIEW.md) · [Black-box checks](docs/versions/0.2.0/QA.md).
 
-Confirmed automatic card use now has a dedicated success notification and a notification-history record, independent of expiry alerts.
+</details>

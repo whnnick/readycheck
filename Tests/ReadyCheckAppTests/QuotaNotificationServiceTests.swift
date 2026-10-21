@@ -5,6 +5,144 @@ import XCTest
 
 @MainActor
 final class QuotaNotificationServiceTests: XCTestCase {
+    func testAcceptedExpiryIsNotRepeatedWhenDeliveryCannotBeVerifiedOrAfterRestart() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("reminders.json")
+        let store = QuotaReminderStore(fileURL: file)
+        let now = Date(timeIntervalSince1970: Date().timeIntervalSince1970.rounded())
+        let expiry = now.addingTimeInterval(40 * 3600)
+        let snapshot = expirySnapshot(expiry: expiry, now: now)
+        let first = await store.prepare(snapshot, now: now)
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]])
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        let verified = await service.deliver(first.events, localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertTrue(verified.isEmpty, "OS acceptance must not claim Notification Center verification")
+        await store.commit(first, deliveredEvents: verified, now: now)
+        let reloaded = QuotaReminderStore(fileURL: file)
+        let next = await reloaded.prepare(snapshot, now: now.addingTimeInterval(60))
+        XCTAssertTrue(next.events.isEmpty, "Accepted48-hour reminder must not be queued every minute")
+        let other = FakeNotificationCenterClient(deliveredSnapshots: [[]])
+        let restarted = QuotaNotificationService(client: other, verificationDelays: [.zero])
+        _ = await restarted.deliver(first.events, localization: LocalizationService(language: .enUS), reminderStore: reloaded)
+        XCTAssertTrue(other.addedRequests.isEmpty, "Dismissal or restart cannot re-submit the same node")
+        let history = await reloaded.history()
+        XCTAssertEqual(history.first?.submissionAccepted, true)
+        XCTAssertNil(history.first?.deliveredAt)
+        XCTAssertEqual(history.first?.attemptCount, 1)
+        let later = await reloaded.prepare(snapshot, now: expiry.addingTimeInterval(-23 * 3600))
+        XCTAssertEqual(later.events, [.manualResetExpiring(index: 1, expiresAt: expiry, leadHours: 24)])
+    }
+
+    func testExistingExpiryInNotificationCenterIsNotAddedAgain() async {
+        let expiry = Date().addingTimeInterval(40 * 3600)
+        let event = QuotaReminderEvent.manualResetExpiring(index: 1, expiresAt: expiry, leadHours: 48)
+        let id = "readycheck.reset-expiry.\(Int64(expiry.timeIntervalSince1970.rounded())).48"
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[id]])
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        let verified = await service.deliver([event], localization: LocalizationService(language: .enUS), reminderStore: makeReminderStore())
+        XCTAssertEqual(verified, [event])
+        XCTAssertTrue(client.addedRequests.isEmpty)
+    }
+
+    func testExplicitExpirySubmissionFailureCanRetryWithoutSuppressingTheNode() async {
+        let store = makeReminderStore()
+        let now = Date()
+        let snapshot = expirySnapshot(expiry: now.addingTimeInterval(40 * 3600), now: now)
+        let first = await store.prepare(snapshot, now: now)
+        let failing = FakeNotificationCenterClient(deliveredSnapshots: [[]])
+        failing.rejectAdds = true
+        let failed = await QuotaNotificationService(client: failing, verificationDelays: [.zero]).deliver(first.events, localization: LocalizationService(language: .enUS), reminderStore: store)
+        await store.commit(first, deliveredEvents: failed, now: now)
+        let retry = await store.prepare(snapshot, now: now.addingTimeInterval(60))
+        XCTAssertEqual(retry.events, first.events)
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]], markDeliveredWhenAdded: true)
+        let verified = await QuotaNotificationService(client: client, verificationDelays: [.zero]).deliver(retry.events, localization: LocalizationService(language: .enUS), reminderStore: store)
+        await store.commit(retry, deliveredEvents: verified)
+        let history = await store.history()
+        XCTAssertEqual(history.first?.status, .delivered)
+        XCTAssertEqual(history.first?.attemptCount, 2)
+    }
+
+    func testOverlappingExpiryDeliverySubmitsOnlyOneRequest() async {
+        let store = makeReminderStore()
+        let event = QuotaReminderEvent.manualResetExpiring(index: 1, expiresAt: Date().addingTimeInterval(40 * 3600), leadHours: 48)
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]])
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        async let first = service.deliver([event], localization: LocalizationService(language: .enUS), reminderStore: store)
+        async let second = service.deliver([event], localization: LocalizationService(language: .enUS), reminderStore: store)
+        _ = await (first, second)
+        XCTAssertEqual(client.addedRequests.count, 1)
+    }
+
+    func testVerifiedOldExpiryHistorySuppressesResendWhenThresholdMarkerWasLost() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("reminders.json")
+        let now = Date(timeIntervalSince1970: Date().timeIntervalSince1970.rounded())
+        let expiry = now.addingTimeInterval(40 * 3600)
+        let snapshot = expirySnapshot(expiry: expiry, now: now)
+        let store = QuotaReminderStore(fileURL: file)
+        let first = await store.prepare(snapshot, now: now)
+        await store.commit(first, deliveredEvents: first.events, now: now)
+        var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: file)) as? [String: Any])
+        legacy["notifiedManualResetThresholds"] = []
+        try JSONSerialization.data(withJSONObject: legacy).write(to: file)
+        let reloaded = QuotaReminderStore(fileURL: file)
+        let pending = await reloaded.prepare(snapshot, now: now.addingTimeInterval(60))
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]])
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        let delivered = await service.deliver(pending.events, localization: LocalizationService(language: .enUS), reminderStore: reloaded)
+        await reloaded.commit(pending, deliveredEvents: delivered, now: now.addingTimeInterval(60))
+        XCTAssertTrue(client.addedRequests.isEmpty)
+        let history = await reloaded.history()
+        XCTAssertEqual(history.first?.status, .delivered)
+        XCTAssertEqual(history.first?.attemptCount, 1)
+        let next = await reloaded.prepare(snapshot, now: now.addingTimeInterval(120))
+        XCTAssertTrue(next.events.isEmpty)
+    }
+
+    private func expirySnapshot(expiry: Date, now: Date) -> ProviderQuotaSnapshot {
+        ProviderQuotaSnapshot(providerId: "codex-oauth", displayName: "Codex", status: .available, source: .appServer,
+            refreshedAt: now, staleAfter: expiry, windows: [], errors: [],
+            details: ProviderQuotaDetails(manualResetCount: 1, manualResetExpirations: [expiry]))
+    }
+
+    func testExpiryReceiptsStayAccountScopedEvenWhenExpirationMatches() async {
+        let store = makeReminderStore()
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]], markDeliveredWhenAdded: true)
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        let event = QuotaReminderEvent.manualResetExpiring(index: 1, expiresAt: Date().addingTimeInterval(40 * 3600), leadHours: 48)
+        await store.updateDetailsAccount("A")
+        _ = await service.deliver([event], localization: LocalizationService(language: .enUS), reminderStore: store)
+        await store.updateDetailsAccount("B")
+        _ = await service.deliver([event], localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertEqual(client.addedRequests.count, 2)
+        XCTAssertNotEqual(client.addedRequests[0].identifier, client.addedRequests[1].identifier)
+        await store.updateDetailsAccount("A")
+        _ = await service.deliver([event], localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertEqual(client.addedRequests.count, 2)
+    }
+
+    func testTemporaryUnknownAccountKeepsLegacyExpiryDeduplicationButSwitchClearsIt() async {
+        let store = makeReminderStore()
+        let now = Date(timeIntervalSince1970: Date().timeIntervalSince1970.rounded())
+        let snapshot = expirySnapshot(expiry: now.addingTimeInterval(40 * 3600), now: now)
+        await store.updateDetailsAccount("A")
+        let batch = await store.prepare(snapshot, now: now)
+        await store.commit(batch, deliveredEvents: batch.events, now: now)
+        await store.updateDetailsAccount(nil)
+        let known = await store.knownManualResetExpirations(now: now)
+        XCTAssertTrue(known.isEmpty, "Unknown account must not expose old account details")
+        await store.updateDetailsAccount("A")
+        let restored = await store.prepare(snapshot, now: now)
+        XCTAssertTrue(restored.events.isEmpty, "Keychain retry/restart cannot rearm a previously reminded node")
+        await store.updateDetailsAccount(nil)
+        await store.updateDetailsAccount("B")
+        let other = await store.prepare(snapshot, now: now)
+        XCTAssertFalse(other.events.isEmpty)
+    }
+
     func testResetSuccessWithDeniedPermissionRemainsUndeliveredWithoutClaimingSuccess() async {
         let store = makeReminderStore()
         let client = FakeNotificationCenterClient(deliveredSnapshots: [[]])
@@ -184,6 +322,7 @@ final class QuotaNotificationServiceTests: XCTestCase {
 
 @MainActor
 private final class FakeNotificationCenterClient: NotificationCenterClient {
+    var rejectAdds = false
     var onConfiguration: (@MainActor () async -> Void)?
     var authorizationStatus: UNAuthorizationStatus = .authorized
     private var deliveredSnapshots: [Set<String>]
@@ -208,6 +347,7 @@ private final class FakeNotificationCenterClient: NotificationCenterClient {
 
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool { true }
     func add(_ request: UNNotificationRequest) async throws {
+        if rejectAdds { throw URLError(.cannotConnectToHost) }
         addedRequests.append(request)
         if markDeliveredWhenAdded { addedIdentifiers.insert(request.identifier) }
     }

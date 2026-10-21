@@ -69,6 +69,8 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
     private static let logger = Logger(subsystem: "com.readycheck.app", category: "quota-notifications")
     private let client: any NotificationCenterClient
     private let verificationDelays: [Duration]
+    private var expiryInFlight: Set<String> = []
+    private var submittedExpiryIdentifiers: Set<String> = []
 
     override init() {
         let client = SystemNotificationCenterClient()
@@ -192,7 +194,13 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
                 content: content,
                 trigger: nil
             )
-            if await addAndVerify(request) {
+            let verified: Bool
+            if case .manualResetExpiring = event {
+                verified = await submitExpiryOnce(request, event: event, reminderStore: reminderStore)
+            } else {
+                verified = await addAndVerify(request)
+            }
+            if verified {
                 if case let .quotaRecovered(requestID) = event {
                     _ = await removeRecoveryNotifications(exceptRequestID: requestID)
                 }
@@ -245,6 +253,29 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
             return false
         }
 
+        return await verifyDelivery(request)
+    }
+
+    private func submitExpiryOnce(_ baseRequest: UNNotificationRequest, event: QuotaReminderEvent,
+                                  reminderStore: QuotaReminderStore) async -> Bool {
+        let accountKey = await reminderStore.resetExpiryNotificationAccountKey()
+        let request = UNNotificationRequest(identifier: baseRequest.identifier + (accountKey.map { "." + $0 } ?? ""),
+                                            content: baseRequest.content, trigger: nil)
+        guard !(await reminderStore.hasSubmittedResetExpiryNotification(event)),
+              !submittedExpiryIdentifiers.contains(request.identifier),
+              expiryInFlight.insert(request.identifier).inserted else { return false }
+        defer { expiryInFlight.remove(request.identifier) }
+        if await deliveredNotificationIdentifiers().contains(request.identifier) { return true }
+        guard await reminderStore.resetExpiryReminderEnabled(),
+              await reminderStore.resetExpiryNotificationAccountKey() == accountKey else { return false }
+        do { try await client.add(request) }
+        catch { return false }
+        submittedExpiryIdentifiers.insert(request.identifier)
+        _ = await reminderStore.recordResetExpirySubmission(event, accountKey: accountKey)
+        return await verifyDelivery(request)
+    }
+
+    private func verifyDelivery(_ request: UNNotificationRequest) async -> Bool {
         for delay in verificationDelays {
             try? await Task.sleep(for: delay)
             let identifiers = await deliveredNotificationIdentifiers()

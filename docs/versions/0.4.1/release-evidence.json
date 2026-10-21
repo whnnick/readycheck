@@ -1,0 +1,28 @@
+{
+  "version": "0.4.1",
+  "date": "2026-10-21",
+  "publicTests": {
+    "count": 380,
+    "failures": 0
+  },
+  "windows": [
+    "check",
+    "smoke",
+    "smoke:ui",
+    "ZIP integrity",
+    "ASAR version/privacy"
+  ],
+  "macOS": [
+    "mounted DMG version",
+    "strict preview signature",
+    "bundle privacy",
+    "artifact directory invariant"
+  ],
+  "artifacts": {
+    "ReadyCheck-0.4.1-macos.dmg": "6a1ed4976379a2d4b206360edc53577b7018325eaaaad0e6955bd67f09083908",
+    "ReadyCheck-0.4.1-windows-x64-portable.zip": "e7054497a747b351f4a3d37695addb66aaba06c579f917c0f25c58d43e9c75c4"
+  },
+  "remote": "pending",
+  "realCardRedeemedForAcceptance": false,
+  "scope": "macOS notification correction; Windows previous interface; self-signed non-notarized preview"
+}
