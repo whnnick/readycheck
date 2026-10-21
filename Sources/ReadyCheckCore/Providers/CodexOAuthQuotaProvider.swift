@@ -147,7 +147,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                     accountTokenUsage: appServerSnapshots?
                         .filter { accountsMatch(token: token, snapshot: $0) }
                         .compactMap(\.tokenUsage)
-                        .first
+                        .first,
+                    manualResetDetailsReadAt: usageDetails.manualResetCount == 0 || !usageDetails.manualResetExpirations.isEmpty ? date : nil
                 ),
                 ordinaryUsageAllowed: usageParser.parseOrdinaryUsageAllowed(payload),
                 accountID: accountID
@@ -287,7 +288,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 manualResetExpirations: resetExpirations,
                 creditBalance: defaultLimit?.hasCredits == false ? nil : defaultLimit?.creditBalance,
                 creditsUnlimited: defaultLimit?.creditsUnlimited,
-                accountTokenUsage: appServerSnapshot.tokenUsage
+                accountTokenUsage: appServerSnapshot.tokenUsage,
+                manualResetDetailsReadAt: appServerSnapshot.resetCreditDetailsAvailable ? refreshedAt : nil
             ),
             ordinaryUsageAllowed: appServerSnapshot.ordinaryUsageAllowed,
             accountID: appServerSnapshot.accountID

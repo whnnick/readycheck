@@ -220,18 +220,12 @@ struct BubbleWidgetView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
 
-            if let pace = model.quotaPace(now: now) {
-                QuotaPaceView(pace: pace, localization: model.localization, now: now, compact: true)
-            }
+            NextEventsView(model: model, now: now, compact: true, openMain: model.openMainWindowFromWidget)
             miniTrend
-            if snapshot?.isCached == true {
-                Text(model.localization.text("status.stale")).font(.caption2).foregroundStyle(.orange)
-            }
-
             HStack {
-                Text(snapshot.map { model.localization.text("status.lastUpdated") + " "
+                Text(snapshot.map { model.localization.text($0.isCached == true ? "status.stale" : "status.lastUpdated") + " "
                     + DateFormatter.localizedString(from: $0.refreshedAt, dateStyle: .none, timeStyle: .short) } ?? "—")
-                    .font(.system(size: 10)).foregroundStyle(.white.opacity(0.5))
+                    .font(.system(size: 10)).foregroundStyle(snapshot?.isCached == true ? Color.orange : .white.opacity(0.5))
                 Spacer(minLength: 6)
                 Button {
                     model.mainWindowPage = .settings

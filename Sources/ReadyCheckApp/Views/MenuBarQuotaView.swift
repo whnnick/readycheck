@@ -35,9 +35,7 @@ struct MenuBarQuotaView: View {
                                 Text(localization.text(snapshot.availabilityTextKey(now: now))).font(.caption).foregroundStyle(.secondary)
                             }
                         }
-                        if let pace = model.quotaPace(now: now) {
-                            QuotaPaceView(pace: pace, localization: localization, now: now, compact: true)
-                        }
+                        NextEventsView(model: model, now: now, compact: true, openMain: openSettings)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
@@ -67,7 +65,7 @@ struct MenuBarQuotaView: View {
             WidgetSnoozeStatusView(model: model)
             footer
         }
-        .padding(16)
+        .padding(.horizontal, 16).padding(.vertical, 14)
         .frame(width: 340)
         .task { await refreshOnOpenIfNeeded() }
         .task { await updateNowWhileVisible() }

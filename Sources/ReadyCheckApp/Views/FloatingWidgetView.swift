@@ -41,6 +41,7 @@ struct FloatingWidgetView: View {
                     .onTapGesture {
                         model.openMainWindowFromWidget()
                     }
+                    NextEventsView(model: model, now: now, compact: true, openMain: model.openMainWindowFromWidget)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

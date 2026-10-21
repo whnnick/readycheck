@@ -30,6 +30,9 @@ struct SettingsView: View {
         }
         .frame(minWidth: 740, idealWidth: 900, minHeight: 620, idealHeight: 760)
         .task { await updateNowWhileVisible() }
+        .sheet(item: $model.resetCreditDetailSelection) { selection in
+            ResetCreditDetailView(model: model, selection: selection, now: now)
+        }
         .sheet(isPresented: $isReminderHistoryPresented) {
             ReminderHistoryListView(records: model.reminderHistoryRecords, localization: model.localization)
         }
@@ -65,12 +68,16 @@ struct SettingsView: View {
                     model.mainWindowPage = .settings; model.mainSettingsSection = .connection
                 }
             }
-            if let pace = model.quotaPace(now: now) {
-                QuotaPaceView(pace: pace, localization: model.localization, now: now)
+            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                NextEventsView(model: model, now: now)
             }
             ForEach(model.snapshots.filter { $0.providerId == "codex-oauth" }) { snapshot in
                 quotaRecoveryActions(for: snapshot)
-                QuotaCardView(snapshot: snapshot, localization: model.localization, now: now, displayMode: .accountDetails)
+                QuotaCardView(snapshot: snapshot, localization: model.localization, now: now, displayMode: .accountDetails,
+                    onResetCreditDetails: { model.resetCreditDetailSelection = .available($0) })
+                if !model.currentResetCreditRecords.isEmpty || model.resetCreditHistoryUnavailable {
+                    ResetCreditHistoryView(model: model)
+                }
             }
             GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
                 RecentUsageView(samples: model.quotaHistorySamples,

@@ -64,12 +64,23 @@ public actor ResetCreditAutomation {
     public init(fileURL: URL) { self.fileURL = fileURL }
 
     public func status(account: String?) -> ResetCreditAutomationStatus {
-        guard let key = QuotaHistorySample.key(for: account), let state = try? load() else {
+        guard let key = QuotaHistorySample.key(for: account) else {
             return ResetCreditAutomationStatus(enabled: false, status: .off, updatedAt: nil)
+        }
+        guard let state = try? load() else {
+            return ResetCreditAutomationStatus(enabled: false, status: .storageFailed, updatedAt: nil)
         }
         let enabled = state.enabledAccountKey == key
         let attempt = state.attempts.last { $0.accountKey == key }
         return ResetCreditAutomationStatus(enabled: enabled, status: enabled ? (attempt?.status ?? .waiting) : .off, updatedAt: attempt?.updatedAt)
+    }
+
+    public func records(account: String?) throws -> [ResetCreditExecutionRecord] {
+        guard let owner = QuotaHistorySample.key(for: account) else { return [] }
+        return try load().attempts.filter { $0.accountKey == owner }.map {
+            ResetCreditExecutionRecord(id: $0.key, expiresAt: $0.expiresAt, status: $0.status,
+                updatedAt: $0.updatedAt, successNotificationPending: $0.successNotificationPending)
+        }.sorted { $0.updatedAt > $1.updatedAt }
     }
 
     public func pendingSuccessNotices(account: String) -> [ResetCreditSuccessNotice] {

@@ -228,6 +228,7 @@ public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
     public let creditBalance: String?
     public let creditsUnlimited: Bool?
     public let accountTokenUsage: AccountTokenUsage?
+    public let manualResetDetailsReadAt: Date?
 
     public init(
         planName: String? = nil,
@@ -236,7 +237,8 @@ public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
         manualResetExpirations: [Date] = [],
         creditBalance: String? = nil,
         creditsUnlimited: Bool? = nil,
-        accountTokenUsage: AccountTokenUsage? = nil
+        accountTokenUsage: AccountTokenUsage? = nil,
+        manualResetDetailsReadAt: Date? = nil
     ) {
         self.planName = planName
         self.subscriptionRenewalAt = subscriptionRenewalAt
@@ -245,6 +247,14 @@ public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
         self.creditBalance = creditBalance
         self.creditsUnlimited = creditsUnlimited
         self.accountTokenUsage = accountTokenUsage
+        self.manualResetDetailsReadAt = manualResetDetailsReadAt
+    }
+
+    public func hasCurrentManualResetDetails(now: Date) -> Bool {
+        guard let readAt = manualResetDetailsReadAt,
+              (0...900).contains(now.timeIntervalSince(readAt)) else { return false }
+        let count = manualResetCount ?? (manualResetExpirations.isEmpty ? nil : manualResetExpirations.count)
+        return count == 0 || (count != nil && count == manualResetExpirations.count)
     }
 
     func preservingSupplementalDetails(from previous: ProviderQuotaDetails, now: Date) -> ProviderQuotaDetails {
@@ -280,7 +290,9 @@ public struct ProviderQuotaDetails: Codable, Equatable, Sendable {
             manualResetExpirations: resolvedExpirations,
             creditBalance: creditBalance,
             creditsUnlimited: creditsUnlimited,
-            accountTokenUsage: accountTokenUsage ?? previous.accountTokenUsage
+            accountTokenUsage: accountTokenUsage ?? previous.accountTokenUsage,
+            manualResetDetailsReadAt: manualResetCount == 0 || !manualResetExpirations.isEmpty
+                ? manualResetDetailsReadAt : previous.manualResetDetailsReadAt
         )
     }
 }

@@ -22,7 +22,7 @@ struct OverviewQuotaView: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
                 ForEach(windows) { window in card(window) }
             }
-            if let snapshot, snapshot.isCached != true {
+            if let snapshot, snapshot.isCached != true, snapshot.availabilityTextKey(now: now) != "status.available" {
                 Text(model.localization.text(snapshot.availabilityTextKey(now: now)))
                     .font(.caption).foregroundStyle(.secondary)
             }

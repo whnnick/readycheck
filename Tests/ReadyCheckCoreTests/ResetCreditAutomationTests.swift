@@ -121,10 +121,16 @@ final class ResetCreditAutomationTests: XCTestCase {
     func testUnwritableOrCorruptStateNeverConsumes() async throws {
         let (store, client, directory) = fixture()
         defer { try? FileManager.default.removeItem(at: directory) }
-        _ = await store.setEnabled(true, account: "A")
+        let empty = await store.status(account: "A")
+        XCTAssertEqual(empty.status, .off, "A missing ledger is a new installation, not a read error")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try Data("corrupt".utf8).write(to: directory.appendingPathComponent("state.json"))
         let broken = ResetCreditAutomation(fileURL: directory.appendingPathComponent("state.json"))
+        let status = await broken.status(account: "A")
+        XCTAssertEqual(status.status, .storageFailed, "An unreadable ledger must not claim consent was turned off")
+        let before = try Data(contentsOf: directory.appendingPathComponent("state.json"))
         _ = await broken.tick(account: "A", token: nil, client: client, now: now)
+        XCTAssertEqual(try Data(contentsOf: directory.appendingPathComponent("state.json")), before)
         let calls = await client.calls
         XCTAssertEqual(calls, [])
         let bad = ResetCreditAutomation(fileURL: URL(fileURLWithPath: "/dev/null/reset-state"))

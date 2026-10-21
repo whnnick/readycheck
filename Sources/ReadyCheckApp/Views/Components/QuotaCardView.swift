@@ -13,17 +13,20 @@ struct QuotaCardView: View {
     let localization: LocalizationService
     let now: Date
     let displayMode: DisplayMode
+    let onResetCreditDetails: ((Date) -> Void)?
 
     init(
         snapshot: ProviderQuotaSnapshot,
         localization: LocalizationService,
         now: Date,
-        displayMode: DisplayMode = .compact
+        displayMode: DisplayMode = .compact,
+        onResetCreditDetails: ((Date) -> Void)? = nil
     ) {
         self.snapshot = snapshot
         self.localization = localization
         self.now = now
         self.displayMode = displayMode
+        self.onResetCreditDetails = onResetCreditDetails
     }
 
     private var canShowPercentages: Bool {
@@ -108,10 +111,15 @@ struct QuotaCardView: View {
                         )
                     } else {
                         ForEach(0..<(manualResetCount ?? 0), id: \.self) { index in
-                            inlineDetail(
-                                label: index == 0 ? localization.text("quota.manualResetExpires") : "",
-                                value: manualResetExpirationText(index: index)
-                            )
+                            HStack(alignment: .firstTextBaseline) {
+                                inlineDetail(label: index == 0 ? localization.text("quota.manualResetExpires") : "",
+                                    value: manualResetExpirationText(index: index))
+                                if let onResetCreditDetails, manualResetExpirations.indices.contains(index) {
+                                    Spacer(minLength: 8)
+                                    Button(localization.text("next.detailAction")) { onResetCreditDetails(manualResetExpirations[index]) }
+                                        .buttonStyle(.link).font(.caption)
+                                }
+                            }
                         }
                     }
                 }

@@ -19,11 +19,11 @@ struct ResetCreditAutomationView: View {
                     else { Task { await model.setResetCreditAutomationEnabled(false) } }
                 }))
                 .toggleStyle(.switch)
-                .disabled(model.isUpdatingResetCreditAutomation || (!model.resetCreditStatus.enabled && !model.canEnableResetCredits))
+                .disabled(model.isUpdatingResetCreditAutomation || (!model.resetCreditStatus.enabled && (model.resetCreditStatus.status == .storageFailed || !model.canEnableResetCredits)))
             Text(model.localization.text("resetAuto.help")).font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(model.localization.text("resetAuto." + model.resetCreditStatus.status.rawValue))
-                .font(.caption).foregroundStyle(model.resetCreditStatus.status == .pending || model.resetCreditSaveFailed ? .orange : .secondary)
+                .font(.caption).foregroundStyle(model.resetCreditStatus.status == .pending || model.resetCreditStatus.status == .storageFailed || model.resetCreditSaveFailed ? .orange : .secondary)
             if let date = model.resetCreditStatus.updatedAt {
                 HStack {
                     Text(model.localization.text("resetAuto.lastAttempt"))

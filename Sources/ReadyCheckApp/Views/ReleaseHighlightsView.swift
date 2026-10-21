@@ -5,8 +5,8 @@ struct ReleaseHighlightsView: View {
     let localization: LocalizationService
 
     private let features = [
-        ("chart.line.uptrend.xyaxis", "release.pace", "release.paceDetail"),
-        ("clock", "release.reset", "release.resetDetail"),
+        ("clock.arrow.circlepath", "release.next", "release.nextDetail"),
+        ("creditcard", "release.cardResult", "release.cardResultDetail"),
         ("checkmark.shield", "release.conditional", "release.conditionalDetail"),
         ("square.stack", "release.retained", "release.retainedDetail"),
         ("clock.badge.checkmark", "release.resetControls", "release.autoResetDetail")
