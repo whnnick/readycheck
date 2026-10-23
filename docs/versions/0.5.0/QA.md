@@ -2,7 +2,7 @@
 
 [中文](QA.zh-CN.md) · [Requirements](PLAN.md) · [Technical investigation](TECHNICAL.md) · [65-item retention](RELEASE_AUDIT.md)
 
-2026-10-23: the0.5.0 release candidate is packaged from sanitized public source and installed; public latest remains0.4.2 until publication. Dev.1/dev.2/dev.3 results retain their original scope. Final-package and installed-device results are recorded below.
+2026-10-23:0.5.0 published as latest and installed from the final DMG; live reading and original consent/preferences verified. Dev.1/dev.2/dev.3 evidence keeps its original scope. Final results appear below and in [release evidence](release-evidence.json).
 
 | Requirement | Completed evidence | Remaining/limits |
 | --- | --- | --- |
@@ -44,10 +44,10 @@ Unlock follow-up: the user confirmed unlock. The protected ledger was readable, 
 
 ## Release acceptance
 
-The65-item audit covers entry/behavior deltas, not65 device passes. Changed-path live reading, preferences, ledger and lock/unlock checks pass; unchanged paths reuse0.4.2 evidence with its existing limits. Public-source, package and remote checks remain pending. No real card is spent.
+The65-item audit covers entry/behavior deltas, not65 device passes. Changed-path live reading, preferences, ledger and lock/unlock checks pass; unchanged paths reuse0.4.2 evidence with its existing limits. Public-source, package and remote checks passed as recorded below. No real card is spent.
 
 ### Final0.5.0 packages and installation
 
 [Release evidence](release-evidence.json): sanitized public source398 tests,0 failures; release metadata1 pass; Windows check/smoke/smoke:ui and ZIP/ASAR checks pass. Mounted DMG version, strict stable Preview signature, bundle privacy and two-package directory invariant pass.
 
-After final-DMG installation and user Keychain approval, live reading, original account-specific automatic-use On consent,17 stored preferences, reminder milestones and threshold were retained. Real card/check records and About0.5.0 were inspected. No real card used. Public main/tag/Release and actual downloads remain pending.
+After final-DMG installation and user Keychain approval, live reading, original account-specific automatic-use On consent,17 stored preferences, reminder milestones and threshold were retained. Real card/check records and About0.5.0 were inspected. No real card used. Public main/tag/v0.5.0 Release/latest and both actual downloads are verified: non-draft/non-prerelease; local/download/GitHub SHA256 and sizes match.

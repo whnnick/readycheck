@@ -2,7 +2,7 @@
 
 [中文](PLAN.zh-CN.md) · [Design preview](prototype/README.md) · [Technical investigation](TECHNICAL.md) · [Black-box checks](QA.md) · [Versions](../../VERSIONS.md)
 
-Current0.5.0-dev.3 repairs confirmed-receipt loss, retains open protected-ledger access, and exposes card observations, prepared requests and coalesced check failures.398 full regressions and final scoped/native checks pass. Real reading and historical-card provenance have been inspected; lock-period synthetic reads/writes and live app checks passed, and unlock follow-up passed after user confirmation. The historical incident outcome remains unconfirmed. No prompt-free upgrade or public release claim. See [reliability checks](QA.md#dev3-reliability-acceptance).
+Development0.5.0-dev.3 repairs confirmed-receipt loss, retains open protected-ledger access, and exposes card observations, prepared requests and coalesced check failures.398 full regressions and final scoped/native checks pass. Real reading and historical-card provenance have been inspected; lock-period synthetic reads/writes and live app checks passed, and unlock follow-up passed after user confirmation. The historical incident outcome remains unconfirmed. No prompt-free upgrade or public release claim. See [reliability checks](QA.md#dev3-reliability-acceptance).
 
 ## Outcome and scope
 
@@ -44,3 +44,5 @@ Review the preview, reproduce upgrade access, implement/test milestone persisten
 ## Release phase
 
 The user authorized continuation through bilingual notes, packaging and publication. Promote to0.5.0 while retaining development evidence and unverified live-redemption/historical-outcome boundaries. No prompt-free Keychain claim. See [checks](QA.md) and [release notes](RELEASE_NOTES.md) for the final status.
+
+Publication result:0.5.0 is latest; both actual downloads and live reading after final-DMG installation pass. See [checks](QA.md) for evidence.

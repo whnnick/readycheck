@@ -1,6 +1,6 @@
 # Version plans / 版本规划
 
-- [0.5.0 plan](versions/0.5.0/PLAN.md) / [提醒与数据状态计划](versions/0.5.0/PLAN.zh-CN.md) · [Preview](versions/0.5.0/prototype/README.md) / [预览](versions/0.5.0/prototype/README.zh-CN.md) · [Checks](versions/0.5.0/QA.md) / [验收](versions/0.5.0/QA.zh-CN.md) · [Release notes](versions/0.5.0/RELEASE_NOTES.md) / [更新重点](versions/0.5.0/RELEASE_NOTES.zh-CN.md) —0.5.0 release preparation;398 development regressions and lock/unlock checks pass; public packages pending / 正式发布准备中，开发398项与锁屏／解锁通过，公开包待验。
+- [0.5.0 plan](versions/0.5.0/PLAN.md) / [提醒与数据状态计划](versions/0.5.0/PLAN.zh-CN.md) · [Preview](versions/0.5.0/prototype/README.md) / [预览](versions/0.5.0/prototype/README.zh-CN.md) · [Checks](versions/0.5.0/QA.md) / [验收](versions/0.5.0/QA.zh-CN.md) · [Release notes](versions/0.5.0/RELEASE_NOTES.md) / [更新重点](versions/0.5.0/RELEASE_NOTES.zh-CN.md) — [Published v0.5.0](https://github.com/whnnick/readycheck/releases/tag/v0.5.0):398 public-source tests, both downloads and installed live reading verified; historical card outcome remains unconfirmed / 已发布：公开源码398项、两包下载与安装版真实读取通过，历史卡片结果仍未确认。
 
 - [0.4.2 clear actions](versions/0.4.2/RELEASE_NOTES.md) / [明确操作与单层说明](versions/0.4.2/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.4.2/QA.md) / [验收](versions/0.4.2/QA.zh-CN.md) — release candidate / 发布候选。
 

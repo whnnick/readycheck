@@ -26,12 +26,15 @@
     "ReadyCheck-0.5.0-macos.dmg": "d6105aed6803e88fca077bcbeff8249de140a4812f24e5661305aaef534ddd23",
     "ReadyCheck-0.5.0-windows-x64-portable.zip": "0e356eb2dff7e97413ef5e296c2805b34e7b7d47a83abf91f635e8e29435abf0"
   },
-  "remote": "Not published yet; remote and actual downloads pending",
+  "remote": "Published v0.5.0 latest, non-draft/non-prerelease; public main/tag verified; both actual downloads match local and GitHub SHA256 and size",
   "finalInstalled": "Final DMG app installed; executable identical and strict signature valid. After system approval live reading, original automatic-use authorization, reminder settings and card/check records verified. About shows0.5.0.",
   "preferencesAndConsentPreserved": true,
   "realCardSpentForAcceptance": false,
   "historicalOvernightOutcome": "unconfirmed",
   "retention": "65-item delta review; unchanged evidence reused with limits, not65 direct device passes",
   "scope": "macOS controls, card/check reliability and data-state explanations; Windows previous interface; self-signed non-notarized preview",
-  "keychain": "A new binary can still require user approval; no prompt-free upgrade claim"
+  "keychain": "A new binary can still require user approval; no prompt-free upgrade claim",
+  "homepage": "Remote paired README0.5.0 downloads, notes and synthetic native image references verified",
+  "publicReleaseCommit": "a611e5dfa1d3979883d0f7870a91eb5afa638001",
+  "releaseURL": "https://github.com/whnnick/readycheck/releases/tag/v0.5.0"
 }
