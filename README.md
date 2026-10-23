@@ -3,9 +3,9 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>See your quota. Know what comes next.</strong></p>
 <p align="center">A free, open-source Codex quota monitor, built for your Mac.</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.4.2"><img src="https://img.shields.io/badge/release-v0.4.2-28c99b" alt="Release 0.4.2"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.4.2/ReadyCheck-0.4.2-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.4.2/ReadyCheck-0.4.2-windows-x64-portable.zip">Windows portable</a></p>
-<p align="center"><a href="docs/versions/0.4.2/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.4.2/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.0"><img src="https://img.shields.io/badge/release-v0.5.0-28c99b" alt="Release 0.5.0"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.0/ReadyCheck-0.5.0-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.0/ReadyCheck-0.5.0-windows-x64-portable.zip">Windows portable</a></p>
+<p align="center"><a href="docs/versions/0.5.0/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.5.0/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
 
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-en.png" alt="ReadyCheck: See your quota. Know what comes next. Native macOS, menu bar, Widget and notch." width="960"></p>
 
@@ -26,13 +26,19 @@
 <p align="center"><img src="docs/versions/0.4.2/assets/release-overview-en.png" alt="Native ReadyCheck Overview showing both quotas, Up next, account benefits and local quota history; synthetic demonstration data" width="900"></p>
 <p align="center"><sub>Real native interface with synthetic data. This 0.4.2 capture shows explicit actions and a single layer of explanation.</sub></p>
 
-### 0.4.2 — clear actions, one layer of explanation
+### 0.5.0 — Reminders you control. Records you can inspect.
 
-**No ambiguous arrow. No nested explanation.** Up next uses named buttons for reset information, connection or details. Usage pace shows one conclusion; one click reveals its reason. Menu and Widget open the complete explanation directly.
+| Choose your reminder | Trace the card outcome | Understand the reading |
+| :--- | :--- | :--- |
+| Select **72/48/24/12 hours** before expiry. Handled nodes stay deduplicated; missed nodes coalesce. | Inspect preparation, known outcomes and separate notification state. Failed checks leave records; unknown is not success. | See continuous observation time, valid records and interruptions. A working reading and an eligible estimate are different states. |
 
-<p align="center"><img src="docs/versions/0.4.2/assets/next-paused-en-US.png" alt="Native0.4.2 next event with Reset info button and one pace disclosure; synthetic data" width="900"></p>
+<p align="center"><img src="docs/versions/0.5.0/assets/reset-settings-en-US.png" alt="Native0.5.0 settings with selectable expiry milestones; synthetic demonstration data" width="900"></p>
+<p align="center"><img src="docs/versions/0.5.0/assets/card-confirmed-en-US.png" alt="Native0.5.0 card detail with confirmed request and separate notification state; synthetic data, not a real redemption" width="540"></p>
+<p align="center"><sub>Real native components with synthetic data. The earlier Overview and desktop captures show retained features.</sub></p>
 
-[Release notes](docs/versions/0.4.2/RELEASE_NOTES.md) · [Verification and limits](docs/versions/0.4.2/QA.md). Calculation rules, reminders, card-use authorization and history are retained.
+**Keep confirmed receipts. Never infer success from a missing card.** A failed quota refresh no longer discards a confirmed use result; checks and notification outcomes remain separate. No real card was used for acceptance. A historical overnight outcome is still unconfirmed; sleep or quitting can prevent automatic use.
+
+[Release notes](docs/versions/0.5.0/RELEASE_NOTES.md) · [Checks and limits](docs/versions/0.5.0/QA.md) · [65-feature retention](docs/versions/0.5.0/RELEASE_AUDIT.md).
 
 ## Small when working. Detailed when needed.
 
@@ -42,7 +48,7 @@
 <tr><td>The Widget keeps both quotas, the next event and the <strong>last-hour chart</strong> together. Pin it when you need it; tuck it away when you don't.</td><td>Inspect the original expiry, account authorization, recorded outcome and its matching notification. Notification delivery and card redemption are separate results.</td></tr>
 </table>
 
-<p align="center"><sub>Native 0.4.0 captures with synthetic data; these features remain in 0.4.2.</sub></p>
+<p align="center"><sub>Native 0.4.0 captures with synthetic data; these features remain in 0.5.0.</sub></p>
 
 - **One adaptive Widget.** Drag the bubble to either edge for a slim strip, or inward for the bubble. Choose an information card and drag its title. Pinned details stay open across outside clicks and focus changes; unpin to restore preview behavior. Esc dismisses focused details.
 - **A quieter notch.** Click to expand; click outside or press Esc to dismiss. Hovering alone does not open it.
@@ -65,8 +71,8 @@
 
 | Platform | Release scope |
 | --- | --- |
-| **macOS** | Native Overview/menu, shared next events, card records, adaptive Widget, last-hour chart, movable card, click-only notch and account/history features. [0.4.1 checks](docs/versions/0.4.2/QA.md) · [65-feature retention audit](docs/versions/0.4.0/RELEASE_AUDIT.md). |
-| **Windows x64** | Separate portable preview with its previous interface. The Mac redesign and this Mac notification fix are not claimed for Windows. [Windows guide](docs/WINDOWS.md) · [Checks](docs/WINDOWS_QA.md). |
+| **macOS** | Native Overview/menu, shared next events, card records, adaptive Widget, last-hour chart, movable card, click-only notch and account/history features. [0.5.0 checks](docs/versions/0.5.0/QA.md) · [65-feature retention audit](docs/versions/0.5.0/RELEASE_AUDIT.md). |
+| **Windows x64** | Separate portable preview with its previous interface. Mac milestone controls, check records and new data-state explanations are not claimed for Windows. [Windows guide](docs/WINDOWS.md) · [Checks](docs/WINDOWS_QA.md). |
 
 ReadyCheck **does not automatically stop or resume Codex tasks**. Reset timestamps need fresh readings to confirm recovery; unobserved recovery while closed is not replayed. Real card redemption, another live account, multi-display/Spaces, Focus/sleep, VoiceOver and Windows hardware are not claimed comprehensively verified; consult the version checks for the actual coverage.
 
@@ -77,6 +83,8 @@ Refreshing reads authorized usage data **without model-generation requests**. Qu
 ReadyCheck is independent and is not affiliated with or endorsed by OpenAI. Codex, ChatGPT and their marks belong to OpenAI.
 
 ## Documentation and development
+
+[0.5.0 product plan](docs/versions/0.5.0/PLAN.md) · [Black-box checks](docs/versions/0.5.0/QA.md).
 
 [Install](docs/INSTALL.md) · [Changelog](CHANGELOG.md) · [Versions](docs/VERSIONS.md) · [Contributing](CONTRIBUTING.md) · [Release process](docs/RELEASE.md) · [Security](SECURITY.md) · [Issues](https://github.com/whnnick/readycheck/issues)
 

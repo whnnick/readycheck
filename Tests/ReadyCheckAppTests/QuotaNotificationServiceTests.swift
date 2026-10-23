@@ -5,6 +5,18 @@ import XCTest
 
 @MainActor
 final class QuotaNotificationServiceTests: XCTestCase {
+    func testDeselectedExpiryNodeIsNotSubmittedFromAnOlderBatch() async {
+        let store = makeReminderStore()
+        let now = Date()
+        let batch = await store.prepare(expirySnapshot(expiry: now.addingTimeInterval(40 * 3600), now: now), now: now)
+        _ = await store.setResetExpiryLeadHours([12])
+        let client = FakeNotificationCenterClient(deliveredSnapshots: [[]], markDeliveredWhenAdded: true)
+        let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+        let delivered = await service.deliver(batch.events, localization: LocalizationService(language: .enUS), reminderStore: store)
+        XCTAssertTrue(delivered.isEmpty)
+        XCTAssertTrue(client.addedRequests.isEmpty)
+    }
+
     func testAcceptedExpiryIsNotRepeatedWhenDeliveryCannotBeVerifiedOrAfterRestart() async throws {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: folder) }

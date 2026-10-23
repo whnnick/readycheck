@@ -1,0 +1,51 @@
+{
+  "version": "0.5.0-dev.1",
+  "date": "2026-10-22",
+  "implementationCommit": "7ca8227",
+  "fullSwiftTests": {
+    "count": 387,
+    "failures": 0
+  },
+  "targetedTests": {
+    "count": 68,
+    "failures": 0,
+    "includedInFull": true
+  },
+  "package": {
+    "built": true,
+    "strictPreviewSignatureValid": true,
+    "published": false,
+    "stableInstallationReplaced": false
+  },
+  "nativeChecks": [
+    "milestone changed and restored to all four",
+    "live reading recovered after user system approval",
+    "same development binary cold-start reading succeeded",
+    "data-status live explanation inspected",
+    "reminder and automatic-use switches retained",
+    "original consent bytes unchanged",
+    "expiry deduplication markers and notification history unchanged"
+  ],
+  "keychainFixture": {
+    "isolated": true,
+    "productionCredentialsAccessed": false,
+    "sameDesignatedRequirement": true,
+    "differentBinaries": true,
+    "initialCreateStatus": 0,
+    "initialReadStatus": 0,
+    "updatedReadStatus": -25293,
+    "secondColdReadStatus": -25293,
+    "cleanupStatus": 0,
+    "strictSignatureValid": true,
+    "rootCauseConfirmed": false,
+    "fixed": false,
+    "explicitSingleAppACLAlsoReproduced": true,
+    "availableDeveloperIDIdentities": 0
+  },
+  "pending": [
+    "Keychain access-control root cause and verified upgrade improvement",
+    "all native data-state scenarios and accessibility",
+    "release preparation and publication"
+  ],
+  "imagesAreSynthetic": true
+}

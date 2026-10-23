@@ -51,6 +51,15 @@ struct QuotaPaceView: View {
                     .font(.caption)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            if pace.observationCount > 0 {
+                Text(String(format: localization.text("pace.observation"),
+                    Int(pace.observedDuration / 60), pace.observationCount))
+                    .font(.caption).fixedSize(horizontal: false, vertical: true)
+            }
+            if pace.state == .insufficientHistory, let interruption = pace.interruption {
+                Text(localization.text("pace.interruption." + interruption.rawValue))
+                    .font(.caption).fixedSize(horizontal: false, vertical: true)
+            }
             if !pace.reminderEnabled {
                 Text(localization.text("pace.off")).font(.caption2)
             }

@@ -51,6 +51,14 @@ struct DataStatusView: View {
                     ForEach(issues, id: \.self) { key in
                         Text(localization.text(key)).fixedSize(horizontal: false, vertical: true)
                     }
+                    if let pace = model.quotaPace(now: now) {
+                        Divider()
+                        Text(localization.text("pace.title")).font(.subheadline.weight(.semibold))
+                        let view = QuotaPaceView(pace: pace, localization: localization, now: now)
+                        Text(view.headline).font(.callout)
+                            .fixedSize(horizontal: false, vertical: true)
+                        view.explanation
+                    }
                     ForEach(snapshot?.errors ?? [], id: \.self) { key in
                         if localization.text(key) != key {
                             Text(localization.text(key)).foregroundStyle(.orange)

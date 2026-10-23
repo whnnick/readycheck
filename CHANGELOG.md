@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.0 - 2026-10-23
+
+- Choose reset-card expiry reminders at72/48/24/12 hours without losing existing handled milestones, reminder switches or account-specific automatic-use consent.
+- Inspect card observations, request preparation and account-owned check failures. Preserve a confirmed redemption receipt even if the subsequent quota refresh fails; distinguish missing cards and unknown initiators from confirmed automatic use.
+- Keep the protected ledger open while running, detect file replacement, and retain the existing protection and permissions. Coalesce repeated check warnings; show unconfirmed authorization rather than a misleading Off state.
+- Explain continuous observation duration, valid records and interruption reasons through the shared Data status and pace model. Preserve all65 baseline capabilities and settings.
+- macOS additions; Windows retains its existing interface. Self-signed, non-notarized preview. Real redemption was not performed for acceptance; a historical overnight card outcome remains unconfirmed. New binaries may still require macOS Keychain approval.
+
+## 0.5.0-dev.3 - 2026-10-23
+
+- Preserve confirmed redemption receipts independently of quota refresh. Keep the protected ledger open while running, retain observed card outcomes and account-owned diagnostic checks, warn once per unresolved incident, and expose request preparation time/count plus notification state. Missing cards remain unconfirmed; no inferred success or changed consent.
+
+## 0.5.0-dev.2 - 2026-10-23
+
+- Show “Unconfirmed” instead of an Off switch when saved automatic-use consent or credentials cannot be read. Preserve consent, execution and recovery behavior; no Keychain permission changes.
+
+## 0.5.0-dev.1 - 2026-10-22
+
+- Add selectable72/48/24/12-hour reset-card expiry milestones, retaining existing toggles, per-node submission deduplication, card-use consent and history. Show continuous observation duration/count and interruption reasons through the shared pace model and Data status. Upgrade Keychain root-cause investigation remains pending; no prompt-free claim.
+
 ## 0.4.2 - 2026-10-21
 
 - Replace ambiguous next-event arrows with explicit action buttons. Flatten usage-pace explanations to one disclosure without nested cards or repeated conclusions; compact surfaces open the full explanation in one click. Preserve estimates, reminders, card-use consent and history.

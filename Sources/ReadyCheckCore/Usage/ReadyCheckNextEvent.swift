@@ -8,9 +8,14 @@ public struct ResetCreditExecutionRecord: Equatable, Identifiable, Sendable {
     public let status: ResetCreditAutomationStatus.Status
     public let updatedAt: Date
     public let successNotificationPending: Bool?
-    public init(id: String, expiresAt: Date, status: ResetCreditAutomationStatus.Status, updatedAt: Date, successNotificationPending: Bool?) {
+    public let startedAt: Date?
+    public let requestCount: Int?
+    public let observedOnly: Bool
+    public let reminderOnly: Bool
+    public init(id: String, expiresAt: Date, status: ResetCreditAutomationStatus.Status, updatedAt: Date, successNotificationPending: Bool?, startedAt: Date? = nil, requestCount: Int? = nil, observedOnly: Bool = false, reminderOnly: Bool = false) {
         self.id = id; self.expiresAt = expiresAt; self.status = status; self.updatedAt = updatedAt
         self.successNotificationPending = successNotificationPending
+        self.startedAt = startedAt; self.requestCount = requestCount; self.observedOnly = observedOnly; self.reminderOnly = reminderOnly
     }
     public var confirmedUsed: Bool { status == .reset || status == .alreadyRedeemed }
     public func notificationState(history: [QuotaReminderHistoryRecord]) -> NotificationState {
@@ -39,7 +44,7 @@ public struct ReadyCheckNextEvent: Equatable, Identifiable, Sendable {
                                 records: [ResetCreditExecutionRecord], historyUnavailable: Bool, now: Date) -> [Self] {
         var items: [Self] = []
         if let unconfirmed = records.sorted(by: { $0.updatedAt > $1.updatedAt }).first(where: {
-            $0.status == .pending || $0.status == .verificationRequired || $0.status == .storageFailed
+            $0.status == .pending || $0.status == .verificationRequired || $0.status == .storageFailed || $0.status == .disappeared || $0.status == .missed || $0.status == .unrecorded
         }) {
             items.append(Self(kind: .cardResultUnconfirmed, date: nil, expiration: unconfirmed.expiresAt, action: .record(unconfirmed.id)))
         } else if let pending = records.sorted(by: { $0.updatedAt > $1.updatedAt }).first(where: { $0.confirmedUsed && $0.successNotificationPending == true }) {

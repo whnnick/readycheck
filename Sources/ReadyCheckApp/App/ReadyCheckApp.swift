@@ -355,6 +355,7 @@ final class ReadyCheckAppModel {
     var hasUnassignedLegacyHistory = false
     var recoveryReminderRequest: QuotaRecoveryRequest?
     var resetExpiryReminderEnabled = true
+    var resetExpiryLeadHours = QuotaReminderEvaluator.manualResetLeadHours
     var isUpdatingResetExpiryReminder = false
     var resetExpiryReminderSaveFailed = false
     var automaticRecoveryEnabled = true
@@ -371,6 +372,8 @@ final class ReadyCheckAppModel {
     var resetCreditAuthorizationAccount: String? { canEnableResetCredits ? recoveryReminderAccount : nil }
     var resetCreditRecords: [ResetCreditExecutionRecord] = []
     var resetCreditHistoryUnavailable = false
+    var resetCreditChecks: [ResetCreditCheckRecord] = []
+    var resetCreditChecksUnavailable = false
     private var resetCreditRecordsAccount: String?
     var resetCreditDetailSelection: ResetCreditDetailSelection?
     var reminderHistoryRecords: [QuotaReminderHistoryRecord] = []
@@ -1237,10 +1240,17 @@ final class ReadyCheckAppModel {
     func reloadResetCreditRecords() async {
         let account = recoveryReminderAccount
         do {
-            let records = try await resetCreditAutomation.records(account: account)
+            var records = try await resetCreditAutomation.records(account: account)
+            if let account {
+                let dates = await quotaReminderStore.pastResetReminderExpirations(account: account, now: Date())
+                records += dates.filter { expiry in !records.contains { $0.expiresAt == expiry } }.map {
+                    ResetCreditExecutionRecord(id: "reminder-only:\($0.timeIntervalSince1970)", expiresAt: $0,
+                        status: .unrecorded, updatedAt: $0, successNotificationPending: nil, observedOnly: true, reminderOnly: true)
+                }
+            }
             guard account == recoveryReminderAccount else { return }
             resetCreditRecordsAccount = account
-            resetCreditRecords = records
+            resetCreditRecords = records.sorted { $0.updatedAt > $1.updatedAt }
             resetCreditHistoryUnavailable = false
         } catch {
             guard account == recoveryReminderAccount else { return }
@@ -1248,6 +1258,11 @@ final class ReadyCheckAppModel {
             resetCreditRecordsAccount = account
             resetCreditHistoryUnavailable = true
         }
+        do {
+            let checks = try await resetCreditAutomation.checks(account: account)
+            guard account == recoveryReminderAccount else { return }
+            resetCreditChecks = checks; resetCreditChecksUnavailable = false
+        } catch { resetCreditChecks = []; resetCreditChecksUnavailable = true }
     }
 
     func openNextEvent(_ event: ReadyCheckNextEvent) {
@@ -1277,6 +1292,7 @@ final class ReadyCheckAppModel {
         recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
         automaticRecoveryEnabled = await quotaReminderStore.automaticRecoveryEnabled()
         resetExpiryReminderEnabled = await quotaReminderStore.resetExpiryReminderEnabled()
+        resetExpiryLeadHours = await quotaReminderStore.resetExpiryLeadHours()
         lowQuotaThreshold = await quotaReminderStore.lowQuotaThreshold()
         resetCreditStatus = await resetCreditAutomation.status(account: recoveryReminderAccount)
         await reloadResetCreditRecords()
@@ -1293,6 +1309,7 @@ final class ReadyCheckAppModel {
         }
         if recoveryReminderAccount != account {
             resetCreditRecords = []
+            resetCreditChecks = []
             resetCreditRecordsAccount = nil
             resetCreditDetailSelection = nil
         }
@@ -1335,7 +1352,18 @@ final class ReadyCheckAppModel {
         defer { resetCreditCheckRunning = false }
         resetCreditStatus = await resetCreditAutomation.status(account: account)
         await deliverResetCreditSuccessNotices(account: account)
-        guard resetCreditStatus.enabled, canEnableResetCredits else { return }
+        guard resetCreditStatus.enabled, canEnableResetCredits else {
+            if resetCreditStatus.status == .storageFailed {
+                _ = await resetCreditAutomation.recordCheck(.ledgerUnavailable, account: account)
+            } else if resetCreditStatus.enabled {
+                _ = await resetCreditAutomation.recordCheck(.credentialsUnavailable, account: account)
+            }
+            await reloadResetCreditRecords()
+            if resetCreditStatus.enabled || resetCreditStatus.status == .storageFailed {
+                await deliverResetCreditCheckWarning(account: account)
+            }
+            return
+        }
         let generation = storeGeneration
         var token: CodexOAuthToken?
         do {
@@ -1350,6 +1378,9 @@ final class ReadyCheckAppModel {
             }
         } catch {
             resetCreditStatus = ResetCreditAutomationStatus(enabled: true, status: .unavailable, updatedAt: nil)
+            _ = await resetCreditAutomation.recordCheck(.credentialsUnavailable, account: account)
+            await reloadResetCreditRecords()
+            await deliverResetCreditCheckWarning(account: account)
             return
         }
         guard generation == storeGeneration, account == recoveryReminderAccount, !Task.isCancelled else { return }
@@ -1360,6 +1391,17 @@ final class ReadyCheckAppModel {
         await reloadResetCreditRecords()
         if result.updatedAt != previousUpdate, result.status == .reset || result.status == .alreadyRedeemed { scheduleRateLimitEventRefresh() }
         await deliverResetCreditSuccessNotices(account: account)
+        await deliverResetCreditCheckWarning(account: account)
+    }
+
+    private func deliverResetCreditCheckWarning(account: String) async {
+        guard recoveryReminderAccount == account,
+              let check = resetCreditChecks.first, check.reason != .checked, !check.warningSubmitted else { return }
+        if await quotaNotificationService.deliverResetCreditCheckWarning(check, localization: localization),
+           recoveryReminderAccount == account {
+            _ = await resetCreditAutomation.acknowledgeCheckWarning(check.id, account: account)
+            await reloadResetCreditRecords()
+        }
     }
 
     private func deliverResetCreditSuccessNotices(account: String) async {
@@ -1371,6 +1413,14 @@ final class ReadyCheckAppModel {
             }
         }
         if !notices.isEmpty { await reloadReminderHistory() }
+    }
+
+    func setResetExpiryLeadHours(_ hours: [Int]) async {
+        guard !isUpdatingResetExpiryReminder else { return }
+        isUpdatingResetExpiryReminder = true
+        defer { isUpdatingResetExpiryReminder = false }
+        resetExpiryReminderSaveFailed = !(await quotaReminderStore.setResetExpiryLeadHours(hours))
+        resetExpiryLeadHours = await quotaReminderStore.resetExpiryLeadHours()
     }
 
     func setResetExpiryReminderEnabled(_ enabled: Bool) async {

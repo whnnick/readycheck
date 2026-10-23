@@ -144,7 +144,7 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
 
         for event in notificationEvents {
             if case .manualResetExpiring = event,
-               !(await reminderStore.resetExpiryReminderEnabled()) { continue }
+               !(await reminderStore.isResetExpiryEventActive(event)) { continue }
             if case let .quotaLow(alert) = event,
                !(await reminderStore.isLowQuotaAlertActive(alert)) { continue }
             if case .quotaLow = event,
@@ -228,6 +228,21 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         return delivered && saved
     }
 
+    func deliverResetCreditCheckWarning(_ check: ResetCreditCheckRecord, localization: LocalizationService) async -> Bool {
+        guard check.reason != .checked, !check.warningSubmitted else { return true }
+        let identifier = "readycheck.reset-check." + check.id
+        if await deliveredNotificationIdentifiers().contains(identifier) { return true }
+        guard await canDeliverNotifications() else { return false }
+        let content = UNMutableNotificationContent()
+        content.title = localization.text("resetCheck.warningTitle")
+        content.body = localization.text("resetCheck." + check.reason.rawValue)
+        content.sound = .default
+        do {
+            try await client.add(UNNotificationRequest(identifier: identifier, content: content, trigger: nil))
+            return true // Accepted submission suppresses repeat banners, even if the user dismisses it.
+        } catch { return false }
+    }
+
     private func canDeliverNotifications() async -> Bool {
         let settings = await client.configuration()
         switch settings.authorizationStatus {
@@ -266,8 +281,8 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
               expiryInFlight.insert(request.identifier).inserted else { return false }
         defer { expiryInFlight.remove(request.identifier) }
         if await deliveredNotificationIdentifiers().contains(request.identifier) { return true }
-        guard await reminderStore.resetExpiryReminderEnabled(),
-              await reminderStore.resetExpiryNotificationAccountKey() == accountKey else { return false }
+        guard await reminderStore.resetExpiryNotificationAccountKey() == accountKey,
+              await reminderStore.isResetExpiryEventActive(event) else { return false }
         do { try await client.add(request) }
         catch { return false }
         submittedExpiryIdentifiers.insert(request.identifier)

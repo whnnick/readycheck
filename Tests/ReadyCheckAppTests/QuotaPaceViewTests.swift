@@ -26,7 +26,7 @@ final class QuotaPaceViewTests: XCTestCase {
             rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
             quotaNotificationService: QuotaNotificationService(client: PaceNotificationClient(), verificationDelays: []))
         let now = Date()
-        func snapshot(_ date: Date, _ remaining: Double) -> ProviderQuotaSnapshot {
+        func snapshot(_ date: Date, _ remaining: Double, allowed: Bool? = true) -> ProviderQuotaSnapshot {
             ProviderQuotaSnapshot(providerId: "codex-oauth", displayName: "Codex", status: .available,
                 source: .appServer, refreshedAt: date, staleAfter: now.addingTimeInterval(300),
                 windows: [QuotaWindow(id: "short", labelKey: "quota.window.codex.5h", kind: .rolling,
@@ -37,7 +37,7 @@ final class QuotaPaceViewTests: XCTestCase {
                         resetAt: now.addingTimeInterval(172800), confidence: .verified, durationMinutes: 10080)],
                 errors: [], details: ProviderQuotaDetails(planName: "plus", subscriptionRenewalAt: now.addingTimeInterval(86400),
                     manualResetCount: 2, manualResetExpirations: [now.addingTimeInterval(3600), now.addingTimeInterval(7200)], creditBalance: "120"),
-                ordinaryUsageAllowed: true, accountID: "synthetic-account")
+                ordinaryUsageAllowed: allowed, accountID: "synthetic-account")
         }
         model.snapshots = [snapshot(now, 34)]
         model.quotaHistorySamples = (0...12).compactMap { index in
@@ -65,16 +65,77 @@ final class QuotaPaceViewTests: XCTestCase {
                     onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {}),
                     name: "pace-widget-\(suffix)", size: BubbleWidgetPlacement.expandedSize)
             }
+            let originalSamples = model.quotaHistorySamples
+            model.quotaHistorySamples = Array(originalSamples.suffix(4))
+            let collecting = try XCTUnwrap(model.quotaPace(now: now))
+            XCTAssertEqual(collecting.observationCount, 4)
+            try render(DataStatusView(model: model, close: {}), name: "data-status-\(language.rawValue)", size: CGSize(width: 390, height: 530))
+            try render(QuotaPaceView(pace: collecting, localization: model.localization, now: now).explanation,
+                name: "observation-\(language.rawValue)", size: CGSize(width: 310, height: 270))
+            model.quotaHistorySamples = originalSamples
+            for dark in [false, true] {
+                model.codexOAuthStatus = .connected
+                model.mainWindowPage = .settings
+                model.mainSettingsSection = .reminders
+                try render(SettingsView(model: model), name: "reminders-minimum-\(language.rawValue)-\(dark ? "dark" : "light")", size: CGSize(width: 740, height: 760), dark: dark)
+                for scenario in ["collecting", "gap", "stale", "unstable", "idle", "blocked", "credentials"] {
+                    model.codexOAuthStatus = .connected
+                    model.snapshots = [snapshot(now, 34)]
+                    model.quotaHistorySamples = originalSamples
+                    let expected: QuotaPace.State
+                    switch scenario {
+                    case "collecting":
+                        model.quotaHistorySamples = Array(originalSamples.suffix(4))
+                        expected = .insufficientHistory
+                    case "gap":
+                        model.quotaHistorySamples = originalSamples.filter { $0.recordedAt < now.addingTimeInterval(-1600) || $0.recordedAt > now.addingTimeInterval(-500) }
+                        expected = .insufficientHistory
+                    case "stale":
+                        model.snapshots = [snapshot(now.addingTimeInterval(-180), 34)]
+                        expected = .stale
+                    case "unstable":
+                        model.quotaHistorySamples = (0...12).compactMap { index in
+                            let date = now.addingTimeInterval(Double(index - 12) * 300)
+                            let remaining: Double = index < 6 ? 64 : 34 + Double(12 - index) * 5
+                            return QuotaHistorySample(snapshot: snapshot(date, remaining))
+                        }
+                        expected = .unstable
+                    case "idle":
+                        model.quotaHistorySamples = (0...12).compactMap { index in
+                            QuotaHistorySample(snapshot: snapshot(now.addingTimeInterval(Double(index - 12) * 300), 34))
+                        }
+                        expected = .idle
+                    case "blocked":
+                        model.snapshots = [snapshot(now, 34, allowed: false)]
+                        expected = .usageBlocked
+                    default:
+                        model.snapshots = []
+                        model.codexOAuthStatus = .credentialStorageFailed
+                        expected = .unavailable
+                    }
+                    if scenario != "credentials" {
+                        let current = try XCTUnwrap(model.quotaPace(now: now))
+                        XCTAssertEqual(current.state, expected)
+                        if scenario == "gap" { XCTAssertEqual(current.interruption, .gap) }
+                        try render(QuotaPaceView(pace: current, localization: model.localization, now: now).explanation,
+                            name: "compact-reason-\(scenario)-\(language.rawValue)-\(dark ? "dark" : "light")", size: CGSize(width: 310, height: 320), dark: dark)
+                    }
+                    try render(DataStatusView(model: model, close: {}), name: "data-\(scenario)-\(language.rawValue)-\(dark ? "dark" : "light")", size: CGSize(width: 390, height: 530), dark: dark)
+                }
+            }
+            model.codexOAuthStatus = .connected
+            model.snapshots = [snapshot(now, 34)]
+            model.quotaHistorySamples = originalSamples
         }
     }
 
-    private func render<Content: View>(_ content: Content, name: String, size: CGSize, maxHeight: CGFloat? = nil) throws {
+    private func render<Content: View>(_ content: Content, name: String, size: CGSize, maxHeight: CGFloat? = nil, dark: Bool = true) throws {
         let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
-        window.appearance = NSAppearance(named: .darkAqua)
+        window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         window.isReleasedWhenClosed = false
         defer { window.close() }
         let host = NSHostingView(rootView: content.frame(width: size.width)
-            .background(Color(nsColor: .windowBackgroundColor)).environment(\.colorScheme, .dark))
+            .background(Color(nsColor: .windowBackgroundColor)).environment(\.colorScheme, dark ? .dark : .light))
         window.contentView = host
         host.frame = CGRect(origin: .zero, size: size)
         host.layoutSubtreeIfNeeded()

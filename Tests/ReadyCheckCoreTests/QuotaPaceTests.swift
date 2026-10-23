@@ -5,6 +5,39 @@ final class QuotaPaceTests: XCTestCase {
     private let now = Date(timeIntervalSince1970: 1_900_000_000)
     private var reset: Date { now.addingTimeInterval(7200) }
 
+    func testDiagnosticCoverageCountsOnlyTheContinuousSuffix() {
+        let short = evaluate(points: Array(history().suffix(4)))
+        XCTAssertEqual(short.state, .insufficientHistory)
+        XCTAssertEqual(short.observationCount, 4)
+        XCTAssertEqual(short.observedDuration, 900)
+        XCTAssertNil(short.interruption)
+        let gap = history().filter { $0.recordedAt < now.addingTimeInterval(-1600) || $0.recordedAt > now.addingTimeInterval(-500) }
+        let interrupted = evaluate(points: gap)
+        XCTAssertEqual(interrupted.interruption, .gap)
+        XCTAssertEqual(interrupted.observationCount, 2)
+        XCTAssertEqual(interrupted.observedDuration, 300)
+        XCTAssertNil(interrupted.secondsToThreshold)
+        let otherAccount = evaluate(points: history(account: "B"))
+        XCTAssertEqual(otherAccount.observationCount, 1)
+        XCTAssertEqual(otherAccount.observedDuration, 0)
+        XCTAssertNil(otherAccount.interruption)
+        XCTAssertEqual(evaluate(snapshot: snapshot(cached: true)).observationCount, 0)
+    }
+
+    func testDiagnosticCycleAndInvalidSamplesDoNotInventObservationCoverage() {
+        let cycle = evaluate(snapshot: snapshot(reset: now.addingTimeInterval(17_999)))
+        XCTAssertEqual(cycle.interruption, .cycleChanged)
+        XCTAssertEqual(cycle.observationCount, 0)
+        var invalid = history()
+        invalid[invalid.count - 2] = sample(at: now.addingTimeInterval(-300), ratio: .nan)
+        let broken = evaluate(points: invalid)
+        XCTAssertEqual(broken.interruption, .invalidRecord)
+        XCTAssertEqual(broken.observationCount, 1)
+        XCTAssertEqual(broken.observedDuration, 0)
+        invalid[invalid.count - 2] = sample(at: now.addingTimeInterval(-300), ratio: 0.2)
+        XCTAssertEqual(evaluate(points: invalid).interruption, .quotaIncreased)
+    }
+
     func testRiskAndSafeCompareThresholdWithReset() throws {
         let risk = evaluate()
         XCTAssertEqual(risk.state, .risk)

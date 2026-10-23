@@ -6,6 +6,11 @@ public struct QuotaPace: Equatable, Sendable {
     public enum State: String, Sendable {
         case risk, safe, insufficientHistory, stale, unstable, idle, atThreshold, unavailable, usageBlocked
     }
+    public enum Interruption: String, Sendable {
+        case gap, cycleChanged, invalidRecord, quotaIncreased
+    }
+    public private(set) var observationCount: Int = 0
+    public private(set) var interruption: Interruption?
     public private(set) var state: State = .unavailable
     public let thresholdPercent: Int
     public let reminderEnabled: Bool
@@ -51,6 +56,7 @@ public struct QuotaPace: Equatable, Sendable {
                   value.remainingRatio.isFinite, abs(value.remainingRatio - remaining) < 0.000_001 else { return result }
             guard let date = value.resetAt, abs(date.timeIntervalSince(reset)) <= 5 else {
                 result.state = .insufficientHistory
+                result.interruption = .cycleChanged
                 return result
             }
         } else if let sample = QuotaHistorySample(snapshot: snapshot) {
@@ -61,17 +67,28 @@ public struct QuotaPace: Equatable, Sendable {
         var contiguous: [Point] = []
         for sample in recent.reversed() {
             guard let value = sample.values.first(where: { $0.windowID == window.id }),
-                  value.remainingRatio.isFinite, (0...1).contains(value.remainingRatio),
-                  let date = value.resetAt, abs(date.timeIntervalSince(reset)) <= 5 else { break }
+                  value.remainingRatio.isFinite, (0...1).contains(value.remainingRatio) else {
+                result.interruption = .invalidRecord
+                break
+            }
+            guard let date = value.resetAt, abs(date.timeIntervalSince(reset)) <= 5 else {
+                result.interruption = .cycleChanged
+                break
+            }
             if let newer = contiguous.last {
                 let gap = newer.date.timeIntervalSince(sample.recordedAt)
-                guard gap > 0, gap <= 600, value.remainingRatio >= newer.ratio else { break }
+                guard gap > 0 else { result.interruption = .invalidRecord; break }
+                guard gap <= 600 else { result.interruption = .gap; break }
+                guard value.remainingRatio >= newer.ratio else { result.interruption = .quotaIncreased; break }
             }
             contiguous.append(Point(date: sample.recordedAt, ratio: value.remainingRatio))
         }
+        result.observationCount = contiguous.count
+        if let latest = contiguous.first, let earliest = contiguous.last {
+            result.observedDuration = latest.date.timeIntervalSince(earliest.date)
+        }
         guard contiguous.count >= 7, let latest = contiguous.first, let earliest = contiguous.last else { return result }
-        let duration = latest.date.timeIntervalSince(earliest.date)
-        result.observedDuration = duration
+        let duration = result.observedDuration
         guard duration >= 1800 else { return result }
         let rate = (earliest.ratio - latest.ratio) * 100 / duration * 3600
         guard rate > 0.000_001 else { result.state = .idle; return result }

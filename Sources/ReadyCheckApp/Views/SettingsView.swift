@@ -75,7 +75,7 @@ struct SettingsView: View {
                 quotaRecoveryActions(for: snapshot)
                 QuotaCardView(snapshot: snapshot, localization: model.localization, now: now, displayMode: .accountDetails,
                     onResetCreditDetails: { model.resetCreditDetailSelection = .available($0) })
-                if !model.currentResetCreditRecords.isEmpty || model.resetCreditHistoryUnavailable {
+                if !model.currentResetCreditRecords.isEmpty || !model.resetCreditChecks.isEmpty || model.resetCreditHistoryUnavailable || model.resetCreditChecksUnavailable {
                     ResetCreditHistoryView(model: model)
                 }
             }

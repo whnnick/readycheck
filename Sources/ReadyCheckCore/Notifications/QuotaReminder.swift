@@ -75,6 +75,12 @@ public struct QuotaReminderState: Codable, Equatable, Sendable {
     public var pendingRecoveryNotificationDismissalID: String? = nil
     public var resetExpiryReminderEnabled: Bool? = nil
     public var resetExpiryReminderRevision: Int? = nil
+    public var resetExpiryLeadHours: [Int]? = nil
+    public var effectiveResetExpiryLeadHours: [Int] {
+        let valid = Set(resetExpiryLeadHours ?? QuotaReminderEvaluator.manualResetLeadHours)
+            .intersection(QuotaReminderEvaluator.manualResetLeadHours)
+        return valid.isEmpty ? QuotaReminderEvaluator.manualResetLeadHours : valid.sorted()
+    }
     public var expiryNotificationAccountKey: String? = nil
     public var isResetExpiryReminderEnabled: Bool { resetExpiryReminderEnabled ?? true }
     public var automaticRecoveryEnabled: Bool?
@@ -232,7 +238,7 @@ public enum QuotaReminderEvaluator {
                 interval <= TimeInterval($0 * 60 * 60)
             }
             let pendingHours = eligibleHours.filter {
-                !thresholdWasNotified(
+                state.effectiveResetExpiryLeadHours.contains($0) && !thresholdWasNotified(
                     notifiedThresholds,
                     expirationTimestamp: timestamp,
                     leadHours: $0
@@ -443,9 +449,8 @@ public actor QuotaReminderStore {
             }
         }
 
-        let expiryStillEnabled = load().isResetExpiryReminderEnabled
         for event in batch.events where !event.isDismissal {
-            if case .manualResetExpiring = event, !expiryStillEnabled, !delivered.contains(event) { continue }
+            if case .manualResetExpiring = event, !isResetExpiryEventActive(event), !delivered.contains(event) { continue }
             recordHistory(
                 event,
                 delivered: delivered.contains(event),
@@ -497,6 +502,7 @@ public actor QuotaReminderStore {
         state.notificationHistory = prunedHistory((state.notificationHistory ?? []).filter { $0.kind != .resetCreditUsed } + resetReceipts)
         if currentState.resetExpiryReminderRevision != batch.previousState.resetExpiryReminderRevision {
             state.resetExpiryReminderEnabled = currentState.resetExpiryReminderEnabled
+            state.resetExpiryLeadHours = currentState.resetExpiryLeadHours
             state.resetExpiryReminderRevision = currentState.resetExpiryReminderRevision
         }
         if currentState.lowQuotaRevision != batch.previousState.lowQuotaRevision {
@@ -516,6 +522,13 @@ public actor QuotaReminderStore {
 
     public func recoveryRequest() -> QuotaRecoveryRequest? {
         load().recoveryRequest
+    }
+
+    public func pastResetReminderExpirations(account: String, now: Date) -> [Date] {
+        guard let owner = QuotaHistorySample.key(for: account) else { return [] }
+        return Array(Set((load().notificationHistory ?? []).filter {
+            $0.kind == .manualResetExpiring && $0.accountKey == owner
+        }.compactMap(\.expiresAt).filter { $0 < now })).sorted()
     }
 
     public func hasDeliveredResetCreditNotice(_ id: String) -> Bool {
@@ -545,6 +558,24 @@ public actor QuotaReminderStore {
     }
 
     public func resetExpiryReminderEnabled() -> Bool { load().isResetExpiryReminderEnabled }
+
+    public func resetExpiryLeadHours() -> [Int] { load().effectiveResetExpiryLeadHours }
+
+    public func isResetExpiryEventActive(_ event: QuotaReminderEvent) -> Bool {
+        guard case let .manualResetExpiring(_, _, hours) = event else { return false }
+        let state = load()
+        return state.isResetExpiryReminderEnabled && state.effectiveResetExpiryLeadHours.contains(hours)
+    }
+
+    @discardableResult
+    public func setResetExpiryLeadHours(_ hours: [Int]) -> Bool {
+        guard !hours.isEmpty, hours.allSatisfy(QuotaReminderEvaluator.manualResetLeadHours.contains) else { return false }
+        var state = migrateHistoryIfNeeded(load())
+        state.resetExpiryLeadHours = Array(Set(hours)).sorted()
+        state.resetExpiryReminderRevision = (state.resetExpiryReminderRevision ?? 0) + 1
+        save(state)
+        return load() == state
+    }
 
     public func hasSubmittedResetExpiryNotification(_ event: QuotaReminderEvent) -> Bool {
         expiryReceipt(event, state: migrateHistoryIfNeeded(load())) != nil

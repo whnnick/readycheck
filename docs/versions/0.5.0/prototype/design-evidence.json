@@ -1,0 +1,31 @@
+{
+  "version": "0.5.0-preview.1",
+  "date": "2026-10-22",
+  "kind": "synthetic-browser-design-only",
+  "nativeImplemented": false,
+  "productionFilesChanged": false,
+  "checks": [
+    "four-to-one milestone selection",
+    "last milestone disabled with explanation",
+    "master off/on retains selection",
+    "simulated save failure restores selection",
+    "automatic-use confirmation and Escape cancellation",
+    "six data-state examples selected and checked",
+    "Chinese and English layout inspection",
+    "localized control labels",
+    "Escape closes data dialog"
+  ],
+  "screenshots": [
+    "evidence/reminders-zh.png",
+    "evidence/reminders-en.png",
+    "evidence/data-zh.png",
+    "evidence/data-en.png"
+  ],
+  "pending": [
+    "native persistence and migration",
+    "real reminder deduplication and notification delivery",
+    "upgrade credential root cause",
+    "native minimum-window and accessibility acceptance",
+    "package and release"
+  ]
+}

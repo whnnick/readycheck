@@ -2,6 +2,75 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class QuotaReminderTests: XCTestCase {
+    func testExpiryMilestonesDefaultAndPersistWithoutResettingReceipts() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("reminders.json")
+        let store = QuotaReminderStore(fileURL: url)
+        let defaults = await store.resetExpiryLeadHours()
+        XCTAssertEqual(defaults, [12, 24, 48, 72])
+        let saved = await store.setResetExpiryLeadHours([48, 12, 48])
+        XCTAssertTrue(saved)
+        let reopened = QuotaReminderStore(fileURL: url)
+        let retained = await reopened.resetExpiryLeadHours()
+        XCTAssertEqual(retained, [12, 48])
+        let empty = await store.setResetExpiryLeadHours([])
+        let invalid = await store.setResetExpiryLeadHours([6])
+        XCTAssertFalse(empty)
+        XCTAssertFalse(invalid)
+        _ = await store.setResetExpiryReminderEnabled(false)
+        _ = await store.setResetExpiryReminderEnabled(true)
+        let afterToggle = await store.resetExpiryLeadHours()
+        XCTAssertEqual(afterToggle, [12, 48])
+        let legacy = try JSONDecoder().decode(QuotaReminderState.self, from: JSONEncoder().encode(QuotaReminderState()))
+        XCTAssertEqual(legacy.effectiveResetExpiryLeadHours, [12, 24, 48, 72])
+    }
+
+    func testSelectedExpiryMilestonesCoalesceAndCannotReplayHandledNodes() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiry = now.addingTimeInterval(20 * 3600)
+        var state = QuotaReminderState()
+        state.resetExpiryLeadHours = [12, 48, 72]
+        var result = evaluate(snapshot(remaining: 0.5, credits: "10", expirations: [expiry]), now: now, state: state)
+        XCTAssertEqual(result.events, [.manualResetExpiring(index: 1, expiresAt: expiry, leadHours: 48)])
+        state = result.state
+        state.resetExpiryLeadHours = [24, 48, 72]
+        result = evaluate(snapshot(remaining: 0.5, credits: "10", expirations: [expiry]), now: now, state: state)
+        XCTAssertTrue(result.events.isEmpty, "Previously crossed nodes stay handled after editing selection")
+        state.resetExpiryLeadHours = [12, 24, 48, 72]
+        result = evaluate(snapshot(remaining: 0.5, credits: "10", expirations: [expiry]), now: now.addingTimeInterval(9 * 3600), state: state)
+        XCTAssertEqual(result.events, [.manualResetExpiring(index: 1, expiresAt: expiry, leadHours: 12)])
+    }
+
+    func testInFlightBatchRetainsNewMilestonesWithoutFalseFailureRecord() async {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json"))
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let batch = await store.prepare(snapshot(remaining: 0.5, credits: "10", expirations: [now.addingTimeInterval(36 * 3600)]), now: now)
+        _ = await store.setResetExpiryLeadHours([12])
+        let active = await store.isResetExpiryEventActive(batch.events[0])
+        XCTAssertFalse(active)
+        await store.commit(batch, deliveredEvents: [], now: now)
+        let selection = await store.resetExpiryLeadHours()
+        let history = await store.history()
+        XCTAssertEqual(selection, [12])
+        XCTAssertTrue(history.isEmpty)
+    }
+
+    func testFailedMilestoneSaveRetainsPriorSelection() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let blocker = directory.appendingPathComponent("file")
+        try Data().write(to: blocker)
+        let store = QuotaReminderStore(fileURL: blocker.appendingPathComponent("state.json"))
+        let saved = await store.setResetExpiryLeadHours([12])
+        let selection = await store.resetExpiryLeadHours()
+        XCTAssertFalse(saved)
+        XCTAssertEqual(selection, [12, 24, 48, 72])
+    }
+
     func testQuotaBatchDoesNotOverwriteConcurrentAutomaticUseNotice() async {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

@@ -1,0 +1,79 @@
+{
+  "version": "0.5.0-dev.2",
+  "date": "2026-10-23",
+  "implementationCommit": "0d54ddb",
+  "targetedNativeTests": {
+    "count": 2,
+    "failures": 0,
+    "scenarios": [
+      "7 data states",
+      "2 languages",
+      "2 themes",
+      "minimum740-point settings",
+      "310-point explanations",
+      "unknown consent versus confirmed On/Off"
+    ]
+  },
+  "existingIntegrationRerun": {
+    "case": "testModelRequiresOptInKeepsReminderSettingsAndRendersBilingualControl",
+    "assertionFailures": 6,
+    "observedStatus": "storageFailed",
+    "blocking": false,
+    "resolvedBy": "System access recovered; the unchanged case passed in the current full run."
+  },
+  "lastFullGreen": {
+    "version": "0.5.0-dev.1",
+    "count": 387
+  },
+  "package": {
+    "versionMatched": true,
+    "strictPreviewSignatureValid": true,
+    "launched": true,
+    "systemCredentialApprovalPending": false,
+    "published": false
+  },
+  "liveChecks": {
+    "version": "0.5.0-dev.1",
+    "statusEscape": true,
+    "widgetSingleClickExplanation": true,
+    "widgetPinRetainedAfterDismiss": true,
+    "dev2UnconfirmedConsentSeen": true,
+    "dev2": {
+      "successfulReading": true,
+      "ledgerReadable": true,
+      "originalAccountAuthorizationRetained": true,
+      "automaticUseConfirmedOn": true,
+      "recoveryAndExpiryReminderOn": true,
+      "allFourNodesSelected": true,
+      "sameBinaryColdStartReading": true,
+      "coldStartRequiredNewApproval": false
+    }
+  },
+  "credentialInvestigation": {
+    "productionSecretRequested": false,
+    "productionMutations": false,
+    "productionPartitionTypes": [
+      "cdhash"
+    ],
+    "previouslyApprovedBuildsListed": true,
+    "fixtureNewHashNotListed": true,
+    "permissionChangingCausalControlPerformed": false,
+    "safeUpgradeFixValidated": false
+  },
+  "userState": "Original settings and authorization are retained; no baseline restoration or real-card acceptance attempted.",
+  "currentFullRegression": {
+    "version": "0.5.0-dev.2",
+    "count": 388,
+    "failures": 0,
+    "exitCode": 0
+  },
+  "overnightIncident": {
+    "status": "unresolved-release-blocker",
+    "simultaneousEarlyQuotaRecoveryObserved": true,
+    "localAttemptsPresent": false,
+    "successNotificationReceiptPresent": false,
+    "serverRedemptionReceiptAvailable": false,
+    "expiredInterpretationWithdrawn": true,
+    "fullRegressionDoesNotProveOvernightRedemption": true
+  }
+}

@@ -2,7 +2,7 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class CodexResetCreditClientTests: XCTestCase {
-    func testExactRPCAndPostReadUseIsolatedExternalAuthWithoutChangingNativeLogin() async throws {
+    func testExactRPCUsesIsolatedExternalAuthWithoutChangingNativeLogin() async throws {
         let f = try fixture(account: "A")
         defer { try? FileManager.default.removeItem(at: f.directory) }
         let token = CodexOAuthToken(accessToken: "synthetic-access", refreshToken: "synthetic-refresh", idToken: nil,
@@ -10,12 +10,19 @@ final class CodexResetCreditClientTests: XCTestCase {
         let outcome = try await f.client.consume(account: "A", token: token, credit: f.card, idempotencyKey: "synthetic-attempt", authorization: ResetCreditAuthorization())
         XCTAssertEqual(outcome, .reset)
         let trace = try trace(f.directory)
-        XCTAssertEqual(trace.map { $0["method"] as? String }, ["initialize", "initialized", "account/login/start", "account/read", "account/rateLimits/read", "account/rateLimitResetCredit/consume", "account/rateLimits/read"])
+        XCTAssertEqual(trace.map { $0["method"] as? String }, ["initialize", "initialized", "account/login/start", "account/read", "account/rateLimits/read", "account/rateLimitResetCredit/consume"])
         let params = try XCTUnwrap(trace[5]["params"] as? [String: String])
         XCTAssertEqual(params, ["creditId": "fixture-card", "idempotencyKey": "synthetic-attempt"])
         let home = try XCTUnwrap(trace[0]["home"] as? String)
         XCTAssertTrue(home.contains("readycheck-reset-"))
         XCTAssertFalse(FileManager.default.fileExists(atPath: home))
+    }
+    func testConfirmedConsumeSurvivesPostReadFailure() async throws {
+        let f = try fixture(account: "A", failPostRead: true)
+        defer { try? FileManager.default.removeItem(at: f.directory) }
+        let outcome = try await f.client.consume(account: "A", token: nil, credit: f.card,
+            idempotencyKey: "confirmed-before-disconnect", authorization: ResetCreditAuthorization())
+        XCTAssertEqual(outcome, .reset, "A confirmed consume result must not be lost to a later quota refresh")
     }
     func testWrongAccountAndWrongCardDoNotReachConsume() async throws {
         for (account, creditID) in [("B", "fixture-card"), ("A", "another-card")] {
@@ -60,7 +67,7 @@ final class CodexResetCreditClientTests: XCTestCase {
             try XCTUnwrap(JSONSerialization.jsonObject(with: Data($0.utf8)) as? [String: Any])
         }
     }
-    private func fixture(account: String, outcome: String = "reset") throws -> (client: CodexResetCreditClient, card: CodexAppServerResetCredit, directory: URL) {
+    private func fixture(account: String, outcome: String = "reset", failPostRead: Bool = false) throws -> (client: CodexResetCreditClient, card: CodexAppServerResetCredit, directory: URL) {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let executable = directory.appendingPathComponent("fake-server")
@@ -70,6 +77,7 @@ final class CodexResetCreditClientTests: XCTestCase {
         import json,sys,os
         from pathlib import Path
         trace=Path(__file__).with_name('trace')
+        consumed=False
         for line in sys.stdin:
             m=json.loads(line)
             # Record methods/consume params only; never record supplied token payloads.
@@ -78,12 +86,16 @@ final class CodexResetCreditClientTests: XCTestCase {
             with trace.open('a') as f: f.write(json.dumps(row)+'\\n')
             if 'id' not in m: continue
             method=m['method']
+            if method=='account/rateLimits/read' and consumed and \(failPostRead ? "True" : "False"):
+                print(json.dumps({'id':m['id'],'error':{'code':-32000}}),flush=True)
+                continue
             if method=='account/read': result={'account':{'type':'chatgpt','email':None,'planType':'plus'}}
             elif method=='account/rateLimits/read': result={'accountId':'\(account)','rateLimits':{'primary':None,'secondary':None},'rateLimitResetCredits':{'availableCount':1,'credits':[{'id':'fixture-card','resetType':'codexRateLimits','status':'available','expiresAt':\(expires)}]}}
             elif method=='account/rateLimitResetCredit/consume':
                 if '\(outcome)'=='unsupported':
                     print(json.dumps({'id':m['id'],'error':{'code':-32601}}),flush=True)
                     continue
+                consumed=True
                 result={'outcome':'\(outcome)'}
             else: result={}
             print(json.dumps({'id':m['id'],'result':result}),flush=True)

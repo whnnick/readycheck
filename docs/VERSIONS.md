@@ -1,5 +1,7 @@
 # Version plans / 版本规划
 
+- [0.5.0 plan](versions/0.5.0/PLAN.md) / [提醒与数据状态计划](versions/0.5.0/PLAN.zh-CN.md) · [Preview](versions/0.5.0/prototype/README.md) / [预览](versions/0.5.0/prototype/README.zh-CN.md) · [Checks](versions/0.5.0/QA.md) / [验收](versions/0.5.0/QA.zh-CN.md) · [Release notes](versions/0.5.0/RELEASE_NOTES.md) / [更新重点](versions/0.5.0/RELEASE_NOTES.zh-CN.md) —0.5.0 release preparation;398 development regressions and lock/unlock checks pass; public packages pending / 正式发布准备中，开发398项与锁屏／解锁通过，公开包待验。
+
 - [0.4.2 clear actions](versions/0.4.2/RELEASE_NOTES.md) / [明确操作与单层说明](versions/0.4.2/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.4.2/QA.md) / [验收](versions/0.4.2/QA.zh-CN.md) — release candidate / 发布候选。
 
 - [0.4.1 expiry-reminder fix](versions/0.4.1/PLAN.md) / [到期提醒去重修复](versions/0.4.1/PLAN.zh-CN.md) · [Checks](versions/0.4.1/QA.md) / [验收](versions/0.4.1/QA.zh-CN.md) — release candidate / 发布候选。

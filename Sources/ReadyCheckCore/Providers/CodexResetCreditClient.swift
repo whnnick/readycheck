@@ -115,7 +115,7 @@ public struct CodexResetCreditClient: ResetCreditServicing {
         struct Result: Decodable { let outcome: ResetCreditOutcome }
         let outcome = try JSONDecoder().decode(Result.self, from: outcomeData).outcome
         // Never infer quota windows from a successful consume response.
-        _ = try rpc("account/rateLimits/read")
+        // Quota refresh is independent; never discard an authoritative consume receipt.
         return Response(snapshot: snapshot, outcome: outcome)
     }
 }

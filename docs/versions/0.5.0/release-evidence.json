@@ -1,0 +1,37 @@
+{
+  "version": "0.5.0",
+  "date": "2026-10-23",
+  "publicSourceTests": {
+    "count": 398,
+    "failures": 0
+  },
+  "releaseMetadataTests": {
+    "count": 1,
+    "failures": 0
+  },
+  "windows": [
+    "check",
+    "smoke",
+    "smoke:ui",
+    "ZIP integrity",
+    "ASAR version/privacy"
+  ],
+  "macOS": [
+    "mounted DMG version",
+    "strict stable Preview signature",
+    "bundle privacy",
+    "artifact directory invariant"
+  ],
+  "artifacts": {
+    "ReadyCheck-0.5.0-macos.dmg": "d6105aed6803e88fca077bcbeff8249de140a4812f24e5661305aaef534ddd23",
+    "ReadyCheck-0.5.0-windows-x64-portable.zip": "0e356eb2dff7e97413ef5e296c2805b34e7b7d47a83abf91f635e8e29435abf0"
+  },
+  "remote": "Not published yet; remote and actual downloads pending",
+  "finalInstalled": "Final DMG app installed; executable identical and strict signature valid. After system approval live reading, original automatic-use authorization, reminder settings and card/check records verified. About shows0.5.0.",
+  "preferencesAndConsentPreserved": true,
+  "realCardSpentForAcceptance": false,
+  "historicalOvernightOutcome": "unconfirmed",
+  "retention": "65-item delta review; unchanged evidence reused with limits, not65 direct device passes",
+  "scope": "macOS controls, card/check reliability and data-state explanations; Windows previous interface; self-signed non-notarized preview",
+  "keychain": "A new binary can still require user approval; no prompt-free upgrade claim"
+}

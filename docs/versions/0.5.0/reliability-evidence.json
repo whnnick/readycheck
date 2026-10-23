@@ -1,0 +1,68 @@
+{
+  "version": "0.5.0-dev.3",
+  "date": "2026-10-23",
+  "redCase": "testConfirmedConsumeSurvivesPostReadFailure",
+  "redReproduced": true,
+  "targetedCore": {
+    "count": 28,
+    "failures": 0
+  },
+  "targetedIntegration": {
+    "count": 22,
+    "failures": 0,
+    "includedInFull": true
+  },
+  "currentFullRun": {
+    "count": 398,
+    "failures": 0,
+    "exitCode": 0
+  },
+  "deviceLockCheck": {
+    "lockObserved": true,
+    "syntheticReadsWhileLocked": 102,
+    "syntheticWritesWhileLocked": 102,
+    "failures": 0,
+    "protectionRetained": true,
+    "mode600": true,
+    "liveAppCheckedDuringLock": true,
+    "unlockFollowup": "user confirmed unlock; protected ledger and current app reading verified",
+    "notLiveRedemption": true,
+    "liveObservationSource": "Read-only diagnostic state observed during the measured lock interval"
+  },
+  "historicalRedemptionOutcome": "unconfirmed",
+  "realCardAcceptancePerformed": false,
+  "protectionClassChanged": false,
+  "consentChanged": false,
+  "published": false,
+  "finalScopedRerun": {
+    "count": 18,
+    "failures": 0
+  },
+  "finalNativeRerun": {
+    "count": 4,
+    "failures": 0
+  },
+  "nativeDetailsVisuallyInspected": [
+    "historical reminder without result",
+    "confirmed request with notice pending",
+    "server-consumed observation with unknown initiator"
+  ],
+  "liveReading": true,
+  "liveHistoricalCardSourceVerified": true,
+  "strictPreviewSignatureValid": true,
+  "coreCommit": "b437811",
+  "uiCommit": "36132ce",
+  "syntheticAssetsOnly": true,
+  "finalAppVersion": "0.5.0-dev.3",
+  "unlockVerification": {
+    "protectedLedgerReadable": true,
+    "originalConsentAndReminderPreferencesRetained": true,
+    "automaticUseStillOn": true,
+    "realRequestsDuringAcceptance": 0,
+    "chineseRecordDatesVerified": true
+  },
+  "sameBinaryColdStart": {
+    "liveReading": true,
+    "newSystemApprovalRequired": false
+  }
+}

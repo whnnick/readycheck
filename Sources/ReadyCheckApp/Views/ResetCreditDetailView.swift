@@ -54,7 +54,9 @@ struct ResetCreditDetailView: View {
                             Text(model.localization.text("card.readAt") + " " + dateText(readAt)).font(.caption).foregroundStyle(.secondary)
                         }
                         Text(model.localization.text(model.resetCreditStatus.status == .storageFailed ? "card.authorizationUnknown" : model.resetCreditStatus.enabled ? "card.authorized" : "resetAuto.off")).font(.caption)
-                        if record != nil { Text(model.localization.text("card.historical")).font(.caption).foregroundStyle(.secondary) }
+                        if let record {
+                            Text(model.localization.text(record.reminderOnly ? "card.reminderOnly" : record.observedOnly ? "card.observedOnly" : "card.historical")).font(.caption).foregroundStyle(.secondary)
+                        }
                     }
                     section("card.result") {
                         Text(resultText).foregroundStyle(record?.confirmedUsed == true ? Color.green : Color.primary)
@@ -63,8 +65,15 @@ struct ResetCreditDetailView: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         if let record {
-                            Text(model.localization.text("card.updated") + " " + dateText(record.updatedAt)).font(.caption).foregroundStyle(.secondary)
-                            Text(model.localization.text("card.unrecorded")).font(.caption).foregroundStyle(.secondary)
+                            if !record.reminderOnly {
+                                Text(model.localization.text("card.updated") + " " + dateText(record.updatedAt)).font(.caption).foregroundStyle(.secondary)
+                            }
+                            if let started = record.startedAt, let count = record.requestCount {
+                                Text(model.localization.text("card.started") + " " + dateText(started)).font(.caption).foregroundStyle(.secondary)
+                                Text(String(format: model.localization.text("card.requestCount"), count)).font(.caption).foregroundStyle(.secondary)
+                            } else {
+                                Text(model.localization.text(record.observedOnly ? "card.noLocalRequest" : "card.unrecorded")).font(.caption).foregroundStyle(.secondary)
+                            }
                         }
                     }
                     section("card.notification") {
