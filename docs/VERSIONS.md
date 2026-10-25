@@ -1,5 +1,7 @@
 # Version plans / 版本规划
 
+- [0.5.4 compact card details](versions/0.5.4/PLAN.md) / [重置卡详情收紧](versions/0.5.4/PLAN.zh-CN.md) · [Checks](versions/0.5.4/QA.md) / [验收](versions/0.5.4/QA.zh-CN.md) · [Release notes](versions/0.5.4/RELEASE_NOTES.md) / [更新重点](versions/0.5.4/RELEASE_NOTES.zh-CN.md) — release candidate / 发布候选。
+
 - [0.5.3 notification history](versions/0.5.3/PLAN.md) / [独立通知记录](versions/0.5.3/PLAN.zh-CN.md) · [Checks](versions/0.5.3/QA.md) / [验收](versions/0.5.3/QA.zh-CN.md) — [Published v0.5.3](https://github.com/whnnick/readycheck/releases/tag/v0.5.3);417 final public tests, both downloads and installed live/account retention verified / 已发布：最终公开417项、双包下载、安装版真实读取及账号状态保留通过。
 
 - [0.5.2 one ReadyCheck sign-in](versions/0.5.2/PLAN.md) / [统一 ReadyCheck 登录](versions/0.5.2/PLAN.zh-CN.md) · [Checks](versions/0.5.2/QA.md) / [验收](versions/0.5.2/QA.zh-CN.md) — [Published v0.5.2](https://github.com/whnnick/readycheck/releases/tag/v0.5.2);415 public-source tests, both downloads and installed live OAuth/card checks passed / 已发布：公开源码415项、双包下载和安装版OAuth／用卡检查通过。

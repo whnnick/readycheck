@@ -164,11 +164,11 @@ final class NextEventsViewTests: XCTestCase {
                 try await render(BubbleWidgetView(model: model, isExpanded: true, tabEdge: nil,
                     onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {}), name: "next-widget-\(suffix)", size: BubbleWidgetPlacement.expandedSize, checkQuotaFit: true)
                 if scenario == "notificationPending" {
-                    try await render(ResetCreditDetailView(model: model, selection: .record(historyRecord.id), now: now), name: "next-detail-\(suffix)", size: CGSize(width: 540, height: 530))
+                    try await render(ResetCreditDetailView(model: model, selection: .record(historyRecord.id), now: now), name: "next-detail-\(suffix)", size: CGSize(width: 540, height: 400))
                 }
                 if scenario == "ledgerUnavailable" {
                     let expiry = try XCTUnwrap(model.snapshots.first?.details?.manualResetExpirations.first)
-                    try await render(ResetCreditDetailView(model: model, selection: .available(expiry), now: now), name: "next-detail-\(suffix)", size: CGSize(width: 540, height: 530))
+                    try await render(ResetCreditDetailView(model: model, selection: .available(expiry), now: now), name: "next-detail-\(suffix)", size: CGSize(width: 540, height: 400))
                     model.mainWindowPage = .settings; model.mainSettingsSection = .reminders
                     try await render(SettingsView(model: model), model: model, name: "next-settings-\(suffix)", size: CGSize(width: 740, height: 900))
                 }

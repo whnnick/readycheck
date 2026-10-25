@@ -5,7 +5,7 @@ struct ReleaseHighlightsView: View {
     let localization: LocalizationService
 
     private let features = [
-        ("bell.badge", "release.notificationPage", "release.notificationPageDetail"),
+        ("rectangle", "release.compactCardDetails", "release.compactCardDetailsDetail"),
         ("square.grid.2x2", "release.focusedOverview", "release.focusedOverviewDetail"),
         ("square.stack", "release.retained", "release.retainedDetail")
     ]

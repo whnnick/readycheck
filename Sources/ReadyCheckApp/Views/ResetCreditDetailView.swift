@@ -81,7 +81,7 @@ struct ResetCreditDetailView: View {
                             }
                         }
                     }
-                    section("card.notification") {
+                    section("card.notification", showsDivider: false) {
                         Text(model.localization.text(isHistoricalReminder ? "card.legacyNotice" : "card.notice." + (record?.notificationState(history: model.reminderHistoryRecords).rawValue ?? "notApplicable")))
                         Text(model.localization.text(isHistoricalReminder ? "card.legacyReadOnly" : "card.notificationHelp")).font(.caption).foregroundStyle(.secondary)
                         if let notice { Button(model.localization.text("card.showNotice")) { showNotices = true }.disabled(notice.kind != .resetCreditUsed) }
@@ -89,7 +89,7 @@ struct ResetCreditDetailView: View {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .padding(20).frame(width: 540, height: 480)
+        .padding(20).frame(width: 540, height: 400)
         .sheet(isPresented: $showNotices) {
             ReminderHistoryListView(records: notice.map { [$0] } ?? [], localization: model.localization)
         }
@@ -99,11 +99,11 @@ struct ResetCreditDetailView: View {
         formatter.timeZone = TimeZone(secondsFromGMT: 28800); formatter.dateStyle = .medium; formatter.timeStyle = .short
         return formatter.string(from: date)
     }
-    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func section<Content: View>(_ title: String, showsDivider: Bool = true, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(model.localization.text(title)).font(.caption.weight(.medium)).foregroundStyle(.secondary)
             content()
-            Divider().padding(.top, 6)
+            if showsDivider { Divider().padding(.top, 6) }
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }

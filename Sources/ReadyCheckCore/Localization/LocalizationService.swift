@@ -18,6 +18,8 @@ public struct LocalizationService: Equatable, Sendable {
         .enUS: [
             "oauth.signIn": "Sign in to ReadyCheck",
             "oauth.singleConnectionHelp": "Sign in with your ChatGPT account in the browser. ReadyCheck remembers your sign-in.",
+            "release.compactCardDetails": "Compact reset-card details",
+            "release.compactCardDetailsDetail": "Remove the trailing divider and unused bottom space. Card facts, outcomes, notification status, Close and related-notification details remain; long content still scrolls.",
             "release.notificationPage": "Notification history, one click away",
             "release.notificationPageDetail": "Open the complete delivery history directly from the sidebar. Card outcomes remain separate; original records and delivery states are retained.",
             "release.focusedOverview": "Overview for status, settings for rules",
@@ -627,6 +629,8 @@ public struct LocalizationService: Equatable, Sendable {
         .zhCN: [
             "oauth.signIn": "登录 ReadyCheck",
             "oauth.singleConnectionHelp": "在浏览器中登录你的 ChatGPT 账号，ReadyCheck 会记住登录状态。",
+            "release.compactCardDetails": "重置卡详情更紧凑",
+            "release.compactCardDetailsDetail": "移除末尾分隔线和多余底部空白。卡片信息、结果、通知状态、关闭及关联通知详情保留，长内容仍可滚动。",
             "release.notificationPage": "通知记录，一点就到",
             "release.notificationPageDetail": "左侧直接打开完整通知投递记录，原历史和投递状态保留；用卡结果继续单独呈现。",
             "release.focusedOverview": "总览看状态，设置管规则",

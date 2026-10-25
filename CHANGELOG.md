@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.4 - 2026-10-25
+
+- Remove the trailing reset-card detail divider and reduce the sheet from480 to400 points high. Keep all card facts, outcomes, notice states, Close/Escape and related-notification details; long content still scrolls. macOS layout fix; Windows existing interface.
+
 ## 0.5.3 - 2026-10-25
 
 - Open the complete notification history directly from the sidebar. Keep all reminder rules, delivery states, card records and account consent; remove duplicate Overview/settings-history summaries. Preserve original shortcuts, add Command4 and reset cross-page scroll position. macOS update; Windows keeps its existing interface.
