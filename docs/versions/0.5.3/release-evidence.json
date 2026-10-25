@@ -27,10 +27,42 @@
   },
   "runtime": {
     "finalDMGInstalled": true,
-    "keychainConfirmation": "pending",
-    "originalSettingsConsentHistory": "pending final comparison"
+    "installedMatchesDMG": true,
+    "keychainApprovedByUser": true,
+    "sameAccountOAuthRestored": true,
+    "notificationPageAndOriginalShortcutsVerified": true,
+    "allReminderControlsPresent": true,
+    "originalAutoUseSwitchOn": true,
+    "postInstallCardCheck": "checked",
+    "ownedPreferences": 17,
+    "preferencesConsentRemindersUnchanged": true,
+    "historyPresent": true,
+    "codexAuthFileUnchanged": true,
+    "testRedemptions": 0
   },
-  "remote": "not yet published",
+  "remote": {
+    "repository": "whnnick/readycheck",
+    "tag": "v0.5.3",
+    "tagCodeCommit": "a9706a3b1048a2f36b716c8b3dedddfe58589713",
+    "releaseID": 423414028,
+    "latest": true,
+    "draft": false,
+    "prerelease": false,
+    "assets": [
+      {
+        "name": "ReadyCheck-0.5.3-macos.dmg",
+        "bytes": 2942399,
+        "sha256": "963f213a21c935ab41b38b2013997ca1ae6d715331e09adfaa511bdb699a12b7"
+      },
+      {
+        "name": "ReadyCheck-0.5.3-windows-x64-portable.zip",
+        "bytes": 151013057,
+        "sha256": "709d502c869b02b3beee0ad5c59f2a5526809d0e8c3c80b1908389e09e8c38f4"
+      }
+    ],
+    "actualDownloadsVerified": true,
+    "localGitHubDownloadSHA256Match": true
+  },
   "limits": [
     "Windows existing interface; no new Windows hardware test",
     "No live card redemption, second-account or multi-display acceptance claimed",

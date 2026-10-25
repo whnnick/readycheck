@@ -2,7 +2,7 @@
 
 [中文](PLAN.zh-CN.md) · [Checks](QA.md) · [Versions](../../VERSIONS.md)
 
-Release candidate: `0.5.3`; development acceptance used `0.5.3-dev.2`. Public stable remains0.5.2. The user approved a dedicated notification-history page and removal of the duplicate Overview reminder shortcut; packaging and public publication are now explicitly authorized.
+Published:`0.5.3`; development acceptance used `0.5.3-dev.2`. The user approved a dedicated notification-history page and removal of the duplicate Overview reminder shortcut; packaging and public publication are now explicitly authorized.
 
 - Sidebar: Overview, Token usage, Notification history, Settings. Preserve Command1/2/3 for the original pages; Command4 opens notification history. Keep native fullscreen commands.
 - The page shows the full existing local history, including all delivery states and an empty state, directly in the main content scroll area. Its refresh reloads local records, not quota data or notification submission. Keep notification delivery distinct from card redemption.

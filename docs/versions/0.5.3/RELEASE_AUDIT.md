@@ -2,7 +2,7 @@
 
 [中文](RELEASE_AUDIT.zh-CN.md) · [Checks](QA.md) · [Previous audit](../0.5.2/RELEASE_AUDIT.md)
 
-All65 baseline rows remain. Unchanged rows inherit the exact0.5.2 evidence and limitations below, not65 new physical-device passes. The user explicitly approved relocating notification history and removing the duplicate Overview shortcut; no reminder capability is removed. D09 and H06 change entry/navigation only. Settings rules, card records, menu/Widget shortcuts, preferences/history/consent remain; rollback uses the retained app without restoring an old ledger. Final public417 tests and both package checks passed; remote download and installed live confirmation pending.
+All65 baseline rows remain. Unchanged rows inherit the exact0.5.2 evidence and limitations below, not65 new physical-device passes. The user explicitly approved relocating notification history and removing the duplicate Overview shortcut; no reminder capability is removed. D09 and H06 change entry/navigation only. Settings rules, card records, menu/Widget shortcuts, preferences/history/consent remain; rollback uses the retained app without restoring an old ledger. Final public417 tests and both package checks passed; public main/tag/latest, both actual downloads and installed live/account-state checks passed. [Release evidence](release-evidence.json).
 
 | ID | Capability | Entry | Inherited evidence or changed disposition |
 | --- | --- | --- | --- |

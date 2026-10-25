@@ -2,7 +2,7 @@
 
 [中文](QA.zh-CN.md) · [Requirements](PLAN.md) · [Versions](../../VERSIONS.md)
 
-Release candidate `0.5.3`; local development acceptance used `0.5.3-dev.2`, public stable remains0.5.2. Dev.1 full regression:417 tests, zero failures. After the observed cross-page scroll fix and dev.2 metadata update:19 affected navigation/window/card-integration/version tests passed; native re-entry and credential acceptance passed. [Sanitized evidence](evidence.json).
+Published and installed:`0.5.3`; development evidence below used `0.5.3-dev.2`. Dev.1 full regression:417 tests, zero failures. After the observed cross-page scroll fix and dev.2 metadata update:19 affected navigation/window/card-integration/version tests passed; native re-entry and credential acceptance passed. [Sanitized evidence](evidence.json).
 
 | Requirement | Evidence / status |
 | --- | --- |
@@ -13,7 +13,7 @@ Release candidate `0.5.3`; local development acceptance used `0.5.3-dev.2`, publ
 | Card details keep exact related-notification sheet | Shared original rows and sheet retained; affected card-integration regression passed |
 | Existing account, preferences, history and consent | Strict signature and installed binary match; user-approved Keychain read restored same-account OAuth; all17 preferences, reminder settings, original consent On and history retained; ordinary post-install card check returned `checked`; zero test redemptions |
 
-No new Windows interface, second real account/device or live card-redemption acceptance is claimed. Do not consume real cards for testing. Preserve inherited limitations from the [previous audit](../0.5.2/RELEASE_AUDIT.md). The user has now authorized packaging and publication. Final public source passed417 tests, zero failures, after the correction below. Windows checks/smoke/UI behavior, both package integrity/version/privacy checks and strict Mac signing passed. Remote publication/download verification and installed Keychain/live reading remain pending. [Release evidence](release-evidence.json).
+No new Windows interface, second real account/device or live card-redemption acceptance is claimed. Do not consume real cards for testing. Preserve inherited limitations from the [previous audit](../0.5.2/RELEASE_AUDIT.md). The user has now authorized packaging and publication. Final public source passed417 tests, zero failures, after the correction below. Windows checks/smoke/UI behavior, both package integrity/version/privacy checks and strict Mac signing passed. Public main/tag/latest and both actual downloads were verified, matching local and GitHub SHA-256. The final DMG app restored same-account OAuth after user-approved Keychain access; all17 preferences, original consent/reminders and history remain, and an ordinary card check returned `checked`. Zero test redemptions. [Release evidence](release-evidence.json).
 
 ## Public-source test-harness correction
 
