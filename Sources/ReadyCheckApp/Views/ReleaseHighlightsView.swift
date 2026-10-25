@@ -5,12 +5,12 @@ struct ReleaseHighlightsView: View {
     let localization: LocalizationService
 
     private let features = [
-        ("bell.badge", "release.milestones", "release.milestonesDetail"),
-        ("info.circle", "release.observation", "release.observationDetail"),
-        ("creditcard", "release.cardResult", "release.cardResultDetail"),
-        ("checkmark.shield", "release.conditional", "release.conditionalDetail"),
-        ("square.stack", "release.retained", "release.retainedDetail"),
-        ("clock.badge.checkmark", "release.resetControls", "release.autoResetDetail")
+        ("chart.bar", "release.clearOverview", "release.clearOverviewDetail"),
+        ("bell.badge", "release.quietChecks", "release.quietChecksDetail"),
+        ("switch.2", "release.clearControls", "release.clearControlsDetail"),
+        ("calendar", "release.clearToken", "release.clearTokenDetail"),
+        ("person.crop.circle", "release.sources", "release.sourcesDetail"),
+        ("square.stack", "release.retained", "release.retainedDetail")
     ]
 
     var body: some View {

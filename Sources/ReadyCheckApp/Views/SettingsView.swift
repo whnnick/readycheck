@@ -7,25 +7,37 @@ struct SettingsView: View {
 
     @State private var now = Date()
     @State private var isReminderHistoryPresented = false
+    @State private var areOtherConnectionsExpanded = false
 
     private let refreshIntervalOptions: [TimeInterval] = [60, 180, 300]
+    private static let resetCreditRulesID = "reset-credit-rules"
 
     var body: some View {
         HStack(spacing: 0) {
             MainWindowSidebar(model: model)
             Divider()
-            ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 18) {
-                    pageHeader
-                    updateBanner
-                    switch model.mainWindowPage {
-                    case .overview: overviewContent
-                    case .usage: usageContent
-                    case .settings: settingsContent
+            ScrollViewReader { scrollProxy in
+                ScrollView(.vertical) {
+                    VStack(alignment: .leading, spacing: 18) {
+                        pageHeader
+                        updateBanner
+                        switch model.mainWindowPage {
+                        case .overview: overviewContent
+                        case .usage: usageContent
+                        case .settings: settingsContent
+                        }
                     }
+                    .padding(20)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
-                .padding(24)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .task(id: model.resetCreditRulesNavigationRequest) {
+                    guard let request = model.resetCreditRulesNavigationRequest,
+                          model.mainWindowPage == .settings, model.mainSettingsSection == .reminders else { return }
+                    await Task.yield()
+                    guard !Task.isCancelled, model.resetCreditRulesNavigationRequest == request else { return }
+                    scrollProxy.scrollTo(Self.resetCreditRulesID, anchor: .top)
+                    model.resetCreditRulesNavigationRequest = nil
+                }
             }
         }
         .frame(minWidth: 740, idealWidth: 900, minHeight: 620, idealHeight: 760)
@@ -43,8 +55,10 @@ struct SettingsView: View {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(model.localization.text(model.mainWindowPage.titleKey)).font(.title2.weight(.semibold))
-                    Text(model.localization.text(model.mainWindowPage == .usage ? "usage.pageSubtitle" : "dashboard.subtitle"))
-                        .font(.caption).foregroundStyle(.secondary)
+                    if model.mainWindowPage == .usage {
+                        Text(model.localization.text("usage.pageSubtitle"))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                 }
                 Spacer(minLength: 8)
                 DataStatusButton(model: model).controlSize(.small)
@@ -60,7 +74,7 @@ struct SettingsView: View {
     }
 
     private var overviewContent: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
             OverviewQuotaView(model: model, now: now)
             if model.snapshots.isEmpty {
                 Text(quotaEmptyMessage).font(.callout).foregroundStyle(.secondary)
@@ -73,15 +87,18 @@ struct SettingsView: View {
             }
             ForEach(model.snapshots.filter { $0.providerId == "codex-oauth" }) { snapshot in
                 quotaRecoveryActions(for: snapshot)
+                accountCardSummary(snapshot)
+            }
+            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                RecentUsageView(samples: model.quotaHistorySamples,
+                    localization: model.localization, now: now)
+            }
+            ForEach(model.snapshots.filter { $0.providerId == "codex-oauth" }) { snapshot in
                 QuotaCardView(snapshot: snapshot, localization: model.localization, now: now, displayMode: .accountDetails,
                     onResetCreditDetails: { model.resetCreditDetailSelection = .available($0) })
                 if !model.currentResetCreditRecords.isEmpty || !model.resetCreditChecks.isEmpty || model.resetCreditHistoryUnavailable || model.resetCreditChecksUnavailable {
                     ResetCreditHistoryView(model: model)
                 }
-            }
-            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                RecentUsageView(samples: model.quotaHistorySamples,
-                    localization: model.localization, now: now)
             }
             legacyHistoryNotice
             Button {
@@ -122,22 +139,29 @@ struct SettingsView: View {
                 ForEach(MainSettingsSection.allCases) { section in
                     Text(model.localization.text(section.titleKey)).tag(section)
                 }
-            }.pickerStyle(.segmented)
+            }.pickerStyle(.segmented).labelsHidden()
             switch model.mainSettingsSection {
             case .reminders:
                 GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
                     VStack(alignment: .leading, spacing: 18) {
+                        Text(model.localization.text("settings.quotaReminders")).font(.headline)
                         QuotaRecoveryReminderView(model: model, now: now)
-                        Divider()
-                        notificationControls
                     }
                 }
-                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                    VStack(alignment: .leading, spacing: 16) {
-                        ResetExpiryReminderView(model: model)
-                        Divider()
+                VStack(alignment: .leading, spacing: 18) {
+                    GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(model.localization.text("settings.cardReminders")).font(.headline)
+                            ResetExpiryReminderView(model: model)
+                        }
+                    }
+                    GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
                         ResetCreditAutomationView(model: model)
                     }
+                }
+                .id(Self.resetCreditRulesID)
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                    notificationControls
                 }
                 GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
                     ReminderHistorySummaryView(records: model.reminderHistoryRecords,
@@ -176,24 +200,28 @@ struct SettingsView: View {
     }
 
     private var refreshStatusView: some View {
-        HStack(spacing: 8) {
-            if model.isRefreshing {
-                ProgressView()
-                    .controlSize(.small)
-            } else {
-                Image(systemName: "arrow.clockwise")
-                    .foregroundStyle(.secondary)
-            }
+        CurrentReadoutView(model: model, now: now)
+    }
 
-            VStack(alignment: .leading, spacing: 1) {
-                Text(model.isRefreshing ? model.localization.text("status.refreshing") : refreshSummary)
-                    .font(.footnote.weight(.medium))
-
-                Text(model.localization.text("dashboard.refreshCadence"))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+    private func accountCardSummary(_ snapshot: ProviderQuotaSnapshot) -> some View {
+        let details = snapshot.details
+        let dates = details?.manualResetExpirations ?? []
+        let count = details?.manualResetCount ?? (dates.isEmpty ? nil : dates.count)
+        return HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "ticket").foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(count.map { String(format: model.localization.text("overview.cardCount"), $0) }
+                    ?? model.localization.text("overview.cardCountUnknown"))
+                    .font(.subheadline.weight(.medium))
+                if let nearest = dates.filter({ $0 > now }).min() {
+                    Text(model.localization.text("overview.nearestExpiry") + " " + nearest.formatted(.dateTime
+                        .locale(Locale(identifier: model.language.rawValue)).month().day().hour().minute()))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
+            Spacer(minLength: 0)
         }
+        .accessibilityElement(children: .combine)
     }
 
     private func briefItem(_ textKey: String, systemImage: String) -> some View {
@@ -642,27 +670,7 @@ struct SettingsView: View {
                     .font(.headline)
             }
 
-            Text(model.localization.text("codex.connectionMode"))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            Picker(model.localization.text("codex.connectionMode"), selection: Binding(
-                get: { model.codexConnectionMode },
-                set: { mode in Task { await model.setCodexConnectionMode(mode) } }
-            )) {
-                Text(model.localization.text("codex.connectionMode.local")).tag(CodexConnectionMode.localCodex)
-                Text(model.localization.text("codex.connectionMode.oauth")).tag(CodexConnectionMode.standaloneOAuth)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-
-            Text(model.localization.text(
-                model.codexConnectionMode == .localCodex
-                    ? "codex.connectionMode.localHelp"
-                    : "codex.connectionMode.oauthHelp"
-            ))
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            connectionSourceControls
 
             HStack(spacing: 8) {
                 if model.codexOAuthStatus != .connected {
@@ -765,6 +773,53 @@ struct SettingsView: View {
                     .font(.footnote)
                     .foregroundStyle(.red)
                     .textSelection(.enabled)
+            }
+        }
+    }
+
+    private var connectionSourceControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label(model.localization.text("codex.connectionMode.local"), systemImage: "desktopcomputer")
+                    .font(.subheadline.weight(.semibold))
+                Spacer(minLength: 8)
+                if model.codexConnectionMode == .localCodex {
+                    Label(model.localization.text("codex.connectionMode.current"), systemImage: "checkmark.circle.fill")
+                        .font(.caption).foregroundStyle(.secondary)
+                } else {
+                    Button(model.localization.text("codex.connectionMode.useLocal")) {
+                        Task { await model.setCodexConnectionMode(.localCodex) }
+                    }
+                    .buttonStyle(.bordered).controlSize(.small)
+                }
+            }
+            Text(model.localization.text("codex.connectionMode.localHelp"))
+                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            DisclosureGroup(model.localization.text("codex.connectionMode.otherWays"), isExpanded: $areOtherConnectionsExpanded) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(model.localization.text("codex.connectionMode.oauth")).font(.subheadline.weight(.medium))
+                        Spacer(minLength: 8)
+                        if model.codexConnectionMode == .standaloneOAuth {
+                            Text(model.localization.text("codex.connectionMode.current")).font(.caption).foregroundStyle(.secondary)
+                        } else {
+                            Button(model.localization.text("codex.connectionMode.useOAuth")) {
+                                Task { await model.setCodexConnectionMode(.standaloneOAuth) }
+                            }
+                            .buttonStyle(.bordered).controlSize(.small)
+                        }
+                    }
+                    Text(model.localization.text("codex.connectionMode.oauthHelp"))
+                    Text(model.localization.text("codex.connectionMode.dependencies"))
+                }
+                .font(.footnote).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
+            }
+            .font(.subheadline)
+            if model.codexConnectionMode == .standaloneOAuth {
+                Divider()
+                Text(String(format: model.localization.text("codex.connectionMode.currentSource"), model.localization.text("codex.connectionMode.oauth")))
+                    .font(.subheadline.weight(.medium))
             }
         }
     }
@@ -946,15 +1001,6 @@ struct SettingsView: View {
                 attempt
             )
         }
-    }
-
-    private var refreshSummary: String {
-        guard let lastRefreshAt = model.lastSuccessfulRefreshAt else {
-            return model.localization.text("status.notUpdatedYet")
-        }
-
-        let time = DateFormatter.localizedString(from: lastRefreshAt, dateStyle: .none, timeStyle: .short)
-        return "\(model.localization.text("dataStatus.lastSuccess")) \(time)"
     }
 
     private var quotaEmptyMessage: String {

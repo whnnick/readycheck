@@ -376,6 +376,7 @@ final class ReadyCheckAppModel {
     var resetCreditChecksUnavailable = false
     private var resetCreditRecordsAccount: String?
     var resetCreditDetailSelection: ResetCreditDetailSelection?
+    var resetCreditRulesNavigationRequest: UUID?
     var reminderHistoryRecords: [QuotaReminderHistoryRecord] = []
     var notificationReadiness: NotificationReadiness = .checking
     var testNotificationResult: TestNotificationResult = .idle
@@ -1230,7 +1231,8 @@ final class ReadyCheckAppModel {
     func nextEvents(now: Date) -> [ReadyCheckNextEvent] {
         let snapshot = snapshots.first { $0.providerId == "codex-oauth" && $0.accountID == recoveryReminderAccount }
         return ReadyCheckNextEvent.evaluate(snapshot: snapshot, automation: resetCreditStatus,
-            records: currentResetCreditRecords, historyUnavailable: resetCreditHistoryUnavailable, now: now)
+            records: currentResetCreditRecords, historyUnavailable: resetCreditHistoryUnavailable, now: now,
+            latestCheckReason: resetCreditChecks.first?.reason)
     }
 
     var currentResetCreditRecords: [ResetCreditExecutionRecord] {
@@ -1265,10 +1267,17 @@ final class ReadyCheckAppModel {
         } catch { resetCreditChecks = []; resetCreditChecksUnavailable = true }
     }
 
+    func openResetCreditRules() {
+        resetCreditDetailSelection = nil
+        mainWindowPage = .settings
+        mainSettingsSection = .reminders
+        resetCreditRulesNavigationRequest = UUID()
+    }
+
     func openNextEvent(_ event: ReadyCheckNextEvent) {
         switch event.action {
         case .connection: mainWindowPage = .settings; mainSettingsSection = .connection
-        case .rules: mainWindowPage = .settings; mainSettingsSection = .reminders
+        case .rules: openResetCreditRules()
         case .reset: mainWindowPage = .overview
         case .card(let expiry): mainWindowPage = .overview; resetCreditDetailSelection = .available(expiry)
         case .record(let id): mainWindowPage = .overview; resetCreditDetailSelection = .record(id)
@@ -1395,8 +1404,9 @@ final class ReadyCheckAppModel {
     }
 
     private func deliverResetCreditCheckWarning(account: String) async {
-        guard recoveryReminderAccount == account,
-              let check = resetCreditChecks.first, check.reason != .checked, !check.warningSubmitted else { return }
+        guard recoveryReminderAccount == account else { return }
+        quotaNotificationService.clearRecoveredResetCreditCheckWarnings(resetCreditChecks)
+        guard let check = resetCreditChecks.first, check.reason != .checked, !check.warningSubmitted else { return }
         if await quotaNotificationService.deliverResetCreditCheckWarning(check, localization: localization),
            recoveryReminderAccount == account {
             _ = await resetCreditAutomation.acknowledgeCheckWarning(check.id, account: account)

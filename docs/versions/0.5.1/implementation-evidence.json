@@ -1,0 +1,41 @@
+{
+  "version": "0.5.1-dev.1",
+  "date": "2026-10-23",
+  "scope": "Card rules navigation only",
+  "redRegressionReproduced": true,
+  "targetedNavigation": {
+    "count": 2,
+    "failures": 0
+  },
+  "fullSwift": {
+    "count": 400,
+    "failures": 0
+  },
+  "nativeMinimumWindow": {
+    "width": 740,
+    "height": 620,
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "samePageScroll": true,
+    "crossPageScroll": true,
+    "transientRequestConsumed": true
+  },
+  "realDevice": [
+    "Overview historical-card detail -> card settings visible",
+    "Reminder-history detail -> same-page card settings visible",
+    "Live reading after user system approval",
+    "Original preferences, consent and attempt ledger unchanged"
+  ],
+  "signing": "strict stable Preview signature; self-signed, not notarized",
+  "published": false,
+  "publicLatest": "0.5.0",
+  "realCardUsedForAcceptance": false,
+  "privateDeviceScreenshotsPublished": false,
+  "limits": [
+    "No Windows interaction port or device claim",
+    "No new full hardware or65-item direct device pass",
+    "Historical card outcome remains unconfirmed"
+  ]
+}

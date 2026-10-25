@@ -17,6 +17,7 @@ struct ResetCreditDetailView: View {
         return nil
     }
     private var expiry: Date? { if case .available(let date) = selection { return date }; return record?.expiresAt }
+    private var isHistoricalReminder: Bool { record?.isHistoricalReminder == true }
     private var notice: QuotaReminderHistoryRecord? {
         guard let record else { return nil }
         return model.reminderHistoryRecords.first { $0.id == "reset-used:\(record.id)" && $0.kind == .resetCreditUsed }
@@ -30,16 +31,16 @@ struct ResetCreditDetailView: View {
         return true
     }
     private var resultText: String {
-        if let record { return model.localization.text("resetAuto." + record.status.rawValue) }
+        if let record { return model.localization.text(record.isHistoricalReminder ? "card.historyIncomplete" : "resetAuto." + record.status.rawValue) }
         if case .record = selection { return model.localization.text("card.recordUnavailable") }
         if model.resetCreditStatus.status == .storageFailed { return model.localization.text("resetAuto.storageFailed") }
-        guard canShowWindow else { return model.localization.text("next.conditionsUnknown.detail") }
+        guard canShowWindow else { return model.localization.text("card.conditionsUnknown") }
         return model.localization.text(model.resetCreditStatus.enabled ? "card.waiting" : "resetAuto.off")
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text(model.localization.text("card.title")).font(.title3.weight(.semibold))
+                Text(model.localization.text(isHistoricalReminder ? "card.legacyTitle" : "card.title")).font(.title3.weight(.semibold))
                 Spacer()
                 Button(model.localization.text("notification.history.close")) { dismiss() }.keyboardShortcut(.cancelAction)
             }
@@ -53,7 +54,9 @@ struct ResetCreditDetailView: View {
                         if record == nil, let readAt = model.snapshots.first(where: { $0.providerId == "codex-oauth" })?.details?.manualResetDetailsReadAt {
                             Text(model.localization.text("card.readAt") + " " + dateText(readAt)).font(.caption).foregroundStyle(.secondary)
                         }
-                        Text(model.localization.text(model.resetCreditStatus.status == .storageFailed ? "card.authorizationUnknown" : model.resetCreditStatus.enabled ? "card.authorized" : "resetAuto.off")).font(.caption)
+                        if !isHistoricalReminder {
+                            Text(model.localization.text(model.resetCreditStatus.status == .storageFailed ? "card.authorizationUnknown" : model.resetCreditStatus.enabled ? "card.authorized" : "resetAuto.off")).font(.caption)
+                        }
                         if let record {
                             Text(model.localization.text(record.reminderOnly ? "card.reminderOnly" : record.observedOnly ? "card.observedOnly" : "card.historical")).font(.caption).foregroundStyle(.secondary)
                         }
@@ -65,30 +68,28 @@ struct ResetCreditDetailView: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         if let record {
-                            if !record.reminderOnly {
-                                Text(model.localization.text("card.updated") + " " + dateText(record.updatedAt)).font(.caption).foregroundStyle(.secondary)
-                            }
-                            if let started = record.startedAt, let count = record.requestCount {
-                                Text(model.localization.text("card.started") + " " + dateText(started)).font(.caption).foregroundStyle(.secondary)
-                                Text(String(format: model.localization.text("card.requestCount"), count)).font(.caption).foregroundStyle(.secondary)
+                            if record.isHistoricalReminder {
+                                Text(model.localization.text("card.legacyOutcome")).font(.caption).foregroundStyle(.secondary)
                             } else {
-                                Text(model.localization.text(record.observedOnly ? "card.noLocalRequest" : "card.unrecorded")).font(.caption).foregroundStyle(.secondary)
+                                Text(model.localization.text("card.updated") + " " + dateText(record.updatedAt)).font(.caption).foregroundStyle(.secondary)
+                                if let started = record.startedAt, let count = record.requestCount {
+                                    Text(model.localization.text("card.started") + " " + dateText(started)).font(.caption).foregroundStyle(.secondary)
+                                    Text(String(format: model.localization.text("card.requestCount"), count)).font(.caption).foregroundStyle(.secondary)
+                                } else {
+                                    Text(model.localization.text(record.observedOnly ? "card.noLocalRequest" : "card.unrecorded")).font(.caption).foregroundStyle(.secondary)
+                                }
                             }
                         }
                     }
                     section("card.notification") {
-                        Text(model.localization.text("card.notice." + (record?.notificationState(history: model.reminderHistoryRecords).rawValue ?? "notApplicable")))
-                        Text(model.localization.text("card.notificationHelp")).font(.caption).foregroundStyle(.secondary)
+                        Text(model.localization.text(isHistoricalReminder ? "card.legacyNotice" : "card.notice." + (record?.notificationState(history: model.reminderHistoryRecords).rawValue ?? "notApplicable")))
+                        Text(model.localization.text(isHistoricalReminder ? "card.legacyReadOnly" : "card.notificationHelp")).font(.caption).foregroundStyle(.secondary)
                         if let notice { Button(model.localization.text("card.showNotice")) { showNotices = true }.disabled(notice.kind != .resetCreditUsed) }
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
-            Divider()
-            Button(model.localization.text("next.rulesAction")) {
-                model.mainWindowPage = .settings; model.mainSettingsSection = .reminders; dismiss()
-            }
         }
-        .padding(20).frame(width: 540, height: 530)
+        .padding(20).frame(width: 540, height: 480)
         .sheet(isPresented: $showNotices) {
             ReminderHistoryListView(records: notice.map { [$0] } ?? [], localization: model.localization)
         }

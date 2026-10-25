@@ -1,0 +1,77 @@
+{
+  "version": "0.5.1-dev.6",
+  "date": "2026-10-25",
+  "scope": "Native macOS presentation only; no feature removal / 仅原生展示优化，不删功能",
+  "direction": {
+    "name": "Native tonal hierarchy / 原生明暗层次",
+    "nativeAdaptation": "Keep adaptive native grounds, system blue controls and floating material / 保留自适应原生底色、系统蓝色控件及浮窗材质"
+  },
+  "verification": {
+    "fullSwift": {
+      "passed": 410,
+      "failed": 0,
+      "seconds": 157.5,
+      "scope": "Before final initial-default wording clarification and whitespace cleanup / 最后初始默认文案与缩进调整前"
+    },
+    "finalScopedSwift": {
+      "passed": 11,
+      "failed": 0,
+      "scope": "Final current-readout states, shared native surfaces, minimum layouts, consent/navigation and version / 最终状态、共享原生界面、最小窗口、授权导航与版本"
+    },
+    "minimumNativeCases": 24,
+    "minimumPoints": [
+      740,
+      620
+    ],
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "appearances": [
+      "dark",
+      "light"
+    ],
+    "metadata": "passed",
+    "strictPreviewSignature": "passed",
+    "localLinks": "passed",
+    "sensitivePatterns": "passed",
+    "diffCheck": "passed"
+  },
+  "device": {
+    "finalDevelopmentBundleRunning": true,
+    "liveQuotaAndCardDetailsRead": true,
+    "accountBenefitsAndExpiryActionsRetained": true,
+    "historicalGapsAndRecoveredChecksRetained": true,
+    "tokenRangeChangesChartNotAccountSummary": true,
+    "paceExplanationAndEscape": true,
+    "dataStatusAndEscape": true,
+    "cardDetailsAndEscape": true,
+    "originalPreferencesUnchanged": 17,
+    "accountConsentUnchanged": true,
+    "automaticUseRemainsEnabled": true,
+    "attemptLedgerUnchanged": true,
+    "realCardsRedeemedForAcceptance": 0,
+    "sourceSwitchedForAcceptance": false
+  },
+  "limits": [
+    "No browser CSS inspector claim for native SwiftUI / 不将浏览器检查冒充 SwiftUI 验收",
+    "Native fixtures cover bilingual/light/dark states; device interaction was Chinese/dark / 双语深浅色为原生合成，实点为中文深色",
+    "No new real second-account, outage, external-display or redemption test / 未新增真实换号、断网、外接屏或用卡验收",
+    "Notch geometry, Widget gestures and existing floating materials are unchanged / 刘海几何、Widget手势与浮窗材质未改",
+    "Windows receives metadata only / Windows仅同步版本元数据"
+  ],
+  "publication": {
+    "pushed": false,
+    "released": false,
+    "publicStable": "0.5.0"
+  },
+  "visualReview": {
+    "subjective": true,
+    "design": 7.5,
+    "usability": 8,
+    "creativity": 6.5,
+    "content": 8,
+    "weightedOverall": 7.5,
+    "remaining": "Dense historical checks and a long connection footer remain; optional notch-height refinement deferred / 历史检查仍偏长，连接页尾仍可精简，刘海高度建议留待后续"
+  }
+}

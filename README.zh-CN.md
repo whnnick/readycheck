@@ -3,9 +3,9 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>额度看得见，下一步心里有数。</strong></p>
 <p align="center">为 Mac 打造的免费开源 Codex 额度监控工具。</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.0"><img src="https://img.shields.io/badge/release-v0.5.0-28c99b" alt="发布 0.5.0"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.0/ReadyCheck-0.5.0-macos.dmg"><strong>↓ 下载 Mac 版</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.0/ReadyCheck-0.5.0-windows-x64-portable.zip">Windows 便携版</a></p>
-<p align="center"><a href="docs/versions/0.5.0/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装指南</a> · <a href="docs/versions/0.5.0/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">全部版本</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.1"><img src="https://img.shields.io/badge/release-v0.5.1-28c99b" alt="发布 0.5.1"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.1/ReadyCheck-0.5.1-macos.dmg"><strong>↓ 下载 Mac 版</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.1/ReadyCheck-0.5.1-windows-x64-portable.zip">Windows 便携版</a></p>
+<p align="center"><a href="docs/versions/0.5.1/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装指南</a> · <a href="docs/versions/0.5.1/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">全部版本</a></p>
 
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-zh.png" alt="ReadyCheck：额度看得见，下一步心里有数。原生 macOS、菜单栏、Widget 与刘海。" width="960"></p>
 
@@ -23,32 +23,30 @@
 | :--- | :--- | :--- |
 | 同时查看 **5 小时与 7 天额度**、准确重置时间、账户权益和本机消耗。 | 总览、菜单与 Widget 共用同一条下一步：额度重置、条件用卡窗口或待处理事项。 | 原生主窗口、菜单栏、自适应 Widget 与点击展开的刘海，按自己的习惯选择。 |
 
-<p align="center"><img src="docs/versions/0.4.2/assets/release-overview-zh.png" alt="ReadyCheck 原生总览：双额度、接下来、账户权益与本机消耗图，均为合成演示数据" width="900"></p>
-<p align="center"><sub>真实原生界面，使用合成数据。这张 0.4.2 截图展示明确操作按钮与单层说明。</sub></p>
+<p align="center"><img src="docs/versions/0.5.1/assets/release-overview-zh.png" alt="ReadyCheck 原生总览：双额度、接下来、账户权益与本机消耗图，均为合成演示数据" width="900"></p>
+<p align="center"><sub>当前0.5.1原生界面，使用合成数据。先看当前读数，完整权益和历史继续保留在趋势下方。</sub></p>
 
-### 0.5.0：提醒自己选，用卡有迹可查
+### 0.5.1：一眼更清楚，功能都保留
 
-| 提醒时间自己选 | 用卡过程能追查 | 数据状态讲明白 |
+| 少一点打扰 | 少一点歧义 | 不砍功能 |
 | :--- | :--- | :--- |
-| 勾选到期前 **72／48／24／12小时**，同一卡同一节点不重复，错过节点合并处理。 | 查看请求准备、已知结果和独立通知状态；失败有检查记录，未知结果不冒充成功。 | 看连续观察时长、有效记录和中断原因，读数正常与是否适合估算分别说明。 |
+| 卡片明细短暂失败先自动重试，持续失败再提醒，关键异常仍及时处理。 | 分清当前数据与历史成功、实际授权与初始默认、账户Token汇总与图表范围。 | 双额度、完整权益、每张卡日期、全部提醒设置、历史和Widget一小时图都在。 |
 
-<p align="center"><img src="docs/versions/0.5.0/assets/reset-settings-zh-CN.png" alt="0.5.0原生设置：可选到期提醒节点，合成演示数据" width="900"></p>
-<p align="center"><img src="docs/versions/0.5.0/assets/card-unconfirmed-zh-CN.png" alt="0.5.0原生卡片详情：历史记录缺失时明确待确认，合成数据" width="540"></p>
-<p align="center"><sub>真实原生组件，使用合成数据。上方0.4.2总览及下方历史桌面图展示的功能继续保留。</sub></p>
+<p align="center"><img src="docs/versions/0.5.1/assets/reminders-zh.png" alt="0.5.1原生提醒设置：控件靠右、四个到期节点、当前账号自动用卡状态，使用合成数据" width="740"></p>
 
-**保留成功回执，不凭卡片消失推断成功。** 后续额度刷新失败不再丢失已确认的用卡结果；检查异常与通知分别记录。未为验收使用真实卡，历史夜间卡片结果仍未确认，不能承诺睡眠或退出时自动用卡。
+**提醒自己选，记录能追查，控制权保留。**72／48／24／12小时到期节点与按账号自动用卡仍独立；确认用卡结果和通知状态分开，旧缺失记录不补造成功。本机Codex可能不提供订阅日期：缺日期不等于掉线，也不会借用别的账号日期。
 
-[更新说明](docs/versions/0.5.0/RELEASE_NOTES.zh-CN.md) · [验证与边界](docs/versions/0.5.0/QA.zh-CN.md) · [65项功能保留](docs/versions/0.5.0/RELEASE_AUDIT.zh-CN.md)。
+[更新重点](docs/versions/0.5.1/RELEASE_NOTES.zh-CN.md) · [验收与边界](docs/versions/0.5.1/QA.zh-CN.md) · [65项功能保留](docs/versions/0.5.1/RELEASE_AUDIT.zh-CN.md)。
 
 ## 工作时轻巧，需要时展开
 
 <table>
 <tr><th>最近一小时，随时看一眼</th><th>用卡结果，每一步看清楚</th></tr>
-<tr><td align="center"><img src="docs/versions/0.4.0/assets/release-widget-zh.png" alt="原生 Widget：双额度、下一步与最近一小时消耗图，使用合成数据" width="370"></td><td align="center"><img src="docs/versions/0.4.0/assets/release-card-result-zh.png" alt="原生只读卡片详情：授权、已记录结果和通知状态，使用合成数据" width="420"></td></tr>
+<tr><td align="center"><img src="docs/versions/0.5.1/assets/widget-zh.png" alt="原生 Widget：双额度、下一步与最近一小时消耗图，使用合成数据" width="370"></td><td align="center"><img src="docs/versions/0.5.1/assets/card-result-zh.png" alt="原生只读卡片详情：授权、已记录结果和通知状态，使用合成数据" width="420"></td></tr>
 <tr><td>双额度、下一步和<strong>最近一小时图</strong>放在一起。需要时固定展开，专注时收在边缘。</td><td>查看原到期时间、账号授权、已记录结果及对应通知。通知送达与卡片兑换分别呈现。</td></tr>
 </table>
 
-<p align="center"><sub>原生 0.4.0 截图，使用合成数据；这些功能在 0.5.0 中继续保留。</sub></p>
+<p align="center"><sub>当前0.5.1原生组件，使用合成数据；确认用卡结果仅为演示，不是真实兑换。</sub></p>
 
 - **一个自适应 Widget。** 气泡拖到左右边缘收成细竖条，向内拖回气泡；也可选择信息卡片，通过标题拖动。固定详情后，点击外部或切换焦点仍保持展开；取消固定恢复预览行为，Esc 可收起获得焦点的详情。
 - **不易误触的刘海。** 点击展开，点击外部或按 Esc 收起；仅悬停不会弹出详情。
@@ -71,7 +69,7 @@
 
 | 平台 | 发布范围 |
 | --- | --- |
-| **macOS** | 原生总览与菜单、共享下一步、卡片记录、自适应 Widget、一小时图、可拖卡片、点击刘海及账户历史。[0.5.0 验收](docs/versions/0.5.0/QA.zh-CN.md) · [65 项功能保留审计](docs/versions/0.5.0/RELEASE_AUDIT.zh-CN.md)。 |
+| **macOS** | 原生总览与菜单、共享下一步、卡片记录、自适应 Widget、一小时图、可拖卡片、点击刘海及账户历史。[0.5.1 验收](docs/versions/0.5.1/QA.zh-CN.md) · [65 项功能保留审计](docs/versions/0.5.1/RELEASE_AUDIT.zh-CN.md)。 |
 | **Windows x64** | 独立便携预览，保留原界面。Mac 提醒节点、检查记录和新数据状态不宣称已移植到 Windows。[Windows 指南](docs/WINDOWS.zh-CN.md) · [验收](docs/WINDOWS_QA.zh-CN.md)。 |
 
 ReadyCheck **不会自动停止或恢复 Codex 任务**。重置时间到达后，仍需新读数确认恢复；关闭期间未观测到的恢复不会补发。真实卡片兑换、另一真实账号、多显示器 / Spaces、专注 / 睡眠、VoiceOver 和 Windows 实机不宣称已全面验收，实际覆盖范围请以版本验收文档为准。
@@ -84,7 +82,9 @@ ReadyCheck 是独立项目，与 OpenAI 无隶属或背书关系。Codex、ChatG
 
 ## 文档与开发
 
-[0.5.0 产品计划](docs/versions/0.5.0/PLAN.zh-CN.md) · [黑盒验收](docs/versions/0.5.0/QA.zh-CN.md)。
+[0.5.1 产品计划](docs/versions/0.5.1/PLAN.zh-CN.md) · [黑盒验收](docs/versions/0.5.1/QA.zh-CN.md)。
+
+[设计与功能保留详情](docs/versions/0.5.1/DESIGN_IMPLEMENTATION.zh-CN.md)。
 
 [安装](docs/INSTALL.zh-CN.md) · [更新日志](CHANGELOG.zh-CN.md) · [版本索引](docs/VERSIONS.md) · [贡献指南](CONTRIBUTING.md) · [发布流程](docs/RELEASE.zh-CN.md) · [安全政策](SECURITY.md) · [问题反馈](https://github.com/whnnick/readycheck/issues)
 

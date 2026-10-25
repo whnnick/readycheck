@@ -1,0 +1,37 @@
+{
+  "version": "0.5.1-dev.4",
+  "date": "2026-10-23",
+  "scope": "macOS account connection presentation; preserve selected source and controls",
+  "scopedSwiftRegression": {"count": 23, "failures": 0},
+  "syntheticNativeRendering": {
+    "cases": 8,
+    "sizePoints": [740, 760],
+    "languages": ["zh-CN", "en-US"],
+    "sources": ["localCodex", "standaloneOAuth"],
+    "states": ["connected", "notConnected", "credentialStorageFailed"],
+    "sourceAndConsentRetained": true,
+    "accountPanelsInspected": true,
+    "appearance": "dark"
+  },
+  "realDevice": {
+    "disclosureExpandedAndCollapsed": true,
+    "savedSeparateSourceAndControlsVisibleWhenCollapsed": true,
+    "liveReadingRecoveredAfterUserKeychainApproval": true,
+    "ownedPreferencesCompared": 17,
+    "preferencesUnchanged": true,
+    "accountConsentUnchanged": true,
+    "attemptLedgerUnchanged": true,
+    "automaticUseOnRetained": true,
+    "originalReminderSwitchesAndMilestonesRetained": true,
+    "realCardSpentForAcceptance": false,
+    "privateImagePublished": false
+  },
+  "strictPreviewSignaturePassed": true,
+  "developmentMetadataPassed": true,
+  "newFullSuiteClaim": false,
+  "realSourceSwitchOrDisconnectPerformed": false,
+  "lightAppearanceChecked": false,
+  "localBundleLaunched": true,
+  "published": false,
+  "publicStable": "0.5.0"
+}

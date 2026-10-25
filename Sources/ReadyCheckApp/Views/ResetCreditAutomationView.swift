@@ -20,29 +20,40 @@ struct ResetCreditAutomationView: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
             } else {
-                Toggle(model.localization.text("resetAuto.title"), isOn: Binding(
-                    get: { model.resetCreditStatus.enabled },
-                    set: { enabled in
-                        if enabled {
-                            confirmationAccount = model.resetCreditAuthorizationAccount
-                            confirmationEmail = model.codexOAuthLoginEmail ?? "Codex"
-                            confirm = true
-                        }
-                        else { Task { await model.setResetCreditAutomationEnabled(false) } }
-                    }))
-                    .toggleStyle(.switch)
-                    .disabled(model.isUpdatingResetCreditAutomation || (!model.resetCreditStatus.enabled && (model.resetCreditStatus.status == .storageFailed || !model.canEnableResetCredits)))
+                HStack {
+                    Text(model.localization.text("resetAuto.title")).font(.subheadline.weight(.medium))
+                    Spacer(minLength: 12)
+                    Toggle(model.localization.text("resetAuto.title"), isOn: Binding(
+                        get: { model.resetCreditStatus.enabled },
+                        set: { enabled in
+                            if enabled {
+                                confirmationAccount = model.resetCreditAuthorizationAccount
+                                confirmationEmail = model.codexOAuthLoginEmail ?? "Codex"
+                                confirm = true
+                            }
+                            else { Task { await model.setResetCreditAutomationEnabled(false) } }
+                        }))
+                        .labelsHidden().toggleStyle(.switch).controlSize(.small)
+                        .disabled(model.isUpdatingResetCreditAutomation || (!model.resetCreditStatus.enabled && (model.resetCreditStatus.status == .storageFailed || !model.canEnableResetCredits)))
+                }
             }
-            Text(model.localization.text("resetAuto.help")).font(.caption).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(model.localization.text(authorizationIsUnknown ? "resetAuto.authorizationUnknownHelp"
+                : model.resetCreditStatus.enabled ? "resetAuto.onSummary" : "resetAuto.offSummary"))
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text(model.localization.text("resetAuto.availabilityLimit"))
+                .font(.caption2).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            DisclosureGroup(model.localization.text("resetAuto.rules")) {
+                Text(model.localization.text("resetAuto.help")).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true).padding(.top, 4)
+            }.font(.caption)
             Text(model.localization.text(authorizationIsUnknown && model.resetCreditStatus.status != .storageFailed
                 ? "resetAuto.authorizationUnknownHelp" : "resetAuto." + model.resetCreditStatus.status.rawValue))
                 .font(.caption).foregroundStyle(model.resetCreditStatus.status == .pending || model.resetCreditStatus.status == .storageFailed || model.resetCreditSaveFailed ? .orange : .secondary)
             if let date = model.resetCreditStatus.updatedAt {
                 HStack {
                     Text(model.localization.text("resetAuto.lastAttempt"))
-                    Text(date, format: Date.FormatStyle(date: .abbreviated, time: .shortened)
-                        .locale(Locale(identifier: model.language.rawValue)))
+                    Text(date.formatted(.dateTime.locale(Locale(identifier: model.language.rawValue))
+                        .year().month().day().hour().minute()))
                 }.font(.caption2).foregroundStyle(.secondary)
             }
             if model.resetCreditSaveFailed {

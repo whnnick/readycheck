@@ -46,7 +46,7 @@ struct QuotaCardView: View {
     }
 
     var body: some View {
-        GlassSurface {
+        GlassSurface(renderingMode: displayMode == .accountDetails ? .staticSurface : .material) {
             VStack(alignment: .leading, spacing: 12) {
                 if displayMode == .accountDetails {
                     Label(localization.text("quota.accountDetails"), systemImage: "person.crop.rectangle")
@@ -216,16 +216,18 @@ struct QuotaCardView: View {
     }
 
     private var subscriptionBillingLink: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 7) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(localization.text("quota.subscriptionDate"))
                 .foregroundStyle(Color.primary.opacity(0.58))
-            Link(
-                localization.text("quota.subscriptionCheckBilling"),
-                destination: URL(string: "https://help.openai.com/en/articles/9039756-managing-billing-for-chatgpt-and-the-api-platform")!
-            )
+            Link(localization.text("quota.subscriptionCheckBilling"),
+                destination: URL(string: "https://help.openai.com/en/articles/9039756-managing-billing-for-chatgpt-and-the-api-platform")!)
+            if displayMode == .accountDetails && snapshot.source == .appServer {
+                Text(localization.text("quota.localSubscriptionMissing"))
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .font(displayMode == .widgetDetailed ? .caption : .subheadline)
-        .lineLimit(2)
     }
 
     var displayPlanName: String {

@@ -22,10 +22,33 @@ final class NextEventsTests: XCTestCase {
         XCTAssertEqual(off.first?.kind, .automationOff)
         XCTAssertEqual(off.first?.action, .rules)
     }
+
+    func testCardCheckFailureDoesNotDirectHealthyQuotaToLogin() {
+        let result = ReadyCheckNextEvent.evaluate(snapshot: snapshot(), automation: .init(enabled: true, status: .unavailable, updatedAt: nil),
+            records: [], historyUnavailable: false, now: now)
+        XCTAssertEqual(result.first?.action, .rules)
+        XCTAssertEqual(result.first?.detailKey, "next.cardCheckUnavailable.detail")
+        XCTAssertTrue(result.contains { $0.kind == .naturalReset })
+        let cards = events(snapshot(cardsVerified: false))
+        XCTAssertEqual(cards.first?.action, .rules)
+        XCTAssertEqual(cards.first?.detailKey, "next.cardDetailsUnknown.detail")
+        let credentials = ReadyCheckNextEvent.evaluate(snapshot: snapshot(), automation: .init(enabled: true, status: .unavailable, updatedAt: nil),
+            records: [], historyUnavailable: false, now: now, latestCheckReason: .credentialsUnavailable)
+        XCTAssertEqual(credentials.first?.action, .connection)
+        let ledger = ReadyCheckNextEvent.evaluate(snapshot: snapshot(), automation: .init(enabled: true, status: .storageFailed, updatedAt: nil),
+            records: [], historyUnavailable: false, now: now)
+        XCTAssertEqual(ledger.first?.kind, .cardHistoryUnavailable)
+        for language in [AppLanguage.zhCN, .enUS] {
+            let localization = LocalizationService(language: language)
+            for key in ["next.cardCheckUnavailable", "next.cardCheckUnavailable.detail", "next.cardDetailsUnknown", "next.cardDetailsUnknown.detail", "next.cardHistoryUnavailable", "next.cardHistoryUnavailable.detail", "resetCheck.recovered", "resetCheck.serviceWarning"] {
+                XCTAssertNotEqual(localization.text(key), key)
+            }
+        }
+    }
     func testUnknownCacheMissingAndPreservedDetailsNeverPromiseAWindow() {
         for value in [snapshot(cached: true), snapshot(cardsVerified: false), snapshot(count: nil, expirations: []), nil] {
             let result = events(value)
-            XCTAssertEqual(result.first?.kind, .conditionsUnknown)
+            XCTAssertEqual(result.first?.kind, value == nil || value?.isCached == true ? .conditionsUnknown : .cardDetailsUnknown)
             XCTAssertFalse(result.contains { $0.kind == .cardWindow })
         }
         let old = ProviderQuotaDetails(manualResetCount: 2, manualResetExpirations: [now.addingTimeInterval(9600)], manualResetDetailsReadAt: now.addingTimeInterval(-901))
@@ -55,7 +78,7 @@ final class NextEventsTests: XCTestCase {
     func testTimePriorityZeroAndPartialDetailsAndOldDecode() throws {
         XCTAssertEqual(events(snapshot(resetOffset: 300)).first?.kind, .naturalReset)
         XCTAssertEqual(events(snapshot(count: 0)).map(\.kind), [.naturalReset], "An explicit zero overrides retained dates")
-        XCTAssertEqual(events(snapshot(count: 3)).first?.kind, .conditionsUnknown, "Partial dates cannot identify the earliest of missing cards")
+        XCTAssertEqual(events(snapshot(count: 3)).first?.kind, .cardDetailsUnknown, "Partial dates cannot identify the earliest of missing cards")
         let recent = ProviderQuotaDetails(manualResetCount: 1, manualResetExpirations: [now.addingTimeInterval(3600)], manualResetDetailsReadAt: now.addingTimeInterval(-120))
         let retained = ProviderQuotaDetails().preservingSupplementalDetails(from: recent, now: now)
         XCTAssertTrue(retained.hasCurrentManualResetDetails(now: now))
@@ -65,7 +88,7 @@ final class NextEventsTests: XCTestCase {
         XCTAssertNil(old.manualResetDetailsReadAt)
         for language in [AppLanguage.zhCN, .enUS] {
             let l = LocalizationService(language: language)
-            for key in ["next.title", "next.cardWindow.detail", "card.notice.pending", "card.unrecorded"] { XCTAssertNotEqual(l.text(key), key) }
+            for key in ["next.title", "next.cardWindow.detail", "card.notice.pending", "card.unrecorded", "card.legacyTitle", "card.historyIncomplete", "card.legacyOutcome", "card.legacyNotice", "card.legacyReadOnly"] { XCTAssertNotEqual(l.text(key), key) }
         }
     }
 
@@ -90,5 +113,28 @@ final class NextEventsTests: XCTestCase {
         let pending = ResetCreditExecutionRecord(id: "uncertain", expiresAt: now.addingTimeInterval(100), status: .verificationRequired, updatedAt: now, successNotificationPending: nil)
         XCTAssertEqual(events(snapshot(), records: [pending]).first?.kind, .cardResultUnconfirmed)
         XCTAssertEqual(events(snapshot(), records: [pending]).first?.action, .record("uncertain"))
+    }
+
+    func testHistoricalExpiryReminderDoesNotBecomeCurrentFailure() {
+        let history = ResetCreditExecutionRecord(id: "old-reminder", expiresAt: now.addingTimeInterval(-3600),
+            status: .unrecorded, updatedAt: now, successNotificationPending: nil, observedOnly: true, reminderOnly: true)
+        XCTAssertEqual(events(snapshot(count: 0, expirations: []), records: [history]).map(\.kind), [.naturalReset])
+        XCTAssertEqual(events(snapshot(), records: [history]).map(\.kind), [.cardWindow, .naturalReset])
+        XCTAssertEqual(events(snapshot(cached: true), records: [history]).first?.kind, .conditionsUnknown)
+    }
+
+    func testHistoricalReminderDoesNotHideRealIssuesOrSuccessNotification() {
+        let history = ResetCreditExecutionRecord(id: "old-reminder", expiresAt: now.addingTimeInterval(-3600),
+            status: .unrecorded, updatedAt: now, successNotificationPending: nil, observedOnly: true, reminderOnly: true)
+        for status: ResetCreditAutomationStatus.Status in [.pending, .verificationRequired, .storageFailed, .disappeared, .missed, .unrecorded] {
+            let actual = ResetCreditExecutionRecord(id: "actual-\(status.rawValue)", expiresAt: now,
+                status: status, updatedAt: now.addingTimeInterval(-60), successNotificationPending: nil)
+            let result = events(snapshot(), records: [history, actual])
+            XCTAssertEqual(result.first?.kind, .cardResultUnconfirmed)
+            XCTAssertEqual(result.first?.action, .record(actual.id))
+        }
+        let confirmed = ResetCreditExecutionRecord(id: "actual-success", expiresAt: now, status: .reset,
+            updatedAt: now.addingTimeInterval(-60), successNotificationPending: true)
+        XCTAssertEqual(events(snapshot(), records: [history, confirmed]).first?.kind, .notificationPending)
     }
 }

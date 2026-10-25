@@ -226,6 +226,64 @@ final class ResetCreditIntegrationTests: XCTestCase {
             window.close()
         }
     }
+
+    func testPersistentReadWarningClearsOnModelRecoveryWithoutChangingConsentOrSpendingCard() async throws {
+        let key = "ReadyCheck.codexConnectionMode.v1"
+        let original = UserDefaults.standard.object(forKey: key)
+        UserDefaults.standard.set("localCodex", forKey: key)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer {
+            if let original { UserDefaults.standard.set(original, forKey: key) } else { UserDefaults.standard.removeObject(forKey: key) }
+            try? FileManager.default.removeItem(at: directory)
+        }
+        let ledger = ResetCreditAutomation(fileURL: directory.appendingPathComponent("automation.json"))
+        _ = await ledger.setEnabled(true, account: "fixture-account")
+        let now = Date()
+        for delta in [-180.0, -120, -60] {
+            _ = await ledger.recordCheck(.serviceUnavailable, account: "fixture-account", now: now.addingTimeInterval(delta))
+        }
+        let notifications = ResetSilentNotifications()
+        let client = IntegrationReadRecoveryClient()
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            codexAppServerClient: IntegrationAccountReader(), rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
+            quotaNotificationService: QuotaNotificationService(client: notifications, verificationDelays: []),
+            resetCreditAutomation: ledger, resetCreditClient: client)
+        await model.reloadCodexOAuthConnectionStatus()
+        await model.checkResetCreditAutomation()
+        await model.checkResetCreditAutomation()
+        XCTAssertEqual(notifications.requests.count, 1)
+        let identifier = try XCTUnwrap(notifications.requests.first?.identifier)
+        await client.recover()
+        await model.checkResetCreditAutomation()
+        XCTAssertEqual(model.resetCreditChecks.first?.reason, .checked)
+        XCTAssertEqual(notifications.removedDelivered, [identifier])
+        XCTAssertEqual(notifications.removedPending, [identifier])
+        XCTAssertEqual(model.resetCreditChecks.count, 2)
+        XCTAssertTrue(model.resetCreditStatus.enabled)
+        let consent = await ledger.status(account: "fixture-account")
+        XCTAssertTrue(consent.enabled)
+        let records = try await ledger.records(account: "fixture-account")
+        XCTAssertTrue(records.isEmpty)
+        let consumes = await client.consumes
+        XCTAssertEqual(consumes, 0)
+    }
+}
+
+private actor IntegrationReadRecoveryClient: ResetCreditServicing {
+    var shouldFail = true
+    var consumes = 0
+    func recover() { shouldFail = false }
+    func read(account: String, token: CodexOAuthToken?) async throws -> CodexAppServerAccountSnapshot {
+        if shouldFail { throw URLError(.timedOut) }
+        return CodexAppServerAccountSnapshot(accountID: account, email: nil, planName: nil, rateLimits: [],
+            resetCredits: [], resetCreditDetailsAvailable: true, tokenUsage: nil)
+    }
+    func consume(account: String, token: CodexOAuthToken?, credit: CodexAppServerResetCredit, idempotencyKey: String, authorization: ResetCreditAuthorization) async throws -> ResetCreditOutcome {
+        consumes += 1
+        throw URLError(.unsupportedURL)
+    }
 }
 
 private struct IntegrationAccountReader: CodexAppServerReading {
@@ -247,10 +305,12 @@ private actor IntegrationResetClient: ResetCreditServicing {
 }
 @MainActor private final class ResetSilentNotifications: NotificationCenterClient {
     var requests: [UNNotificationRequest] = []
+    var removedDelivered: [String] = []
+    var removedPending: [String] = []
     func configuration() async -> NotificationCenterConfiguration { NotificationCenterConfiguration(authorizationStatus: .authorized, alertSetting: .enabled, alertStyle: .alert) }
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool { false }
     func add(_ request: UNNotificationRequest) async throws { requests.append(request) }
     func deliveredIdentifiers() async -> Set<String> { Set(requests.map(\.identifier)) }
-    func removeDeliveredNotifications(withIdentifiers identifiers: [String]) {}
-    func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {}
+    func removeDeliveredNotifications(withIdentifiers identifiers: [String]) { removedDelivered += identifiers }
+    func removePendingNotificationRequests(withIdentifiers identifiers: [String]) { removedPending += identifiers }
 }

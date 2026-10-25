@@ -1,0 +1,50 @@
+{
+  "release-overview-en.png": {
+    "sha256": "ba42cd3055ac3c025710266e064a1031c4599dee793f904fe9ee4a2a4b8b853a",
+    "fixture": "next-main-normal-en-US.png",
+    "data": "synthetic / 合成",
+    "nativeVersion": "0.5.1"
+  },
+  "reminders-en.png": {
+    "sha256": "9d9cb49b814fd44a4139f98c72825078127ce7031b13b7afb0c9c2d0e7850d21",
+    "fixture": "design-reminders-dark-en-US.png",
+    "data": "synthetic / 合成",
+    "nativeVersion": "0.5.1"
+  },
+  "widget-en.png": {
+    "sha256": "3177c5679afe8556f85b60af1ce5bae43fa94d8ff7348e491f6a24837430c5ff",
+    "fixture": "next-widget-normal-en-US.png",
+    "data": "synthetic / 合成",
+    "nativeVersion": "0.5.1"
+  },
+  "card-result-en.png": {
+    "sha256": "acb989217b05cf4ccfa23d1ae18dd1b4182cffa67429fa97acfef2eeb76b969f",
+    "fixture": "card-confirmed-en-US.png",
+    "data": "synthetic / 合成",
+    "nativeVersion": "0.5.1"
+  },
+  "release-overview-zh.png": {
+    "sha256": "32d6aef962fa302d5f27631b2e69320b1073bb55ca2dbbf49a2e69e7e4df38d4",
+    "fixture": "next-main-normal-zh-CN.png",
+    "data": "synthetic / 合成",
+    "nativeVersion": "0.5.1"
+  },
+  "reminders-zh.png": {
+    "sha256": "4024bc74bf9e330b3a6fb47f2b0de6907640112a343e53ae138bf65aa9a214c5",
+    "fixture": "design-reminders-dark-zh-CN.png",
+    "data": "synthetic / 合成",
+    "nativeVersion": "0.5.1"
+  },
+  "widget-zh.png": {
+    "sha256": "4dd2b2d96dc30919fbf129c03a5c2862e37bf451b4726c069cfa70ff5b9a553d",
+    "fixture": "next-widget-normal-zh-CN.png",
+    "data": "synthetic / 合成",
+    "nativeVersion": "0.5.1"
+  },
+  "card-result-zh.png": {
+    "sha256": "7394b957be5e24b9cdb3cbd3bc0c6bf637d6d2e34e08fe45a40fc8f5eb5a3a41",
+    "fixture": "card-confirmed-zh-CN.png",
+    "data": "synthetic / 合成",
+    "nativeVersion": "0.5.1"
+  }
+}

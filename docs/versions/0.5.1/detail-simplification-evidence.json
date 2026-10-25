@@ -1,0 +1,32 @@
+{
+  "version": "0.5.1-dev.2",
+  "date": "2026-10-23",
+  "change": "Remove only the detail-page settings button/footer divider; shorten sheet to480 points",
+  "preserved": [
+    "card facts",
+    "recorded card outcome",
+    "exact notification/details",
+    "Close and Escape",
+    "Settings reminder rules and account consent",
+    "shared next-event direct settings route"
+  ],
+  "targetedExistingTests": {
+    "count": 4,
+    "failures": 0,
+    "coverage": [
+      "bilingual native detail cases",
+      "same/cross-page retained route",
+      "release metadata"
+    ]
+  },
+  "newTestsAdded": false,
+  "signature": "strict stable Preview signing passed",
+  "localBundleLaunched": true,
+  "liveAcceptance": "After user Keychain approval: real reading recovered; card facts/result/notification retained; settings button absent; Close and Escape return to Overview",
+  "published": false,
+  "publicLatest": "0.5.0",
+  "realCardConsumedForAcceptance": false,
+  "originalPreferencesAndConsentRetained": true,
+  "attemptLedgerUnchanged": true,
+  "privateScreenshotsPublished": false
+}

@@ -240,6 +240,7 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         token: CodexOAuthToken?,
         refreshedAt: Date
     ) -> ProviderQuotaSnapshot? {
+        let matchingToken = token.flatMap { accountsMatch(token: $0, snapshot: appServerSnapshot) ? $0 : nil }
         let windows = appServerSnapshot.rateLimits.flatMap { snapshot in
             [
                 makeOfficialWindow(
@@ -282,8 +283,8 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             details: ProviderQuotaDetails(
                 planName: defaultLimit?.planName
                     ?? appServerSnapshot.planName
-                    ?? token.flatMap { CodexJWTClaims.planName(from: $0.idToken) },
-                subscriptionRenewalAt: token.flatMap { CodexJWTClaims.subscriptionRenewalAt(from: $0.idToken) },
+                    ?? matchingToken.flatMap { CodexJWTClaims.planName(from: $0.idToken) },
+                subscriptionRenewalAt: matchingToken.flatMap { CodexJWTClaims.subscriptionRenewalAt(from: $0.idToken) },
                 manualResetCount: appServerSnapshot.manualResetCount,
                 manualResetExpirations: resetExpirations,
                 creditBalance: defaultLimit?.hasCredits == false ? nil : defaultLimit?.creditBalance,

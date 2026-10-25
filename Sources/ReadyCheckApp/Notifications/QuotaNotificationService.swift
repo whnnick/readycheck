@@ -229,18 +229,27 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
     }
 
     func deliverResetCreditCheckWarning(_ check: ResetCreditCheckRecord, localization: LocalizationService) async -> Bool {
-        guard check.reason != .checked, !check.warningSubmitted else { return true }
+        guard !check.warningSubmitted else { return true }
+        guard check.shouldSubmitWarning else { return false }
         let identifier = "readycheck.reset-check." + check.id
         if await deliveredNotificationIdentifiers().contains(identifier) { return true }
         guard await canDeliverNotifications() else { return false }
         let content = UNMutableNotificationContent()
         content.title = localization.text("resetCheck.warningTitle")
-        content.body = localization.text("resetCheck." + check.reason.rawValue)
+        content.body = localization.text(check.reason == .serviceUnavailable ? "resetCheck.serviceWarning" : "resetCheck." + check.reason.rawValue)
         content.sound = .default
         do {
             try await client.add(UNNotificationRequest(identifier: identifier, content: content, trigger: nil))
             return true // Accepted submission suppresses repeat banners, even if the user dismisses it.
         } catch { return false }
+    }
+
+    func clearRecoveredResetCreditCheckWarnings(_ checks: [ResetCreditCheckRecord]) {
+        let identifiers = checks.filter { $0.warningSubmitted && $0.recovered(in: checks) }
+            .map { "readycheck.reset-check." + $0.id }
+        guard !identifiers.isEmpty else { return }
+        client.removeDeliveredNotifications(withIdentifiers: identifiers)
+        client.removePendingNotificationRequests(withIdentifiers: identifiers)
     }
 
     private func canDeliverNotifications() async -> Bool {

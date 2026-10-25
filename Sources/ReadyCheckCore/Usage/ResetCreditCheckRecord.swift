@@ -12,4 +12,17 @@ public struct ResetCreditCheckRecord: Codable, Equatable, Identifiable, Sendable
     public var lastAt: Date
     public var count: Int
     public var warningSubmitted: Bool
+
+    public var shouldSubmitWarning: Bool {
+        guard reason != .checked, !warningSubmitted else { return false }
+        guard reason == .serviceUnavailable else { return true }
+        let elapsed = lastAt.timeIntervalSince(firstAt)
+        return count >= 3 && elapsed.isFinite && elapsed >= 120
+    }
+
+    public func recovered(in checks: [Self]) -> Bool {
+        reason == .serviceUnavailable && checks.contains {
+            $0.accountKey == accountKey && $0.reason == .checked && $0.firstAt >= lastAt
+        }
+    }
 }

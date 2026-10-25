@@ -374,14 +374,7 @@ private struct AccountTokenUsageView: View {
 
                 Spacer()
 
-                Picker(localization.text("usage.range"), selection: $selectedRange) {
-                    ForEach(Range.allCases) { range in
-                        Text(rangeTitle(range)).tag(range)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: localization.language == .enUS ? 224 : 184)
+
             }
 
             Text(localization.text("usage.tokenSubtitle"))
@@ -389,6 +382,7 @@ private struct AccountTokenUsageView: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
+            Text(localization.text("usage.summaryScope")).font(.subheadline.weight(.semibold))
             HStack(spacing: 10) {
                 summaryMetric(
                     title: localization.text("usage.lifetimeTokens"),
@@ -412,6 +406,18 @@ private struct AccountTokenUsageView: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
 
+            HStack {
+                Text(localization.text("usage.dailyTokens")).font(.subheadline.weight(.semibold))
+                Spacer(minLength: 8)
+                Picker(localization.text("usage.range"), selection: $selectedRange) {
+                    ForEach(Range.allCases) { range in
+                        Text(rangeTitle(range)).tag(range)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: localization.language == .enUS ? 224 : 184)
+            }.padding(.top, 6)
             if visibleBuckets.isEmpty {
                 ContentUnavailableView {
                     Label(localization.text("usage.tokenEmptyTitle"), systemImage: "chart.bar.xaxis")
@@ -420,9 +426,6 @@ private struct AccountTokenUsageView: View {
                 }
                 .frame(maxWidth: .infinity, minHeight: 150)
             } else {
-                Text(localization.text("usage.dailyTokens"))
-                    .font(.subheadline.weight(.semibold))
-
                 Chart(visibleBuckets) { bucket in
                     BarMark(
                         x: .value(localization.text("usage.date"), bucket.date, unit: .day),
@@ -431,7 +434,7 @@ private struct AccountTokenUsageView: View {
                             Double(bucket.tokens) * revealProgress
                         )
                     )
-                    .foregroundStyle(Color.accentColor.gradient)
+                    .foregroundStyle(Color.accentColor)
                     .opacity(hoveredBucketID == nil || hoveredBucketID == bucket.id ? 1 : 0.42)
                     .clipShape(RoundedRectangle(cornerRadius: 3))
 

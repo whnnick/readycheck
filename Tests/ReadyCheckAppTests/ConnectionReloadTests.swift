@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import XCTest
 import UserNotifications
 @testable import ReadyCheckApp
@@ -6,6 +7,49 @@ import UserNotifications
 
 @MainActor
 final class ConnectionReloadTests: XCTestCase {
+    func testConnectionPagePreservesSavedSourceAndConsentInBothLanguages() async throws {
+        let languageKey = "ReadyCheck.language.v1"
+        let original = UserDefaults.standard.object(forKey: languageKey)
+        defer {
+            if let original { UserDefaults.standard.set(original, forKey: languageKey) }
+            else { UserDefaults.standard.removeObject(forKey: languageKey) }
+        }
+        for language in [AppLanguage.zhCN, .enUS] {
+            for mode in CodexConnectionMode.allCases {
+                try await withModel(mode: mode, reader: ImmediateConnectionReader()) { model in
+                    model.language = language
+                    model.mainWindowPage = .settings; model.mainSettingsSection = .connection
+                    model.resetCreditStatus = .init(enabled: true, status: .waiting, updatedAt: nil)
+                    let statuses: [CodexOAuthConnectionStatus] = mode == .localCodex ? [.connected, .notConnected] : [.connected, .credentialStorageFailed]
+                    for (index, status) in statuses.enumerated() {
+                        model.codexOAuthStatus = status
+                        model.codexOAuthLoginEmail = status == .connected ? "sample@example.com" : nil
+                        let size = CGSize(width: 740, height: 760)
+                        let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
+                        window.isReleasedWhenClosed = false
+                        window.appearance = NSAppearance(named: .darkAqua)
+                        let host = NSHostingView(rootView: SettingsView(model: model)
+                            .background(Color(nsColor: .windowBackgroundColor))
+                            .environment(\.colorScheme, .dark))
+                        window.contentView = host; host.frame = CGRect(origin: .zero, size: size)
+                        host.layoutSubtreeIfNeeded()
+                        try await Task.sleep(for: .milliseconds(180))
+                        XCTAssertEqual(model.codexConnectionMode, mode)
+                        XCTAssertEqual(UserDefaults.standard.string(forKey: "ReadyCheck.codexConnectionMode.v1"), mode.rawValue)
+                        XCTAssertTrue(model.resetCreditStatus.enabled, "Rendering cannot reset existing card-use consent")
+                        if let path = ProcessInfo.processInfo.environment["READYCHECK_UI_EVIDENCE_DIR"] {
+                            try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
+                            let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                            host.cacheDisplay(in: host.bounds, to: bitmap)
+                            try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: URL(fileURLWithPath: path).appendingPathComponent("connection-\(mode.rawValue)-\(index)-\(language.rawValue).png"))
+                        }
+                        window.close()
+                    }
+                }
+            }
+        }
+    }
+
     func testLateLocalConnectionResultCannotReplaceStandaloneSignedOutState() async throws {
         for fails in [false, true] {
             let started = expectation(description: "old local read started")
@@ -101,7 +145,8 @@ final class ConnectionReloadTests: XCTestCase {
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             codexAppServerClient: reader,
             rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
-            quotaNotificationService: QuotaNotificationService(client: ConnectionNotificationClient(), verificationDelays: []))
+            quotaNotificationService: QuotaNotificationService(client: ConnectionNotificationClient(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("automation.json")))
         try await body(model)
     }
 }

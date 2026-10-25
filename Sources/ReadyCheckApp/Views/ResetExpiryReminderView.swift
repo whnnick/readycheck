@@ -5,10 +5,14 @@ struct ResetExpiryReminderView: View {
     @Bindable var model: ReadyCheckAppModel
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle(model.localization.text("resetExpiry.setting"), isOn: Binding(
-                get: { model.resetExpiryReminderEnabled },
-                set: { enabled in Task { await model.setResetExpiryReminderEnabled(enabled) } }
-            )).toggleStyle(.switch).disabled(model.isUpdatingResetExpiryReminder)
+            HStack {
+                Text(model.localization.text("resetExpiry.setting")).font(.subheadline.weight(.medium))
+                Spacer(minLength: 12)
+                Toggle(model.localization.text("resetExpiry.setting"), isOn: Binding(
+                    get: { model.resetExpiryReminderEnabled },
+                    set: { enabled in Task { await model.setResetExpiryReminderEnabled(enabled) } }
+                )).labelsHidden().toggleStyle(.switch).controlSize(.small).disabled(model.isUpdatingResetExpiryReminder)
+            }
             Text(model.localization.text("resetExpiry.help"))
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Text(model.localization.text("resetExpiry.nodes")).font(.caption).foregroundStyle(.secondary)

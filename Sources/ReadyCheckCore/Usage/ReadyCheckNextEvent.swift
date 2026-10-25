@@ -18,6 +18,7 @@ public struct ResetCreditExecutionRecord: Equatable, Identifiable, Sendable {
         self.startedAt = startedAt; self.requestCount = requestCount; self.observedOnly = observedOnly; self.reminderOnly = reminderOnly
     }
     public var confirmedUsed: Bool { status == .reset || status == .alreadyRedeemed }
+    public var isHistoricalReminder: Bool { reminderOnly && status == .unrecorded }
     public func notificationState(history: [QuotaReminderHistoryRecord]) -> NotificationState {
         guard confirmedUsed else { return .notApplicable }
         if history.contains(where: { $0.id == "reset-used:\(id)" && $0.kind == .resetCreditUsed && $0.status == .delivered }) { return .delivered }
@@ -26,7 +27,7 @@ public struct ResetCreditExecutionRecord: Equatable, Identifiable, Sendable {
 }
 
 public struct ReadyCheckNextEvent: Equatable, Identifiable, Sendable {
-    public enum Kind: String, Sendable { case naturalReset, awaitingResetReading, cardWindow, automationOff, conditionsUnknown, cardResultUnconfirmed, notificationPending }
+    public enum Kind: String, Sendable { case naturalReset, awaitingResetReading, cardWindow, automationOff, conditionsUnknown, cardCheckUnavailable, cardDetailsUnknown, cardHistoryUnavailable, cardResultUnconfirmed, notificationPending }
     public enum Action: Equatable, Sendable { case reset, connection, rules, card(Date), record(String) }
     public let kind: Kind
     public let date: Date?
@@ -38,13 +39,14 @@ public struct ReadyCheckNextEvent: Equatable, Identifiable, Sendable {
     public var actionKey: String {
         switch action { case .reset: "next.resetAction"; case .connection: "next.connectionAction"; case .rules: "next.rulesAction"; case .card, .record: "next.detailAction" }
     }
-    public var needsAttention: Bool { kind == .conditionsUnknown || kind == .cardResultUnconfirmed || kind == .notificationPending }
+    public var needsAttention: Bool { kind == .conditionsUnknown || kind == .cardCheckUnavailable || kind == .cardDetailsUnknown || kind == .cardHistoryUnavailable || kind == .cardResultUnconfirmed || kind == .notificationPending }
 
     public static func evaluate(snapshot: ProviderQuotaSnapshot?, automation: ResetCreditAutomationStatus,
-                                records: [ResetCreditExecutionRecord], historyUnavailable: Bool, now: Date) -> [Self] {
+                                records: [ResetCreditExecutionRecord], historyUnavailable: Bool, now: Date,
+                                latestCheckReason: ResetCreditCheckRecord.Reason? = nil) -> [Self] {
         var items: [Self] = []
         if let unconfirmed = records.sorted(by: { $0.updatedAt > $1.updatedAt }).first(where: {
-            $0.status == .pending || $0.status == .verificationRequired || $0.status == .storageFailed || $0.status == .disappeared || $0.status == .missed || $0.status == .unrecorded
+            !$0.isHistoricalReminder && ($0.status == .pending || $0.status == .verificationRequired || $0.status == .storageFailed || $0.status == .disappeared || $0.status == .missed || $0.status == .unrecorded)
         }) {
             items.append(Self(kind: .cardResultUnconfirmed, date: nil, expiration: unconfirmed.expiresAt, action: .record(unconfirmed.id)))
         } else if let pending = records.sorted(by: { $0.updatedAt > $1.updatedAt }).first(where: { $0.confirmedUsed && $0.successNotificationPending == true }) {
@@ -54,8 +56,14 @@ public struct ReadyCheckNextEvent: Equatable, Identifiable, Sendable {
         let details = snapshot?.details
         let cardCount = details?.manualResetCount ?? (details?.manualResetExpirations.isEmpty == false ? details?.manualResetExpirations.count : nil)
         let cardsKnown = fresh && details?.hasCurrentManualResetDetails(now: now) == true
-        if !fresh || !cardsKnown || historyUnavailable || automation.status == .unavailable || automation.status == .storageFailed {
+        if !fresh || (automation.status == .unavailable && latestCheckReason == .credentialsUnavailable) {
             items.append(Self(kind: .conditionsUnknown, date: nil, expiration: nil, action: .connection))
+        } else if historyUnavailable || automation.status == .storageFailed {
+            items.append(Self(kind: .cardHistoryUnavailable, date: nil, expiration: nil, action: .rules))
+        } else if automation.status == .unavailable {
+            items.append(Self(kind: .cardCheckUnavailable, date: nil, expiration: nil, action: .rules))
+        } else if !cardsKnown {
+            items.append(Self(kind: .cardDetailsUnknown, date: nil, expiration: nil, action: .rules))
         } else if cardCount != 0, let expiry = details?.manualResetExpirations.filter({ $0 > now && $0.timeIntervalSince1970.isFinite }).min(), expiry.timeIntervalSince(now) <= 86400 {
             if automation.enabled {
                 items.append(Self(kind: .cardWindow, date: expiry.addingTimeInterval(-3600), expiration: expiry, action: .card(expiry)))
@@ -71,7 +79,7 @@ public struct ReadyCheckNextEvent: Equatable, Identifiable, Sendable {
             switch kind {
             case .cardResultUnconfirmed: 0
             case .notificationPending: 1
-            case .conditionsUnknown: 2
+            case .conditionsUnknown, .cardCheckUnavailable, .cardDetailsUnknown, .cardHistoryUnavailable: 2
             case .automationOff: 3
             case .awaitingResetReading: 4
             case .cardWindow, .naturalReset: 5

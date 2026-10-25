@@ -29,11 +29,13 @@ struct GlassSurface<Content: View>: View {
                 surfaceBackground
             }
             .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(Color.primary.opacity(0.16), lineWidth: 0.8)
+                if renderingMode != .staticSurface {
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .stroke(Color.primary.opacity(0.16), lineWidth: 0.8)
+                }
             }
             .shadow(
-                color: .black.opacity(renderingMode == .material ? 0.12 : 0.08),
+                color: .black.opacity(renderingMode == .staticSurface ? 0 : renderingMode == .material ? 0.12 : 0.08),
                 radius: renderingMode == .staticSurface ? 7 : 14,
                 x: 0,
                 y: renderingMode == .staticSurface ? 3 : 8

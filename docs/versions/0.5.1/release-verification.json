@@ -1,0 +1,33 @@
+{
+  "version": "0.5.1",
+  "developmentSwiftPassed": 411,
+  "publicSwiftPassed": 411,
+  "publicSwiftFailed": 0,
+  "windows": [
+    "check",
+    "smoke",
+    "smoke:ui",
+    "ZIP integrity",
+    "ASAR0.5.1/no internal files"
+  ],
+  "mac": [
+    "mounted DMG0.5.1",
+    "strict Preview signature",
+    "bundle contents",
+    "dist invariant"
+  ],
+  "installed": [
+    "live quota and card details",
+    "local subscription-date explanation",
+    "About highlights",
+    "all reminder controls retained",
+    "17 preferences unchanged",
+    "account consent and attempts unchanged"
+  ],
+  "cardsConsumedForAcceptance": 0,
+  "digests": {
+    "ReadyCheck-0.5.1-macos.dmg": "718e2eedf34bc56f8029bdcd5a7c8db21ade2fb9776984cd27f1d54fb9f82aa2",
+    "ReadyCheck-0.5.1-windows-x64-portable.zip": "9979f7679d637be08f5c0f223d2f9b8236d01c2f5ec066990f38885482387d9e"
+  },
+  "remote": "pending publication/download verification"
+}

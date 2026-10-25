@@ -1,0 +1,62 @@
+{
+  "version": "0.5.1-dev.5",
+  "date": "2026-10-24",
+  "status": "complete-with-stated-scope",
+  "redRegression": {
+    "tests": 3,
+    "failingAssertions": 11
+  },
+  "threshold": {
+    "consecutiveChecks": 3,
+    "minimumSeconds": 120,
+    "restartAfterGapSeconds": 300
+  },
+  "criticalWarningsDelayed": false,
+  "recoveryCleanup": "Only matching account-owned service-read warnings with a later successful check; preserve diagnostic rows, redemption/expiry and other-account notices",
+  "bilingualNativeCardCheckPanelsInspected": [
+    "Overview",
+    "Menu",
+    "Widget"
+  ],
+  "protectedFileGate": {
+    "systemUnlockRestoredAccess": true,
+    "rerunTests": 2,
+    "failures": 0,
+    "protectionWeakened": false
+  },
+  "finalFullRegression": {
+    "count": 409,
+    "failures": 0,
+    "completeRetry": true,
+    "firstAttempt": "Stopped in existing fake-process candidate test with array-bounds trap; isolated retry passed"
+  },
+  "liveBundleAcceptance": {
+    "strictPreviewSignaturePassed": true,
+    "liveQuotaAndCardRead": true,
+    "scheduledSuccessfulCheck": true,
+    "recoveredHistoryPastTenseAndNeutralColorInspected": true,
+    "historicalRowsRetained": true,
+    "realAccountChangedForAcceptance": false,
+    "actualMacOSBannerWithdrawalIndependentlyObserved": false
+  },
+  "originalStateComparison": {
+    "ownedPreferences": 17,
+    "preferencesUnchanged": true,
+    "accountConsentUnchanged": true,
+    "attemptLedgerUnchanged": true,
+    "automaticUseOnRetained": true,
+    "reminderSwitchesAndFourMilestonesRetained": true
+  },
+  "realCardSpentForAcceptance": false,
+  "published": false,
+  "publicStable": "0.5.0",
+  "unblockedScopedRegression": {
+    "count": 29,
+    "failures": 0,
+    "explicitlyExcludedProtectedCases": 2
+  },
+  "postPresentationScopedRegression": {
+    "count": 18,
+    "failures": 0
+  }
+}

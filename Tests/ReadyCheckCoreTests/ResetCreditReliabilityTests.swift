@@ -98,6 +98,18 @@ final class ResetCreditReliabilityTests: XCTestCase {
         XCTAssertEqual(empty.status, .storageFailed, "An empty existing ledger is corrupt, not a new consent state")
     }
 
+    func testReadFailureStreakDoesNotSpanSleepOrClockReversal() async throws {
+        let (store, _, directory) = fixture()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        for delta in [0.0, 60, 600] { _ = await store.recordCheck(.serviceUnavailable, account: "A", now: now.addingTimeInterval(delta)) }
+        var checks = try await store.checks(account: "A")
+        XCTAssertEqual(checks.count, 2)
+        XCTAssertEqual(checks.first?.count, 1)
+        _ = await store.recordCheck(.serviceUnavailable, account: "A", now: now.addingTimeInterval(590))
+        checks = try await store.checks(account: "A")
+        XCTAssertEqual(checks.count, 3)
+    }
+
     func testEveryPreparedRequestIsSavedBeforeConsumeAndSurvivesRestart() async throws {
         let (store, client, directory) = fixture()
         defer { try? FileManager.default.removeItem(at: directory) }

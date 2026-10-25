@@ -6,6 +6,7 @@ struct QuotaPaceView: View {
     let localization: LocalizationService
     let now: Date
     var compact = false
+    @State private var showExplanation = false
 
     var body: some View {
         Group {
@@ -24,14 +25,20 @@ struct QuotaPaceView: View {
     }
 
     private var expandedContent: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(compactSummary)
                 .font(.caption)
                 .foregroundStyle(pace.state == .risk ? Color.orange : Color.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            DisclosureGroup(explanationTitle) {
-                explanation.padding(.top, 4)
-            }.font(.caption)
+            Spacer(minLength: 0)
+            Button(explanationTitle) { showExplanation = true }
+                .buttonStyle(.borderless).font(.caption).fixedSize()
+                .popover(isPresented: $showExplanation) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(headline).font(.headline)
+                        explanation
+                    }.padding(16).frame(width: 340)
+                }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

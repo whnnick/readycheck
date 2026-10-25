@@ -11,15 +11,14 @@ struct QuotaRecoveryReminderView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            Toggle(isOn: Binding(
-                get: { model.automaticRecoveryEnabled },
-                set: { enabled in Task { await model.setAutomaticRecoveryEnabled(enabled) } }
-            )) {
-                Text(model.localization.text("recovery.automatic"))
-                    .font(.subheadline.weight(.medium))
+            HStack {
+                Text(model.localization.text("recovery.automatic")).font(.subheadline.weight(.medium))
+                Spacer(minLength: 12)
+                Toggle(model.localization.text("recovery.automatic"), isOn: Binding(
+                    get: { model.automaticRecoveryEnabled },
+                    set: { enabled in Task { await model.setAutomaticRecoveryEnabled(enabled) } }
+                )).labelsHidden().toggleStyle(.switch).disabled(model.isUpdatingRecoveryReminder)
             }
-            .toggleStyle(.switch)
-            .disabled(model.isUpdatingRecoveryReminder)
 
             Text(model.localization.text(model.recoveryStatusKey(now: now)))
                 .font(.caption)
@@ -27,17 +26,21 @@ struct QuotaRecoveryReminderView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             Divider()
-            Picker(model.localization.text("lowQuota.setting"), selection: Binding(
-                get: { model.lowQuotaThreshold },
-                set: { value in Task { await model.setLowQuotaThreshold(value) } }
-            )) {
-                Text(model.localization.text("lowQuota.off")).tag(0)
-                Text("20%").tag(20)
-                Text("10%").tag(10)
-                Text("5%").tag(5)
+            HStack {
+                Text(model.localization.text("lowQuota.setting")).font(.subheadline.weight(.medium))
+                Spacer(minLength: 12)
+                Picker(model.localization.text("lowQuota.setting"), selection: Binding(
+                    get: { model.lowQuotaThreshold },
+                    set: { value in Task { await model.setLowQuotaThreshold(value) } }
+                )) {
+                    Text(model.localization.text("lowQuota.off")).tag(0)
+                    Text("20%").tag(20)
+                    Text("10%").tag(10)
+                    Text("5%").tag(5)
+                }
+                .pickerStyle(.menu).labelsHidden().frame(width: 100)
+                .disabled(model.isUpdatingLowQuotaReminder)
             }
-            .pickerStyle(.menu)
-            .disabled(model.isUpdatingLowQuotaReminder)
             Text(model.localization.text("lowQuota.help"))
                 .font(.caption2)
                 .foregroundStyle(.secondary)

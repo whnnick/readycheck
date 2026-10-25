@@ -7,6 +7,70 @@ import XCTest
 
 @MainActor
 final class NextEventsViewTests: XCTestCase {
+    func testRulesNavigationClosesCardDetailWithoutChangingConsent() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            codexAppServerClient: NextFixtureReader(now: Date()),
+            rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
+            quotaNotificationService: QuotaNotificationService(client: NextSilentNotifications(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("reset.json")))
+        model.resetCreditStatus = .init(enabled: true, status: .waiting, updatedAt: nil)
+        model.mainWindowPage = .usage
+        model.mainSettingsSection = .connection
+        model.resetCreditDetailSelection = .record("synthetic-card")
+        let event = ReadyCheckNextEvent(kind: .automationOff, date: nil, expiration: nil, action: .rules)
+        model.openNextEvent(event)
+        XCTAssertNil(model.resetCreditDetailSelection, "Rules must not stay hidden behind card details")
+        XCTAssertEqual(model.mainWindowPage, .settings)
+        XCTAssertEqual(model.mainSettingsSection, .reminders)
+        XCTAssertTrue(model.resetCreditStatus.enabled, "Navigation must not change authorization")
+        let firstRequest = try XCTUnwrap(model.resetCreditRulesNavigationRequest)
+        model.openResetCreditRules()
+        XCTAssertNotEqual(model.resetCreditRulesNavigationRequest, firstRequest, "Repeated clicks on the same page must navigate again")
+    }
+
+    func testRulesNavigationScrollsToCardControlsOnSameAndDifferentPages() async throws {
+        _ = NSApplication.shared
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            codexAppServerClient: NextFixtureReader(now: Date()),
+            rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
+            quotaNotificationService: QuotaNotificationService(client: NextSilentNotifications(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("reset.json")))
+        let originalLanguage = model.language
+        defer { model.language = originalLanguage }
+        let size = CGSize(width: 740, height: 620)
+        let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let host = NSHostingView(rootView: SettingsView(model: model))
+        window.contentView = host; host.frame = CGRect(origin: .zero, size: size)
+        func scrollViews(_ view: NSView) -> [NSScrollView] {
+            (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap(scrollViews)
+        }
+        for language in [AppLanguage.zhCN, .enUS] {
+            model.language = language
+            for page in [MainWindowPage.overview, .settings] {
+                model.mainWindowPage = page; model.mainSettingsSection = .reminders
+                host.layoutSubtreeIfNeeded()
+                try await Task.sleep(for: .milliseconds(150))
+                let scroll = try XCTUnwrap(scrollViews(host).first)
+                scroll.contentView.scroll(to: .zero)
+                scroll.reflectScrolledClipView(scroll.contentView)
+                model.openResetCreditRules()
+                try await Task.sleep(for: .milliseconds(300))
+                XCTAssertGreaterThan(scroll.contentView.bounds.minY, 50, "Card controls must be reached instead of the reminder-page header")
+                XCTAssertNil(model.resetCreditRulesNavigationRequest, "Navigation request must be consumed after scrolling")
+            }
+        }
+    }
+
     func testNativeScenariosKeepSharedRoutingAndBilingualSurfaces() async throws {
         _ = NSApplication.shared
         let defaults = UserDefaults.standard
@@ -34,25 +98,29 @@ final class NextEventsViewTests: XCTestCase {
         await model.reloadCodexOAuthConnectionStatus()
         model.lastRefreshAt = now; model.lastSuccessfulRefreshAt = now
         model.lowQuotaThreshold = 10
-        model.quotaHistorySamples = (0...12).compactMap { index in
+        let fixtureHistory = (0...12).compactMap { index in
             QuotaHistorySample(snapshot: fixtureSnapshot(now: now,
                 sampledAt: now.addingTimeInterval(Double(index - 12) * 300), remaining: 34 + Double(12 - index) * 2))
         }
+        model.quotaHistorySamples = fixtureHistory
         model.notchQuotaSelection = .sevenDay
         let historyRecord = ResetCreditExecutionRecord(id: "synthetic-request", expiresAt: now.addingTimeInterval(-60), status: .reset, updatedAt: now.addingTimeInterval(-120), successNotificationPending: true)
         for language in [AppLanguage.zhCN, .enUS] {
             model.language = language
-            for scenario in ["normal", "off", "authorized", "unknown", "notificationPending", "ledgerUnavailable"] {
+            for scenario in ["normal", "off", "authorized", "unknown", "notificationPending", "ledgerUnavailable", "cardCheckUnavailable"] {
                 let distant = scenario == "normal"
+                model.quotaHistorySamples = fixtureHistory
                 model.snapshots = [fixtureSnapshot(now: now, cached: scenario == "unknown", distant: distant)]
-                model.resetCreditStatus = .init(enabled: scenario != "off" && scenario != "ledgerUnavailable", status: scenario == "ledgerUnavailable" ? .storageFailed : scenario == "off" ? .off : .waiting, updatedAt: nil)
+                model.resetCreditStatus = .init(enabled: scenario != "off" && scenario != "ledgerUnavailable", status: scenario == "ledgerUnavailable" ? .storageFailed : scenario == "cardCheckUnavailable" ? .unavailable : scenario == "off" ? .off : .waiting, updatedAt: nil)
                 model.resetCreditRecords = scenario == "notificationPending" ? [historyRecord] : []
                 let events = model.nextEvents(now: now)
                 XCTAssertLessThanOrEqual(events.count, 2)
                 let expected: ReadyCheckNextEvent.Kind = switch scenario {
                 case "normal": .naturalReset
                 case "off": .automationOff
-                case "unknown", "ledgerUnavailable": .conditionsUnknown
+                case "unknown": .conditionsUnknown
+                case "ledgerUnavailable": .cardHistoryUnavailable
+                case "cardCheckUnavailable": .cardCheckUnavailable
                 case "notificationPending": .notificationPending
                 default: .cardWindow
                 }
@@ -67,18 +135,25 @@ final class NextEventsViewTests: XCTestCase {
                 model.resetCreditDetailSelection = nil
                 model.mainWindowPage = .overview
                 let suffix = "\(scenario)-\(language.rawValue)"
-                try render(SettingsView(model: model), name: "next-main-\(suffix)", size: CGSize(width: 900, height: 980))
-                try render(MenuBarQuotaView(model: model, openSettings: {}), name: "next-menu-\(suffix)", size: CGSize(width: 340, height: 550))
-                try render(BubbleWidgetView(model: model, isExpanded: true, tabEdge: nil,
+                try await render(SettingsView(model: model), model: model, name: "next-main-\(suffix)", size: CGSize(width: 900, height: 980))
+                let fixtureStatus = model.resetCreditStatus
+                let fixtureRecords = model.resetCreditRecords
+                try await render(MenuBarQuotaView(model: model, openSettings: {}), name: "next-menu-\(suffix)", size: CGSize(width: 340, height: 550))
+                // Menu opening reloads its mock account. Restore presentation fixtures for the next surface.
+                model.quotaHistorySamples = fixtureHistory
+                model.snapshots = [fixtureSnapshot(now: now, cached: scenario == "unknown", distant: distant)]
+                model.resetCreditStatus = fixtureStatus
+                model.resetCreditRecords = fixtureRecords
+                try await render(BubbleWidgetView(model: model, isExpanded: true, tabEdge: nil,
                     onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {}), name: "next-widget-\(suffix)", size: BubbleWidgetPlacement.expandedSize, checkQuotaFit: true)
                 if scenario == "notificationPending" {
-                    try render(ResetCreditDetailView(model: model, selection: .record(historyRecord.id), now: now), name: "next-detail-\(suffix)", size: CGSize(width: 540, height: 530))
+                    try await render(ResetCreditDetailView(model: model, selection: .record(historyRecord.id), now: now), name: "next-detail-\(suffix)", size: CGSize(width: 540, height: 530))
                 }
                 if scenario == "ledgerUnavailable" {
                     let expiry = try XCTUnwrap(model.snapshots.first?.details?.manualResetExpirations.first)
-                    try render(ResetCreditDetailView(model: model, selection: .available(expiry), now: now), name: "next-detail-\(suffix)", size: CGSize(width: 540, height: 530))
+                    try await render(ResetCreditDetailView(model: model, selection: .available(expiry), now: now), name: "next-detail-\(suffix)", size: CGSize(width: 540, height: 530))
                     model.mainWindowPage = .settings; model.mainSettingsSection = .reminders
-                    try render(SettingsView(model: model), name: "next-settings-\(suffix)", size: CGSize(width: 740, height: 900))
+                    try await render(SettingsView(model: model), model: model, name: "next-settings-\(suffix)", size: CGSize(width: 740, height: 900))
                 }
             }
             model.snapshots = [fixtureSnapshot(now: now, distant: true)]
@@ -91,11 +166,24 @@ final class NextEventsViewTests: XCTestCase {
                     sampledAt: now.addingTimeInterval(Double(index - 12) * 300), remaining: remaining))
             }
             XCTAssertEqual(model.quotaPace(now: now)?.state, .unstable)
-            try render(NextEventsView(model: model, now: now).padding(16), name: "next-paused-\(language.rawValue)", size: CGSize(width: 680, height: 210))
+            try await render(NextEventsView(model: model, now: now).padding(16), name: "next-paused-\(language.rawValue)", size: CGSize(width: 680, height: 210))
             model.quotaHistorySamples = originalSamples
             model.snapshots = [fixtureSnapshot(now: now)]
             model.mainWindowPage = .overview
-            try render(SettingsView(model: model), name: "next-minimum-\(language.rawValue)", size: CGSize(width: 740, height: 760))
+            try await render(SettingsView(model: model), model: model, name: "next-minimum-\(language.rawValue)", size: CGSize(width: 740, height: 760))
+            for scheme in [ColorScheme.dark, .light] {
+                let appearanceName = scheme == .dark ? "dark" : "light"
+                model.mainWindowPage = .overview
+                try await render(SettingsView(model: model), model: model, name: "design-overview-\(appearanceName)-\(language.rawValue)", size: CGSize(width: 740, height: 620), scheme: scheme)
+                model.mainWindowPage = .usage
+                try await render(SettingsView(model: model), model: model, name: "design-token-\(appearanceName)-\(language.rawValue)", size: CGSize(width: 740, height: 620), scheme: scheme)
+                model.mainWindowPage = .settings
+                for section in MainSettingsSection.allCases {
+                    model.mainSettingsSection = section
+                    try await render(SettingsView(model: model), model: model, name: "design-\(section.rawValue)-\(appearanceName)-\(language.rawValue)", size: CGSize(width: 740, height: 620), scheme: scheme)
+                }
+            }
+
         }
     }
     func testAccountChangeClearsCardSelectionAndReadOnlyRecords() async throws {
@@ -133,13 +221,16 @@ final class NextEventsViewTests: XCTestCase {
             errors: [], details: ProviderQuotaDetails(planName: "Plus", subscriptionRenewalAt: now.addingTimeInterval(2678400), manualResetCount: 2,
                 manualResetExpirations: [now.addingTimeInterval(distant ? 604800 : 9600), now.addingTimeInterval(1209600)], creditBalance: "120", manualResetDetailsReadAt: now), ordinaryUsageAllowed: true, accountID: "synthetic-account", isCached: cached)
     }
-    private func render<V: View>(_ view: V, name: String, size: CGSize, checkQuotaFit: Bool = false) throws {
+    private func render<V: View>(_ view: V, model: ReadyCheckAppModel? = nil, name: String, size: CGSize, checkQuotaFit: Bool = false, scheme: ColorScheme = .dark) async throws {
+        // Keep declared fixture data stable while the native view settles; this is not a refresh test.
+        model?.lastRefreshAt = Date()
         let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
-        window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named: .darkAqua)
+        window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named: scheme == .dark ? .darkAqua : .aqua)
         defer { window.close() }
-        let host = NSHostingView(rootView: view.frame(width: size.width).background(Color(nsColor: .windowBackgroundColor)).environment(\.colorScheme, .dark))
+        let host = NSHostingView(rootView: view.frame(width: size.width).background(Color(nsColor: .windowBackgroundColor)).environment(\.colorScheme, scheme))
         window.contentView = host; host.frame = CGRect(origin: .zero, size: size); host.layoutSubtreeIfNeeded()
-        RunLoop.main.run(until: Date().addingTimeInterval(0.35))
+        window.orderBack(nil)
+        try await Task.sleep(for: .milliseconds(700))
         if checkQuotaFit {
             func scrolls(_ view: NSView) -> [NSScrollView] { (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap(scrolls) }
             let scroll = try XCTUnwrap(scrolls(host).first)

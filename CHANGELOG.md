@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.5.1 - 2026-10-25
+
+- Clearer current-state Overview, trends before complete benefits, independent reminder/automatic-use groups and explicit Token time ranges. Existing features, preferences and authorization stay intact.
+- Quiet transient card-check failures, withdraw matching recovered warnings, preserve historical gaps and both connection methods. Explain missing local subscription dates; only matching-account tokens can supply subscription metadata.
+- Retain all desktop behavior and the Widget hour chart; refresh native style previews, About and bilingual release information. Mac native update; Windows interface unchanged.
+
+## 0.5.1-dev.6 - 2026-10-25
+
+- Clarify current reading versus historical success, compact Overview and move trends ahead of complete account benefits; retain every reset-card date and record.
+- Separate reminder/automatic-use groups with trailing controls and actual account consent states; retain confirmation, rules, milestones and all execution/notification behavior.
+- Clarify Token summary/chart periods, preview adaptive circle/edge styling, and show cross-day check intervals. Native static panels use quieter tonal grouping. macOS presentation only; Windows metadata synchronized.
+
+## 0.5.1-dev.5 - 2026-10-24
+
+- Record transient reset-card detail failures silently and keep automatic retries; notify after at least three consecutive checks over two minutes. Restart that streak after a gap over five minutes. Credential, ledger and unknown-outcome warnings remain immediate.
+- Withdraw only matching recovered card-read warnings, retain diagnostic history and identify recovery in neutral, past-tense text. Separate readable quota with missing card details/check failures from connection problems across Overview, menu and Widget. No change to consent, redemption, expiry reminders or account source.
+
+## 0.5.1-dev.4 - 2026-10-23
+
+- Make Follow Codex on this Mac the primary connection choice; fold separate sign-in into Other connection methods. Keep an existing separate account, its status and recovery/disconnect controls visible. No automatic source migration, credential, consent or history changes. macOS presentation update; Windows version metadata only.
+
+## 0.5.1-dev.3 - 2026-10-23
+
+- Keep reminder-only historical gaps in history without treating them as current card-use failures. Label their details “Historical expiry reminder” / “Historical record incomplete”, omit current authorization from that historical context, and retain genuine unresolved requests, failures and pending success notices. No ledger or consent changes.
+
+## 0.5.1-dev.2 - 2026-10-23
+
+- Remove the redundant card-settings button and footer divider from read-only card details; shorten the sheet. Keep results, notification details and Close, plus all settings and the useful next-event settings route.
+
+## 0.5.1-dev.1 - 2026-10-23
+
+- Make “Open card settings” dismiss card details and scroll directly to the reset-card controls, including repeated navigation from the reminder page. Preserve authorization, reminder rules and history.
+
 ## 0.5.0 - 2026-10-23
 
 - Choose reset-card expiry reminders at72/48/24/12 hours without losing existing handled milestones, reminder switches or account-specific automatic-use consent.

@@ -2,6 +2,32 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class CodexOAuthQuotaProviderTests: XCTestCase {
+    func testLocalSubscriptionMetadataRequiresTheSameAccount() async throws {
+        let payload = try JSONSerialization.data(withJSONObject: ["https://api.openai.com/auth": [
+            "chatgpt_plan_type": "pro", "chatgpt_subscription_active_until": 9_000
+        ]])
+        let encoded = payload.base64EncodedString().replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
+        let account = CodexAppServerAccountSnapshot(accountID: "local-account", email: "local@example.com",
+            planName: nil, rateLimits: [.init(limitID: "codex", limitName: nil,
+                primary: .init(usedPercent: 20, durationMinutes: 300, resetsAt: nil), secondary: nil,
+                creditBalance: nil, hasCredits: false, creditsUnlimited: false, planName: nil)],
+            resetCredits: [], tokenUsage: nil, ordinaryUsageAllowed: true)
+        for sameAccount in [false, true] {
+            let store = InMemoryCredentialStore()
+            try await CodexOAuthTokenStore(credentialStore: store).saveToken(.init(accessToken: "synthetic-access",
+                refreshToken: "synthetic-refresh", idToken: "e30." + encoded + ".synthetic", tokenType: "Bearer",
+                expiresAt: Date(timeIntervalSince1970: 4_600), accountID: sameAccount ? "local-account" : "other-account", email: nil))
+            let provider = CodexOAuthQuotaProvider(credentialStore: store,
+                appServerClient: StubCodexAppServerReader(snapshot: account), now: { Date(timeIntervalSince1970: 1_000) })
+            let value = try await provider.fetchSnapshot(context: .init(reason: .manual))
+            XCTAssertEqual(value.accountID, "local-account")
+            XCTAssertEqual(value.windows.first?.remainingRatio, 0.8)
+            XCTAssertEqual(value.details?.subscriptionRenewalAt, sameAccount ? Date(timeIntervalSince1970: 9_000) : nil)
+            XCTAssertEqual(value.details?.planName, sameAccount ? "pro" : nil)
+        }
+    }
+
     func testOfficialLocalSnapshotWorksWhenKeychainReadFails() async throws {
         let appServer = StubCodexAppServerReader(
             snapshot: CodexAppServerAccountSnapshot(

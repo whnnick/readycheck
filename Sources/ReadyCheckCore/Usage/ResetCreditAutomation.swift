@@ -123,7 +123,8 @@ public actor ResetCreditAutomation {
     @discardableResult
     public func recordCheck(_ reason: ResetCreditCheckRecord.Reason, account: String, now: Date = Date()) -> Bool {
         guard let owner = QuotaHistorySample.key(for: account), var rows = try? loadChecks() else { return false }
-        if let index = rows.lastIndex(where: { $0.accountKey == owner }), rows[index].reason == reason {
+        if let index = rows.lastIndex(where: { $0.accountKey == owner }), rows[index].reason == reason,
+           reason != .serviceUnavailable || (now.timeIntervalSince(rows[index].lastAt) >= 0 && now.timeIntervalSince(rows[index].lastAt) <= 300) {
             rows[index].lastAt = now; rows[index].count += 1
         } else {
             rows.append(ResetCreditCheckRecord(id: UUID().uuidString, accountKey: owner, reason: reason,

@@ -18,11 +18,11 @@ struct OverviewQuotaView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                 ForEach(windows) { window in card(window) }
             }
-            if let snapshot, snapshot.isCached != true, snapshot.availabilityTextKey(now: now) != "status.available" {
+            if let snapshot, snapshot.isCached != true, ["status.ordinaryUsageBlocked", "status.ordinaryUsageUnknown"].contains(snapshot.availabilityTextKey(now: now)) {
                 Text(model.localization.text(snapshot.availabilityTextKey(now: now)))
                     .font(.caption).foregroundStyle(.secondary)
             }
@@ -36,7 +36,7 @@ struct OverviewQuotaView: View {
     private func card(_ window: QuotaWindow) -> some View {
         let ratio = snapshot?.canShowPercentages(now: now) == true ? window.displayableRemainingRatio : nil
         let primary = model.notchQuotaSelection.displayWindows(in: snapshot?.windows ?? []).first?.id == window.id
-        return VStack(alignment: .leading, spacing: 14) {
+        return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(QuotaWindowDisplay.title(for: window, localization: model.localization))
                     .font(.subheadline.weight(.semibold)).lineLimit(2)
@@ -53,7 +53,7 @@ struct OverviewQuotaView: View {
             }.frame(minHeight: 22)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(QuotaFormatters.percentageText(for: ratio))
-                    .font(.system(size: 40, weight: .semibold, design: .rounded)).monospacedDigit()
+                    .font(.system(size: ratio == nil ? 26 : 36, weight: .semibold, design: .rounded)).monospacedDigit()
                 Text(model.localization.text("overview.remaining"))
                     .font(.caption).foregroundStyle(.secondary)
             }
@@ -72,9 +72,8 @@ struct OverviewQuotaView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
+        .padding(16)
         .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Color.primary.opacity(0.08), lineWidth: 1))
         .accessibilityElement(children: .combine)
     }
 

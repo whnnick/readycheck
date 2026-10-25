@@ -1,5 +1,10 @@
 # Version plans / 版本规划
 
+[2026-10-25 native UI design review](versions/0.5.1/DESIGN_REVIEW.md) / [原生界面设计审查](versions/0.5.1/DESIGN_REVIEW.zh-CN.md) — [Local design implementation](versions/0.5.1/DESIGN_IMPLEMENTATION.md) / [本地设计实现](versions/0.5.1/DESIGN_IMPLEMENTATION.zh-CN.md)，功能保留 / existing capabilities retained.
+
+- [0.5.1 clearer workspace](versions/0.5.1/RELEASE_NOTES.md) / [一眼更清楚](versions/0.5.1/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.5.1/QA.md) / [验收](versions/0.5.1/QA.zh-CN.md) · [Retention](versions/0.5.1/RELEASE_AUDIT.md) / [功能保留](versions/0.5.1/RELEASE_AUDIT.zh-CN.md) — release candidate, publication checks in progress / 正式候选，发布检查进行中。
+
+
 - [0.5.0 plan](versions/0.5.0/PLAN.md) / [提醒与数据状态计划](versions/0.5.0/PLAN.zh-CN.md) · [Preview](versions/0.5.0/prototype/README.md) / [预览](versions/0.5.0/prototype/README.zh-CN.md) · [Checks](versions/0.5.0/QA.md) / [验收](versions/0.5.0/QA.zh-CN.md) · [Release notes](versions/0.5.0/RELEASE_NOTES.md) / [更新重点](versions/0.5.0/RELEASE_NOTES.zh-CN.md) — [Published v0.5.0](https://github.com/whnnick/readycheck/releases/tag/v0.5.0):398 public-source tests, both downloads and installed live reading verified; historical card outcome remains unconfirmed / 已发布：公开源码398项、两包下载与安装版真实读取通过，历史卡片结果仍未确认。
 
 - [0.4.2 clear actions](versions/0.4.2/RELEASE_NOTES.md) / [明确操作与单层说明](versions/0.4.2/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.4.2/QA.md) / [验收](versions/0.4.2/QA.zh-CN.md) — release candidate / 发布候选。

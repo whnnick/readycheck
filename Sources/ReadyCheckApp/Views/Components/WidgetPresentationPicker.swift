@@ -45,8 +45,17 @@ struct WidgetPresentationPicker: View {
     private func preview(_ style: WidgetPresentation) -> some View {
         switch style {
         case .bubble:
-            Circle().stroke(Color.accentColor, lineWidth: 3).frame(width: 36, height: 36)
-                .overlay(Image(systemName: "chevron.left.forwardslash.chevron.right").font(.system(size: 11, weight: .semibold)))
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle().stroke(Color.secondary.opacity(0.25), lineWidth: 3)
+                    Circle().trim(from: 0, to: 0.72).stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                    Text("72%").font(.system(size: 9, weight: .semibold)).monospacedDigit()
+                }.frame(width: 36, height: 36)
+                Image(systemName: "arrow.left.arrow.right").font(.caption2).foregroundStyle(.secondary)
+                Capsule().fill(Color.primary.opacity(0.12)).frame(width: 12, height: 36)
+                    .overlay(Capsule().fill(Color.accentColor).frame(width: 3, height: 24))
+            }
         case .card:
             VStack(alignment: .leading, spacing: 5) {
                 RoundedRectangle(cornerRadius: 2).fill(Color.secondary.opacity(0.5)).frame(width: 25, height: 4)
