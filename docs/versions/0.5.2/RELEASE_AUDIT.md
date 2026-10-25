@@ -2,7 +2,7 @@
 
 [中文](RELEASE_AUDIT.zh-CN.md) · [Checks](QA.md) · [Previous audit](../0.5.1/RELEASE_AUDIT.md)
 
-All65 rows inherit previous evidence/limits, with approved G01/G05 changes for one sign-in. This is not65 new device passes. The candidate has415 grouped tests and real same-account checks; final public source/packages/downloads remain pending. Rollback uses the retained app and preference, never an old ledger over newer records.
+All65 rows inherit previous evidence/limits, with approved G01/G05 changes for one sign-in. This is not65 new device passes. The public source passed all415 tests in one run; both packages, signatures/content, public main/tag/latest, actual downloads and final installed same-account OAuth/benefits/Token/card checks passed. All17 preferences and original consent remain; zero test redemptions. See [release evidence](release-evidence.json). Rollback uses the retained app and preference, never an old ledger over newer records.
 
 | ID | Capability | Entry | Inherited evidence or changed disposition |
 | --- | --- | --- | --- |

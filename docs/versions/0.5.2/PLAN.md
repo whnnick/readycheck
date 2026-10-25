@@ -2,7 +2,7 @@
 
 [中文](PLAN.zh-CN.md) · [Checks](QA.md) · [Versions](../../VERSIONS.md)
 
-Release candidate: `0.5.2` (development acceptance: `0.5.2-dev.2`). The user explicitly authorized removing the local-account sign-in option and the immediately preceding subscription-cache experiment. OAuth is the only ReadyCheck sign-in. No account-source selector, local authentication fallback or direct subscription-cache reader remains in application code. The old source preference is ignored and left untouched for rollback.
+Published release: `0.5.2` (development acceptance: `0.5.2-dev.2`). The user explicitly authorized removing the local-account sign-in option and the immediately preceding subscription-cache experiment. OAuth is the only ReadyCheck sign-in. No account-source selector, local authentication fallback or direct subscription-cache reader remains in application code. The old source preference is ignored and left untouched for rollback.
 
 Quota and account benefits come from ReadyCheck's authorized account. The background Codex adapter retains matching-account Token statistics, additional named quota windows, quota events and isolated OAuth-authorized card use. A local Codex sign-in cannot supply primary quota when ReadyCheck credentials are missing, unreadable or rejected. Background data from another account cannot overwrite OAuth quota or contribute Token statistics.
 

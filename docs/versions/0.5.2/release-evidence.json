@@ -32,9 +32,34 @@
     "reminderSettingsUnchanged": true,
     "historyPresent": true,
     "codexAuthFileUnchanged": true,
-    "testRedemptions": 0
+    "testRedemptions": 0,
+    "postInstallSuccessfulCardCheck": true,
+    "originalAutoUseSwitchOn": true,
+    "aboutHighlightsVerified": true
   },
-  "remote": "pending publication and actual download checks",
+  "remote": {
+    "repository": "whnnick/readycheck",
+    "tag": "v0.5.2",
+    "tagCodeCommit": "543e8dafa8b2778ca02544940417e10b6c0ccec9",
+    "releaseID": 423353631,
+    "latest": true,
+    "draft": false,
+    "prerelease": false,
+    "assets": [
+      {
+        "name": "ReadyCheck-0.5.2-macos.dmg",
+        "bytes": 2944104,
+        "sha256": "d018038f48217503846cef9d903561779a6ff760c7556a23bb3063cde41ed561"
+      },
+      {
+        "name": "ReadyCheck-0.5.2-windows-x64-portable.zip",
+        "bytes": 151013053,
+        "sha256": "2f6017f5d9ad9c80641d8791875f8d8c0a7a39475cee434e998ba6faa71d21bc"
+      }
+    ],
+    "actualDownloadsVerified": true,
+    "localGitHubDownloadSHA256Match": true
+  },
   "limits": [
     "Windows existing interface; no new Windows hardware test",
     "No live redemption, second live account or multi-display acceptance claimed",

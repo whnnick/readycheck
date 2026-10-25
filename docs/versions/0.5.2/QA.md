@@ -2,7 +2,7 @@
 
 [中文](QA.zh-CN.md) · [Requirements](PLAN.md) · [Versions](../../VERSIONS.md)
 
-Installed and running: `0.5.2-dev.2`; public stable remains `0.5.1`. [Current sanitized evidence](oauth-only-evidence.json). Dev.1 evidence below is historical, not a description of the current sign-in UI.
+Published and installed: `0.5.2`. The live same-account OAuth/benefits/Token checks passed after user-approved Keychain access, and ordinary card checking resumed without test redemption. [Current sanitized evidence](oauth-only-evidence.json). Dev.1 evidence below is historical, not a description of the current sign-in UI.
 
 | Requirement | Evidence | Status |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ The final grouped runs cover all415 cases. A preceding combined run had four mac
 
 ## Stable release candidate
 
-The sanitized public source passed all415 tests in one run with zero failures. Windows Node24 checks, smoke and UI behavior checks passed; ZIP integrity, ASAR version and package privacy passed. Release consistency, public source/privacy, visible-history forbidden-path and relative-link checks passed. Mac DMG integrity, mounted version, strict Preview Signing signature, package contents and final installation passed. The user completed Keychain confirmation; real same-account OAuth/benefits/Token and all17 preferences, consent and reminder settings were verified. No test redemption. Remote publication/download checks remain pending. [Release evidence](release-evidence.json). Earlier development-run failures above remain recorded.
+The sanitized public source passed all415 tests in one run with zero failures. Windows Node24 checks, smoke and UI behavior checks passed; ZIP integrity, ASAR version and package privacy passed. Release consistency, public source/privacy, visible-history forbidden-path and relative-link checks passed. Mac DMG integrity, mounted version, strict Preview Signing signature, package contents and final installation passed. The user completed Keychain confirmation; real same-account OAuth/benefits/Token and all17 preferences, consent and reminder settings were verified. No test redemption. Public main/tag `v0.5.2` and latest Release were verified, with exactly two assets; actual downloads match both local and GitHub SHA-256. All17 preferences, original consent/reminders and history remain; a post-install ordinary card check returned `checked`, with zero redemption requests. [Release evidence](release-evidence.json). Earlier development-run failures above remain recorded.
 
 ## Archived dev.1 checks
 
@@ -42,7 +42,7 @@ Status: local `0.5.2-dev.1` installed and running; public stable remains 0.5.1. 
 
 No feature was removed. Separate OAuth, all reminder controls, card eligibility, request/result records, account history, Token usage, menu, Widget, notch and About remain. No real card was redeemed for acceptance. Real second-account switching, additional displays, Windows native UI and live redemption remain outside this incremental verification. A missing/unreadable file or absent claim can still prevent a local date; billing remains authoritative. No new Keychain-storage fix is claimed.
 
-## Partial and unverified scope
+### Archived dev.1 limits (superseded)
 
 Local date support is conditional on a readable matching file record; no new live billing endpoint or local Keychain reader is implemented. Connection-failure recovery is covered by controlled regression tests; installed normal operation and background checking were observed, not a new forced physical network outage. See the retained [baseline audit](../0.5.1/RELEASE_AUDIT.md).
 
