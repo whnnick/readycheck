@@ -56,11 +56,13 @@ final class AccountHistoryTests: XCTestCase {
             else { UserDefaults.standard.removeObject(forKey: key) }
         }
         let history = QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json"))
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(), quotaHistoryStore: history,
+        let credentials = OAuthTestCredentials(account: "A")
+        let model = ReadyCheckAppModel(credentialStore: credentials, codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP(usedByAccount: ["A": 20, "B": 60])), quotaHistoryStore: history,
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             codexAppServerClient: HistoryAccountReader(),
             quotaNotificationService: QuotaNotificationService(client: SilentHistoryNotificationClient(), verificationDelays: []))
         for (account, ratio) in [("A", 0.8), ("B", 0.4), ("A", 0.8)] {
+            await credentials.useAccount(account)
             await model.refresh(reason: .manual)
             XCTAssertEqual(model.snapshots.first(where: { $0.providerId == "codex-oauth" })?.accountID, account)
             XCTAssertEqual(model.quotaHistorySamples.count, 1)

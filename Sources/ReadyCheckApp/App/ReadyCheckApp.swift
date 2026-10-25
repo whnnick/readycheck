@@ -16,13 +16,6 @@ enum CodexOAuthConnectionStatus: Equatable {
     case failed
 }
 
-enum CodexConnectionMode: String, CaseIterable, Identifiable {
-    case localCodex
-    case standaloneOAuth
-
-    var id: String { rawValue }
-}
-
 enum AppUpdateStatus: Equatable {
     case idle
     case checking
@@ -92,9 +85,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
             await appModel.reloadNotificationReadiness()
             await appModel.reloadQuotaHistory()
             await appModel.reloadReminderHistory()
-            appModel.startResetCreditAutomation()
-            await appModel.reloadCodexOAuthConnectionStatus()
-            await appModel.refresh(reason: .openedPanel)
+            await appModel.startConnectedServices()
             appModel.startRateLimitMonitoring()
             await appModel.checkForUpdates(isManual: false)
             appModel.restoreFloatingWidgetIfNeeded()
@@ -250,7 +241,6 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
 final class ReadyCheckAppModel {
     private static let widgetAlwaysOnTopDefaultsKey = "ReadyCheck.widgetAlwaysOnTop.v1"
     private static let notchStatusVisibleDefaultsKey = "ReadyCheck.notchStatusVisible.v1"
-    private static let codexConnectionModeDefaultsKey = "ReadyCheck.codexConnectionMode.v1"
     private static let oauthLogger = Logger(subsystem: "com.readycheck.app", category: "oauth")
 
     var mainWindowPage: MainWindowPage = .overview
@@ -385,7 +375,6 @@ final class ReadyCheckAppModel {
     var lastSuccessfulRefreshAt: Date?
     var widgetSnoozedUntil: Date? = WidgetSnoozePreference.value()
     var codexOAuthStatus: CodexOAuthConnectionStatus = .notConnected
-    var codexConnectionMode: CodexConnectionMode
     var codexOAuthCallbackURL = ""
     var codexOAuthStatusMessage: String?
     var codexOAuthLoginEmail: String?
@@ -422,6 +411,10 @@ final class ReadyCheckAppModel {
 
     @ObservationIgnored
     private let codexAppServerClient: any CodexAppServerReading
+
+    @ObservationIgnored private let codexQuotaClient: CodexQuotaHTTPClient
+    @ObservationIgnored private var loadedSavedAccountContext = false
+    @ObservationIgnored private var connectionStatusRevision = 0
 
     @ObservationIgnored
     private let rateLimitMonitor: CodexAppServerRateLimitMonitor
@@ -476,6 +469,7 @@ final class ReadyCheckAppModel {
 
     init(
         credentialStore: any CredentialStore = KeychainCredentialStore(),
+        codexQuotaClient: CodexQuotaHTTPClient = CodexQuotaHTTPClient(),
         codexOAuthClient: CodexOAuthClient = CodexOAuthClient(),
         updateChecker: GitHubReleaseUpdateChecker = GitHubReleaseUpdateChecker(),
         quotaHistoryStore: QuotaHistoryStore? = nil,
@@ -492,14 +486,11 @@ final class ReadyCheckAppModel {
         self.resetCreditClient = resetCreditClient
         self.widgetVisibilityDefaults = widgetVisibilityDefaults
         self.widgetVisible = WidgetVisibilityPreference.value(defaults: widgetVisibilityDefaults)
-        let initialConnectionMode = CodexConnectionMode(
-            rawValue: UserDefaults.standard.string(forKey: Self.codexConnectionModeDefaultsKey) ?? ""
-        ) ?? .localCodex
-        self.codexConnectionMode = initialConnectionMode
         self.credentialStore = credentialStore
         self.codexOAuthClient = codexOAuthClient
         self.updateChecker = updateChecker
         self.codexAppServerClient = codexAppServerClient
+        self.codexQuotaClient = codexQuotaClient
         self.rateLimitMonitor = rateLimitMonitor
         self.quotaHistoryStore = quotaHistoryStore ?? QuotaHistoryStore(
             fileURL: Self.defaultQuotaHistoryURL.deletingLastPathComponent().appendingPathComponent("quota-history-v2.json"),
@@ -512,7 +503,7 @@ final class ReadyCheckAppModel {
                 configurations: ProviderConfiguration.defaults,
                 credentialStore: credentialStore,
                 codexAppServerClient: codexAppServerClient,
-                preferCodexOAuthAPI: initialConnectionMode != .localCodex
+                codexQuotaClient: codexQuotaClient
             )
         )
         self.floatingWindowController.onVisibilityChanged = { [weak self] isVisible in
@@ -787,53 +778,14 @@ final class ReadyCheckAppModel {
         }
     }
 
-    func setCodexConnectionMode(_ mode: CodexConnectionMode) async {
-        guard mode != codexConnectionMode else { return }
-        codexConnectionMode = mode
-        UserDefaults.standard.set(mode.rawValue, forKey: Self.codexConnectionModeDefaultsKey)
-        rebuildStore()
-        await reloadCodexOAuthConnectionStatus()
-        await refresh(reason: .manual)
-    }
-
-    func retryLocalCodexConnection() async {
-        await reloadCodexOAuthConnectionStatus()
-        guard codexOAuthStatus == .connected else { return }
-        await refresh(reason: .manual)
-    }
-
     func reloadCodexOAuthConnectionStatus() async {
         let activeStoreGeneration = storeGeneration
-        if codexConnectionMode == .localCodex {
-            do {
-                let accountSnapshots = try await codexAppServerClient.readAccountSnapshots()
-                guard activeStoreGeneration == storeGeneration else { return }
-                guard let snapshot = accountSnapshots.first,
-                      !snapshot.rateLimits.isEmpty
-                else {
-                    codexOAuthStatus = .notConnected
-                    codexOAuthStatusMessage = localization.text("codex.local.unavailable")
-                    codexOAuthLoginEmail = nil
-                    await updateRecoveryReminderAccount(nil)
-                    return
-                }
-                codexOAuthStatus = .connected
-                codexOAuthStatusMessage = nil
-                codexOAuthLoginEmail = snapshot.email
-                await updateRecoveryReminderAccount(snapshot.accountID ?? snapshot.email)
-            } catch {
-                guard activeStoreGeneration == storeGeneration else { return }
-                codexOAuthStatus = .notConnected
-                codexOAuthStatusMessage = localization.text("codex.local.unavailable")
-                codexOAuthLoginEmail = nil
-                await updateRecoveryReminderAccount(nil)
-            }
-            return
-        }
+        connectionStatusRevision += 1
+        let revision = connectionStatusRevision
         do {
             let tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)
             let token = try await tokenStore.loadToken()
-            guard activeStoreGeneration == storeGeneration else { return }
+            guard activeStoreGeneration == storeGeneration, revision == connectionStatusRevision else { return }
             if let token {
                 codexOAuthStatus = .connected
                 codexOAuthStatusMessage = nil
@@ -845,7 +797,7 @@ final class ReadyCheckAppModel {
                 codexOAuthLoginEmail = nil
             }
         } catch {
-            guard activeStoreGeneration == storeGeneration else { return }
+            guard activeStoreGeneration == storeGeneration, revision == connectionStatusRevision else { return }
             codexOAuthStatus = isCredentialStorageError(error) ? .credentialStorageFailed : .failed
             codexOAuthStatusMessage = codexOAuthMessage(for: error)
             codexOAuthLoginEmail = nil
@@ -946,7 +898,7 @@ final class ReadyCheckAppModel {
             await quotaReminderStore.clearKnownManualResetExpirations()
             await cancelRecoveryReminder()
             await quotaReminderStore.clearLowQuotaBaseline()
-            recoveryReminderAccount = nil
+            await updateRecoveryReminderAccount(nil)
             lastSuccessfulRefreshAt = nil
             pendingCodexOAuthSession = nil
             codexOAuthCallbackURL = ""
@@ -1127,9 +1079,6 @@ final class ReadyCheckAppModel {
             Task { @MainActor in
                 guard let self else { return }
                 self.codexEventMonitorStatus = status
-                if status == .connected, self.codexConnectionMode == .localCodex {
-                    self.scheduleRateLimitEventRefresh()
-                }
             }
         }, onRateLimitsUpdated: { [weak self] in
             Task { @MainActor in
@@ -1192,12 +1141,24 @@ final class ReadyCheckAppModel {
         let refreshCompletedAt = Date()
         let refreshedSnapshots = await activeStore.snapshots
         if let codex = refreshedSnapshots.first(where: { $0.providerId == "codex-oauth" }),
-           codex.status == .available || codex.recoveryAction == .connect || codex.recoveryAction == .reconnect {
+           codex.status == .available, codex.source == .oauthAPI {
             let nextAccount = codex.accountID
             let changed = nextAccount != recoveryReminderAccount
             await updateRecoveryReminderAccount(nextAccount)
             guard storeGeneration == activeStoreGeneration + (changed ? 1 : 0),
                   recoveryReminderAccount == nextAccount else { return }
+            if codex.status == .available, codex.isCached != true, !codex.isStale(now: refreshCompletedAt),
+               nextAccount != nil, !isCodexOAuthCallbackInputVisible {
+                connectionStatusRevision += 1
+                codexOAuthStatus = .connected
+                codexOAuthStatusMessage = nil
+                if changed { codexOAuthLoginEmail = nil }
+            }
+        }
+        if !isCodexOAuthCallbackInputVisible,
+           let codex = refreshedSnapshots.first(where: { $0.providerId == "codex-oauth" }),
+           codex.recoveryAction == .connect || codex.recoveryAction == .reconnect {
+            codexOAuthStatus = codex.errors.contains("oauth.error.keychainUnavailable") ? .credentialStorageFailed : .notConnected
         }
         let knownManualResetExpirations = await quotaReminderStore.knownManualResetExpirations(
             now: refreshCompletedAt
@@ -1297,6 +1258,12 @@ final class ReadyCheckAppModel {
     }
 
     func reloadReminderHistory() async {
+        if !loadedSavedAccountContext {
+            loadedSavedAccountContext = true
+            if recoveryReminderAccount == nil, codexOAuthStatus != .connected {
+                recoveryReminderAccount = await quotaReminderStore.savedDetailsAccount()
+            }
+        }
         reminderHistoryRecords = await quotaReminderStore.history()
         recoveryReminderRequest = await quotaReminderStore.recoveryRequest()
         automaticRecoveryEnabled = await quotaReminderStore.automaticRecoveryEnabled()
@@ -1305,6 +1272,7 @@ final class ReadyCheckAppModel {
         lowQuotaThreshold = await quotaReminderStore.lowQuotaThreshold()
         resetCreditStatus = await resetCreditAutomation.status(account: recoveryReminderAccount)
         await reloadResetCreditRecords()
+        await reloadQuotaHistory()
     }
 
     private func updateRecoveryReminderAccount(_ account: String?) async {
@@ -1329,6 +1297,12 @@ final class ReadyCheckAppModel {
         if let request = await quotaReminderStore.recoveryRequest(), request.account != account {
             await cancelRecoveryReminder()
         }
+    }
+
+    func startConnectedServices() async {
+        await reloadCodexOAuthConnectionStatus()
+        await refresh(reason: .openedPanel)
+        startResetCreditAutomation()
     }
 
     func startResetCreditAutomation() {
@@ -1365,6 +1339,7 @@ final class ReadyCheckAppModel {
             if resetCreditStatus.status == .storageFailed {
                 _ = await resetCreditAutomation.recordCheck(.ledgerUnavailable, account: account)
             } else if resetCreditStatus.enabled {
+                resetCreditStatus = ResetCreditAutomationStatus(enabled: true, status: .unavailable, updatedAt: nil)
                 _ = await resetCreditAutomation.recordCheck(.credentialsUnavailable, account: account)
             }
             await reloadResetCreditRecords()
@@ -1376,9 +1351,8 @@ final class ReadyCheckAppModel {
         let generation = storeGeneration
         var token: CodexOAuthToken?
         do {
-            token = codexConnectionMode == .standaloneOAuth
-                ? try await CodexOAuthTokenStore(credentialStore: credentialStore).loadToken() : nil
-            if codexConnectionMode == .standaloneOAuth && token == nil { throw CodexOAuthError.invalidStoredToken }
+            token = try await CodexOAuthTokenStore(credentialStore: credentialStore).loadToken()
+            if token == nil { throw CodexOAuthError.invalidStoredToken }
             if let current = token, current.expiresAt <= Date() {
                 guard !isRefreshing else { return }
                 // Reuse the existing serialized refresh/Keychain lifecycle, including its failure UI.
@@ -1509,7 +1483,7 @@ final class ReadyCheckAppModel {
                 configurations: providerConfigurations,
                 credentialStore: credentialStore,
                 codexAppServerClient: codexAppServerClient,
-                preferCodexOAuthAPI: codexConnectionMode != .localCodex
+                codexQuotaClient: codexQuotaClient
             )
         )
         storeGeneration += 1

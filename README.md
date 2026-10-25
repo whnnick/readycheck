@@ -3,16 +3,22 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>See your quota. Know what comes next.</strong></p>
 <p align="center">A free, open-source Codex quota monitor, built for your Mac.</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.1"><img src="https://img.shields.io/badge/release-v0.5.1-28c99b" alt="Release 0.5.1"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.1/ReadyCheck-0.5.1-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.1/ReadyCheck-0.5.1-windows-x64-portable.zip">Windows portable</a></p>
-<p align="center"><a href="docs/versions/0.5.1/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.5.1/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.2"><img src="https://img.shields.io/badge/release-v0.5.2-28c99b" alt="Release 0.5.2"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.2/ReadyCheck-0.5.2-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.2/ReadyCheck-0.5.2-windows-x64-portable.zip">Windows portable</a></p>
+<p align="center"><a href="docs/versions/0.5.2/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.5.2/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
 
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-en.png" alt="ReadyCheck: See your quota. Know what comes next. Native macOS, menu bar, Widget and notch." width="960"></p>
+
+
+## 0.5.2 — One clear sign-in
+
+One ReadyCheck login for quota and benefits. Settings, history and original card consent stay; another account cannot inherit consent. Fresh data restores connection and card checks without restarting. [Release highlights](docs/versions/0.5.2/RELEASE_NOTES.md).
+
 
 ## Start here
 
 1. Download the **Mac DMG** above and drag ReadyCheck.app to Applications.
-2. Follow your signed-in local Codex account, or sign in separately with OAuth. Approve Keychain access if macOS asks.
+2. Click **Sign in to ReadyCheck** and authorize your ChatGPT account in the browser. Approve Keychain access if macOS asks.
 3. Choose thresholds in **Settings → Reminders**. Enable the Widget or notch in **Settings → Display**.
 
 **Mac:** Apple silicon / arm64, macOS 14+. Stable **self-signed preview**, **not Developer ID signed or notarized**; read the [install guide](docs/INSTALL.md) before opening. **Windows:** unzip the portable x64 package and run ReadyCheck.exe; it retains its previous interface.
@@ -24,7 +30,7 @@
 | Both **5-hour and 7-day quotas**, exact reset times, account benefits and local consumption. | One shared next event across Overview, menu and Widget: reset, conditional card-use window or an issue needing attention. | A native window, menu bar, adaptive Widget and click-to-open notch. Use the surface that fits your work. |
 
 <p align="center"><img src="docs/versions/0.5.1/assets/release-overview-en.png" alt="Native ReadyCheck Overview showing both quotas, Up next, account benefits and local quota history; synthetic demonstration data" width="900"></p>
-<p align="center"><sub>Current0.5.1 native interface with synthetic data. Current readings first; complete benefits and history remain below the trend.</sub></p>
+<p align="center"><sub>Retained 0.5.1 native interface with synthetic data. Current readings first; complete benefits and history remain below the trend.</sub></p>
 
 ### 0.5.1 — Clearer at a glance. Everything retained.
 
@@ -34,9 +40,9 @@
 
 <p align="center"><img src="docs/versions/0.5.1/assets/reminders-en.png" alt="Native0.5.1 reminder groups with trailing controls, four expiry milestones and current-account automatic-use state; synthetic data" width="740"></p>
 
-**Choose reminders. Inspect records. Keep control.**72/48/24/12-hour expiry nodes and account-specific automatic use remain independent. Confirmed card results and notification states remain separate; old missing records stay unconfirmed. Local Codex may omit a subscription date: missing does not mean signed out, and another account's date is never substituted.
+**Choose reminders. Inspect records. Keep control.**72/48/24/12-hour expiry nodes and account-specific automatic use remain independent. Confirmed card results and notification states remain separate; old missing records stay unconfirmed. If the authorized response omits a subscription date, ReadyCheck links to billing; a missing date does not mean signed out, and another account's date is never substituted.
 
-[What's new](docs/versions/0.5.1/RELEASE_NOTES.md) · [Checks and limits](docs/versions/0.5.1/QA.md) · [65-feature retention](docs/versions/0.5.1/RELEASE_AUDIT.md).
+[What's new](docs/versions/0.5.2/RELEASE_NOTES.md) · [Checks and limits](docs/versions/0.5.2/QA.md) · [65-feature retention](docs/versions/0.5.2/RELEASE_AUDIT.md).
 
 ## Small when working. Detailed when needed.
 
@@ -46,7 +52,7 @@
 <tr><td>The Widget keeps both quotas, the next event and the <strong>last-hour chart</strong> together. Pin it when you need it; tuck it away when you don't.</td><td>Inspect the original expiry, account authorization, recorded outcome and its matching notification. Notification delivery and card redemption are separate results.</td></tr>
 </table>
 
-<p align="center"><sub>Current0.5.1 native components with synthetic data; the confirmed card outcome is a demonstration, not a real redemption.</sub></p>
+<p align="center"><sub>Retained 0.5.1 native components with synthetic data; the confirmed card outcome is a demonstration, not a real redemption.</sub></p>
 
 - **One adaptive Widget.** Drag the bubble to either edge for a slim strip, or inward for the bubble. Choose an information card and drag its title. Pinned details stay open across outside clicks and focus changes; unpin to restore preview behavior. Esc dismisses focused details.
 - **A quieter notch.** Click to expand; click outside or press Esc to dismiss. Hovering alone does not open it.
@@ -69,20 +75,20 @@
 
 | Platform | Release scope |
 | --- | --- |
-| **macOS** | Native Overview/menu, shared next events, card records, adaptive Widget, last-hour chart, movable card, click-only notch and account/history features. [0.5.1 checks](docs/versions/0.5.1/QA.md) · [65-feature retention audit](docs/versions/0.5.1/RELEASE_AUDIT.md). |
+| **macOS** | Native Overview/menu, shared next events, card records, adaptive Widget, last-hour chart, movable card, click-only notch and account/history features. [0.5.2 checks](docs/versions/0.5.2/QA.md) · [65-feature retention audit](docs/versions/0.5.2/RELEASE_AUDIT.md). |
 | **Windows x64** | Separate portable preview with its previous interface. Mac milestone controls, check records and new data-state explanations are not claimed for Windows. [Windows guide](docs/WINDOWS.md) · [Checks](docs/WINDOWS_QA.md). |
 
 ReadyCheck **does not automatically stop or resume Codex tasks**. Reset timestamps need fresh readings to confirm recovery; unobserved recovery while closed is not replayed. Real card redemption, another live account, multi-display/Spaces, Focus/sleep, VoiceOver and Windows hardware are not claimed comprehensively verified; consult the version checks for the actual coverage.
 
 ## Privacy and account access
 
-Refreshing reads authorized usage data **without model-generation requests**. Quota refresh is read-only; optional card redemption is a separately authorized mutation. Follow the local Codex account or use separate OAuth; Mac OAuth credentials stay in Keychain. History is account-scoped, and unknown legacy ownership is kept separate. Remove credentials and account details before sharing logs or screenshots.
+Refreshing reads authorized usage data **without model-generation requests**. Quota refresh is read-only; optional card redemption is a separately authorized mutation. ReadyCheck uses one OAuth sign-in; Mac credentials stay in Keychain. Background Token/card capabilities still use matching-account Codex interfaces. History is account-scoped, and unknown legacy ownership is kept separate. Remove credentials and account details before sharing logs or screenshots.
 
 ReadyCheck is independent and is not affiliated with or endorsed by OpenAI. Codex, ChatGPT and their marks belong to OpenAI.
 
 ## Documentation and development
 
-[0.5.1 product plan](docs/versions/0.5.1/PLAN.md) · [Black-box checks](docs/versions/0.5.1/QA.md).
+[0.5.2 product plan](docs/versions/0.5.2/PLAN.md) · [Black-box checks](docs/versions/0.5.2/QA.md).
 
 [Design and feature-retention details](docs/versions/0.5.1/DESIGN_IMPLEMENTATION.md).
 

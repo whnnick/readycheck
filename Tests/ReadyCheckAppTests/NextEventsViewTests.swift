@@ -90,7 +90,7 @@ final class NextEventsViewTests: XCTestCase {
         }
         let now = Date()
         let automation = ResetCreditAutomation(fileURL: directory.appendingPathComponent("reset.json"))
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+        let model = ReadyCheckAppModel(credentialStore: OAuthTestCredentials(account: "synthetic-account"), codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP()),
             quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             codexAppServerClient: NextFixtureReader(now: now), rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
@@ -202,11 +202,13 @@ final class NextEventsViewTests: XCTestCase {
         let bytes = try JSONSerialization.data(withJSONObject: ["attempts": [["accountKey": QuotaHistorySample.key(for: "synthetic-account")!, "creditID": "fixture", "expiresAt": now.timeIntervalSinceReferenceDate, "key": "original-request", "status": "reset", "updatedAt": now.timeIntervalSinceReferenceDate, "successNotificationPending": true]]])
         try bytes.write(to: file)
         let reader = NextSwitchingReader(now: now)
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(), quotaHistoryStore: QuotaHistoryStore(fileURL: folder.appendingPathComponent("history.json")), quotaReminderStore: QuotaReminderStore(fileURL: folder.appendingPathComponent("reminders.json")), codexAppServerClient: reader, rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []), quotaNotificationService: QuotaNotificationService(client: NextSilentNotifications(), verificationDelays: []), resetCreditAutomation: ResetCreditAutomation(fileURL: file))
+        let credentials = OAuthTestCredentials(account: "synthetic-account")
+        let model = ReadyCheckAppModel(credentialStore: credentials, codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP()), quotaHistoryStore: QuotaHistoryStore(fileURL: folder.appendingPathComponent("history.json")), quotaReminderStore: QuotaReminderStore(fileURL: folder.appendingPathComponent("reminders.json")), codexAppServerClient: reader, rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []), quotaNotificationService: QuotaNotificationService(client: NextSilentNotifications(), verificationDelays: []), resetCreditAutomation: ResetCreditAutomation(fileURL: file))
         await model.reloadCodexOAuthConnectionStatus()
         XCTAssertEqual(model.currentResetCreditRecords.count, 1)
         model.resetCreditDetailSelection = .record("original-request")
         await reader.switchAccount()
+        await credentials.useAccount("other-account")
         await model.reloadCodexOAuthConnectionStatus()
         XCTAssertTrue(model.currentResetCreditRecords.isEmpty)
         XCTAssertNil(model.resetCreditDetailSelection)

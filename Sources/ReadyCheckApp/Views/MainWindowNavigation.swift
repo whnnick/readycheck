@@ -49,7 +49,7 @@ struct MainWindowSidebar: View {
             Spacer(minLength: 0)
             VStack(alignment: .leading, spacing: 6) {
                 Text("Codex").font(.caption.weight(.semibold))
-                Text(model.localization.text(model.codexConnectionMode == .localCodex ? "codex.connectionMode.local" : "codex.connectionMode.oauth"))
+                Text(model.localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected"))
                     .font(.caption2).foregroundStyle(.secondary).lineLimit(2)
                 Text(ReadyCheckCore.version).font(.caption2.monospacedDigit()).foregroundStyle(.tertiary)
                 Button { model.showAboutWindow() } label: {

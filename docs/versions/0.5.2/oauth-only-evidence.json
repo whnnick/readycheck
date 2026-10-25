@@ -1,0 +1,75 @@
+{
+  "version": "0.5.2-dev.2",
+  "implementation": "OAuth is the only user sign-in and primary quota source",
+  "authorizedRemoval": [
+    "local account selector and authentication fallback",
+    "direct local subscription file reader and its date-provenance UI"
+  ],
+  "retained": [
+    "OAuth quota and account benefits",
+    "same-account Token history and named extra windows",
+    "quota events",
+    "account-scoped automatic card use and records",
+    "reminders and their thresholds/milestones",
+    "Widget, notch, menu and About"
+  ],
+  "validation": {
+    "core": {
+      "tests": 310,
+      "failures": 0,
+      "seconds": 10.219
+    },
+    "app": {
+      "tests": 105,
+      "failures": 0,
+      "seconds": 176.056
+    },
+    "totalCoverage": 415,
+    "execution": "Complete Core/App groups, not one all-target pass",
+    "protectedLedgerFocusedRerun": {
+      "tests": 18,
+      "failures": 0
+    },
+    "priorCombinedRun": "Four protected-file reopen cases were denied by macOS. No file permissions were changed. Focused and complete grouped runs passed.",
+    "fixtureStability": "The existing handshake-rejection fixture now has a larger test-only deadline; production monitor deadlines are unchanged.",
+    "migrationCases": [
+      "legacy local preference cannot authenticate",
+      "saved consent waits during sign-in",
+      "same-account sign-in resumes consent",
+      "other account cannot inherit consent",
+      "late credential reads cannot undo sign-out",
+      "cached quota cannot clear connection failure",
+      "startup waits for initial credentials before checking cards"
+    ],
+    "uiLanguages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "nativeMinimumSizePoints": [
+      740,
+      760
+    ]
+  },
+  "runtime": {
+    "installedVersion": "0.5.2-dev.2",
+    "strictSignatureVerified": true,
+    "oauthOnlyConnectionPageVerified": true,
+    "realOAuthQuotaSourceVerified": true,
+    "realSubscriptionAndCardBenefitsVisible": true,
+    "realMatchingTokenStatisticsVisible": true,
+    "existingAutoUseSwitchOn": true,
+    "keychainApprovalCompletedByUser": true,
+    "previousAppBackedUp": true,
+    "preferenceCount": 17,
+    "preferencesUnchanged": true,
+    "originalConsentUnchanged": true,
+    "reminderSettingsUnchanged": true,
+    "sameAccountAsBefore": true,
+    "attemptCount": 0,
+    "localAuthCacheUnchanged": true,
+    "latestCheckReason": "checked",
+    "postInstallSuccessfulCheck": true
+  },
+  "publication": "not published; public stable remains 0.5.1",
+  "privacy": "No private account data, credential material, local paths or real quota screenshots included."
+}

@@ -21,7 +21,7 @@ public struct ResetCreditCheckRecord: Codable, Equatable, Identifiable, Sendable
     }
 
     public func recovered(in checks: [Self]) -> Bool {
-        reason == .serviceUnavailable && checks.contains {
+        (reason == .serviceUnavailable || reason == .credentialsUnavailable) && checks.contains {
             $0.accountKey == accountKey && $0.reason == .checked && $0.firstAt >= lastAt
         }
     }

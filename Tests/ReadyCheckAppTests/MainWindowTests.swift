@@ -272,7 +272,7 @@ final class MainWindowTests: XCTestCase {
             }
         }
         UserDefaults.standard.set("localCodex", forKey: keys[0])
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+        let model = ReadyCheckAppModel(credentialStore: OAuthTestCredentials(account: "synthetic-dashboard"), codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP()),
             quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             codexAppServerClient: DashboardAccountReader(),

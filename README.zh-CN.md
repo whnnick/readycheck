@@ -3,16 +3,22 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>额度看得见，下一步心里有数。</strong></p>
 <p align="center">为 Mac 打造的免费开源 Codex 额度监控工具。</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.1"><img src="https://img.shields.io/badge/release-v0.5.1-28c99b" alt="发布 0.5.1"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.1/ReadyCheck-0.5.1-macos.dmg"><strong>↓ 下载 Mac 版</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.1/ReadyCheck-0.5.1-windows-x64-portable.zip">Windows 便携版</a></p>
-<p align="center"><a href="docs/versions/0.5.1/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装指南</a> · <a href="docs/versions/0.5.1/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">全部版本</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.2"><img src="https://img.shields.io/badge/release-v0.5.2-28c99b" alt="发布 0.5.2"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.2/ReadyCheck-0.5.2-macos.dmg"><strong>↓ 下载 Mac 版</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.2/ReadyCheck-0.5.2-windows-x64-portable.zip">Windows 便携版</a></p>
+<p align="center"><a href="docs/versions/0.5.2/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装指南</a> · <a href="docs/versions/0.5.2/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">全部版本</a></p>
 
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-zh.png" alt="ReadyCheck：额度看得见，下一步心里有数。原生 macOS、菜单栏、Widget 与刘海。" width="960"></p>
+
+
+## 0.5.2 — 登录更简单，账号更清楚
+
+只保留“登录ReadyCheck”，统一读取额度与权益；设置、历史和原授权保留，其他账号不会继承授权。连接恢复后继续检查用卡，无需重启。[更新重点](docs/versions/0.5.2/RELEASE_NOTES.zh-CN.md)。
+
 
 ## 从这里开始
 
 1. 下载上方 **Mac DMG**，将 ReadyCheck.app 拖到“应用程序”。
-2. 跟随本机已登录的 Codex 账号，或使用独立 OAuth 登录。如 macOS 请求钥匙串访问，请完成系统确认。
+2. 点击**登录 ReadyCheck**，在浏览器中授权你的 ChatGPT 账号。如 macOS 请求钥匙串访问，请完成系统确认。
 3. 在**设置 → 提醒**选择门槛，在**设置 → 显示**开启 Widget 或刘海。
 
 **Mac：**Apple 芯片 / arm64、macOS 14+。沿用稳定**自签名预览**身份，**未经 Developer ID 签名或公证**，首次打开前请看[安装指南](docs/INSTALL.zh-CN.md)。**Windows：**解压 x64 便携包，运行 ReadyCheck.exe，保留原界面。
@@ -24,7 +30,7 @@
 | 同时查看 **5 小时与 7 天额度**、准确重置时间、账户权益和本机消耗。 | 总览、菜单与 Widget 共用同一条下一步：额度重置、条件用卡窗口或待处理事项。 | 原生主窗口、菜单栏、自适应 Widget 与点击展开的刘海，按自己的习惯选择。 |
 
 <p align="center"><img src="docs/versions/0.5.1/assets/release-overview-zh.png" alt="ReadyCheck 原生总览：双额度、接下来、账户权益与本机消耗图，均为合成演示数据" width="900"></p>
-<p align="center"><sub>当前0.5.1原生界面，使用合成数据。先看当前读数，完整权益和历史继续保留在趋势下方。</sub></p>
+<p align="center"><sub>保留的0.5.1原生界面，使用合成数据。先看当前读数，完整权益和历史继续保留在趋势下方。</sub></p>
 
 ### 0.5.1：一眼更清楚，功能都保留
 
@@ -34,9 +40,9 @@
 
 <p align="center"><img src="docs/versions/0.5.1/assets/reminders-zh.png" alt="0.5.1原生提醒设置：控件靠右、四个到期节点、当前账号自动用卡状态，使用合成数据" width="740"></p>
 
-**提醒自己选，记录能追查，控制权保留。**72／48／24／12小时到期节点与按账号自动用卡仍独立；确认用卡结果和通知状态分开，旧缺失记录不补造成功。本机Codex可能不提供订阅日期：缺日期不等于掉线，也不会借用别的账号日期。
+**提醒自己选，记录能追查，控制权保留。**72／48／24／12小时到期节点与按账号自动用卡仍独立；确认用卡结果和通知状态分开，旧缺失记录不补造成功。授权响应未返回订阅日期时，提供账单入口；缺日期不等于掉线，也不会借用别的账号日期。
 
-[更新重点](docs/versions/0.5.1/RELEASE_NOTES.zh-CN.md) · [验收与边界](docs/versions/0.5.1/QA.zh-CN.md) · [65项功能保留](docs/versions/0.5.1/RELEASE_AUDIT.zh-CN.md)。
+[更新重点](docs/versions/0.5.2/RELEASE_NOTES.zh-CN.md) · [验收与边界](docs/versions/0.5.2/QA.zh-CN.md) · [65项功能保留](docs/versions/0.5.2/RELEASE_AUDIT.zh-CN.md)。
 
 ## 工作时轻巧，需要时展开
 
@@ -46,7 +52,7 @@
 <tr><td>双额度、下一步和<strong>最近一小时图</strong>放在一起。需要时固定展开，专注时收在边缘。</td><td>查看原到期时间、账号授权、已记录结果及对应通知。通知送达与卡片兑换分别呈现。</td></tr>
 </table>
 
-<p align="center"><sub>当前0.5.1原生组件，使用合成数据；确认用卡结果仅为演示，不是真实兑换。</sub></p>
+<p align="center"><sub>保留的0.5.1原生组件，使用合成数据；确认用卡结果仅为演示，不是真实兑换。</sub></p>
 
 - **一个自适应 Widget。** 气泡拖到左右边缘收成细竖条，向内拖回气泡；也可选择信息卡片，通过标题拖动。固定详情后，点击外部或切换焦点仍保持展开；取消固定恢复预览行为，Esc 可收起获得焦点的详情。
 - **不易误触的刘海。** 点击展开，点击外部或按 Esc 收起；仅悬停不会弹出详情。
@@ -69,20 +75,20 @@
 
 | 平台 | 发布范围 |
 | --- | --- |
-| **macOS** | 原生总览与菜单、共享下一步、卡片记录、自适应 Widget、一小时图、可拖卡片、点击刘海及账户历史。[0.5.1 验收](docs/versions/0.5.1/QA.zh-CN.md) · [65 项功能保留审计](docs/versions/0.5.1/RELEASE_AUDIT.zh-CN.md)。 |
+| **macOS** | 原生总览与菜单、共享下一步、卡片记录、自适应 Widget、一小时图、可拖卡片、点击刘海及账户历史。[0.5.2 验收](docs/versions/0.5.2/QA.zh-CN.md) · [65 项功能保留审计](docs/versions/0.5.2/RELEASE_AUDIT.zh-CN.md)。 |
 | **Windows x64** | 独立便携预览，保留原界面。Mac 提醒节点、检查记录和新数据状态不宣称已移植到 Windows。[Windows 指南](docs/WINDOWS.zh-CN.md) · [验收](docs/WINDOWS_QA.zh-CN.md)。 |
 
 ReadyCheck **不会自动停止或恢复 Codex 任务**。重置时间到达后，仍需新读数确认恢复；关闭期间未观测到的恢复不会补发。真实卡片兑换、另一真实账号、多显示器 / Spaces、专注 / 睡眠、VoiceOver 和 Windows 实机不宣称已全面验收，实际覆盖范围请以版本验收文档为准。
 
 ## 隐私与账户访问
 
-刷新读取已授权用量数据，**不发送模型生成请求**。额度刷新只读；可选用卡是单独授权的变更操作。可跟随本机 Codex 账号或独立 OAuth 登录，Mac OAuth 凭据存于系统钥匙串。历史按账号隔离，无法归属的旧历史单独保全。分享日志或截图前请移除凭据和账号信息。
+刷新读取已授权用量数据，**不发送模型生成请求**。额度刷新只读；可选用卡是单独授权的变更操作。统一使用 ReadyCheck OAuth 登录，Mac 凭据存于系统钥匙串。后台同账号 Token 和用卡能力仍通过 Codex 接口提供。历史按账号隔离，无法归属的旧历史单独保全。分享日志或截图前请移除凭据和账号信息。
 
 ReadyCheck 是独立项目，与 OpenAI 无隶属或背书关系。Codex、ChatGPT 及其标识归 OpenAI 所有。
 
 ## 文档与开发
 
-[0.5.1 产品计划](docs/versions/0.5.1/PLAN.zh-CN.md) · [黑盒验收](docs/versions/0.5.1/QA.zh-CN.md)。
+[0.5.2 产品计划](docs/versions/0.5.2/PLAN.zh-CN.md) · [黑盒验收](docs/versions/0.5.2/QA.zh-CN.md)。
 
 [设计与功能保留详情](docs/versions/0.5.1/DESIGN_IMPLEMENTATION.zh-CN.md)。
 

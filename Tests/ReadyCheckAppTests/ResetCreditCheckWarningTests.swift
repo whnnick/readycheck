@@ -64,6 +64,19 @@ final class ResetCreditCheckWarningTests: XCTestCase {
         XCTAssertEqual(rows.count, 4, "Cleanup must not delete diagnostic history")
     }
 
+    func testSuccessfulCardCheckWithdrawsCredentialWarningWithoutDeletingHistory() {
+        let client = CheckWarningNotifications()
+        let service = QuotaNotificationService(client: client, verificationDelays: [])
+        var old = check(reason: .credentialsUnavailable); old.warningSubmitted = true
+        let recovered = ResetCreditCheckRecord(id: "new", accountKey: "A", reason: .checked,
+            firstAt: now.addingTimeInterval(60), lastAt: now.addingTimeInterval(60), count: 1, warningSubmitted: false)
+        service.clearRecoveredResetCreditCheckWarnings([old])
+        XCTAssertTrue(client.removedDelivered.isEmpty)
+        service.clearRecoveredResetCreditCheckWarnings([recovered, old])
+        XCTAssertEqual(client.removedDelivered, ["readycheck.reset-check.credentialsUnavailable"])
+        XCTAssertTrue(old.recovered(in: [recovered, old]))
+    }
+
     private func check(reason: ResetCreditCheckRecord.Reason = .serviceUnavailable, count: Int = 1, elapsed: TimeInterval = 0) -> ResetCreditCheckRecord {
         ResetCreditCheckRecord(id: reason.rawValue, accountKey: "A", reason: reason,
             firstAt: now, lastAt: now.addingTimeInterval(elapsed), count: count, warningSubmitted: false)

@@ -698,6 +698,8 @@ public actor QuotaReminderStore {
         ).map { Date(timeIntervalSince1970: TimeInterval($0)) }
     }
 
+    public func savedDetailsAccount() -> String? { load().detailsAccount }
+
     public func updateDetailsAccount(_ account: String?) {
         var state = load()
         guard state.detailsAccount != account else { return }

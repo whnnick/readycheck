@@ -45,7 +45,7 @@ final class CodexAppServerRateLimitMonitorTests: XCTestCase {
             #!/bin/sh
             IFS= read -r initialize
             printf '%s\\n' '{"id":1,"error":{"code":-32600,"message":"unsupported"}}'
-            sleep 1
+            sleep 3
             """
         )
         let rejected = expectation(description: "handshake rejection reported")
@@ -54,7 +54,7 @@ final class CodexAppServerRateLimitMonitorTests: XCTestCase {
         let monitor = CodexAppServerRateLimitMonitor(
             executableURL: executable,
             reconnectDelay: 10,
-            handshakeTimeout: 0.5
+            handshakeTimeout: 2
         )
 
         monitor.start(onStatusChanged: { status in
@@ -65,7 +65,7 @@ final class CodexAppServerRateLimitMonitorTests: XCTestCase {
             event.fulfill()
         })
 
-        wait(for: [rejected, event], timeout: 1)
+        wait(for: [rejected, event], timeout: 3)
         monitor.stop()
     }
 

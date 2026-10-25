@@ -7,7 +7,6 @@ struct SettingsView: View {
 
     @State private var now = Date()
     @State private var isReminderHistoryPresented = false
-    @State private var areOtherConnectionsExpanded = false
 
     private let refreshIntervalOptions: [TimeInterval] = [60, 180, 300]
     private static let resetCreditRulesID = "reset-credit-rules"
@@ -670,7 +669,7 @@ struct SettingsView: View {
                     .font(.headline)
             }
 
-            connectionSourceControls
+            Text(model.localization.text("oauth.singleConnectionHelp")).font(.footnote).foregroundStyle(.secondary)
 
             HStack(spacing: 8) {
                 if model.codexOAuthStatus != .connected {
@@ -694,7 +693,7 @@ struct SettingsView: View {
 
                 Spacer(minLength: 8)
 
-                if model.codexConnectionMode == .standaloneOAuth && shouldShowConnectButton {
+                if shouldShowConnectButton {
                     Button(connectButtonTitle) {
                         if oauthCredentialReadNeedsRetry {
                             Task { await model.retryCredentialRead() }
@@ -711,7 +710,7 @@ struct SettingsView: View {
                     }
                 }
 
-                if model.codexConnectionMode == .standaloneOAuth && model.codexOAuthStatus == .connected {
+                if model.codexOAuthStatus == .connected {
                     Button(model.localization.text("action.disconnect")) {
                         Task {
                             await model.disconnectCodexOAuth()
@@ -726,14 +725,7 @@ struct SettingsView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
-            if model.codexConnectionMode == .localCodex {
-                Text(localCodexMonitorStatusText)
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(model.codexEventMonitorStatus == .connected ? .green : .secondary)
-                    .textSelection(.enabled)
-            }
-
-            if model.codexConnectionMode == .standaloneOAuth && model.codexOAuthStatus != .connected {
+            if model.codexOAuthStatus != .connected {
                 VStack(alignment: .leading, spacing: 5) {
                     Label(model.localization.text("oauth.step.openBrowser"), systemImage: "1.circle")
                     Label(model.localization.text("oauth.step.waitForCallback"), systemImage: "2.circle")
@@ -777,53 +769,6 @@ struct SettingsView: View {
         }
     }
 
-    private var connectionSourceControls: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Label(model.localization.text("codex.connectionMode.local"), systemImage: "desktopcomputer")
-                    .font(.subheadline.weight(.semibold))
-                Spacer(minLength: 8)
-                if model.codexConnectionMode == .localCodex {
-                    Label(model.localization.text("codex.connectionMode.current"), systemImage: "checkmark.circle.fill")
-                        .font(.caption).foregroundStyle(.secondary)
-                } else {
-                    Button(model.localization.text("codex.connectionMode.useLocal")) {
-                        Task { await model.setCodexConnectionMode(.localCodex) }
-                    }
-                    .buttonStyle(.bordered).controlSize(.small)
-                }
-            }
-            Text(model.localization.text("codex.connectionMode.localHelp"))
-                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            DisclosureGroup(model.localization.text("codex.connectionMode.otherWays"), isExpanded: $areOtherConnectionsExpanded) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text(model.localization.text("codex.connectionMode.oauth")).font(.subheadline.weight(.medium))
-                        Spacer(minLength: 8)
-                        if model.codexConnectionMode == .standaloneOAuth {
-                            Text(model.localization.text("codex.connectionMode.current")).font(.caption).foregroundStyle(.secondary)
-                        } else {
-                            Button(model.localization.text("codex.connectionMode.useOAuth")) {
-                                Task { await model.setCodexConnectionMode(.standaloneOAuth) }
-                            }
-                            .buttonStyle(.bordered).controlSize(.small)
-                        }
-                    }
-                    Text(model.localization.text("codex.connectionMode.oauthHelp"))
-                    Text(model.localization.text("codex.connectionMode.dependencies"))
-                }
-                .font(.footnote).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
-            }
-            .font(.subheadline)
-            if model.codexConnectionMode == .standaloneOAuth {
-                Divider()
-                Text(String(format: model.localization.text("codex.connectionMode.currentSource"), model.localization.text("codex.connectionMode.oauth")))
-                    .font(.subheadline.weight(.medium))
-            }
-        }
-    }
-
     @ViewBuilder
     private func quotaRecoveryActions(for snapshot: ProviderQuotaSnapshot) -> some View {
         switch snapshot.recoveryAction {
@@ -838,47 +783,17 @@ struct SettingsView: View {
 
         case .reconnect:
             Button {
-                if model.codexConnectionMode == .localCodex {
-                    Task { await model.retryLocalCodexConnection() }
-                } else if let url = model.beginCodexOAuthConnection(replacingExistingAuthorization: true) {
-                    NSWorkspace.shared.open(url)
-                }
+                if let url = model.beginCodexOAuthConnection(replacingExistingAuthorization: true) { NSWorkspace.shared.open(url) }
             } label: {
-                Label(
-                    model.localization.text(
-                        model.codexConnectionMode == .localCodex
-                            ? "action.retryLocalCodex"
-                            : "action.reconnect"
-                    ),
-                    systemImage: model.codexConnectionMode == .localCodex
-                        ? "arrow.clockwise"
-                        : "person.badge.key.fill"
-                )
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
+                Label(model.localization.text("action.reconnect"), systemImage: "person.badge.key.fill")
+            }.buttonStyle(.borderedProminent).controlSize(.small)
 
         case .connect:
             Button {
-                if model.codexConnectionMode == .localCodex {
-                    Task { await model.retryLocalCodexConnection() }
-                } else if let url = model.beginCodexOAuthConnection() {
-                    NSWorkspace.shared.open(url)
-                }
+                if let url = model.beginCodexOAuthConnection() { NSWorkspace.shared.open(url) }
             } label: {
-                Label(
-                    model.localization.text(
-                        model.codexConnectionMode == .localCodex
-                            ? "action.retryLocalCodex"
-                            : "action.connectCodex"
-                    ),
-                    systemImage: model.codexConnectionMode == .localCodex
-                        ? "arrow.clockwise"
-                        : "key.horizontal"
-                )
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
+                Label(model.localization.text("oauth.signIn"), systemImage: "key.horizontal")
+            }.buttonStyle(.borderedProminent).controlSize(.small)
 
         case .checkForUpdates:
             HStack(spacing: 8) {
@@ -968,17 +883,10 @@ struct SettingsView: View {
         }
         return model.codexOAuthStatus == .failed
             ? model.localization.text("action.retryAuthorization")
-            : model.localization.text("action.connect")
+            : model.localization.text("oauth.signIn")
     }
 
     private var accountDetailText: String {
-        if model.codexConnectionMode == .localCodex {
-            return model.localization.text(
-                model.codexOAuthStatus == .connected
-                    ? "codex.local.connectedDetail"
-                    : "codex.local.detail"
-            )
-        }
         if model.codexOAuthStatus == .connected {
             return model.localization.text("provider.codexOAuth.connectedDetail")
         }
@@ -986,30 +894,9 @@ struct SettingsView: View {
         return model.localization.text("provider.codexOAuth.detail")
     }
 
-    private var localCodexMonitorStatusText: String {
-        switch model.codexEventMonitorStatus {
-        case .stopped:
-            return model.localization.text("codex.monitor.stopped")
-        case .connecting:
-            return model.localization.text("codex.monitor.connecting")
-        case .connected:
-            return model.localization.text("codex.monitor.connected")
-        case let .retrying(failure, attempt):
-            return String(
-                format: model.localization.text("codex.monitor.retrying"),
-                failure.rawValue,
-                attempt
-            )
-        }
-    }
-
     private var quotaEmptyMessage: String {
         if model.codexOAuthStatus == .connected {
             return model.localization.text("empty.quota.connectedMessage")
-        }
-
-        if model.codexConnectionMode == .localCodex {
-            return model.localization.text("empty.quota.localMessage")
         }
 
         return model.localization.text("empty.quota.codexMessage")

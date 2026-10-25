@@ -1,0 +1,61 @@
+{
+  "version": "0.5.2-dev.1",
+  "date": "2026-10-25",
+  "publication": "not published; stable downloads remain 0.5.1",
+  "fullSwiftTests": {
+    "count": 422,
+    "failures": 0,
+    "seconds": 187.534
+  },
+  "regressions": [
+    "fresh local quota recovers connection without a new login",
+    "cached quota cannot recover connection",
+    "late connection failure cannot overwrite newer success",
+    "local connection failure is not mislabeled as Keychain failure",
+    "successful same-account card check withdraws only recovered credential warnings and keeps history",
+    "existing automatic-use consent resumes without a new opt-in",
+    "exact cache account and token account match; configured home; missing/malformed/oversized cache; replacement; no writes",
+    "saved future and past subscription dates carry original login-record time",
+    "existing valid matching separate credential retains priority",
+    "unreadable, missing, malformed or expired separate credential cannot block available local quota"
+  ],
+  "nativeSyntheticUI": {
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "accountCardWidthPoints": 500,
+    "localFutureAndPastRecordsInspected": true,
+    "aboutHighlightsInspected": true
+  },
+  "installedRuntime": {
+    "strictSignatureVerified": true,
+    "bundleVersionVerified": true,
+    "installedBinaryMatchesStaging": true,
+    "realQuotaRead": true,
+    "localPastSubscriptionRecordWithProvenanceVisible": true,
+    "connectionSourceUnchanged": true,
+    "connectionShowsConnected": true,
+    "autoUseSwitchStillOn": true,
+    "recoveryAndExpiryRemindersStillOn": true,
+    "allFourReminderMilestonesStillSelected": true,
+    "preferencesUnchanged": true,
+    "preferenceCount": 17,
+    "consentUnchanged": true,
+    "attemptCount": 0,
+    "latestCheckReason": "checked",
+    "backgroundCheckAfterInstall": true,
+    "localAuthCacheUnchanged": true,
+    "previousInstallBackedUp": true
+  },
+  "testHarnessNote": "One initial full run returned fewer than two fixture candidates and the test indexed the missing entry. Isolated rerun passed. The fixture now allows three seconds and guards its count; production timeouts unchanged. Final full run passed.",
+  "limits": [
+    "saved local date is not current billing confirmation",
+    "no Keychain-backed local metadata reader added",
+    "real network outage and second-account/device scenarios not rerun",
+    "no real card redeemed",
+    "Windows code/UI unchanged; metadata synchronized",
+    "no public push or release performed"
+  ],
+  "privacy": "No private account identifiers, quota values, credential contents, screenshot or local paths are included."
+}

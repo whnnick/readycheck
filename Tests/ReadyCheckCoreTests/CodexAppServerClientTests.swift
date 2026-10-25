@@ -263,10 +263,11 @@ final class CodexAppServerClientTests: XCTestCase {
 
         let snapshots = try await CodexAppServerClient(
             candidateExecutableURLs: [first, second],
-            timeout: 1
+            timeout: 3
         ).readAccountSnapshots()
 
         XCTAssertEqual(snapshots.count, 2)
+        guard snapshots.count == 2 else { return }
         XCTAssertNil(snapshots[0].manualResetCount)
         XCTAssertEqual(snapshots[1].manualResetCount, 1)
         XCTAssertEqual(

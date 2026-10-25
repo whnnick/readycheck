@@ -9,7 +9,6 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
     private let quotaClient: CodexQuotaHTTPClient
     private let usageParser: CodexUsageParser
     private let appServerClient: (any CodexAppServerReading)?
-    private let preferOAuthAPI: Bool
     private let quotaEndpoint: URL?
     private let resetCreditsEndpoint: URL?
     private let now: @Sendable () -> Date
@@ -23,7 +22,6 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         quotaClient: CodexQuotaHTTPClient = CodexQuotaHTTPClient(),
         usageParser: CodexUsageParser = CodexUsageParser(),
         appServerClient: (any CodexAppServerReading)? = nil,
-        preferOAuthAPI: Bool = false,
         now: @escaping @Sendable () -> Date = Date.init
     ) {
         self.tokenStore = CodexOAuthTokenStore(credentialStore: credentialStore)
@@ -31,7 +29,6 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
         self.quotaClient = quotaClient
         self.usageParser = usageParser
         self.appServerClient = appServerClient
-        self.preferOAuthAPI = preferOAuthAPI
         self.quotaEndpoint = quotaEndpoint
         self.resetCreditsEndpoint = resetCreditsEndpoint
         self.now = now
@@ -43,32 +40,13 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             reason: context.reason,
             now: date
         )
-        let appServerSnapshots = try? await appServerClient?.readAccountSnapshots()
         let storedToken: CodexOAuthToken?
         do {
             storedToken = try await tokenStore.loadToken()
         } catch is KeychainCredentialStoreError {
-            if !preferOAuthAPI,
-               let appServerSnapshot = preferredAppServerSnapshot(appServerSnapshots ?? [], token: nil),
-               let officialSnapshot = makeOfficialSnapshot(
-                   appServerSnapshot,
-                   token: nil,
-                   refreshedAt: date
-               ) {
-                return officialSnapshot
-            }
             return snapshot(date: date, error: "oauth.error.keychainUnavailable")
         }
         guard var token = storedToken else {
-            if !preferOAuthAPI,
-               let appServerSnapshot = preferredAppServerSnapshot(appServerSnapshots ?? [], token: nil),
-               let officialSnapshot = makeOfficialSnapshot(
-                   appServerSnapshot,
-                   token: nil,
-                   refreshedAt: date
-               ) {
-                return officialSnapshot
-            }
             return snapshot(date: date, error: "quota.error.oauthRequired")
         }
 
@@ -79,19 +57,6 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             } catch {
                 return snapshot(date: date, error: "quota.error.tokenRefreshFailed")
             }
-        }
-
-        if !preferOAuthAPI,
-           let appServerSnapshot = preferredAppServerSnapshot(
-               appServerSnapshots ?? [],
-               token: token
-           ),
-           let officialSnapshot = makeOfficialSnapshot(
-               appServerSnapshot,
-               token: token,
-               refreshedAt: date
-           ) {
-            return officialSnapshot
         }
 
         guard let quotaEndpoint else {
@@ -121,7 +86,20 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
                 accessToken: token.accessToken,
                 accountID: accountID
             )
-            let windows = try usageParser.parse(payload, refreshedAt: date)
+            var windows = try usageParser.parse(payload, refreshedAt: date)
+            let appServerSnapshots = try? await appServerClient?.readAccountSnapshots()
+            for supplemental in appServerSnapshots ?? [] where supplemental.accountID == accountID {
+                for limit in supplemental.rateLimits where limit.limitID != "codex" {
+                    for (window, suffix, label) in [(limit.primary, "primary", "quota.window.codex.primary"),
+                                                     (limit.secondary, "secondary", "quota.window.codex.secondary")] {
+                        if let extra = makeOfficialWindow(window, id: "\(limit.limitID)-\(suffix)",
+                            fallbackLabelKey: label, limitName: limit.limitName, limitID: limit.limitID,
+                            limitStateCode: limit.reachedStateCode), !windows.contains(where: { $0.id == extra.id }) {
+                            windows.append(extra)
+                        }
+                    }
+                }
+            }
             let usageDetails = await mergedManualResetDetails(
                 usagePayload: payload,
                 accessToken: token.accessToken,
@@ -185,116 +163,6 @@ public struct CodexOAuthQuotaProvider: QuotaProvider {
             return false
         }
         return readyCheckEmail == appServerEmail
-    }
-
-    private func preferredAppServerSnapshot(
-        _ snapshots: [CodexAppServerAccountSnapshot],
-        token: CodexOAuthToken?
-    ) -> CodexAppServerAccountSnapshot? {
-        let matching: [CodexAppServerAccountSnapshot]
-        if let token {
-            let exact = snapshots.filter { accountsMatch(token: token, snapshot: $0) }
-            matching = exact.isEmpty ? Array(snapshots.prefix(1)) : exact
-        } else {
-            guard let first = snapshots.first else { return nil }
-            matching = snapshots.filter { candidate in
-                if let accountID = first.accountID, !accountID.isEmpty {
-                    return candidate.accountID == accountID
-                }
-                if let email = first.email?.lowercased(), !email.isEmpty {
-                    return candidate.email?.lowercased() == email
-                }
-                return candidate == first
-            }
-        }
-        guard var merged = matching.first else { return nil }
-
-        for candidate in matching.dropFirst() {
-            let shouldPreserveExplicitZero = merged.manualResetCount == 0
-            let resolvedCount = merged.manualResetCount ?? candidate.manualResetCount
-            let resolvedResetCredits: [CodexAppServerResetCredit]
-            if shouldPreserveExplicitZero || !merged.resetCredits.isEmpty {
-                resolvedResetCredits = merged.resetCredits
-            } else {
-                resolvedResetCredits = candidate.resetCredits
-            }
-
-            merged = CodexAppServerAccountSnapshot(
-                accountID: merged.accountID ?? candidate.accountID,
-                email: merged.email,
-                planName: merged.planName ?? candidate.planName,
-                rateLimits: merged.rateLimits.isEmpty ? candidate.rateLimits : merged.rateLimits,
-                manualResetCount: resolvedCount,
-                resetCredits: resolvedResetCredits,
-                resetCreditDetailsAvailable: merged.resetCreditDetailsAvailable
-                    || candidate.resetCreditDetailsAvailable,
-                tokenUsage: merged.tokenUsage ?? candidate.tokenUsage,
-                ordinaryUsageAllowed: merged.ordinaryUsageAllowed ?? candidate.ordinaryUsageAllowed
-            )
-        }
-        return merged
-    }
-
-    private func makeOfficialSnapshot(
-        _ appServerSnapshot: CodexAppServerAccountSnapshot,
-        token: CodexOAuthToken?,
-        refreshedAt: Date
-    ) -> ProviderQuotaSnapshot? {
-        let matchingToken = token.flatMap { accountsMatch(token: $0, snapshot: appServerSnapshot) ? $0 : nil }
-        let windows = appServerSnapshot.rateLimits.flatMap { snapshot in
-            [
-                makeOfficialWindow(
-                    snapshot.primary,
-                    id: "\(snapshot.limitID)-primary",
-                    fallbackLabelKey: "quota.window.codex.primary",
-                    limitName: snapshot.limitName,
-                    limitID: snapshot.limitID,
-                    limitStateCode: snapshot.reachedStateCode
-                ),
-                makeOfficialWindow(
-                    snapshot.secondary,
-                    id: "\(snapshot.limitID)-secondary",
-                    fallbackLabelKey: "quota.window.codex.secondary",
-                    limitName: snapshot.limitName,
-                    limitID: snapshot.limitID,
-                    limitStateCode: snapshot.reachedStateCode
-                )
-            ].compactMap { $0 }
-        }
-        guard !windows.isEmpty else { return nil }
-
-        let defaultLimit = appServerSnapshot.rateLimits.first {
-            $0.limitID == "codex"
-        } ?? appServerSnapshot.rateLimits.first
-        let resetExpirations = appServerSnapshot.resetCredits.compactMap { credit -> Date? in
-            guard credit.status == nil || credit.status == "available" else { return nil }
-            return credit.expiresAt
-        }.sorted()
-
-        return ProviderQuotaSnapshot(
-            providerId: id,
-            displayName: displayName,
-            status: .available,
-            source: .appServer,
-            refreshedAt: refreshedAt,
-            staleAfter: refreshedAt.addingTimeInterval(300),
-            windows: windows,
-            errors: [],
-            details: ProviderQuotaDetails(
-                planName: defaultLimit?.planName
-                    ?? appServerSnapshot.planName
-                    ?? matchingToken.flatMap { CodexJWTClaims.planName(from: $0.idToken) },
-                subscriptionRenewalAt: matchingToken.flatMap { CodexJWTClaims.subscriptionRenewalAt(from: $0.idToken) },
-                manualResetCount: appServerSnapshot.manualResetCount,
-                manualResetExpirations: resetExpirations,
-                creditBalance: defaultLimit?.hasCredits == false ? nil : defaultLimit?.creditBalance,
-                creditsUnlimited: defaultLimit?.creditsUnlimited,
-                accountTokenUsage: appServerSnapshot.tokenUsage,
-                manualResetDetailsReadAt: appServerSnapshot.resetCreditDetailsAvailable ? refreshedAt : nil
-            ),
-            ordinaryUsageAllowed: appServerSnapshot.ordinaryUsageAllowed,
-            accountID: appServerSnapshot.accountID
-        )
     }
 
     private func makeOfficialWindow(

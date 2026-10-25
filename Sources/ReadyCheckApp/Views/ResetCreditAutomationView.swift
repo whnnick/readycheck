@@ -8,6 +8,7 @@ struct ResetCreditAutomationView: View {
     @State private var confirmationEmail = ""
     var authorizationIsUnknown: Bool {
         model.resetCreditStatus.status == .storageFailed || model.codexOAuthStatus == .credentialStorageFailed
+            || (model.resetCreditStatus.enabled && !model.canEnableResetCredits)
     }
 
     var body: some View {

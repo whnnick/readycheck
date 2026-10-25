@@ -1,0 +1,43 @@
+{
+  "version": "0.5.2",
+  "validation": {
+    "publicSwiftTests": 415,
+    "publicSwiftFailures": 0,
+    "execution": "one complete all-target public-source run",
+    "windowsChecks": true,
+    "windowsSmoke": true,
+    "windowsUISmoke": true,
+    "windowsASARVersion": "0.5.2",
+    "zipIntegrityAndPrivacy": true,
+    "dmgIntegrityAndVersion": true,
+    "strictSignature": true,
+    "signing": "ReadyCheck Preview Signing; self-signed; not notarized",
+    "distInvariant": "only current macOS DMG and Windows ZIP",
+    "publicSourcePrivacy": true,
+    "visibleHistoryForbiddenPathScan": true
+  },
+  "artifacts": {
+    "ReadyCheck-0.5.2-macos.dmg": "d018038f48217503846cef9d903561779a6ff760c7556a23bb3063cde41ed561",
+    "ReadyCheck-0.5.2-windows-x64-portable.zip": "2f6017f5d9ad9c80641d8791875f8d8c0a7a39475cee434e998ba6faa71d21bc"
+  },
+  "runtime": {
+    "finalDMGInstalled": true,
+    "installedExecutableMatchesDMG": true,
+    "macOSKeychainConfirmationCompleted": true,
+    "sameOAuthAccount": true,
+    "benefitsAndTokenVerified": true,
+    "ownedPreferences": 17,
+    "preferencesUnchanged": true,
+    "originalAutoCardConsentUnchanged": true,
+    "reminderSettingsUnchanged": true,
+    "historyPresent": true,
+    "codexAuthFileUnchanged": true,
+    "testRedemptions": 0
+  },
+  "remote": "pending publication and actual download checks",
+  "limits": [
+    "Windows existing interface; no new Windows hardware test",
+    "No live redemption, second live account or multi-display acceptance claimed",
+    "No new Keychain storage fix; an update may require confirmation"
+  ]
+}

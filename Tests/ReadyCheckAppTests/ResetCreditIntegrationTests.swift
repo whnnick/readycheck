@@ -8,7 +8,46 @@ import UserNotifications
 
 @MainActor
 final class ResetCreditIntegrationTests: XCTestCase {
-    func testUnreadableConsentDoesNotPresentAConfirmedOffSwitch() throws {
+    func testFreshRefreshResumesExistingConsentAndClearsOnlyRecoveredCredentialWarning() async throws {
+        _ = NSApplication.shared
+        let defaults = UserDefaults.standard, key = "ReadyCheck.codexConnectionMode.v1"
+        let saved = defaults.object(forKey: key)
+        defaults.set("localCodex", forKey: key)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer {
+            if let saved { defaults.set(saved, forKey: key) } else { defaults.removeObject(forKey: key) }
+            try? FileManager.default.removeItem(at: directory)
+        }
+        let ledger = ResetCreditAutomation(fileURL: directory.appendingPathComponent("automation.json"))
+        let client = IntegrationReadRecoveryClient()
+        await client.recover()
+        let notifications = ResetSilentNotifications()
+        let model = ReadyCheckAppModel(credentialStore: OAuthTestCredentials(), codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP()),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            codexAppServerClient: IntegrationAccountReader(),
+            rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
+            quotaNotificationService: QuotaNotificationService(client: notifications, verificationDelays: []),
+            resetCreditAutomation: ledger, resetCreditClient: client)
+        await model.reloadCodexOAuthConnectionStatus()
+        await model.setResetCreditAutomationEnabled(true, confirmedAccount: "fixture-account")
+        model.codexOAuthStatus = .credentialStorageFailed
+        await model.checkResetCreditAutomation()
+        XCTAssertEqual(model.resetCreditChecks.first?.reason, .credentialsUnavailable)
+        XCTAssertEqual(model.resetCreditStatus.status, .unavailable)
+        let identifier = try XCTUnwrap(notifications.requests.first?.identifier)
+        await model.refresh(reason: .automatic)
+        XCTAssertEqual(model.codexOAuthStatus, .connected)
+        await model.checkResetCreditAutomation()
+        XCTAssertEqual(model.resetCreditChecks.first?.reason, .checked)
+        XCTAssertTrue(model.resetCreditStatus.enabled)
+        XCTAssertEqual(model.resetCreditChecks.count, 2)
+        XCTAssertTrue(notifications.removedDelivered.contains(identifier))
+        let consumes = await client.consumes
+        XCTAssertEqual(consumes, 0)
+    }
+
+    func testUnreadableConsentDoesNotPresentAConfirmedOffSwitch() async throws {
         _ = NSApplication.shared
         let savedLanguage = UserDefaults.standard.object(forKey: "ReadyCheck.language.v1")
         defer {
@@ -17,13 +56,14 @@ final class ResetCreditIntegrationTests: XCTestCase {
         }
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+        let model = ReadyCheckAppModel(credentialStore: OAuthTestCredentials(), codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP()),
             quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             codexAppServerClient: IntegrationAccountReader(),
             rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
             quotaNotificationService: QuotaNotificationService(client: ResetSilentNotifications(), verificationDelays: []),
             resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("automation.json")))
+        await model.reloadCodexOAuthConnectionStatus()
         model.codexOAuthStatus = .connected
         model.resetCreditStatus = ResetCreditAutomationStatus(enabled: false, status: .storageFailed, updatedAt: nil)
         XCTAssertTrue(ResetCreditAutomationView(model: model).authorizationIsUnknown)
@@ -49,7 +89,7 @@ final class ResetCreditIntegrationTests: XCTestCase {
                 window.contentView = host
                 host.frame = CGRect(origin: .zero, size: size)
                 host.layoutSubtreeIfNeeded()
-                RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+                try await Task.sleep(for: .milliseconds(150))
                 XCTAssertLessThanOrEqual(host.fittingSize.height, size.height)
                 if let directory = ProcessInfo.processInfo.environment["READYCHECK_UI_EVIDENCE_DIR"] {
                     try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
@@ -68,7 +108,7 @@ final class ResetCreditIntegrationTests: XCTestCase {
         defer { if let original { UserDefaults.standard.set(original, forKey: key) } else { UserDefaults.standard.removeObject(forKey: key) } }
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+        let model = ReadyCheckAppModel(credentialStore: OAuthTestCredentials(), codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP()),
             quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             codexAppServerClient: IntegrationAccountReader(),
@@ -119,7 +159,7 @@ final class ResetCreditIntegrationTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: directory) }
         let ledger = ResetCreditAutomation(fileURL: directory.appendingPathComponent("automation.json"))
         let notifications = ResetSilentNotifications()
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+        let model = ReadyCheckAppModel(credentialStore: OAuthTestCredentials(), codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP()),
             quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             codexAppServerClient: IntegrationAccountReader(),
@@ -160,7 +200,7 @@ final class ResetCreditIntegrationTests: XCTestCase {
         _ = await reminders.setAutomaticRecoveryEnabled(true)
         let client = IntegrationResetClient()
         let notifications = ResetSilentNotifications()
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+        let model = ReadyCheckAppModel(credentialStore: OAuthTestCredentials(), codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP()),
             quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")), quotaReminderStore: reminders,
             codexAppServerClient: IntegrationAccountReader(), rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
             quotaNotificationService: QuotaNotificationService(client: notifications, verificationDelays: [.zero]),
@@ -244,7 +284,7 @@ final class ResetCreditIntegrationTests: XCTestCase {
         }
         let notifications = ResetSilentNotifications()
         let client = IntegrationReadRecoveryClient()
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+        let model = ReadyCheckAppModel(credentialStore: OAuthTestCredentials(), codexQuotaClient: CodexQuotaHTTPClient(loader: OAuthTestHTTP()),
             quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             codexAppServerClient: IntegrationAccountReader(), rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),

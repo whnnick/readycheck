@@ -2,77 +2,49 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class CodexOAuthQuotaProviderTests: XCTestCase {
-    func testLocalSubscriptionMetadataRequiresTheSameAccount() async throws {
-        let payload = try JSONSerialization.data(withJSONObject: ["https://api.openai.com/auth": [
-            "chatgpt_plan_type": "pro", "chatgpt_subscription_active_until": 9_000
-        ]])
-        let encoded = payload.base64EncodedString().replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
-        let account = CodexAppServerAccountSnapshot(accountID: "local-account", email: "local@example.com",
-            planName: nil, rateLimits: [.init(limitID: "codex", limitName: nil,
-                primary: .init(usedPercent: 20, durationMinutes: 300, resetsAt: nil), secondary: nil,
-                creditBalance: nil, hasCredits: false, creditsUnlimited: false, planName: nil)],
-            resetCredits: [], tokenUsage: nil, ordinaryUsageAllowed: true)
-        for sameAccount in [false, true] {
-            let store = InMemoryCredentialStore()
-            try await CodexOAuthTokenStore(credentialStore: store).saveToken(.init(accessToken: "synthetic-access",
-                refreshToken: "synthetic-refresh", idToken: "e30." + encoded + ".synthetic", tokenType: "Bearer",
-                expiresAt: Date(timeIntervalSince1970: 4_600), accountID: sameAccount ? "local-account" : "other-account", email: nil))
-            let provider = CodexOAuthQuotaProvider(credentialStore: store,
-                appServerClient: StubCodexAppServerReader(snapshot: account), now: { Date(timeIntervalSince1970: 1_000) })
-            let value = try await provider.fetchSnapshot(context: .init(reason: .manual))
-            XCTAssertEqual(value.accountID, "local-account")
-            XCTAssertEqual(value.windows.first?.remainingRatio, 0.8)
-            XCTAssertEqual(value.details?.subscriptionRenewalAt, sameAccount ? Date(timeIntervalSince1970: 9_000) : nil)
-            XCTAssertEqual(value.details?.planName, sameAccount ? "pro" : nil)
+    func testLocalSignInCannotReplaceMissingOrUnreadableOAuth() async throws {
+        for credentials: any CredentialStore in [InMemoryCredentialStore(), FailingCredentialStore()] {
+            let provider = CodexOAuthQuotaProvider(credentialStore: credentials,
+                appServerClient: StubCodexAppServerReader(snapshot: oauthOnlySupplement(account: "account-123")),
+                now: { Date(timeIntervalSince1970: 1_000) })
+            let result = try await provider.fetchSnapshot(context: .init(reason: .manual))
+            XCTAssertNotEqual(result.status, .available)
+            XCTAssertTrue(result.windows.isEmpty)
         }
     }
 
-    func testOfficialLocalSnapshotWorksWhenKeychainReadFails() async throws {
-        let appServer = StubCodexAppServerReader(
-            snapshot: CodexAppServerAccountSnapshot(
-                accountID: "account-local",
-                email: "local@example.com",
-                planName: "plus",
-                rateLimits: [
-                    CodexAppServerRateLimitSnapshot(
-                        limitID: "codex",
-                        limitName: "Codex",
-                        primary: CodexAppServerRateLimitWindow(
-                            usedPercent: 25,
-                            durationMinutes: 300,
-                            resetsAt: Date(timeIntervalSince1970: 4_600)
-                        ),
-                        secondary: nil,
-                        creditBalance: nil,
-                        hasCredits: false,
-                        creditsUnlimited: false,
-                        planName: "plus"
-                    )
-                ],
-                resetCredits: [],
-                tokenUsage: nil,
-                ordinaryUsageAllowed: false
-            )
-        )
-        let provider = CodexOAuthQuotaProvider(
-            credentialStore: FailingCredentialStore(),
-            appServerClient: appServer,
-            now: { Date(timeIntervalSince1970: 1_000) }
-        )
+    func testOAuthOwnsQuotaAndLocalInterfaceOnlySupplementsMatchingAccount() async throws {
+        for sameAccount in [false, true] {
+            let credentials = InMemoryCredentialStore()
+            try await CodexOAuthTokenStore(credentialStore: credentials).saveToken(.init(accessToken: "synthetic",
+                refreshToken: "synthetic", idToken: nil, tokenType: "Bearer", expiresAt: Date(timeIntervalSince1970: 4_600),
+                accountID: "account-123", email: nil))
+            let loader = QuotaRecordingHTTPDataLoader(data: Data(#"{"rate_limit":{"primary_window":{"used_percent":20,"limit_window_seconds":18000}}}"#.utf8), statusCode: 200)
+            let provider = CodexOAuthQuotaProvider(credentialStore: credentials, resetCreditsEndpoint: nil,
+                quotaClient: CodexQuotaHTTPClient(loader: loader),
+                appServerClient: StubCodexAppServerReader(snapshot: oauthOnlySupplement(account: sameAccount ? "account-123" : "other-account")),
+                now: { Date(timeIntervalSince1970: 1_000) })
+            let result = try await provider.fetchSnapshot(context: .init(reason: .manual))
+            XCTAssertEqual(result.source, .oauthAPI)
+            XCTAssertEqual(result.windows.first?.remainingRatio, 0.8, "Local primary data must not replace OAuth quota")
+            XCTAssertEqual(result.windows.count, sameAccount ? 2 : 1)
+            XCTAssertEqual(result.details?.accountTokenUsage?.summary.lifetimeTokens, sameAccount ? 100 : nil)
+            if sameAccount { XCTAssertEqual(result.windows.last?.displayLabel, "Spark") }
+        }
+    }
 
-        let snapshot = try await provider.fetchSnapshot(
-            context: ProviderRefreshContext(reason: .automatic)
-        )
-
-        XCTAssertEqual(snapshot.status, .available)
-        XCTAssertEqual(snapshot.source, .appServer)
-        XCTAssertEqual(snapshot.ordinaryUsageAllowed, false)
-        XCTAssertEqual(snapshot.windows.first?.remainingRatio, 0.75)
-        XCTAssertEqual(snapshot.windows.first?.durationMinutes, 300)
-        XCTAssertNil(NotchQuotaSelection.sevenDay.resolve(in: snapshot.windows))
-        XCTAssertEqual(snapshot.accountID, "account-local")
-        XCTAssertTrue(snapshot.errors.isEmpty)
+    func testOAuthRejectionCannotFallBackToLocalSignIn() async throws {
+        let credentials = InMemoryCredentialStore()
+        try await CodexOAuthTokenStore(credentialStore: credentials).saveToken(.init(accessToken: "synthetic",
+            refreshToken: "synthetic", idToken: nil, tokenType: "Bearer", expiresAt: Date(timeIntervalSince1970: 4_600),
+            accountID: "account-123", email: nil))
+        let provider = CodexOAuthQuotaProvider(credentialStore: credentials,
+            quotaClient: CodexQuotaHTTPClient(loader: QuotaRecordingHTTPDataLoader(data: Data(), statusCode: 401)),
+            appServerClient: StubCodexAppServerReader(snapshot: oauthOnlySupplement(account: "account-123")),
+            now: { Date(timeIntervalSince1970: 1_000) })
+        let result = try await provider.fetchSnapshot(context: .init(reason: .manual))
+        XCTAssertEqual(result.errors, ["quota.error.authorizationRejected"])
+        XCTAssertTrue(result.windows.isEmpty)
     }
 
     func testSupplementalRefreshGateThrottlesAutomaticRefreshButAllowsManualRefresh() async {
@@ -90,268 +62,6 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
         XCTAssertTrue(dueAutomatic)
         XCTAssertTrue(manual)
         XCTAssertTrue(serverEvent)
-    }
-
-    func testNamedAdditionalBucketRemainsDistinguishableAtKnownDuration() async throws {
-        let appServer = StubCodexAppServerReader(
-            snapshot: CodexAppServerAccountSnapshot(
-                accountID: "account-local",
-                email: "local@example.com",
-                planName: "plus",
-                rateLimits: [
-                    CodexAppServerRateLimitSnapshot(
-                        limitID: "codex",
-                        limitName: nil,
-                        primary: CodexAppServerRateLimitWindow(usedPercent: 25, durationMinutes: 300, resetsAt: nil),
-                        secondary: nil,
-                        creditBalance: nil,
-                        hasCredits: false,
-                        creditsUnlimited: false,
-                        planName: "plus"
-                    ),
-                    CodexAppServerRateLimitSnapshot(
-                        limitID: "codex_other",
-                        limitName: "Additional allowance",
-                        primary: CodexAppServerRateLimitWindow(usedPercent: 40, durationMinutes: 300, resetsAt: nil),
-                        secondary: nil,
-                        creditBalance: nil,
-                        hasCredits: false,
-                        creditsUnlimited: false,
-                        planName: "plus"
-                    )
-                ],
-                resetCredits: [],
-                tokenUsage: nil
-            )
-        )
-        let provider = CodexOAuthQuotaProvider(
-            credentialStore: FailingCredentialStore(),
-            appServerClient: appServer,
-            now: { Date(timeIntervalSince1970: 1_000) }
-        )
-
-        let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: .automatic))
-        XCTAssertEqual(snapshot.windows.map(\.id), ["codex-primary", "codex_other-primary"])
-        XCTAssertEqual(snapshot.windows.map(\.displayLabel), [nil, "Additional allowance"])
-    }
-
-    func testProviderPrefersMatchingOfficialAppServerSnapshot() async throws {
-        let credentialStore = InMemoryCredentialStore()
-        try await CodexOAuthTokenStore(credentialStore: credentialStore).saveToken(
-            CodexOAuthToken(
-                accessToken: "access",
-                refreshToken: "refresh",
-                idToken: nil,
-                tokenType: "Bearer",
-                expiresAt: Date(timeIntervalSince1970: 4_600),
-                accountID: nil,
-                email: "user@example.com"
-            )
-        )
-        let appServer = StubCodexAppServerReader(
-            snapshot: CodexAppServerAccountSnapshot(
-                email: "user@example.com",
-                planName: "plus",
-                rateLimits: [
-                    CodexAppServerRateLimitSnapshot(
-                        limitID: "codex",
-                        limitName: "Codex shared allowance",
-                        primary: CodexAppServerRateLimitWindow(
-                            usedPercent: 25,
-                            durationMinutes: 300,
-                            resetsAt: Date(timeIntervalSince1970: 4_600)
-                        ),
-                        secondary: CodexAppServerRateLimitWindow(
-                            usedPercent: 40,
-                            durationMinutes: 10_080,
-                            resetsAt: Date(timeIntervalSince1970: 605_800)
-                        ),
-                        creditBalance: "12.5",
-                        hasCredits: true,
-                        creditsUnlimited: false,
-                        planName: "plus",
-                        reachedStateCode: "workspace_member_usage_limit_reached"
-                    )
-                ],
-                manualResetCount: 1,
-                resetCredits: [
-                    CodexAppServerResetCredit(
-                        status: "available",
-                        expiresAt: Date(timeIntervalSince1970: 700_000)
-                    )
-                ],
-                tokenUsage: AccountTokenUsage(
-                    summary: AccountTokenUsageSummary(lifetimeTokens: 123_456),
-                    dailyBuckets: [
-                        AccountTokenUsageDailyBucket(startDate: "2026-07-29", tokens: 9_000)
-                    ]
-                )
-            )
-        )
-        let provider = CodexOAuthQuotaProvider(
-            credentialStore: credentialStore,
-            quotaEndpoint: nil,
-            appServerClient: appServer,
-            now: { Date(timeIntervalSince1970: 1_000) }
-        )
-
-        let snapshot = try await provider.fetchSnapshot(context: ProviderRefreshContext(reason: .manual))
-
-        XCTAssertEqual(snapshot.status, .available)
-        XCTAssertEqual(snapshot.windows.map(\.labelKey), [
-            "quota.window.codex.5h",
-            "quota.window.codex.7d"
-        ])
-        XCTAssertEqual(snapshot.source, .appServer)
-        XCTAssertEqual(snapshot.windows.map(\.remainingRatio), [0.75, 0.6])
-        XCTAssertEqual(snapshot.windows.map(\.displayLabel), [nil, nil])
-        XCTAssertEqual(snapshot.windows.map(\.limitStateCode), [
-            "workspace_member_usage_limit_reached",
-            "workspace_member_usage_limit_reached"
-        ])
-        XCTAssertEqual(snapshot.details?.creditBalance, "12.5")
-        XCTAssertEqual(snapshot.details?.manualResetCount, 1)
-        XCTAssertEqual(snapshot.details?.manualResetExpirations, [
-            Date(timeIntervalSince1970: 700_000)
-        ])
-        XCTAssertEqual(snapshot.details?.accountTokenUsage?.summary.lifetimeTokens, 123_456)
-    }
-
-    func testProviderUsesServerLabelForUnknownNamedLimitWindow() async throws {
-        let credentialStore = InMemoryCredentialStore()
-        try await CodexOAuthTokenStore(credentialStore: credentialStore).saveToken(
-            CodexOAuthToken(
-                accessToken: "access",
-                refreshToken: "refresh",
-                idToken: nil,
-                tokenType: "Bearer",
-                expiresAt: Date(timeIntervalSince1970: 4_600),
-                accountID: nil,
-                email: "user@example.com"
-            )
-        )
-        let appServer = StubCodexAppServerReader(
-            snapshot: CodexAppServerAccountSnapshot(
-                email: "user@example.com",
-                planName: "business",
-                rateLimits: [
-                    CodexAppServerRateLimitSnapshot(
-                        limitID: "codex_other",
-                        limitName: "Workspace allowance",
-                        primary: CodexAppServerRateLimitWindow(
-                            usedPercent: 15,
-                            durationMinutes: 1_440,
-                            resetsAt: nil
-                        ),
-                        secondary: nil,
-                        creditBalance: nil,
-                        hasCredits: nil,
-                        creditsUnlimited: nil,
-                        planName: "business",
-                        reachedStateCode: nil
-                    )
-                ],
-                resetCredits: [],
-                tokenUsage: nil
-            )
-        )
-        let provider = CodexOAuthQuotaProvider(
-            credentialStore: credentialStore,
-            quotaEndpoint: nil,
-            appServerClient: appServer,
-            now: { Date(timeIntervalSince1970: 1_000) }
-        )
-
-        let snapshot = try await provider.fetchSnapshot(
-            context: ProviderRefreshContext(reason: .manual)
-        )
-
-        XCTAssertEqual(snapshot.windows.first?.displayLabel, "Workspace allowance")
-        XCTAssertEqual(snapshot.windows.first?.labelKey, "quota.window.codex.primary")
-    }
-
-    func testProviderFillsMissingResetDetailsFromAnotherMatchingAppServer() async throws {
-        let credentialStore = InMemoryCredentialStore()
-        try await CodexOAuthTokenStore(credentialStore: credentialStore).saveToken(
-            CodexOAuthToken(
-                accessToken: "access",
-                refreshToken: "refresh",
-                idToken: nil,
-                tokenType: "Bearer",
-                expiresAt: Date(timeIntervalSince1970: 4_600),
-                accountID: nil,
-                email: "user@example.com"
-            )
-        )
-        let primary = CodexAppServerAccountSnapshot(
-            email: "user@example.com",
-            planName: "plus",
-            rateLimits: [
-                CodexAppServerRateLimitSnapshot(
-                    limitID: "codex",
-                    limitName: nil,
-                    primary: CodexAppServerRateLimitWindow(
-                        usedPercent: 25,
-                        durationMinutes: 10_080,
-                        resetsAt: Date(timeIntervalSince1970: 605_800)
-                    ),
-                    secondary: nil,
-                    creditBalance: "12.5",
-                    hasCredits: true,
-                    creditsUnlimited: false,
-                    planName: "plus"
-                )
-            ],
-            manualResetCount: nil,
-            resetCredits: [],
-            tokenUsage: nil
-        )
-        let supplemental = CodexAppServerAccountSnapshot(
-            email: "user@example.com",
-            planName: "plus",
-            rateLimits: [],
-            manualResetCount: 1,
-            resetCredits: [
-                CodexAppServerResetCredit(
-                    status: "available",
-                    expiresAt: Date(timeIntervalSince1970: 700_000)
-                )
-            ],
-            tokenUsage: nil
-        )
-        let otherAccount = CodexAppServerAccountSnapshot(
-            email: "other@example.com",
-            planName: "plus",
-            rateLimits: [],
-            manualResetCount: 2,
-            resetCredits: [
-                CodexAppServerResetCredit(
-                    status: "available",
-                    expiresAt: Date(timeIntervalSince1970: 800_000)
-                )
-            ],
-            tokenUsage: nil
-        )
-        let provider = CodexOAuthQuotaProvider(
-            credentialStore: credentialStore,
-            quotaEndpoint: nil,
-            appServerClient: StubCodexAppServerReader(
-                snapshots: [primary, otherAccount, supplemental]
-            ),
-            now: { Date(timeIntervalSince1970: 1_000) }
-        )
-
-        let snapshot = try await provider.fetchSnapshot(
-            context: ProviderRefreshContext(reason: .manual)
-        )
-
-        XCTAssertEqual(snapshot.source, .appServer)
-        XCTAssertEqual(snapshot.windows.first?.remainingRatio, 0.75)
-        XCTAssertEqual(snapshot.details?.manualResetCount, 1)
-        XCTAssertEqual(
-            snapshot.details?.manualResetExpirations,
-            [Date(timeIntervalSince1970: 700_000)]
-        )
     }
 
     func testProviderReturnsAuthorizationRequiredWithoutStoredToken() async throws {
@@ -509,7 +219,6 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
                 localSnapshot(accountID: "other-account", tokens: 999),
                 localSnapshot(accountID: "separate-account", tokens: 123)
             ]),
-            preferOAuthAPI: true,
             now: { Date(timeIntervalSince1970: 1_000) }
         )
 
@@ -525,7 +234,6 @@ final class CodexOAuthQuotaProviderTests: XCTestCase {
             resetCreditsEndpoint: nil,
             quotaClient: CodexQuotaHTTPClient(loader: loader),
             appServerClient: StubCodexAppServerReader(snapshot: localSnapshot(accountID: "other-account", tokens: 999)),
-            preferOAuthAPI: true,
             now: { Date(timeIntervalSince1970: 1_000) }
         )
         let unmatchedSnapshot = try await unmatchedProvider.fetchSnapshot(context: ProviderRefreshContext(reason: .manual))
@@ -775,4 +483,13 @@ private actor QueueingQuotaRecordingHTTPDataLoader: HTTPDataLoading {
     func recordedRequests() -> [URLRequest] {
         requests
     }
+}
+
+private func oauthOnlySupplement(account: String) -> CodexAppServerAccountSnapshot {
+    CodexAppServerAccountSnapshot(accountID: account, email: nil, planName: "plus", rateLimits: [
+        .init(limitID: "codex", limitName: nil, primary: .init(usedPercent: 90, durationMinutes: 300, resetsAt: nil),
+            secondary: nil, creditBalance: nil, hasCredits: nil, creditsUnlimited: nil, planName: nil),
+        .init(limitID: "codex_spark", limitName: "Spark", primary: .init(usedPercent: 50, durationMinutes: 300, resetsAt: nil),
+            secondary: nil, creditBalance: nil, hasCredits: nil, creditsUnlimited: nil, planName: nil)
+    ], resetCredits: [], tokenUsage: .init(summary: .init(lifetimeTokens: 100), dailyBuckets: []))
 }

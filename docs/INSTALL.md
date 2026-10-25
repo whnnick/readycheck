@@ -11,11 +11,11 @@
 2. Open the disk image and drag `ReadyCheck.app` into Applications.
 3. Open ReadyCheck from Applications.
 
-The preview release uses a stable self-signed ReadyCheck identity to preserve Keychain access across preview updates, but it is not Developer ID signed or notarized. If macOS blocks the first launch, open **System Settings > Privacy & Security**, then select **Open Anyway** for ReadyCheck. This is a distribution limitation of the preview build, not an OAuth requirement.
+The preview release uses a stable self-signed ReadyCheck identity, but it is not Developer ID signed or notarized. macOS may ask you to approve access to existing Keychain credentials again after an update. If macOS blocks the first launch, open **System Settings > Privacy & Security**, then select **Open Anyway** for ReadyCheck. This is a distribution limitation of the preview build, not an OAuth requirement.
 
 ## Connect Your Account
 
-Choose **Connect** in the app and finish the browser OAuth flow. The local callback normally returns through `localhost:1455`; when it does not, paste the final callback URL into the fallback field in ReadyCheck.
+Choose **Sign in to ReadyCheck** in **Settings → Connection** and finish the browser OAuth flow. The local callback normally returns through `localhost:1455`; when it does not, paste the final callback URL into the fallback field in ReadyCheck.
 
 Use **Disconnect** to remove ReadyCheck's stored OAuth credentials from Keychain.
 

@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.2 - 2026-10-25
+
+- One ReadyCheck OAuth sign-in; preserve account-owned settings, history, consent and background Token/card capabilities. Fix connection recovery and startup-check ordering. See0.5.2 release notes for scope and limits.
+
+## 0.5.2-dev.2 - 2026-10-25
+
+- Use one ReadyCheck OAuth sign-in. Remove the local-account selector, local quota-authentication fallback and the dev.1 subscription-file experiment. Local Codex cannot substitute for missing or rejected ReadyCheck authorization.
+- Retain matching-account Token statistics, additional quota windows, events and OAuth-authorized card use through the background Codex adapter. Preserve account-owned history, reminders and card consent; saved consent waits for sign-in confirmation and cannot transfer to another account.
+- Keep fresh-quota connection recovery and resolved-warning cleanup. Local macOS development build; Windows metadata synchronized. Not publicly released.
+
+## 0.5.2-dev.1 - 2026-10-25
+
+- Restore the matching connection from fresh quota after transient failures; reject cached recovery and late stale connection results. Resume card checks using existing consent, distinguish local read failures from credential failures, and withdraw credential warnings only after a successful card check.
+- Supplement local-mode subscription dates from the matching account's read-only login cache. Label the date as a local record with its original issue time; it is not a live billing confirmation. Missing, malformed or mismatched records do not block quota reading.
+- Keep separate sign-in, reminders, card records, account history and desktop surfaces. macOS fixes; Windows version metadata only. Local development build, not published.
+
 ## 0.5.1 - 2026-10-25
 
 - Clearer current-state Overview, trends before complete benefits, independent reminder/automatic-use groups and explicit Token time ranges. Existing features, preferences and authorization stay intact.

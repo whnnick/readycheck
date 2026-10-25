@@ -1,5 +1,7 @@
 # Version plans / 版本规划
 
+- [0.5.2 one ReadyCheck sign-in](versions/0.5.2/PLAN.md) / [统一 ReadyCheck 登录](versions/0.5.2/PLAN.zh-CN.md) · [Checks](versions/0.5.2/QA.md) / [验收](versions/0.5.2/QA.zh-CN.md) — local `0.5.2-dev.2` installed;415 grouped tests and real OAuth/card checks passed; not published / 已本地安装，415项分组测试及真实OAuth/用卡检查通过，未发布。
+
 [2026-10-25 native UI design review](versions/0.5.1/DESIGN_REVIEW.md) / [原生界面设计审查](versions/0.5.1/DESIGN_REVIEW.zh-CN.md) — [Local design implementation](versions/0.5.1/DESIGN_IMPLEMENTATION.md) / [本地设计实现](versions/0.5.1/DESIGN_IMPLEMENTATION.zh-CN.md)，功能保留 / existing capabilities retained.
 
 - [0.5.1 clearer workspace](versions/0.5.1/RELEASE_NOTES.md) / [一眼更清楚](versions/0.5.1/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.5.1/QA.md) / [验收](versions/0.5.1/QA.zh-CN.md) · [Retention](versions/0.5.1/RELEASE_AUDIT.md) / [功能保留](versions/0.5.1/RELEASE_AUDIT.zh-CN.md) — [Published v0.5.1](https://github.com/whnnick/readycheck/releases/tag/v0.5.1):411 public-source tests, both downloads and installed reading verified / 已发布：公开源码411项、两包下载和安装版读取核验通过。

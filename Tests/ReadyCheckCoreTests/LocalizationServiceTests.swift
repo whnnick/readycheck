@@ -255,9 +255,9 @@ final class LocalizationServiceTests: XCTestCase {
         XCTAssertEqual(service.text("source.mock"), "模拟")
         XCTAssertEqual(service.text("provider.mock"), "模拟数据")
         XCTAssertEqual(service.text("provider.localCodex"), "本地 Codex")
-        XCTAssertEqual(service.text("provider.codexOAuth"), "Codex OAuth")
-        XCTAssertEqual(service.text("quota.error.oauthRequired"), "请先在设置里连接 Codex，连接后显示额度。")
-        XCTAssertEqual(service.text("oauth.status.connected"), "已连接")
+        XCTAssertEqual(service.text("provider.codexOAuth"), "ReadyCheck 登录")
+        XCTAssertEqual(service.text("quota.error.oauthRequired"), "请先登录 ReadyCheck，再读取额度。")
+        XCTAssertEqual(service.text("oauth.status.connected"), "已登录")
         XCTAssertEqual(service.text("oauth.error.stateMismatch"), "回调和本次登录不匹配，请重新连接。")
         XCTAssertEqual(service.text("source.usageAPI"), "用量 API")
         XCTAssertEqual(service.text("source.costAPI"), "费用 API")
@@ -270,6 +270,6 @@ final class LocalizationServiceTests: XCTestCase {
         XCTAssertEqual(service.text("quota.creditsUnlimited"), "无限")
         XCTAssertEqual(service.text("quota.dataSource"), "来源")
         XCTAssertEqual(service.text("quota.validUntil"), "有效期")
-        XCTAssertEqual(service.text("empty.quota.codexMessage"), "请先在设置里连接 Codex OAuth，并粘贴回调 URL 完成授权。")
+        XCTAssertEqual(service.text("empty.quota.codexMessage"), "请先登录 ReadyCheck；浏览器授权完成后会自动返回并读取额度。")
     }
 }
