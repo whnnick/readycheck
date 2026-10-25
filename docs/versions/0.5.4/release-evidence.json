@@ -22,9 +22,25 @@
   },
   "runtime": {
     "finalDMGInstalled": true,
-    "keychainConfirmation": "pending",
-    "protectedLedger": "Read restored after system lock/unlock;17 preferences, original consent, reminders and account bytes unchanged; zero requests",
-    "liveDetailAcceptance": "pending"
+    "installedMatchesDMG": true,
+    "keychainApprovedByUser": true,
+    "protectedLedgerReadRestored": true,
+    "sameAccountOAuthRestored": true,
+    "realObservedCardDetailInspected": true,
+    "nativeSheetSizePoints": [
+      540,
+      400
+    ],
+    "trailingDividerAbsent": true,
+    "allThreeSectionsReadable": true,
+    "escapeDismissVerified": true,
+    "originalConsentOn": true,
+    "ownedPreferences": 17,
+    "preferencesConsentRemindersAccountUnchanged": true,
+    "historyPresent": true,
+    "codexAuthFileUnchanged": true,
+    "postInstallCardCheck": "checked",
+    "testRedemptions": 0
   },
   "remote": "not yet published",
   "limits": [
