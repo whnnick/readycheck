@@ -2,6 +2,10 @@
 
 [中文](QA.zh-CN.md) · [Requirements](PLAN.md) · [Retained baseline](../0.5.0/RELEASE_AUDIT.md)
 
+## Published verification
+
+v0.5.1 is published as the latest non-draft, non-prerelease release at public code commit13041d5. Both Mac DMG and Windows ZIP were actually re-downloaded; each SHA-256 matches its locally verified package and GitHub digest. [Release](https://github.com/whnnick/readycheck/releases/tag/v0.5.1). Installed reading and retained-state acceptance above use the final DMG, not an intermediate development build.
+
 ## 0.5.1 release candidate
 
 [Release notes](RELEASE_NOTES.md) · [65-feature delta audit](RELEASE_AUDIT.md).

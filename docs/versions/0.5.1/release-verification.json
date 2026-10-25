@@ -29,5 +29,12 @@
     "ReadyCheck-0.5.1-macos.dmg": "718e2eedf34bc56f8029bdcd5a7c8db21ade2fb9776984cd27f1d54fb9f82aa2",
     "ReadyCheck-0.5.1-windows-x64-portable.zip": "9979f7679d637be08f5c0f223d2f9b8236d01c2f5ec066990f38885482387d9e"
   },
-  "remote": "pending publication/download verification"
+  "remote": {
+    "release": "https://github.com/whnnick/readycheck/releases/tag/v0.5.1",
+    "latest": "v0.5.1",
+    "draft": false,
+    "prerelease": false,
+    "tagCommit": "13041d5",
+    "bothActualDownloadsMatchLocalAndGitHubSHA256": true
+  }
 }

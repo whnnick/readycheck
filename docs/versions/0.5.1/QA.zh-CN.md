@@ -2,6 +2,10 @@
 
 [English](QA.md) · [需求](PLAN.zh-CN.md) · [保留基线](../0.5.0/RELEASE_AUDIT.zh-CN.md)
 
+## 发布后核验
+
+v0.5.1已作为latest公开发布，非草稿、非prerelease，公开代码提交13041d5。Mac DMG与Windows ZIP均已实际重新下载，SHA-256分别与本地验收包和GitHub摘要一致。[发布页](https://github.com/whnnick/readycheck/releases/tag/v0.5.1)。上方安装读取与状态保留验收来自最终DMG，不是中间开发构建。
+
 ## 0.5.1 正式候选
 
 [发布说明](RELEASE_NOTES.zh-CN.md) · [65项增量审计](RELEASE_AUDIT.zh-CN.md)。
