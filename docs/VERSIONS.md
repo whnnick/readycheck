@@ -1,6 +1,6 @@
 # Version plans / 版本规划
 
-- [0.5.4 compact card details](versions/0.5.4/PLAN.md) / [重置卡详情收紧](versions/0.5.4/PLAN.zh-CN.md) · [Checks](versions/0.5.4/QA.md) / [验收](versions/0.5.4/QA.zh-CN.md) · [Release notes](versions/0.5.4/RELEASE_NOTES.md) / [更新重点](versions/0.5.4/RELEASE_NOTES.zh-CN.md) — release candidate / 发布候选。
+- [0.5.4 compact card details](versions/0.5.4/PLAN.md) / [重置卡详情收紧](versions/0.5.4/PLAN.zh-CN.md) · [Checks](versions/0.5.4/QA.md) / [验收](versions/0.5.4/QA.zh-CN.md) · [Release notes](versions/0.5.4/RELEASE_NOTES.md) / [更新重点](versions/0.5.4/RELEASE_NOTES.zh-CN.md) — [Published v0.5.4](https://github.com/whnnick/readycheck/releases/tag/v0.5.4) / 已发布，417项回归、双包下载及安装验收通过。
 
 - [0.5.3 notification history](versions/0.5.3/PLAN.md) / [独立通知记录](versions/0.5.3/PLAN.zh-CN.md) · [Checks](versions/0.5.3/QA.md) / [验收](versions/0.5.3/QA.zh-CN.md) — [Published v0.5.3](https://github.com/whnnick/readycheck/releases/tag/v0.5.3);417 final public tests, both downloads and installed live/account retention verified / 已发布：最终公开417项、双包下载、安装版真实读取及账号状态保留通过。
 

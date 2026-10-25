@@ -2,7 +2,7 @@
 
 [中文](RELEASE_AUDIT.zh-CN.md) · [Checks](QA.md) · [Previous audit](../0.5.3/RELEASE_AUDIT.md)
 
-All65 rows inherit their unchanged0.5.3 evidence/limits below. The approved change is removing a trailing separator and reducing card-sheet height; no information or action is removed. Related card/notice entry B06 is rechecked below. This is not65 new physical passes. Final release acceptance pending.
+All65 rows inherit their unchanged0.5.3 evidence/limits below. The approved change is removing a trailing separator and reducing card-sheet height; no information or action is removed. Related card/notice entry B06 is rechecked below. This is not65 new physical passes. Release, actual downloads and installed acceptance passed; see QA.
 
 | ID | Capability | Entry | Inherited evidence or changed disposition |
 | --- | --- | --- | --- |
