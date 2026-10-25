@@ -1,0 +1,39 @@
+{
+  "version": "0.5.3",
+  "validation": {
+    "publicSource": {
+      "tests": 417,
+      "failures": 0,
+      "seconds": 184.041,
+      "execution": "one complete final run"
+    },
+    "windowsChecks": true,
+    "windowsSmoke": true,
+    "windowsUISmoke": true,
+    "zipIntegrityAndASARVersion": true,
+    "dmgIntegrityAndMountedVersion": true,
+    "strictSignature": true,
+    "signing": "ReadyCheck Preview Signing; self-signed, not notarized",
+    "bundleAndBinaryPrivacy": true,
+    "distInvariant": "only current macOS DMG and Windows ZIP",
+    "publicSourcePrivacy": true,
+    "visibleHistoryTextBlobsChecked": 2006,
+    "testCorrection": "Navigation test now queries the currently displayed scroll view and covers notification-history re-entry; production code is unchanged",
+    "priorRun": "Two assertions inspected a disposed scroll view; strengthened current-view test passed, followed by all417 final checks. No application code change."
+  },
+  "artifacts": {
+    "ReadyCheck-0.5.3-macos.dmg": "963f213a21c935ab41b38b2013997ca1ae6d715331e09adfaa511bdb699a12b7",
+    "ReadyCheck-0.5.3-windows-x64-portable.zip": "709d502c869b02b3beee0ad5c59f2a5526809d0e8c3c80b1908389e09e8c38f4"
+  },
+  "runtime": {
+    "finalDMGInstalled": true,
+    "keychainConfirmation": "pending",
+    "originalSettingsConsentHistory": "pending final comparison"
+  },
+  "remote": "not yet published",
+  "limits": [
+    "Windows existing interface; no new Windows hardware test",
+    "No live card redemption, second-account or multi-display acceptance claimed",
+    "Inherited65-feature device limits retained; no65 new physical checks"
+  ]
+}

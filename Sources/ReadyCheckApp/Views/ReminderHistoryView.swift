@@ -1,52 +1,38 @@
 import ReadyCheckCore
 import SwiftUI
 
-struct ReminderHistorySummaryView: View {
+struct ReminderHistoryPageView: View {
     let records: [QuotaReminderHistoryRecord]
     let localization: LocalizationService
-    let showAll: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Label(localization.text("notification.history.title"), systemImage: "bell.badge")
-                    .font(.headline)
-
-                Text(localization.text("notification.history.local"))
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.primary.opacity(0.07), in: Capsule())
-
-                Spacer()
-
-                if records.count > 3 {
-                    Button(localization.text("notification.history.viewAll"), action: showAll)
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                }
-            }
-
+        VStack(alignment: .leading, spacing: 14) {
+            Label(localization.text("notification.history.local"), systemImage: "internaldrive")
+                .font(.caption.weight(.medium)).foregroundStyle(.secondary)
             Text(localization.text("notification.history.subtitle"))
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-
+                .font(.subheadline).fixedSize(horizontal: false, vertical: true)
             Text(localization.text("notification.history.disclaimer"))
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+                .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+            Divider()
+            ReminderHistoryRowsView(records: records, localization: localization)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
 
-            if records.isEmpty {
-                ReminderHistoryEmptyView(localization: localization)
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(records.prefix(3)).indices, id: \.self) { index in
-                        ReminderHistoryRow(record: records[index], localization: localization)
-                        if index < min(records.count, 3) - 1 {
-                            Divider().padding(.leading, 34)
-                        }
-                    }
+private struct ReminderHistoryRowsView: View {
+    let records: [QuotaReminderHistoryRecord]
+    let localization: LocalizationService
+
+    var body: some View {
+        if records.isEmpty {
+            ReminderHistoryEmptyView(localization: localization).padding(.vertical, 16)
+        } else {
+            LazyVStack(spacing: 0) {
+                ForEach(Array(records.enumerated()), id: \.element.id) { index, record in
+                    ReminderHistoryRow(record: record, localization: localization)
+                    if index < records.count - 1 { Divider().padding(.leading, 34) }
                 }
             }
         }
@@ -81,14 +67,7 @@ struct ReminderHistoryListView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(Array(records.enumerated()), id: \.element.id) { index, record in
-                            ReminderHistoryRow(record: record, localization: localization)
-                            if index < records.count - 1 {
-                                Divider().padding(.leading, 34)
-                            }
-                        }
-                    }
+                    ReminderHistoryRowsView(records: records, localization: localization)
                 }
             }
         }

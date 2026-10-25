@@ -1,0 +1,68 @@
+{
+  "version": "0.5.3-dev.2",
+  "scope": "Local macOS notification-history navigation; not a public release",
+  "validation": {
+    "initialFullRegression": {
+      "version": "0.5.3-dev.1",
+      "tests": 417,
+      "failures": 0
+    },
+    "afterScrollFix": {
+      "tests": 19,
+      "failures": 0,
+      "scope": "Main window, native menu, card integration and version metadata"
+    },
+    "nativeSyntheticRenders": {
+      "languages": [
+        "zh-CN",
+        "en-US"
+      ],
+      "appearances": [
+        "light",
+        "dark"
+      ],
+      "minimumWidthPoints": 740,
+      "scenarios": [
+        "empty",
+        "mixed delivery states"
+      ],
+      "visuallyInspected": true
+    },
+    "readOnlyReload": "All6 fixture records and normalized file/rule bytes retained across repeated reloads",
+    "strictPreviewSignature": true,
+    "installedMatchesPackage": true,
+    "relatedCardNoticeSheet": "Original sheet and shared rows retained; affected card-integration regression, no new live redemption"
+  },
+  "runtime": {
+    "installedAndRunning": true,
+    "sidebarOpensFullHistory": true,
+    "oldRecordsScrollVerified": true,
+    "noViewAllSheetForMainHistory": true,
+    "historyRefreshVerified": true,
+    "originalCommand1And3Verified": true,
+    "newCommand4Verified": true,
+    "reentryScrollTopVerified": true,
+    "duplicateOverviewShortcutRemoved": true,
+    "settingsHistorySummaryRemoved": true,
+    "allReminderControlsPresent": true,
+    "keychainApprovedByUser": true,
+    "sameAccountOAuthRestored": true,
+    "preferencesCount": 17,
+    "preferencesUnchanged": true,
+    "originalAutoUseConsentUnchanged": true,
+    "autoUseSwitchOn": true,
+    "reminderSettingsUnchanged": true,
+    "notificationRecordCountUnchanged": true,
+    "historyPresent": true,
+    "codexAuthFileUnchanged": true,
+    "testRedemptions": 0,
+    "postInstallOrdinaryCardCheck": "checked"
+  },
+  "limitations": [
+    "No new Windows interface or hardware acceptance",
+    "No new second-account or live card-redemption acceptance",
+    "Inherited baseline device limits remain; no claim of65 fresh physical checks",
+    "No Keychain-storage fix; rebuilt apps may require confirmation"
+  ],
+  "privacy": "No account identifiers, credentials, private paths, actual quota values or real screenshots included."
+}

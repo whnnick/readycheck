@@ -13,8 +13,81 @@ final class MainWindowTests: XCTestCase {
             lastAttemptAt: Date(), expiresAt: Date().addingTimeInterval(172800), leadHours: 48, resetIndex: 1, attemptCount: 1)
         record.submissionAccepted = true
         for language in [AppLanguage.zhCN, .enUS] {
-            try renderDesktop(ReminderHistorySummaryView(records: [record], localization: LocalizationService(language: language), showAll: {}).padding(16),
+            try renderDesktop(ReminderHistoryPageView(records: [record], localization: LocalizationService(language: language)).padding(16),
                 name: "expiry-submitted-\(language.rawValue)", size: CGSize(width: 520, height: 280))
+        }
+    }
+
+    func testNotificationPageRefreshKeepsCompleteHistoryAndReminderRules() async throws {
+        _ = NSApplication.shared
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("reminders.json")
+        var state = QuotaReminderState(notificationHistory: notificationRecords(), notificationHistoryMigrationCompleted: true)
+        state.lowQuotaThreshold = 20; state.automaticRecoveryEnabled = false
+        state.resetExpiryReminderEnabled = true; state.resetExpiryLeadHours = [24, 48]
+        try JSONEncoder().encode(state).write(to: url)
+        let store = QuotaReminderStore(fileURL: url)
+        let expected = await store.history()
+        let before = try Data(contentsOf: url)
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: store,
+            quotaNotificationService: QuotaNotificationService(client: DashboardNotificationClient(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json")))
+        model.mainWindowPage = .notifications
+        for _ in 0..<2 {
+            await model.reloadReminderHistory()
+            XCTAssertEqual(model.reminderHistoryRecords, expected)
+            XCTAssertEqual(model.reminderHistoryRecords.count, 6, "The page must retain records beyond the old three-row summary")
+            XCTAssertEqual(model.lowQuotaThreshold, 20)
+            XCTAssertFalse(model.automaticRecoveryEnabled)
+            XCTAssertTrue(model.resetExpiryReminderEnabled)
+            XCTAssertEqual(Set(model.resetExpiryLeadHours), [24, 48])
+        }
+        XCTAssertEqual(try Data(contentsOf: url), before, "Viewing and refreshing records must not rewrite normalized history or rules")
+        XCTAssertTrue(model.snapshots.isEmpty, "History refresh must not request quota data")
+        XCTAssertTrue(model.resetCreditChecks.isEmpty)
+    }
+
+    func testNotificationPageEmptyAndDeliveryStatesRenderInBothLanguagesAndAppearances() throws {
+        _ = NSApplication.shared
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let languageKey = "ReadyCheck.language.v1", saved = UserDefaults.standard.object(forKey: "ReadyCheck.language.v1")
+        defer {
+            if let saved { UserDefaults.standard.set(saved, forKey: languageKey) }
+            else { UserDefaults.standard.removeObject(forKey: languageKey) }
+        }
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            quotaNotificationService: QuotaNotificationService(client: DashboardNotificationClient(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json")))
+        model.mainWindowPage = .notifications
+        for language in [AppLanguage.zhCN, .enUS] {
+            model.language = language
+            for dark in [false, true] {
+                for populated in [false, true] {
+                    model.reminderHistoryRecords = populated ? notificationRecords() : []
+                    try render(model: model, name: "notifications-\(populated ? "records" : "empty")-\(language.rawValue)-\(dark ? "dark" : "light")", width: 740, dark: dark)
+                }
+            }
+        }
+    }
+
+    private func notificationRecords() -> [QuotaReminderHistoryRecord] {
+        let now = Date(timeIntervalSince1970: 1_792_929_600)
+        let kinds: [QuotaReminderHistoryKind] = [.quotaLow, .manualResetExpiring, .quotaRecovered, .creditsStarted, .resetCreditUsed, .manualResetExpiring]
+        let statuses: [QuotaReminderDeliveryStatus] = [.delivered, .failed, .automaticallyWithdrawn, .withdrawalPending, .legacyUnknown, .legacyUnknown]
+        return kinds.indices.map { index in
+            var record = QuotaReminderHistoryRecord(id: "synthetic-notice-\(index)", kind: kinds[index], status: statuses[index],
+                lastAttemptAt: now.addingTimeInterval(Double(-index * 3600)), expiresAt: kinds[index] == .manualResetExpiring ? now.addingTimeInterval(86400) : nil,
+                leadHours: kinds[index] == .manualResetExpiring ? 24 : nil, resetIndex: kinds[index] == .manualResetExpiring ? 1 : nil, attemptCount: index == 1 ? 2 : 1)
+            if index == 0 { record.remainingPercent = 10; record.quotaLabelKey = "quota.window.codex.5h" }
+            if index == 5 { record.submissionAccepted = true }
+            return record
         }
     }
 

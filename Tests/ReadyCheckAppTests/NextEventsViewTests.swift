@@ -56,7 +56,7 @@ final class NextEventsViewTests: XCTestCase {
         }
         for language in [AppLanguage.zhCN, .enUS] {
             model.language = language
-            for page in [MainWindowPage.overview, .settings] {
+            for page in [MainWindowPage.overview, .notifications, .settings] {
                 model.mainWindowPage = page; model.mainSettingsSection = .reminders
                 host.layoutSubtreeIfNeeded()
                 try await Task.sleep(for: .milliseconds(150))
@@ -65,10 +65,27 @@ final class NextEventsViewTests: XCTestCase {
                 scroll.reflectScrolledClipView(scroll.contentView)
                 model.openResetCreditRules()
                 try await Task.sleep(for: .milliseconds(300))
-                XCTAssertGreaterThan(scroll.contentView.bounds.minY, 50, "Card controls must be reached instead of the reminder-page header")
+                let destinationScroll = try XCTUnwrap(scrollViews(host).first)
+                XCTAssertGreaterThan(destinationScroll.contentView.bounds.minY, 50, "Current card controls must be reached instead of the reminder-page header")
                 XCTAssertNil(model.resetCreditRulesNavigationRequest, "Navigation request must be consumed after scrolling")
             }
         }
+        model.reminderHistoryRecords = (0..<40).map { index in
+            QuotaReminderHistoryRecord(id: "synthetic-scroll-\(index)", kind: .quotaRecovered,
+                status: .automaticallyWithdrawn, lastAttemptAt: Date().addingTimeInterval(Double(-index * 60)))
+        }
+        model.mainWindowPage = .notifications
+        try await Task.sleep(for: .milliseconds(150))
+        let historyScroll = try XCTUnwrap(scrollViews(host).first)
+        historyScroll.contentView.scroll(to: NSPoint(x: 0, y: 200))
+        historyScroll.reflectScrolledClipView(historyScroll.contentView)
+        XCTAssertGreaterThan(historyScroll.contentView.bounds.minY, 50)
+        model.mainWindowPage = .settings
+        try await Task.sleep(for: .milliseconds(150))
+        model.mainWindowPage = .notifications
+        try await Task.sleep(for: .milliseconds(150))
+        let returnedScroll = try XCTUnwrap(scrollViews(host).first)
+        XCTAssertEqual(returnedScroll.contentView.bounds.minY, 0, accuracy: 1, "Re-entering history must show its heading and refresh control")
     }
 
     func testNativeScenariosKeepSharedRoutingAndBilingualSurfaces() async throws {

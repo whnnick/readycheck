@@ -3,17 +3,16 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>额度看得见，下一步心里有数。</strong></p>
 <p align="center">为 Mac 打造的免费开源 Codex 额度监控工具。</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.2"><img src="https://img.shields.io/badge/release-v0.5.2-28c99b" alt="发布 0.5.2"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.2/ReadyCheck-0.5.2-macos.dmg"><strong>↓ 下载 Mac 版</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.2/ReadyCheck-0.5.2-windows-x64-portable.zip">Windows 便携版</a></p>
-<p align="center"><a href="docs/versions/0.5.2/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装指南</a> · <a href="docs/versions/0.5.2/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">全部版本</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.3"><img src="https://img.shields.io/badge/release-v0.5.3-28c99b" alt="发布 0.5.3"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.3/ReadyCheck-0.5.3-macos.dmg"><strong>↓ 下载 Mac 版</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.3/ReadyCheck-0.5.3-windows-x64-portable.zip">Windows 便携版</a></p>
+<p align="center"><a href="docs/versions/0.5.3/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装指南</a> · <a href="docs/versions/0.5.3/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">全部版本</a></p>
 
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-zh.png" alt="ReadyCheck：额度看得见，下一步心里有数。原生 macOS、菜单栏、Widget 与刘海。" width="960"></p>
 
 
-## 0.5.2 — 登录更简单，账号更清楚
+## 0.5.3 — 通知记录，一点就到
 
-只保留“登录ReadyCheck”，统一读取额度与权益；设置、历史和原授权保留，其他账号不会继承授权。连接恢复后继续检查用卡，无需重启。[更新重点](docs/versions/0.5.2/RELEASE_NOTES.zh-CN.md)。
-
+左侧直接查看完整通知投递历史；总览看状态，设置管规则，全部提醒开关与测试保留。用卡结果、原历史和授权均保留。[更新重点](docs/versions/0.5.3/RELEASE_NOTES.zh-CN.md)。
 
 ## 从这里开始
 
@@ -42,7 +41,7 @@
 
 **提醒自己选，记录能追查，控制权保留。**72／48／24／12小时到期节点与按账号自动用卡仍独立；确认用卡结果和通知状态分开，旧缺失记录不补造成功。授权响应未返回订阅日期时，提供账单入口；缺日期不等于掉线，也不会借用别的账号日期。
 
-[更新重点](docs/versions/0.5.2/RELEASE_NOTES.zh-CN.md) · [验收与边界](docs/versions/0.5.2/QA.zh-CN.md) · [65项功能保留](docs/versions/0.5.2/RELEASE_AUDIT.zh-CN.md)。
+[更新重点](docs/versions/0.5.3/RELEASE_NOTES.zh-CN.md) · [验收与边界](docs/versions/0.5.3/QA.zh-CN.md) · [65项功能保留](docs/versions/0.5.3/RELEASE_AUDIT.zh-CN.md)。
 
 ## 工作时轻巧，需要时展开
 
@@ -75,7 +74,7 @@
 
 | 平台 | 发布范围 |
 | --- | --- |
-| **macOS** | 原生总览与菜单、共享下一步、卡片记录、自适应 Widget、一小时图、可拖卡片、点击刘海及账户历史。[0.5.2 验收](docs/versions/0.5.2/QA.zh-CN.md) · [65 项功能保留审计](docs/versions/0.5.2/RELEASE_AUDIT.zh-CN.md)。 |
+| **macOS** | 原生总览与菜单、共享下一步、卡片记录、自适应 Widget、一小时图、可拖卡片、点击刘海及账户历史。[0.5.3 验收](docs/versions/0.5.3/QA.zh-CN.md) · [65 项功能保留审计](docs/versions/0.5.3/RELEASE_AUDIT.zh-CN.md)。 |
 | **Windows x64** | 独立便携预览，保留原界面。Mac 提醒节点、检查记录和新数据状态不宣称已移植到 Windows。[Windows 指南](docs/WINDOWS.zh-CN.md) · [验收](docs/WINDOWS_QA.zh-CN.md)。 |
 
 ReadyCheck **不会自动停止或恢复 Codex 任务**。重置时间到达后，仍需新读数确认恢复；关闭期间未观测到的恢复不会补发。真实卡片兑换、另一真实账号、多显示器 / Spaces、专注 / 睡眠、VoiceOver 和 Windows 实机不宣称已全面验收，实际覆盖范围请以版本验收文档为准。
@@ -88,7 +87,7 @@ ReadyCheck 是独立项目，与 OpenAI 无隶属或背书关系。Codex、ChatG
 
 ## 文档与开发
 
-[0.5.2 产品计划](docs/versions/0.5.2/PLAN.zh-CN.md) · [黑盒验收](docs/versions/0.5.2/QA.zh-CN.md)。
+[0.5.3 产品计划](docs/versions/0.5.3/PLAN.zh-CN.md) · [黑盒验收](docs/versions/0.5.3/QA.zh-CN.md)。
 
 [设计与功能保留详情](docs/versions/0.5.1/DESIGN_IMPLEMENTATION.zh-CN.md)。
 

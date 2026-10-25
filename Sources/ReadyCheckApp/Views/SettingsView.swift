@@ -6,7 +6,6 @@ struct SettingsView: View {
     @Bindable var model: ReadyCheckAppModel
 
     @State private var now = Date()
-    @State private var isReminderHistoryPresented = false
 
     private let refreshIntervalOptions: [TimeInterval] = [60, 180, 300]
     private static let resetCreditRulesID = "reset-credit-rules"
@@ -23,12 +22,17 @@ struct SettingsView: View {
                         switch model.mainWindowPage {
                         case .overview: overviewContent
                         case .usage: usageContent
+                        case .notifications:
+                            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                                ReminderHistoryPageView(records: model.reminderHistoryRecords, localization: model.localization)
+                            }
                         case .settings: settingsContent
                         }
                     }
                     .padding(20)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
+                .id(model.mainWindowPage)
                 .task(id: model.resetCreditRulesNavigationRequest) {
                     guard let request = model.resetCreditRulesNavigationRequest,
                           model.mainWindowPage == .settings, model.mainSettingsSection == .reminders else { return }
@@ -44,9 +48,6 @@ struct SettingsView: View {
         .sheet(item: $model.resetCreditDetailSelection) { selection in
             ResetCreditDetailView(model: model, selection: selection, now: now)
         }
-        .sheet(isPresented: $isReminderHistoryPresented) {
-            ReminderHistoryListView(records: model.reminderHistoryRecords, localization: model.localization)
-        }
     }
 
     private var pageHeader: some View {
@@ -60,15 +61,23 @@ struct SettingsView: View {
                     }
                 }
                 Spacer(minLength: 8)
-                DataStatusButton(model: model).controlSize(.small)
-                Button {
-                    Task { await model.reloadCodexOAuthConnectionStatus(); await model.refresh(reason: .manual) }
-                } label: { Image(systemName: "arrow.clockwise") }
-                .disabled(model.isRefreshing)
-                .help(model.localization.text("action.refresh"))
-                .accessibilityLabel(model.localization.text("action.refresh"))
+                if model.mainWindowPage == .notifications {
+                    Button {
+                        Task { await model.reloadReminderHistory() }
+                    } label: { Image(systemName: "arrow.clockwise") }
+                    .help(model.localization.text("notification.history.refresh"))
+                    .accessibilityLabel(model.localization.text("notification.history.refresh"))
+                } else {
+                    DataStatusButton(model: model).controlSize(.small)
+                    Button {
+                        Task { await model.reloadCodexOAuthConnectionStatus(); await model.refresh(reason: .manual) }
+                    } label: { Image(systemName: "arrow.clockwise") }
+                    .disabled(model.isRefreshing)
+                    .help(model.localization.text("action.refresh"))
+                    .accessibilityLabel(model.localization.text("action.refresh"))
+                }
             }
-            refreshStatusView
+            if model.mainWindowPage != .notifications { refreshStatusView }
         }
     }
 
@@ -100,18 +109,6 @@ struct SettingsView: View {
                 }
             }
             legacyHistoryNotice
-            Button {
-                model.mainWindowPage = .settings; model.mainSettingsSection = .reminders
-            } label: {
-                HStack {
-                    Label(model.localization.text("navigation.reminders"), systemImage: "bell")
-                    Spacer()
-                    Text(model.lowQuotaThreshold == 0 ? model.localization.text("lowQuota.off") : "\(model.lowQuotaThreshold)%")
-                    Image(systemName: "chevron.right").font(.caption)
-                }.padding(14)
-            }
-            .buttonStyle(.plain)
-            .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 14))
         }
     }
 
@@ -161,10 +158,6 @@ struct SettingsView: View {
                 .id(Self.resetCreditRulesID)
                 GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
                     notificationControls
-                }
-                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                    ReminderHistorySummaryView(records: model.reminderHistoryRecords,
-                        localization: model.localization, showAll: { isReminderHistoryPresented = true })
                 }
             case .display:
                 quotaWindowControls

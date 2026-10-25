@@ -176,7 +176,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         let viewMenu = NSMenu(title: localization.text("menu.view"))
         for (index, page) in MainWindowPage.allCases.enumerated() {
             let item = NSMenuItem(title: localization.text(page.titleKey),
-                action: #selector(showPage(_:)), keyEquivalent: String(index + 1))
+                action: #selector(showPage(_:)), keyEquivalent: page.shortcut)
             item.tag = index
             item.target = target
             viewMenu.addItem(item)

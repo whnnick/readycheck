@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.3 - 2026-10-25
+
+- Open the complete notification history directly from the sidebar. Keep all reminder rules, delivery states, card records and account consent; remove duplicate Overview/settings-history summaries. Preserve original shortcuts, add Command4 and reset cross-page scroll position. macOS update; Windows keeps its existing interface.
+
+## 0.5.3-dev.2 - 2026-10-25
+
+- Reset the content scroll area on page changes so Notification history opens at its heading after browsing old records. Retain the reset-card rule scroll destination. Local development build only.
+
+## 0.5.3-dev.1 - 2026-10-25
+
+- Add a dedicated sidebar notification-history page with the complete existing local delivery records. Keep card outcomes separate and all reminder rules in Settings; remove the duplicate Overview reminder shortcut and embedded settings-history summary. Preserve Command1/2/3, adding Command4 for history. Local macOS development build; Windows metadata only.
+
 ## 0.5.2 - 2026-10-25
 
 - One ReadyCheck OAuth sign-in; preserve account-owned settings, history, consent and background Token/card capabilities. Fix connection recovery and startup-check ordering. See0.5.2 release notes for scope and limits.

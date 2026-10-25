@@ -3,17 +3,16 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>See your quota. Know what comes next.</strong></p>
 <p align="center">A free, open-source Codex quota monitor, built for your Mac.</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.2"><img src="https://img.shields.io/badge/release-v0.5.2-28c99b" alt="Release 0.5.2"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.2/ReadyCheck-0.5.2-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.2/ReadyCheck-0.5.2-windows-x64-portable.zip">Windows portable</a></p>
-<p align="center"><a href="docs/versions/0.5.2/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.5.2/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.3"><img src="https://img.shields.io/badge/release-v0.5.3-28c99b" alt="Release 0.5.3"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.3/ReadyCheck-0.5.3-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.3/ReadyCheck-0.5.3-windows-x64-portable.zip">Windows portable</a></p>
+<p align="center"><a href="docs/versions/0.5.3/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.5.3/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
 
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-en.png" alt="ReadyCheck: See your quota. Know what comes next. Native macOS, menu bar, Widget and notch." width="960"></p>
 
 
-## 0.5.2 — One clear sign-in
+## 0.5.3 — Notification history, one click away
 
-One ReadyCheck login for quota and benefits. Settings, history and original card consent stay; another account cannot inherit consent. Fresh data restores connection and card checks without restarting. [Release highlights](docs/versions/0.5.2/RELEASE_NOTES.md).
-
+Open the complete delivery history directly from the sidebar. Overview stays focused on status; every reminder rule and notification test stays in Settings. Card outcomes, existing history and consent remain intact. [Release highlights](docs/versions/0.5.3/RELEASE_NOTES.md).
 
 ## Start here
 
@@ -42,7 +41,7 @@ One ReadyCheck login for quota and benefits. Settings, history and original card
 
 **Choose reminders. Inspect records. Keep control.**72/48/24/12-hour expiry nodes and account-specific automatic use remain independent. Confirmed card results and notification states remain separate; old missing records stay unconfirmed. If the authorized response omits a subscription date, ReadyCheck links to billing; a missing date does not mean signed out, and another account's date is never substituted.
 
-[What's new](docs/versions/0.5.2/RELEASE_NOTES.md) · [Checks and limits](docs/versions/0.5.2/QA.md) · [65-feature retention](docs/versions/0.5.2/RELEASE_AUDIT.md).
+[What's new](docs/versions/0.5.3/RELEASE_NOTES.md) · [Checks and limits](docs/versions/0.5.3/QA.md) · [65-feature retention](docs/versions/0.5.3/RELEASE_AUDIT.md).
 
 ## Small when working. Detailed when needed.
 
@@ -75,7 +74,7 @@ One ReadyCheck login for quota and benefits. Settings, history and original card
 
 | Platform | Release scope |
 | --- | --- |
-| **macOS** | Native Overview/menu, shared next events, card records, adaptive Widget, last-hour chart, movable card, click-only notch and account/history features. [0.5.2 checks](docs/versions/0.5.2/QA.md) · [65-feature retention audit](docs/versions/0.5.2/RELEASE_AUDIT.md). |
+| **macOS** | Native Overview/menu, shared next events, card records, adaptive Widget, last-hour chart, movable card, click-only notch and account/history features. [0.5.3 checks](docs/versions/0.5.3/QA.md) · [65-feature retention audit](docs/versions/0.5.3/RELEASE_AUDIT.md). |
 | **Windows x64** | Separate portable preview with its previous interface. Mac milestone controls, check records and new data-state explanations are not claimed for Windows. [Windows guide](docs/WINDOWS.md) · [Checks](docs/WINDOWS_QA.md). |
 
 ReadyCheck **does not automatically stop or resume Codex tasks**. Reset timestamps need fresh readings to confirm recovery; unobserved recovery while closed is not replayed. Real card redemption, another live account, multi-display/Spaces, Focus/sleep, VoiceOver and Windows hardware are not claimed comprehensively verified; consult the version checks for the actual coverage.
@@ -88,7 +87,7 @@ ReadyCheck is independent and is not affiliated with or endorsed by OpenAI. Code
 
 ## Documentation and development
 
-[0.5.2 product plan](docs/versions/0.5.2/PLAN.md) · [Black-box checks](docs/versions/0.5.2/QA.md).
+[0.5.3 product plan](docs/versions/0.5.3/PLAN.md) · [Black-box checks](docs/versions/0.5.3/QA.md).
 
 [Design and feature-retention details](docs/versions/0.5.1/DESIGN_IMPLEMENTATION.md).
 

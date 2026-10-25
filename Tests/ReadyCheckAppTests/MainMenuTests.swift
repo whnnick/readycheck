@@ -16,7 +16,8 @@ final class MainMenuTests: XCTestCase {
             XCTAssertEqual(view.title, localization.text("menu.view"))
             let navigation = view.items.filter { $0.action == NSSelectorFromString("showPage:") }
             XCTAssertEqual(navigation.map(\.title), MainWindowPage.allCases.map { localization.text($0.titleKey) })
-            XCTAssertEqual(navigation.map(\.keyEquivalent), ["1", "2", "3"])
+            XCTAssertEqual(navigation.map(\.keyEquivalent), ["1", "2", "4", "3"])
+            XCTAssertEqual(navigation.map(\.title), language == .zhCN ? ["总览", "Token 用量", "通知记录", "设置"] : ["Overview", "Token usage", "Notification history", "Settings"])
             XCTAssertTrue(navigation.allSatisfy { $0.keyEquivalentModifierMask == .command })
             let fullscreen = try XCTUnwrap(view.items.first { $0.action == NSSelectorFromString("toggleFullScreen:") })
             XCTAssertEqual(fullscreen.title, localization.text("menu.fullscreen"))

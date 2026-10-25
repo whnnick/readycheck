@@ -3,14 +3,23 @@ import ReadyCheckCore
 import SwiftUI
 
 enum MainWindowPage: String, CaseIterable, Identifiable {
-    case overview, usage, settings
+    case overview, usage, notifications, settings
     var id: String { rawValue }
     var titleKey: String { "navigation.\(rawValue)" }
     var symbol: String {
         switch self {
         case .overview: "square.grid.2x2"
         case .usage: "chart.xyaxis.line"
+        case .notifications: "bell.badge"
         case .settings: "gearshape"
+        }
+    }
+    var shortcut: String {
+        switch self {
+        case .overview: "1"
+        case .usage: "2"
+        case .notifications: "4"
+        case .settings: "3"
         }
     }
 }
