@@ -1,0 +1,51 @@
+{
+  "version": "0.5.5-dev.1",
+  "published": false,
+  "regression": {
+    "targeted": 24,
+    "full": 418,
+    "failures": 0
+  },
+  "timestampCoverage": {
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "notificationKinds": 7,
+    "source": "current submission attempt",
+    "existingNotificationsRewritten": false
+  },
+  "native": {
+    "signature": "strict verification passed",
+    "installed": true,
+    "testNotificationCenterVerified": true,
+    "timestampVisualVerified": true,
+    "oauthRead": "same-account OAuth restored; ordinary card check returned checked",
+    "historyDateTimeVerified": true,
+    "timestampVisualEvidence": "User-provided native Notification Center screenshot and explicit confirmation; full subtitle date/time and system relative time visible. Private screenshot not included.",
+    "systemRelativeTimeGuaranteed": false,
+    "relativeTimeInvestigation": {
+      "platform": "macOS 27.0.1",
+      "variants": [
+        "immediate nil trigger",
+        "one-second nonrepeating interval trigger"
+      ],
+      "deliveryDatesValid": true,
+      "userScreenshotShowsBothLabelsAfterOpeningCenter": true,
+      "existingExpiryLabelAlsoVisible": true,
+      "productionTriggerChanged": false,
+      "intermittentMissingLabelRootCauseConfirmed": false,
+      "diagnosticNotificationsRemaining": 0,
+      "diagnosticProcessExited": true,
+      "stateDigestsUnchanged": true,
+      "documentation": "SYSTEM_TIME.md"
+    }
+  },
+  "retention": {
+    "preferences": 17,
+    "consentOn": true,
+    "ownedDigestsUnchanged": true,
+    "historyPresent": true,
+    "testRedemptions": 0
+  }
+}

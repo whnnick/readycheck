@@ -104,7 +104,7 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
     func sendTestNotification(localization: LocalizationService) async -> Bool {
         guard await canDeliverNotifications() else { return false }
 
-        let content = UNMutableNotificationContent()
+        let content = notificationContent(localization: localization)
         content.title = localization.text("notification.test.title")
         content.body = localization.text("notification.test.body")
         content.sound = .default
@@ -161,7 +161,7 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
                 deliveredEvents.append(event)
                 continue
             }
-            let content = UNMutableNotificationContent()
+            let content = notificationContent(localization: localization)
             content.sound = .default
 
             switch event {
@@ -217,7 +217,7 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         let identifier = "readycheck.reset-used.\(notice.id)"
         var delivered = await deliveredNotificationIdentifiers().contains(identifier)
         if !delivered, await canDeliverNotifications() {
-            let content = UNMutableNotificationContent()
+            let content = notificationContent(localization: localization)
             content.title = localization.text("notification.resetUsed.title")
             content.body = String(format: localization.text("notification.resetUsed.body"),
                 Self.dateFormatter(language: localization.language).string(from: notice.expiresAt))
@@ -234,7 +234,7 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         let identifier = "readycheck.reset-check." + check.id
         if await deliveredNotificationIdentifiers().contains(identifier) { return true }
         guard await canDeliverNotifications() else { return false }
-        let content = UNMutableNotificationContent()
+        let content = notificationContent(localization: localization)
         content.title = localization.text("resetCheck.warningTitle")
         content.body = localization.text(check.reason == .serviceUnavailable ? "resetCheck.serviceWarning" : "resetCheck." + check.reason.rawValue)
         content.sound = .default
@@ -352,6 +352,13 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         case let .dismissQuotaRecovered(requestID):
             return "readycheck.recovered.\(requestID)"
         }
+    }
+
+    private func notificationContent(localization: LocalizationService) -> UNMutableNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.subtitle = String(format: localization.text("notification.sentAt"),
+            Self.dateFormatter(language: localization.language).string(from: Date()))
+        return content
     }
 
     private static func dateFormatter(language: AppLanguage) -> DateFormatter {

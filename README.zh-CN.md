@@ -3,16 +3,16 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>额度看得见，下一步心里有数。</strong></p>
 <p align="center">为 Mac 打造的免费开源 Codex 额度监控工具。</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.4"><img src="https://img.shields.io/badge/release-v0.5.4-28c99b" alt="发布 0.5.4"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.4/ReadyCheck-0.5.4-macos.dmg"><strong>↓ 下载 Mac 版</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.4/ReadyCheck-0.5.4-windows-x64-portable.zip">Windows 便携版</a></p>
-<p align="center"><a href="docs/versions/0.5.4/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装指南</a> · <a href="docs/versions/0.5.4/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">全部版本</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.6.0"><img src="https://img.shields.io/badge/release-v0.6.0-28c99b" alt="发布 0.6.0"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.6.0/ReadyCheck-0.6.0-macos.dmg"><strong>↓ 下载 Mac 版</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.6.0/ReadyCheck-0.6.0-windows-x64-portable.zip">Windows 便携版</a></p>
+<p align="center"><a href="docs/versions/0.6.0/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装指南</a> · <a href="docs/versions/0.6.0/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">全部版本</a></p>
 
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-zh.png" alt="ReadyCheck：额度看得见，下一步心里有数。原生 macOS、菜单栏、Widget 与刘海。" width="960"></p>
 
 
-## 0.5.4 — 重置卡详情更紧凑
+## 0.6.0 — 提醒与用卡记录更清楚
 
-移除重置卡详情底部多余分区，保留完整信息、结果、通知状态及关联详情，长内容仍可滚动。通知记录继续从侧栏直达。[更新重点](docs/versions/0.5.4/RELEASE_NOTES.zh-CN.md)。
+按类型筛选通知记录，查看只读用卡证据，并在异常时找到对应操作。新的系统通知包含完整发送时间；系统右上角时间仍可能不显示。[更新重点](docs/versions/0.6.0/RELEASE_NOTES.zh-CN.md)。
 
 ## 从这里开始
 
@@ -116,3 +116,5 @@ scripts/package_app.sh
 - **0.2.0：**[计划](docs/versions/0.2.0/PLAN.zh-CN.md) · [完整检查](docs/versions/0.2.0/UPGRADE_REVIEW.zh-CN.md) · [黑盒验收](docs/versions/0.2.0/QA.zh-CN.md)。
 
 </details>
+
+[0.6.0计划](docs/versions/0.6.0/PLAN.zh-CN.md) · [验收](docs/versions/0.6.0/QA.zh-CN.md)。

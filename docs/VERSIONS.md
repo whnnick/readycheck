@@ -1,5 +1,9 @@
 # Version plans / 版本规划
 
+- [0.6.0 plan](versions/0.6.0/PLAN.md) / [提醒与用卡计划](versions/0.6.0/PLAN.zh-CN.md) · [Checks](versions/0.6.0/QA.md) / [验收](versions/0.6.0/QA.zh-CN.md) · [Retention](versions/0.6.0/RELEASE_AUDIT.md) / [功能保留](versions/0.6.0/RELEASE_AUDIT.zh-CN.md) · [Release notes](versions/0.6.0/RELEASE_NOTES.md) / [更新说明](versions/0.6.0/RELEASE_NOTES.zh-CN.md) — dev.2 local acceptance; grouped Core310/App125 checks / dev.2 本地验收及分组回归通过。
+
+- [0.5.5 notification timestamps](versions/0.5.5/PLAN.md) / [通知时间](versions/0.5.5/PLAN.zh-CN.md) · [Checks](versions/0.5.5/QA.md) / [验收](versions/0.5.5/QA.zh-CN.md) · [System time investigation](versions/0.5.5/SYSTEM_TIME.md) / [系统时间调查](versions/0.5.5/SYSTEM_TIME.zh-CN.md) — local development / 本地开发。
+
 - [0.5.4 compact card details](versions/0.5.4/PLAN.md) / [重置卡详情收紧](versions/0.5.4/PLAN.zh-CN.md) · [Checks](versions/0.5.4/QA.md) / [验收](versions/0.5.4/QA.zh-CN.md) · [Release notes](versions/0.5.4/RELEASE_NOTES.md) / [更新重点](versions/0.5.4/RELEASE_NOTES.zh-CN.md) — [Published v0.5.4](https://github.com/whnnick/readycheck/releases/tag/v0.5.4) / 已发布，417项回归、双包下载及安装验收通过。
 
 - [0.5.3 notification history](versions/0.5.3/PLAN.md) / [独立通知记录](versions/0.5.3/PLAN.zh-CN.md) · [Checks](versions/0.5.3/QA.md) / [验收](versions/0.5.3/QA.zh-CN.md) — [Published v0.5.3](https://github.com/whnnick/readycheck/releases/tag/v0.5.3);417 final public tests, both downloads and installed live/account retention verified / 已发布：最终公开417项、双包下载、安装版真实读取及账号状态保留通过。

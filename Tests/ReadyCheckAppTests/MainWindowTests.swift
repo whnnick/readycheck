@@ -13,7 +13,9 @@ final class MainWindowTests: XCTestCase {
             lastAttemptAt: Date(), expiresAt: Date().addingTimeInterval(172800), leadHours: 48, resetIndex: 1, attemptCount: 1)
         record.submissionAccepted = true
         for language in [AppLanguage.zhCN, .enUS] {
-            try renderDesktop(ReminderHistoryPageView(records: [record], localization: LocalizationService(language: language)).padding(16),
+            try renderDesktop(ScrollView {
+                ReminderHistoryPageView(records: [record], localization: LocalizationService(language: language)).padding(16)
+            },
                 name: "expiry-submitted-\(language.rawValue)", size: CGSize(width: 520, height: 280))
         }
     }
@@ -99,7 +101,7 @@ final class MainWindowTests: XCTestCase {
         for language in [AppLanguage.zhCN, .enUS] {
             let localization = LocalizationService(language: language)
             try renderDesktop(AboutView(localization: localization), name: "about-\(language.rawValue)", size: CGSize(width: 480, height: 640))
-            try renderDesktop(ReleaseHighlightsView(localization: localization).padding(16),
+            try renderDesktop(ScrollView { ReleaseHighlightsView(localization: localization).padding(16) },
                 name: "release-highlights-\(language.rawValue)", size: CGSize(width: 500, height: 420))
         }
     }

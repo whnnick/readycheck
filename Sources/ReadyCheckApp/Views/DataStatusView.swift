@@ -39,7 +39,8 @@ struct DataStatusView: View {
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: 9) {
-                    let issues = QuotaDataDiagnostics.issueKeys(snapshot: snapshot, now: now)
+                    let waitingOnAccess = model.connectionRecoveryAction == .retryCredentials || model.connectionRecoveryAction == .waiting
+                    let issues = snapshot == nil && waitingOnAccess ? [] : QuotaDataDiagnostics.issueKeys(snapshot: snapshot, now: now)
                     if let snapshot, snapshot.status == .available, !snapshot.isStale(now: now),
                        snapshot.windows.contains(where: { $0.confidence == .verified && $0.remainingRatio != nil }) {
                         Label(localization.text("dataStatus.fresh"), systemImage: "checkmark.circle")
@@ -47,6 +48,8 @@ struct DataStatusView: View {
                     }
                     if model.codexOAuthStatus == .credentialStorageFailed {
                         Label(localization.text("dataStatus.credentials"), systemImage: "key")
+                    } else if model.connectionRecoveryAction == .waiting {
+                        Label(localization.text("oauth.status.waitingForCallback"), systemImage: "clock")
                     }
                     ForEach(issues, id: \.self) { key in
                         Text(localization.text(key)).fixedSize(horizontal: false, vertical: true)
@@ -74,15 +77,8 @@ struct DataStatusView: View {
                     Task { await model.refresh(reason: .manual); now = Date() }
                 }
                 .disabled(model.isRefreshing || model.codexOAuthStatus != .connected)
-                if model.codexOAuthStatus == .credentialStorageFailed {
-                    Button(localization.text("dataStatus.retryCredentials")) {
-                        Task { await model.retryCredentialRead(); now = Date() }
-                    }.disabled(model.isRetryingCredentialRead)
-                } else if model.codexOAuthStatus != .connected || snapshot?.recoveryAction == .reconnect {
-                    Button(localization.text("action.settings")) {
-                        close()
-                        model.openMainWindowFromWidget()
-                    }
+                if model.connectionRecoveryAction != .refresh {
+                    ConnectionRecoveryButton(model: model, beforeNavigation: close, afterAction: { now = Date() })
                 }
             }
             .controlSize(.small)

@@ -3,16 +3,16 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>See your quota. Know what comes next.</strong></p>
 <p align="center">A free, open-source Codex quota monitor, built for your Mac.</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.5.4"><img src="https://img.shields.io/badge/release-v0.5.4-28c99b" alt="Release 0.5.4"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.5.4/ReadyCheck-0.5.4-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.5.4/ReadyCheck-0.5.4-windows-x64-portable.zip">Windows portable</a></p>
-<p align="center"><a href="docs/versions/0.5.4/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.5.4/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.6.0"><img src="https://img.shields.io/badge/release-v0.6.0-28c99b" alt="Release 0.6.0"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.6.0/ReadyCheck-0.6.0-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.6.0/ReadyCheck-0.6.0-windows-x64-portable.zip">Windows portable</a></p>
+<p align="center"><a href="docs/versions/0.6.0/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.6.0/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
 
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-en.png" alt="ReadyCheck: See your quota. Know what comes next. Native macOS, menu bar, Widget and notch." width="960"></p>
 
 
-## 0.5.4 — Compact reset-card details
+## 0.6.0 — Clearer reminders and card records
 
-Remove the extra bottom partition in reset-card details. All facts, outcomes, notification states and related details stay; long content still scrolls. Notification history remains directly accessible from the sidebar. [Release highlights](docs/versions/0.5.4/RELEASE_NOTES.md).
+Filter notification history, inspect read-only card evidence, and find a matching recovery action. New native notifications include the full submission time; the system upper-right time may be absent. [Release highlights](docs/versions/0.6.0/RELEASE_NOTES.md).
 
 ## Start here
 
@@ -116,3 +116,5 @@ Use `scripts/build_and_run.sh` for development; follow the release process for d
 - **0.2.0:** [Plan](docs/versions/0.2.0/PLAN.md) · [Upgrade review](docs/versions/0.2.0/UPGRADE_REVIEW.md) · [Black-box checks](docs/versions/0.2.0/QA.md).
 
 </details>
+
+[0.6.0 plan](docs/versions/0.6.0/PLAN.md) · [Checks](docs/versions/0.6.0/QA.md).

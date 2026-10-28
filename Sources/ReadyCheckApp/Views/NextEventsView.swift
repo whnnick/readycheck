@@ -69,6 +69,9 @@ struct NextEventsView: View {
                             .font(.caption).fixedSize()
                             .popover(isPresented: $showResetExplanation) { resetExplanation }
                             .accessibilityLabel(model.localization.text(event.titleKey) + " · " + model.localization.text(event.actionKey))
+                    } else if event.action == .connection {
+                        ConnectionRecoveryButton(model: model)
+                            .font(.caption).fixedSize()
                     } else {
                         Button(model.localization.text(event.actionKey)) { activate(event) }
                             .font(.caption).fixedSize()
@@ -92,7 +95,9 @@ struct NextEventsView: View {
 
     private func activate(_ event: ReadyCheckNextEvent) {
         if event.action == .reset { showResetExplanation = true }
-        else { model.openNextEvent(event); openMain?() }
+        else if event.action == .connection {
+            Task { await model.performConnectionRecovery(model.connectionRecoveryAction) }
+        } else { model.openNextEvent(event); openMain?() }
     }
     private func detail(_ event: ReadyCheckNextEvent) -> String {
         var text = model.localization.text(event.detailKey)
@@ -106,6 +111,7 @@ struct NextEventsView: View {
         return date.formatted(.dateTime.locale(Locale(identifier: model.language.rawValue)).month().day().hour().minute())
     }
     private func accessibilityText(_ event: ReadyCheckNextEvent) -> String {
-        (event.date.map { dateText($0) + " · " } ?? "") + model.localization.text(event.titleKey) + " · " + detail(event) + " · " + model.localization.text(event.actionKey)
+        let actionKey = event.action == .connection ? model.connectionRecoveryAction.titleKey : event.actionKey
+        return (event.date.map { dateText($0) + " · " } ?? "") + model.localization.text(event.titleKey) + " · " + detail(event) + " · " + model.localization.text(actionKey)
     }
 }

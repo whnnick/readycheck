@@ -20,7 +20,7 @@ struct ResetCreditDetailView: View {
     private var isHistoricalReminder: Bool { record?.isHistoricalReminder == true }
     private var notice: QuotaReminderHistoryRecord? {
         guard let record else { return nil }
-        return model.reminderHistoryRecords.first { $0.id == "reset-used:\(record.id)" && $0.kind == .resetCreditUsed }
+        return CardEvidenceTimeline.notice(record: record, history: model.reminderHistoryRecords)
     }
     private var canShowWindow: Bool {
         guard case .available(let date) = selection,
@@ -62,7 +62,9 @@ struct ResetCreditDetailView: View {
                         }
                     }
                     section("card.result") {
-                        Text(resultText).foregroundStyle(record?.confirmedUsed == true ? Color.green : Color.primary)
+                        if record == nil || isHistoricalReminder {
+                            Text(resultText)
+                        }
                         if record == nil, let expiry, canShowWindow, model.resetCreditStatus.enabled {
                             Text(model.localization.text("card.conditional") + " · " + dateText(expiry.addingTimeInterval(-3600)))
                                 .font(.caption).foregroundStyle(.secondary)
@@ -71,11 +73,8 @@ struct ResetCreditDetailView: View {
                             if record.isHistoricalReminder {
                                 Text(model.localization.text("card.legacyOutcome")).font(.caption).foregroundStyle(.secondary)
                             } else {
-                                Text(model.localization.text("card.updated") + " " + dateText(record.updatedAt)).font(.caption).foregroundStyle(.secondary)
-                                if let started = record.startedAt, let count = record.requestCount {
-                                    Text(model.localization.text("card.started") + " " + dateText(started)).font(.caption).foregroundStyle(.secondary)
-                                    Text(String(format: model.localization.text("card.requestCount"), count)).font(.caption).foregroundStyle(.secondary)
-                                } else {
+                                CardEvidenceTimelineView(record: record, history: model.reminderHistoryRecords, localization: model.localization)
+                                if record.startedAt == nil || record.requestCount == nil {
                                     Text(model.localization.text(record.observedOnly ? "card.noLocalRequest" : "card.unrecorded")).font(.caption).foregroundStyle(.secondary)
                                 }
                             }

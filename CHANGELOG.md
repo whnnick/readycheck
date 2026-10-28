@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.6.0 - 2026-10-28
+
+- Filter and group notification history, inspect card evidence and access matching recovery actions. New native notifications include a full submission time; the system upper-right time may be absent. Windows retains its existing interface.
+
+## 0.6.0-dev.2 - 2026-10-27
+
+- Present a read-only card evidence timeline with saved preparation, latest status and notification attempt/verification times; retain unknown outcomes and exact request/expiry association. Match recovery actions to restricted credentials, failed readings or sign-in review, without changing card rules or authorization. Local development only.
+
+## 0.6.0-dev.1 - 2026-10-27
+
+- Group local notification history by calendar date and filter by type. Show relative and full recorded attempt/receipt time, retaining unknown dates and every delivery state. Keep native system notifications, rules, consent and card logic. Local macOS development; card timeline/recovery actions remain pending, Windows metadata only.
+
+## 0.5.5-dev.1 - 2026-10-26
+
+- Add a localized submission date and local time to the subtitle of every new macOS notification: low quota, Credits, recovery, card expiry, automatic card success, check warnings and test notifications. Preserve titles, bodies, deduplication, consent and existing history timestamps. Previously delivered notifications are unchanged. Local development build, not published; Windows metadata only.
+
 ## 0.5.4 - 2026-10-25
 
 - Remove the trailing reset-card detail divider and reduce the sheet from480 to400 points high. Keep all card facts, outcomes, notice states, Close/Escape and related-notification details; long content still scrolls. macOS layout fix; Windows existing interface.

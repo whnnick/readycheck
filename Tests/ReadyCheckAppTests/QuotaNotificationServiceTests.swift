@@ -5,6 +5,42 @@ import XCTest
 
 @MainActor
 final class QuotaNotificationServiceTests: XCTestCase {
+    func testEveryNotificationEntryPointIncludesLocalizedSubmissionDateAndTime() async {
+        for language: AppLanguage in [.zhCN, .enUS] {
+            let store = makeReminderStore()
+            let client = FakeNotificationCenterClient(deliveredSnapshots: [[]], markDeliveredWhenAdded: true)
+            let service = QuotaNotificationService(client: client, verificationDelays: [.zero])
+            let localization = LocalizationService(language: language)
+            let before = Date()
+            _ = await store.setAutomaticRecoveryEnabled(true)
+            let recovery = QuotaRecoveryRequest(id: "timestamp-recovery", account: "fixture",
+                snapshot: expirySnapshot(expiry: before.addingTimeInterval(3600), now: before))
+            _ = await store.setRecoveryRequest(recovery)
+            _ = await service.sendTestNotification(localization: localization)
+            _ = await service.deliver([.creditsStarted, .quotaRecovered(requestID: recovery.id),
+                .manualResetExpiring(index: 1, expiresAt: before.addingTimeInterval(3600), leadHours: 12)],
+                localization: localization, reminderStore: store)
+            let (lowStore, _, alert) = await prepareLowQuotaAlert()
+            _ = await service.deliver([.quotaLow(alert)], localization: localization, reminderStore: lowStore)
+            _ = await service.deliverResetCreditSuccess(.init(id: "timestamp-fixture", expiresAt: before.addingTimeInterval(3600)),
+                localization: localization, reminderStore: store)
+            _ = await service.deliverResetCreditCheckWarning(.init(id: "timestamp-warning", accountKey: "fixture", reason: .credentialsUnavailable,
+                firstAt: before.addingTimeInterval(-3600), lastAt: before, count: 1, warningSubmitted: false), localization: localization)
+            let after = Date()
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: language.rawValue)
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            let prefix = language == .zhCN ? "发送于 " : "Sent at "
+            let expected = Set([before, after].map { prefix + formatter.string(from: $0) })
+            XCTAssertEqual(client.addedRequests.count, 7)
+            for request in client.addedRequests {
+                XCTAssertTrue(expected.contains(request.content.subtitle), "Missing submission time: \(request.identifier)")
+                XCTAssertFalse(request.content.body.isEmpty, "Timestamp must not replace notification content")
+            }
+        }
+    }
+
     func testDeselectedExpiryNodeIsNotSubmittedFromAnOlderBatch() async {
         let store = makeReminderStore()
         let now = Date()

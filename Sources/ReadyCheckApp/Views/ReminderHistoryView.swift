@@ -4,6 +4,7 @@ import SwiftUI
 struct ReminderHistoryPageView: View {
     let records: [QuotaReminderHistoryRecord]
     let localization: LocalizationService
+    @State private var filter: NotificationHistoryFilter = .all
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -14,10 +15,39 @@ struct ReminderHistoryPageView: View {
             Text(localization.text("notification.history.disclaimer"))
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+            Picker(localization.text("notification.history.filterLabel"), selection: $filter) {
+                ForEach(NotificationHistoryFilter.allCases) { option in
+                    Text(localization.text(option.labelKey)).tag(option)
+                }
+            }
+            .pickerStyle(.menu)
+            .fixedSize()
             Divider()
-            ReminderHistoryRowsView(records: records, localization: localization)
+            if records.isEmpty {
+                ReminderHistoryEmptyView(localization: localization).padding(.vertical, 16)
+            } else if filter.select(records).isEmpty {
+                Text(localization.text("notification.history.noMatches"))
+                    .foregroundStyle(.secondary).padding(.vertical, 16)
+            } else {
+                LazyVStack(alignment: .leading, spacing: 18) {
+                    ForEach(NotificationHistoryPresentation.groups(filter.select(records))) { group in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(group.day.map { dayText($0) } ?? localization.text("notification.history.unknownDate"))
+                                .font(.headline)
+                            ReminderHistoryRowsView(records: group.records, localization: localization)
+                        }
+                    }
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func dayText(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: localization.language.rawValue)
+        formatter.dateStyle = .full
+        return formatter.string(from: date)
     }
 }
 
@@ -104,17 +134,21 @@ private struct ReminderHistoryRow: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                HStack(spacing: 6) {
-                    if let timestamp = record.lastAttemptAt {
+                VStack(alignment: .leading, spacing: 2) {
+                    if let timestamp = NotificationHistoryPresentation.timestamp(record) {
+                        TimelineView(.periodic(from: .now, by: 60)) { context in
+                            Text(relativeText(timestamp, now: context.date))
+                        }
                         Text(Self.dateFormatter(language: localization.language).string(from: timestamp))
+                    } else {
+                        Text(localization.text("notification.history.unknownDate"))
                     }
                     if record.attemptCount > 1 {
-                        Text("·")
                         Text(String(format: localization.text("notification.history.attempts"), record.attemptCount))
                     }
                 }
                 .font(.caption)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 12)
@@ -155,6 +189,13 @@ private struct ReminderHistoryRow: View {
         }
     }
 
+    private func relativeText(_ timestamp: Date, now: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = Locale(identifier: localization.language.rawValue)
+        formatter.dateTimeStyle = .numeric
+        return formatter.localizedString(for: timestamp, relativeTo: now)
+    }
+
     private var detail: String? {
         if record.kind == .quotaLow, let remaining = record.remainingPercent {
             return String(format: localization.text("notification.lowQuota.body"), record.quotaDisplayLabel ?? localization.text(record.quotaLabelKey ?? "quota.window"), remaining)
@@ -167,21 +208,7 @@ private struct ReminderHistoryRow: View {
     }
 
     private var statusText: String {
-        if record.submissionAccepted == true && record.status != .delivered {
-            return localization.text("notification.history.submitted")
-        }
-        return switch record.status {
-        case .delivered:
-            localization.text("notification.history.delivered")
-        case .failed:
-            localization.text("notification.history.failed")
-        case .automaticallyWithdrawn:
-            localization.text("notification.history.withdrawn")
-        case .withdrawalPending:
-            localization.text("notification.history.withdrawalPending")
-        case .legacyUnknown:
-            localization.text("notification.history.legacyUnknown")
-        }
+        localization.text(NotificationHistoryPresentation.statusKey(record))
     }
 
     private var statusColor: Color {

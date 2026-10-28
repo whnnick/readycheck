@@ -5,6 +5,10 @@ struct ReleaseHighlightsView: View {
     let localization: LocalizationService
 
     private let features = [
+        ("line.3.horizontal.decrease.circle", "release.historyClarity", "release.historyClarityDetail"),
+        ("clock.arrow.circlepath", "release.cardEvidence", "release.cardEvidenceDetail"),
+        ("arrow.clockwise", "release.recoveryActions", "release.recoveryActionsDetail"),
+        ("clock", "release.notificationTime", "release.notificationTimeDetail"),
         ("rectangle", "release.compactCardDetails", "release.compactCardDetailsDetail"),
         ("square.grid.2x2", "release.focusedOverview", "release.focusedOverviewDetail"),
         ("square.stack", "release.retained", "release.retainedDetail")
