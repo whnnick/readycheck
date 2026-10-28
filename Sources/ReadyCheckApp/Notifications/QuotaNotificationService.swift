@@ -71,6 +71,7 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
     private let verificationDelays: [Duration]
     private var expiryInFlight: Set<String> = []
     private var submittedExpiryIdentifiers: Set<String> = []
+    var onOpenNotification: (() -> Void)?
 
     override init() {
         let client = SystemNotificationCenterClient()
@@ -375,5 +376,18 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         completionHandler([.banner, .list, .sound])
+    }
+
+    func handleNotificationResponse(actionIdentifier: String) {
+        guard actionIdentifier == UNNotificationDefaultActionIdentifier else { return }
+        onOpenNotification?()
+    }
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        let actionIdentifier = response.actionIdentifier
+        await MainActor.run { self.handleNotificationResponse(actionIdentifier: actionIdentifier) }
     }
 }

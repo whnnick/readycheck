@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.1 - 2026-10-28
+
+- Open notification history when a native notification is clicked, including when the app starts from a notification. Dismissal does not navigate. Reminder rules and history remain intact; Windows keeps its existing interface.
+
+## 0.6.1-dev.1 - 2026-10-28
+
+- Open notification history when the user clicks a native notification; dismissal does not navigate. Reminder rules and history are unchanged. Local development build.
+
 ## 0.6.0 - 2026-10-28
 
 - Filter and group notification history, inspect card evidence and access matching recovery actions. New native notifications include a full submission time; the system upper-right time may be absent. Windows retains its existing interface.

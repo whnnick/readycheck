@@ -7,6 +7,33 @@ import XCTest
 
 @MainActor
 final class MainWindowTests: XCTestCase {
+    func testNotificationDefaultActionOpensHistoryFromSettingsAndOnStartup() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let service = QuotaNotificationService(client: DashboardNotificationClient(), verificationDelays: [])
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            quotaNotificationService: service,
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json")))
+        var opened = 0
+        model.openMainWindow = { opened += 1 }
+
+        model.mainWindowPage = .settings
+        service.handleNotificationResponse(actionIdentifier: UNNotificationDismissActionIdentifier)
+        XCTAssertEqual(model.mainWindowPage, .settings)
+        XCTAssertEqual(opened, 0)
+
+        service.handleNotificationResponse(actionIdentifier: UNNotificationDefaultActionIdentifier)
+        XCTAssertEqual(model.mainWindowPage, .notifications)
+        XCTAssertEqual(opened, 1)
+
+        model.mainWindowPage = .overview
+        service.handleNotificationResponse(actionIdentifier: UNNotificationDefaultActionIdentifier)
+        XCTAssertEqual(model.mainWindowPage, .notifications)
+        XCTAssertEqual(opened, 2)
+    }
     func testSubmittedExpiryReceiptRendersInBothLanguages() throws {
         _ = NSApplication.shared
         var record = QuotaReminderHistoryRecord(id: "synthetic-expiry", kind: .manualResetExpiring, status: .legacyUnknown,

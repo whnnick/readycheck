@@ -1,5 +1,7 @@
 # Version plans / 版本规划
 
+- [0.6.1 notes](versions/0.6.1/RELEASE_NOTES.md) / [更新说明](versions/0.6.1/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.6.1/QA.md) / [验收](versions/0.6.1/QA.zh-CN.md) · [Retention](versions/0.6.1/RELEASE_AUDIT.md) / [功能保留](versions/0.6.1/RELEASE_AUDIT.zh-CN.md)。
+
 - [0.6.0 plan](versions/0.6.0/PLAN.md) / [提醒与用卡计划](versions/0.6.0/PLAN.zh-CN.md) · [Checks](versions/0.6.0/QA.md) / [验收](versions/0.6.0/QA.zh-CN.md) · [Retention](versions/0.6.0/RELEASE_AUDIT.md) / [功能保留](versions/0.6.0/RELEASE_AUDIT.zh-CN.md) · [Release notes](versions/0.6.0/RELEASE_NOTES.md) / [更新说明](versions/0.6.0/RELEASE_NOTES.zh-CN.md) — dev.2 local acceptance; grouped Core310/App125 checks / dev.2 本地验收及分组回归通过。
 
 - [0.5.5 notification timestamps](versions/0.5.5/PLAN.md) / [通知时间](versions/0.5.5/PLAN.zh-CN.md) · [Checks](versions/0.5.5/QA.md) / [验收](versions/0.5.5/QA.zh-CN.md) · [System time investigation](versions/0.5.5/SYSTEM_TIME.md) / [系统时间调查](versions/0.5.5/SYSTEM_TIME.zh-CN.md) — local development / 本地开发。

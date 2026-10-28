@@ -506,6 +506,12 @@ final class ReadyCheckAppModel {
                 codexQuotaClient: codexQuotaClient
             )
         )
+        self.quotaNotificationService.onOpenNotification = { [weak self] in
+            guard let self else { return }
+            self.mainWindowPage = .notifications
+            self.openMainWindow?()
+            Task { await self.reloadReminderHistory() }
+        }
         self.floatingWindowController.onVisibilityChanged = { [weak self] isVisible in
             self?.syncWidgetVisibilityFromWindow(isVisible)
         }

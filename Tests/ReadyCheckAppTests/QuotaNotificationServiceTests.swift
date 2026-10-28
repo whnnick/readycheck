@@ -5,6 +5,11 @@ import XCTest
 
 @MainActor
 final class QuotaNotificationServiceTests: XCTestCase {
+    func testNotificationResponseSelectorIsVisibleToSystem() {
+        let service = QuotaNotificationService(client: FakeNotificationCenterClient(deliveredSnapshots: []), verificationDelays: [])
+        let selector = NSSelectorFromString("userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler:")
+        XCTAssertTrue(service.responds(to: selector), "macOS invokes the Objective-C notification response selector")
+    }
     func testEveryNotificationEntryPointIncludesLocalizedSubmissionDateAndTime() async {
         for language: AppLanguage in [.zhCN, .enUS] {
             let store = makeReminderStore()
