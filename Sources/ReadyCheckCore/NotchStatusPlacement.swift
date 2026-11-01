@@ -3,6 +3,18 @@ import CoreGraphics
 public enum NotchStatusPlacement {
     public static let defaultHeight: CGFloat = 42
 
+    public static func shouldDetach(pointerStart: CGPoint, pointerNow: CGPoint) -> Bool {
+        pointerStart.y - pointerNow.y >= 32
+    }
+
+    public static func shouldAttach(bubbleFrame: CGRect, notchGap: CGRect?, screenFrame: CGRect) -> Bool {
+        guard let notchGap, notchGap.width > 0, notchGap.height > 0 else { return false }
+        let center = CGPoint(x: bubbleFrame.midX, y: bubbleFrame.midY)
+        let target = frame(notchGap: notchGap, screenFrame: screenFrame)
+            .union(notchGap).insetBy(dx: -24, dy: -32)
+        return screenFrame.contains(center) && target.contains(center)
+    }
+
     public static func notchGap(leftArea: CGRect, rightArea: CGRect) -> CGRect? {
         let width = rightArea.minX - leftArea.maxX
         guard width > 0 else { return nil }

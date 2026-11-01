@@ -43,6 +43,11 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     deinit { statusClock?.cancel() }
 
     private func updateQuotaLabel() {
+        if model.selectedDeepSeek {
+            statusItem.button?.title = "DS " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: Date())
+            statusItem.button?.toolTip = "ReadyCheck · DeepSeek API"
+            return
+        }
         statusItem.button?.title = MenuBarQuotaLabel.text(
             snapshot: model.snapshots.first { $0.providerId == "codex-oauth" },
             selection: model.notchQuotaSelection, now: Date())
@@ -55,6 +60,11 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         withObservationTracking {
             _ = model.snapshots
             _ = model.notchQuotaSelection
+            _ = model.selectedDeepSeek
+            _ = model.deepSeek.snapshot
+            _ = model.deepSeek.observedAt
+            _ = model.deepSeek.error
+            _ = model.deepSeek.credentialError
             updateQuotaLabel()
         } onChange: { [weak self] in
             Task { @MainActor in self?.observeQuotaChanges() }

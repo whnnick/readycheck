@@ -1,5 +1,143 @@
 # Changelog
 
+## 0.7.0-dev.21 - 2026-11-01
+
+- Prepare Mac/Windows candidate packages and bilingual preview notes; retain stable 0.6.1 and explicitly track remaining acceptance and Windows 403 limits.
+
+- Drag the notch status downward to restore the floating capsule at the drop point, completing the existing capsule-to-notch interaction in both directions.
+- Keep clicks for details, return short/sideways drags to the notch, and preserve selected service and quota/layout preferences. Expanded details can be dragged by their title area without capturing controls.
+
+## 0.7.0-dev.20 - 2026-11-01
+
+- Keep dual-quota notch details in a stable 5h/7d order and hide the redundant primary-quota picker there; single-quota mode retains the existing selection.
+- Add anchored, interruptible notch expansion/contraction with content fades, reduced-motion support and immediate Escape dismissal.
+- Clarify that primary quota selection drives the Widget and single-quota notch.
+
+## 0.7.0-dev.19 - 2026-11-01
+
+- Use the same rounded, notch-attached compact surface for Codex and DeepSeek.
+- Show separate 5h and 7d quota bars by default in the Codex notch, preserving unknown/missing states.
+- Add a persistent dual/single quota option in Settings → Display; single mode retains the existing primary selection.
+
+## 0.7.0-dev.18 - 2026-11-01
+
+- Show DeepSeek balance-decrease details on bar hover/click, including time range, exact amount and currency, with bounded tooltips.
+- Dropping the capsule near a physical notch switches to the existing notch display and retains the prior capsule position; other screens keep normal dragging.
+- Preserve existing accounts, reminder rules and automatic-card consent. Windows changes are version metadata only; no public release.
+
+## 0.7.0-dev.17 - 2026-11-01
+
+- Show immediate DeepSeek refresh progress, seconds-level timestamps and explicit unchanged/failed outcomes.
+- Replace balance trend lines with per-currency locally observed balance-decrease buckets; exclude increases and sampling gaps over ten minutes. Keep changed readings within five minutes.
+- Follow the selected service across the menu bar, desktop Widget, capsule and notch; show DeepSeek currency balances rather than Codex percentages. Codex monitoring remains active.
+- Windows changes are version metadata only. No public release was created.
+
+## 0.7.0-dev.16 - 2026-11-01
+
+- Name the DeepSeek connection as DeepSeek API and explain that it monitors API balances rather than website/app chat usage.
+- Add official API key creation/management links and explain that an existing key can be used without coding.
+
+## 0.7.0-dev.15 - 2026-10-31
+
+- Show existing Codex and DeepSeek marks in Connection and Reminder platform selectors, retaining accessible names and keyboard selection.
+- Order Settings as Connection → Reminders → Display → General, retaining the selected section/platform and direct shortcuts.
+
+## 0.7.0-dev.14 - 2026-10-31
+
+- Restore Settings → Reminders / Display / Connection / General; select Codex or DeepSeek inside the relevant section and reuse existing controls and stores.
+- Keep supported platform tabs visible when disconnected. Open the DeepSeek key form directly from Overview and retry credential access in place.
+- Keep named returns outside scrolling content; restore the originating page, platform, time range and scroll position, plus catalog filters. Restore connection-button keyboard focus after closing the form.
+- Separate current form errors from earlier credential-access failures; confirm DeepSeek disconnect and preserve its stored history and alert rules. No new integrations or card authorization added.
+
+## 0.7.0-preview.5 - 2026-10-31 (interactive prototype)
+
+- Restore the four familiar Settings sections with platform-specific connections and reminders sharing one state.
+- Keep disconnected services discoverable, shorten connection paths, and add fixed named returns restoring page context and catalog filters.
+- Preserve existing dashboard content and demonstrate display controls without changing the native application or real accounts.
+
+## 0.7.0-dev.13 - 2026-10-31
+
+- Show system notification permission status on each service settings page.
+- Explain possible system-network or service-region causes for Windows OAuth HTTP 403 without exposing the authorization code.
+
+
+## 0.7.0-dev.12 - 2026-10-31
+
+- Add service-specific settings and keep shared preferences in App settings. The usage page follows the selected service, with DeepSeek balance history instead of Codex tokens.
+- Preserve existing credentials, alert rules and Codex automatic-card authorization; redirect existing service-related entries.
+
+
+## 0.7.0-dev.11 - 2026-10-31
+
+- Route Windows Codex authentication and usage requests through Electron networking so system proxy settings can apply. Windows real-device verification remains pending.
+
+
+## 0.7.0-preview.4 - 2026-10-31 (interactive prototype)
+
+- Demonstrate Chinese and English within App settings, explicitly limiting the scope to that page.
+- Visually check App settings and DeepSeek service settings at a 700 × 750 window.
+
+
+## 0.7.0-preview.3 - 2026-10-31 (interactive prototype)
+
+- Explore separate service and app settings with synthetic Codex and DeepSeek interactions. Language switching remains unavailable in this prototype.
+
+## 0.7.0-dev.10 - 2026-10-31
+
+- Add service icons to the Codex and DeepSeek switcher and bundle the icons with the development application.
+
+## 0.7.0-dev.9 - 2026-10-31
+
+- Add the native ten-service directory with search, batch filters and connection details. Planned services are clearly marked and do not display invented quota data.
+
+## 0.7.0-dev.8 - 2026-10-31
+
+- Show DeepSeek total, granted and topped-up balances separately in the overview and menu bar, per currency.
+
+## 0.7.0-dev.7 - 2026-10-31
+
+- Clear previously displayed DeepSeek data when the stored connection identity changes or becomes unreadable. Include the latest DeepSeek alert per rule in notification filtering without a misleading empty state.
+- Do not show a previous alert's verified delivery status for a newly submitted alert.
+
+
+## 0.7.0-dev.6 - 2026-10-30
+
+- Align the native overview with the selected compact dashboard, keep account details accessible in a disclosure, add a DeepSeek row to the menu-bar popover, and constrain balance chart axes to the selected time range. Full live account and menu-bar acceptance remain pending.
+
+
+## 0.7.0-dev.5 - 2026-10-30
+
+- Add opt-in DeepSeek balance thresholds per connection and currency, with five-minute checks, recovery rearming, and persistent distinction between system submission and verified delivery. Notification text does not expose the balance. Live notification and account acceptance remain pending.
+
+
+## 0.7.0-dev.4 - 2026-10-30
+
+- Show the compact service switcher only when both Codex and DeepSeek are connected; if only DeepSeek is connected, show its balance directly. The last choice is remembered when both are available.
+
+
+## 0.7.0-dev.3 - 2026-10-30
+
+- Keep the DeepSeek connection and five-minute read-only refresh alive while ReadyCheck runs, even when its main window is closed. The credentials remain in Keychain, and no inference requests are sent. Alerts and real-account testing remain pending.
+
+
+## 0.7.0-dev.2 - 2026-10-30
+
+- Add local DeepSeek balance history scoped to a randomly identified connection, with separate currency charts and explicit observation times. Existing raw keys migrate only after a successful read. Balance alerts and real-account validation remain pending.
+
+
+## 0.7.0-dev.1 - 2026-10-30
+
+- Add a local macOS development connection for DeepSeek official balance, with Keychain storage, a compact service switcher, explicit stale/error status, and preserved Codex controls. Balance history, alerts, and real-account acceptance remain pending; Windows functionality is unchanged.
+
+
+## 0.7.0-preview.2 - 2026-10-30 (local prototype / 本地原型)
+
+- Narrow the directory to the ten agreed targets, split into two batches of five. Show only demo-connected services in the top switcher, retain source/plan boundaries, and document DeepSeek balance as the first new implementation slice. No native capability or account state changed.
+
+## 0.7.0-preview.1 - 2026-10-30 (local prototype / 本地原型)
+
+- Add the selected compact multi-service usage dashboard prototype, source-specific charts, theme support and a searchable 110-entry CodexBar reference catalog. Synthetic data only: no new provider integration, native replacement or release; existing functionality and user state remain intact.
+
 ## 0.6.1 - 2026-10-28
 
 - Open notification history when a native notification is clicked, including when the app starts from a notification. Dismissal does not navigate. Reminder rules and history remain intact; Windows keeps its existing interface.

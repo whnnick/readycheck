@@ -6,6 +6,29 @@ struct SettingsView: View {
     @Bindable var model: ReadyCheckAppModel
 
     @State private var now = Date()
+    @State private var accountDetailsExpanded = false
+    @State private var showDeepSeekKey = false
+    @FocusState private var deepSeekConnectFocused: Bool
+    @FocusState private var settingsPlatformFocus: ServiceSettingsTarget?
+    @State private var restoreSettingsPlatformFocus = false
+    @State private var catalogQuery = ""
+    @State private var catalogBatch = 0
+    @State private var scrollOffsets: [String: CGFloat] = [:]
+    @State private var deepSeekOverviewDays = 1
+    @State private var deepSeekUsageDays = 1
+    private var deepSeek: DeepSeekConnection { model.deepSeek }
+    private var showsDeepSeek: Bool { model.selectedDeepSeek }
+    private var deepSeekContext: Bool {
+        (model.mainWindowPage == .overview || model.mainWindowPage == .usage) && showsDeepSeek
+    }
+    private var scrollIdentity: String {
+        model.mainNavigationRequest.uuidString + model.mainWindowPage.rawValue + (model.mainWindowPage == .settings
+            ? "-\(model.mainSettingsSection.rawValue)-\(model.serviceSettingsTarget.rawValue)"
+            : "-\(showsDeepSeek)")
+    }
+    private func scrollOffset(_ identity: String) -> Binding<CGFloat> {
+        Binding(get: { scrollOffsets[identity] ?? 0 }, set: { scrollOffsets[identity] = $0 })
+    }
 
     private let refreshIntervalOptions: [TimeInterval] = [60, 180, 300]
     private static let resetCreditRulesID = "reset-credit-rules"
@@ -14,39 +37,61 @@ struct SettingsView: View {
         HStack(spacing: 0) {
             MainWindowSidebar(model: model)
             Divider()
-            ScrollViewReader { scrollProxy in
-                ScrollView(.vertical) {
-                    VStack(alignment: .leading, spacing: 18) {
+            VStack(spacing: 0) {
+                if model.mainWindowPage == .settings {
+                    VStack(alignment: .leading, spacing: 14) {
                         pageHeader
-                        updateBanner
-                        switch model.mainWindowPage {
-                        case .overview: overviewContent
-                        case .usage: usageContent
-                        case .notifications:
-                            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                                ReminderHistoryPageView(records: model.reminderHistoryRecords, localization: model.localization)
-                            }
-                        case .settings: settingsContent
-                        }
-                    }
-                    .padding(20)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                        settingsToolbar
+                    }.padding(20)
+                    Divider()
                 }
-                .id(model.mainWindowPage)
-                .task(id: model.resetCreditRulesNavigationRequest) {
-                    guard let request = model.resetCreditRulesNavigationRequest,
-                          model.mainWindowPage == .settings, model.mainSettingsSection == .reminders else { return }
-                    await Task.yield()
-                    guard !Task.isCancelled, model.resetCreditRulesNavigationRequest == request else { return }
-                    scrollProxy.scrollTo(Self.resetCreditRulesID, anchor: .top)
-                    model.resetCreditRulesNavigationRequest = nil
+                ScrollViewReader { scrollProxy in
+                    ScrollView(.vertical) {
+                        VStack(alignment: .leading, spacing: 18) {
+                            if model.mainWindowPage != .settings { pageHeader }
+                            updateBanner
+                            switch model.mainWindowPage {
+                            case .overview: overviewContent
+                            case .usage: usageContent
+                            case .notifications:
+                                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                                    ReminderHistoryPageView(records: model.reminderHistoryRecords, localization: model.localization, deepSeekRules: model.deepSeekAlertRules) { target in
+                                        model.openServiceSettings(target)
+                                    }
+                                }
+                            case .settings: settingsContent
+                            }
+                        }
+                        .padding(20)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                        .background(MainScrollPosition(identity: scrollIdentity, offset: scrollOffset(scrollIdentity)))
+                    }
+                    .id(scrollIdentity)
+                    .task(id: model.resetCreditRulesNavigationRequest) {
+                        guard let request = model.resetCreditRulesNavigationRequest,
+                              model.mainWindowPage == .settings, model.mainSettingsSection == .reminders,
+                              model.serviceSettingsTarget == .codex else { return }
+                        try? await Task.sleep(for: .milliseconds(70))
+                        guard !Task.isCancelled, model.resetCreditRulesNavigationRequest == request else { return }
+                        scrollProxy.scrollTo(Self.resetCreditRulesID, anchor: .top)
+                        model.resetCreditRulesNavigationRequest = nil
+                    }
                 }
             }
         }
         .frame(minWidth: 740, idealWidth: 900, minHeight: 620, idealHeight: 760)
         .task { await updateNowWhileVisible() }
+        .task(id: deepSeek.connectionID) { await model.loadDeepSeekAlertRules() }
         .sheet(item: $model.resetCreditDetailSelection) { selection in
             ResetCreditDetailView(model: model, selection: selection, now: now)
+        }
+        .sheet(isPresented: $model.showServiceCatalog) {
+            ServiceCatalogView(language: model.language, query: $catalogQuery, batch: $catalogBatch, scrollOffset: scrollOffset("catalog")) { target in
+                model.openServiceSettings(target, section: .connection, fromCatalog: true)
+            }
+        }
+        .sheet(isPresented: $showDeepSeekKey, onDismiss: { deepSeekConnectFocused = true }) {
+            DeepSeekKeySheet(connection: deepSeek, language: model.language)
         }
     }
 
@@ -56,18 +101,35 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(model.localization.text(model.mainWindowPage.titleKey)).font(.title2.weight(.semibold))
                     if model.mainWindowPage == .usage {
-                        Text(model.localization.text("usage.pageSubtitle"))
+                        Text(showsDeepSeek ? (model.language == .zhCN ? "查看 DeepSeek 的本机余额记录。" : "View local DeepSeek balance readings.") : model.localization.text("usage.pageSubtitle"))
                             .font(.caption).foregroundStyle(.secondary)
                     }
                 }
                 Spacer(minLength: 8)
+                if model.mainWindowPage == .overview || model.mainWindowPage == .usage {
+                    Button(model.language == .zhCN ? "连接设置" : "Connections") {
+                        model.openServiceSettings(showsDeepSeek ? .deepSeek : .codex, section: .connection)
+                    }.controlSize(.small)
+                    Button(model.language == .zhCN ? "提醒设置" : "Alerts") {
+                        model.openServiceSettings(showsDeepSeek ? .deepSeek : .codex)
+                    }.controlSize(.small)
+                    Button(model.language == .zhCN ? "更多平台" : "More platforms") {
+                        model.showServiceCatalog = true
+                    }
+                    .controlSize(.small)
+                }
                 if model.mainWindowPage == .notifications {
                     Button {
                         Task { await model.reloadReminderHistory() }
                     } label: { Image(systemName: "arrow.clockwise") }
                     .help(model.localization.text("notification.history.refresh"))
                     .accessibilityLabel(model.localization.text("notification.history.refresh"))
-                } else {
+                } else if (model.mainWindowPage == .overview || model.mainWindowPage == .usage) && deepSeekContext {
+                    Button { Task { await deepSeek.refresh() } } label: { Image(systemName: "arrow.clockwise") }
+                        .disabled(deepSeek.isBusy)
+                        .help(model.localization.text("action.refresh"))
+                        .accessibilityLabel(model.localization.text("action.refresh"))
+                } else if model.mainWindowPage == .overview || model.mainWindowPage == .usage {
                     DataStatusButton(model: model).controlSize(.small)
                     Button {
                         Task { await model.reloadCodexOAuthConnectionStatus(); await model.refresh(reason: .manual) }
@@ -77,35 +139,112 @@ struct SettingsView: View {
                     .accessibilityLabel(model.localization.text("action.refresh"))
                 }
             }
-            if model.mainWindowPage != .notifications { refreshStatusView }
+            if (model.mainWindowPage == .overview || model.mainWindowPage == .usage) && !deepSeekContext { refreshStatusView }
         }
     }
 
     private var overviewContent: some View {
         VStack(alignment: .leading, spacing: 14) {
+            serviceSwitcher
+            if showsDeepSeek {
+                deepSeekReadout(usage: false)
+                Button(model.language == .zhCN ? "前往余额提醒设置" : "Balance alert settings") {
+                    model.openServiceSettings(.deepSeek)
+                }.buttonStyle(.link)
+            } else {
+                codexOverviewContent
+            }
+        }
+    }
+
+    private var serviceSwitcher: some View {
+        HStack(spacing: 3) {
+            serviceSwitcherButton("Codex", icon: "readycheck", fileExtension: "png", selected: false)
+            serviceSwitcherButton("DeepSeek", icon: "deepseek", fileExtension: "svg", selected: true)
+        }
+        .padding(3)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 9))
+        .onMoveCommand { direction in
+            if direction == .left { model.selectedDeepSeek = false }
+            if direction == .right { model.selectedDeepSeek = true }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func serviceSwitcherButton(_ title: String, icon: String, fileExtension: String, selected: Bool) -> some View {
+        Button { model.selectedDeepSeek = selected } label: {
+            HStack(spacing: 6) {
+                ServiceSwitcherIcon(name: icon, extension: fileExtension)
+                Text(title)
+                Text(selected ? deepSeekConnectionLabel : model.localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected"))
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 5)
+            .background(showsDeepSeek == selected ? Color.accentColor.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 7))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(selected ? deepSeekConnectionLabel : model.localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected"))
+        .accessibilityAddTraits(showsDeepSeek == selected ? .isSelected : [])
+    }
+
+    private var deepSeekConnectionLabel: String {
+        if deepSeek.credentialError { return model.language == .zhCN ? "需系统授权" : "Needs access" }
+        if deepSeek.error != nil { return model.language == .zhCN ? "刷新失败" : "Refresh failed" }
+        return model.language == .zhCN ? (deepSeek.isConnected ? "已连接" : "未连接") : (deepSeek.isConnected ? "Connected" : "Not connected")
+    }
+
+    @ViewBuilder private func deepSeekReadout(usage: Bool) -> some View {
+        if deepSeek.isConnected && !deepSeek.credentialError {
+            DeepSeekOverview(connection: deepSeek, language: model.language, now: now, days: usage ? $deepSeekUsageDays : $deepSeekOverviewDays)
+        } else {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("DeepSeek").font(.title2.weight(.semibold))
+                Text(deepSeekConnectionLabel).font(.headline)
+                Text(model.language == .zhCN ? "通过 API Key 连接，查看 API 账户余额、赠送与充值分项及本机余额记录。" : "Connect with an API key to view API account balances, granted and topped-up funds, and local readings.")
+                    .foregroundStyle(.secondary)
+                if deepSeek.credentialError {
+                    Text(model.language == .zhCN ? "已有凭据暂时无法访问，不代表账号已退出。请重试读取并在系统提示中授权。" : "Saved credentials are temporarily inaccessible; this does not mean you signed out. Retry and allow access in the system prompt.")
+                        .font(.callout).foregroundStyle(.orange)
+                    Button(model.language == .zhCN ? "重试读取凭据" : "Retry credential access") { Task { await deepSeek.retryCredentialRead() } }
+                        .buttonStyle(.borderedProminent).disabled(deepSeek.isBusy)
+                } else {
+                    Button(model.language == .zhCN ? "连接 DeepSeek API" : "Connect DeepSeek API") { showDeepSeekKey = true }
+                        .focusable().focused($deepSeekConnectFocused)
+                        .buttonStyle(.borderedProminent).disabled(deepSeek.isBusy)
+                }
+            }.padding(.vertical, 12)
+        }
+    }
+
+    private var codexOverviewContent: some View {
+        VStack(alignment: .leading, spacing: 14) {
             OverviewQuotaView(model: model, now: now)
             if model.snapshots.isEmpty {
                 Text(quotaEmptyMessage).font(.callout).foregroundStyle(.secondary)
                 Button(model.localization.text("navigation.connection")) {
-                    model.mainWindowPage = .settings; model.mainSettingsSection = .connection
+                    model.openServiceSettings(.codex, section: .connection)
                 }
             }
-            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                NextEventsView(model: model, now: now)
-            }
+            Divider()
+            NextEventsView(model: model, now: now)
             ForEach(model.snapshots.filter { $0.providerId == "codex-oauth" }) { snapshot in
                 quotaRecoveryActions(for: snapshot)
-                accountCardSummary(snapshot)
             }
-            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                RecentUsageView(samples: model.quotaHistorySamples,
-                    localization: model.localization, now: now)
-            }
+            Divider()
+            RecentUsageView(samples: model.quotaHistorySamples,
+                localization: model.localization, now: now)
             ForEach(model.snapshots.filter { $0.providerId == "codex-oauth" }) { snapshot in
-                QuotaCardView(snapshot: snapshot, localization: model.localization, now: now, displayMode: .accountDetails,
-                    onResetCreditDetails: { model.resetCreditDetailSelection = .available($0) })
-                if !model.currentResetCreditRecords.isEmpty || !model.resetCreditChecks.isEmpty || model.resetCreditHistoryUnavailable || model.resetCreditChecksUnavailable {
-                    ResetCreditHistoryView(model: model)
+                Divider()
+                DisclosureGroup(isExpanded: $accountDetailsExpanded) {
+                    QuotaCardView(snapshot: snapshot, localization: model.localization, now: now, displayMode: .accountDetails,
+                        onResetCreditDetails: { model.resetCreditDetailSelection = .available($0) })
+                    if !model.currentResetCreditRecords.isEmpty || !model.resetCreditChecks.isEmpty || model.resetCreditHistoryUnavailable || model.resetCreditChecksUnavailable {
+                        ResetCreditHistoryView(model: model)
+                    }
+                } label: {
+                    accountCardSummary(snapshot)
                 }
             }
             legacyHistoryNotice
@@ -121,44 +260,111 @@ struct SettingsView: View {
 
     private var usageContent: some View {
         VStack(alignment: .leading, spacing: 12) {
-            GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                TokenUsageView(usage: model.snapshots.first { $0.providerId == "codex-oauth" }?.details?.accountTokenUsage,
-                    localization: model.localization, now: now)
+            serviceSwitcher
+            if showsDeepSeek {
+                Text(model.language == .zhCN ? "此连接仅提供余额，不提供 Token 或费用统计。" : "This connection provides balances, not token or expense statistics.")
+                    .font(.caption).foregroundStyle(.secondary)
+                deepSeekReadout(usage: true)
+            } else {
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                    TokenUsageView(usage: model.snapshots.first { $0.providerId == "codex-oauth" }?.details?.accountTokenUsage,
+                        localization: model.localization, now: now)
+                }
+                legacyHistoryNotice
             }
-            legacyHistoryNotice
         }
     }
 
-    private var settingsContent: some View {
-        VStack(alignment: .leading, spacing: 18) {
+    private var settingsToolbar: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if model.settingsHasReturn {
+                Button { model.closeServiceSettings() } label: {
+                    Label(model.settingsReturnTitle, systemImage: "arrow.left")
+                }.buttonStyle(.link)
+            }
             Picker(model.localization.text("navigation.settings"), selection: $model.mainSettingsSection) {
                 ForEach(MainSettingsSection.allCases) { section in
                     Text(model.localization.text(section.titleKey)).tag(section)
                 }
             }.pickerStyle(.segmented).labelsHidden()
+            Text(model.localization.text("navigation.settings") + " / " + model.localization.text(model.mainSettingsSection.titleKey)
+                + ([MainSettingsSection.reminders, .connection].contains(model.mainSettingsSection) ? " / " + (model.serviceSettingsTarget == .deepSeek ? "DeepSeek" : "Codex") : ""))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var settingsPlatformPicker: some View {
+        HStack(spacing: 3) {
+            settingsPlatformButton(.codex)
+            settingsPlatformButton(.deepSeek)
+        }
+        .padding(3)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 9))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(model.language == .zhCN ? "平台" : "Platform")
+        .onMoveCommand { direction in
+            if direction == .left { selectSettingsPlatform(.codex) }
+            if direction == .right { selectSettingsPlatform(.deepSeek) }
+        }
+        .task(id: model.serviceSettingsTarget) {
+            guard restoreSettingsPlatformFocus else { return }
+            await Task.yield()
+            guard !Task.isCancelled else { return }
+            settingsPlatformFocus = model.serviceSettingsTarget
+            restoreSettingsPlatformFocus = false
+        }
+    }
+
+    private func selectSettingsPlatform(_ target: ServiceSettingsTarget) {
+        restoreSettingsPlatformFocus = model.serviceSettingsTarget != target
+        model.serviceSettingsTarget = target
+        settingsPlatformFocus = target
+    }
+
+    private func settingsPlatformButton(_ target: ServiceSettingsTarget) -> some View {
+        let isCodex = target == .codex
+        let selected = model.serviceSettingsTarget == target
+        let title = isCodex ? "Codex" : "DeepSeek"
+        return Button { selectSettingsPlatform(target) } label: {
+            HStack(spacing: 6) {
+                ServiceSwitcherIcon(name: isCodex ? "readycheck" : "deepseek", extension: isCodex ? "png" : "svg")
+                Text(title)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 5)
+            .background(selected ? Color.accentColor.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 7))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .focusable()
+        .focused($settingsPlatformFocus, equals: target)
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    private var settingsContent: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            if model.mainSettingsSection == .connection || model.mainSettingsSection == .reminders { settingsPlatformPicker }
             switch model.mainSettingsSection {
             case .reminders:
-                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text(model.localization.text("settings.quotaReminders")).font(.headline)
-                        QuotaRecoveryReminderView(model: model, now: now)
+                if model.serviceSettingsTarget == .deepSeek {
+                    GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { DeepSeekAlertControls(model: model) }
+                } else {
+                    GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                        VStack(alignment: .leading, spacing: 18) {
+                            Text(model.localization.text("settings.quotaReminders")).font(.headline)
+                            QuotaRecoveryReminderView(model: model, now: now)
+                        }
                     }
-                }
-                VStack(alignment: .leading, spacing: 18) {
                     GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(model.localization.text("settings.cardReminders")).font(.headline)
                             ResetExpiryReminderView(model: model)
                         }
                     }
-                    GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                        ResetCreditAutomationView(model: model)
-                    }
+                    GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { ResetCreditAutomationView(model: model) }
+                        .id(Self.resetCreditRulesID)
                 }
-                .id(Self.resetCreditRulesID)
-                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
-                    notificationControls
-                }
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { notificationControls }
             case .display:
                 quotaWindowControls
                 widgetControls
@@ -167,10 +373,15 @@ struct SettingsView: View {
                     .toggleStyle(.switch).controlSize(.small)
                 Text(model.localization.text("settings.hideInFullscreenHelp")).font(.caption).foregroundStyle(.secondary)
             case .connection:
-                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { codexOAuthProviderControls }
+                if model.serviceSettingsTarget == .deepSeek {
+                    GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { DeepSeekConnectionControls(connection: deepSeek, language: model.language) }
+                } else {
+                    GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { codexOAuthProviderControls }
+                }
                 productSummary
             case .general:
                 GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { generalControls }
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { notificationControls }
                 Button(model.localization.text("about.title")) { model.showAboutWindow() }
             }
         }
@@ -231,7 +442,8 @@ struct SettingsView: View {
                     Label(model.localization.text("settings.quotaWindow"), systemImage: "chart.bar.fill")
                         .font(.subheadline.weight(.semibold))
 
-                    Text(model.localization.text("settings.quotaWindowHelp"))
+                    Text(model.localization.text(model.notchShowsBothQuotas
+                        ? "settings.quotaWindowHelp.dual" : "settings.quotaWindowHelp"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -359,6 +571,18 @@ struct SettingsView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
+
+            HStack {
+                Text(model.localization.text("settings.notchQuotaLayout"))
+                Spacer(minLength: 8)
+                Picker(model.localization.text("settings.notchQuotaLayout"), selection: $model.notchShowsBothQuotas) {
+                    Text(model.localization.text("settings.notchQuotaLayout.dual")).tag(true)
+                    Text(model.localization.text("settings.notchQuotaLayout.single")).tag(false)
+                }
+                .labelsHidden().pickerStyle(.segmented).frame(width: 220)
+            }
+            Text(model.localization.text("settings.notchQuotaLayout.help"))
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(14)

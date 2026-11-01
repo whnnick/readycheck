@@ -7,6 +7,54 @@ import XCTest
 
 @MainActor
 final class BubbleWindowControllerTests: XCTestCase {
+    func testDetachedBubbleAppearsAtDropPointAndPersistsInsteadOfReturningToOldEdge() throws {
+        try withBubble(edge: .right) { controller, panel, host in
+            let screen = try XCTUnwrap(NSScreen.main)
+            let point = CGPoint(x: screen.visibleFrame.midX, y: screen.visibleFrame.midY)
+            controller.restoreFromNotch(model: host.rootView.model, at: point)
+            XCTAssertEqual(panel.frame.size, BubbleWidgetPlacement.bubbleSize)
+            XCTAssertEqual(panel.frame.midX, point.x)
+            XCTAssertEqual(panel.frame.midY, point.y)
+            XCTAssertNil(host.rootView.tabEdge)
+            XCTAssertFalse(host.rootView.isExpanded)
+            let saved = try XCTUnwrap(UserDefaults.standard.string(forKey: "ReadyCheck.bubbleWidgetFrame.v1"))
+            XCTAssertEqual(NSRectFromString(saved), panel.frame)
+            controller.restoreFromNotch(model: host.rootView.model, at: CGPoint(x: screen.frame.maxX + 100, y: screen.frame.maxY + 100))
+            XCTAssertTrue(screen.visibleFrame.contains(panel.frame))
+        }
+    }
+
+    func testDropNearNotchAttachesOnReleaseAndPreservesOriginalPosition() throws {
+        let screen = try XCTUnwrap(NSScreen.main)
+        let gap = CGRect(x: screen.frame.midX - 92.5, y: screen.frame.maxY - 33, width: 185, height: 33)
+        try withBubble(notchContext: .init(screen: screen, notchGap: gap)) { controller, panel, _ in
+            let bubble = try XCTUnwrap(panel as? BubbleWidgetPanel)
+            let original = UserDefaults.standard.string(forKey: "ReadyCheck.bubbleWidgetFrame.v1")
+            var attached = false
+            controller.onNotchAttachment = { attached = true; controller.close() }
+            bubble.onPointerDrag(CGPoint(x: panel.frame.midX, y: panel.frame.midY),
+                CGPoint(x: gap.midX, y: gap.minY - 45))
+            XCTAssertFalse(attached)
+            bubble.onPointerUp(true)
+            XCTAssertTrue(attached)
+            XCTAssertFalse(panel.isVisible)
+            XCTAssertEqual(UserDefaults.standard.string(forKey: "ReadyCheck.bubbleWidgetFrame.v1"), original)
+        }
+    }
+
+    func testDropWithoutPhysicalNotchKeepsCapsule() throws {
+        try withBubble { controller, panel, _ in
+            let bubble = try XCTUnwrap(panel as? BubbleWidgetPanel)
+            var attached = false
+            controller.onNotchAttachment = { attached = true }
+            bubble.onPointerDrag(CGPoint(x: panel.frame.midX, y: panel.frame.midY),
+                CGPoint(x: NSScreen.main!.frame.midX, y: NSScreen.main!.frame.maxY - 45))
+            bubble.onPointerUp(true)
+            XCTAssertFalse(attached)
+            XCTAssertTrue(panel.isVisible)
+        }
+    }
+
     func testOpeningMainWindowKeepsPinnedDetailsExpanded() throws {
         try withBubble { _, _, host in
             var opened = false
@@ -157,7 +205,8 @@ final class BubbleWindowControllerTests: XCTestCase {
         }
     }
 
-    private func withBubble(edge: BubbleWidgetPlacement.Edge? = nil, _ body: (BubbleWindowController, QuotaWidgetPanel, NSHostingController<BubbleWidgetView>) throws -> Void) throws {
+    private func withBubble(edge: BubbleWidgetPlacement.Edge? = nil, notchContext: NotchWindowController.ScreenContext? = nil,
+                            _ body: (BubbleWindowController, QuotaWidgetPanel, NSHostingController<BubbleWidgetView>) throws -> Void) throws {
         _ = NSApplication.shared
         let defaults = UserDefaults.standard
         let key = "ReadyCheck.bubbleWidgetFrame.v1"
@@ -166,11 +215,12 @@ final class BubbleWindowControllerTests: XCTestCase {
         let bubble = CGRect(x: visibleFrame.midX - 46, y: visibleFrame.midY - 46, width: 92, height: 92)
         let frame = edge.map { BubbleWidgetPlacement.tabFrame(from: bubble, edge: $0, in: visibleFrame) } ?? bubble
         defaults.set(NSStringFromRect(frame), forKey: key)
-        let controller = BubbleWindowController()
+        let controller = BubbleWindowController(notchContextProvider: { notchContext })
         let model = ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
             client: BubbleTestNotificationClient(), verificationDelays: []))
         let previous = Set(NSApp.windows.map(\.windowNumber))
         defer {
+            controller.onNotchAttachment = nil
             controller.close()
             if let saved { defaults.set(saved, forKey: key) }
             else { defaults.removeObject(forKey: key) }

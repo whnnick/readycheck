@@ -16,11 +16,26 @@ final class NotificationHistoryPresentationTests: XCTestCase {
         let records = kinds.enumerated().map { record(String($0.offset), kind: $0.element) }
         let original = records
         XCTAssertEqual(NotificationHistoryFilter.all.select(records), records)
-        for filter in NotificationHistoryFilter.allCases.dropFirst() {
+        for filter in NotificationHistoryFilter.allCases where filter != .all && filter != .deepSeekBalance {
             XCTAssertEqual(filter.select(records).count, 1)
         }
+        XCTAssertTrue(NotificationHistoryFilter.deepSeekBalance.select(records).isEmpty)
         XCTAssertEqual(records, original)
         XCTAssertTrue(NotificationHistoryFilter.cardsUsed.select([record("quota")]).isEmpty)
+    }
+
+    func testDeepSeekRecordsRespectNotificationFilter() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = DeepSeekBalanceAlertStore(fileURL: dir.appendingPathComponent("alerts.json")), id = UUID()
+        try await store.configure(connectionID: id, currency: "CNY", threshold: 10, enabled: true)
+        let candidate = try await store.evaluate(connectionID: id, currency: "CNY", total: 5)
+        let alert = try XCTUnwrap(candidate)
+        try await store.markSubmitted(alert)
+        let rules = try await store.rules(connectionID: id)
+        XCTAssertEqual(NotificationHistoryFilter.all.selectDeepSeek(rules).count, 1)
+        XCTAssertEqual(NotificationHistoryFilter.deepSeekBalance.selectDeepSeek(rules).count, 1)
+        XCTAssertTrue(NotificationHistoryFilter.manualResetExpiring.selectDeepSeek(rules).isEmpty)
     }
 
     func testLocalDaysNewestFirstWithUnknownLastAndStableTieOrder() {

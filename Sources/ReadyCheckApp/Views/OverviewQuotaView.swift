@@ -72,8 +72,7 @@ struct OverviewQuotaView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 18))
+        .padding(.vertical, 8)
         .accessibilityElement(children: .combine)
     }
 

@@ -18,7 +18,8 @@ let package = Package(
         .executableTarget(
             name: "ReadyCheckApp",
             dependencies: ["ReadyCheckCore"],
-            path: "Sources/ReadyCheckApp"
+            path: "Sources/ReadyCheckApp",
+            resources: [.process("Resources")]
         ),
         .testTarget(
             name: "ReadyCheckCoreTests",

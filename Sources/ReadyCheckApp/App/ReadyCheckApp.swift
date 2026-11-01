@@ -116,6 +116,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         appModel.stopRateLimitMonitoring()
         appModel.stopResetCreditAutomation()
+        appModel.stopDeepSeekMonitoring()
     }
 
     @objc private func systemDidWake() {
@@ -199,7 +200,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
 
     @objc private func showPage(_ item: NSMenuItem) {
         guard MainWindowPage.allCases.indices.contains(item.tag) else { return }
-        appModel.mainWindowPage = MainWindowPage.allCases[item.tag]
+        appModel.navigateToMainPage(MainWindowPage.allCases[item.tag])
         showMainWindow()
     }
 
@@ -243,8 +244,28 @@ final class ReadyCheckAppModel {
     private static let notchStatusVisibleDefaultsKey = "ReadyCheck.notchStatusVisible.v1"
     private static let oauthLogger = Logger(subsystem: "com.readycheck.app", category: "oauth")
 
+    let deepSeek: DeepSeekConnection
+    var deepSeekAlertRules: [DeepSeekBalanceAlertRule] = []
+    var deepSeekAlertStorageError = false
+
+    @ObservationIgnored
+    private let deepSeekAlertStore: DeepSeekBalanceAlertStore
+
+    @ObservationIgnored
+    private var deepSeekMonitoringTask: Task<Void, Never>?
+
     var mainWindowPage: MainWindowPage = .overview
+    var mainNavigationRequest = UUID()
+    var serviceSettingsTarget: ServiceSettingsTarget = .codex
+    var serviceSettingsReturnPage: MainWindowPage = .overview
     var mainSettingsSection: MainSettingsSection = .reminders
+    var settingsHasReturn = false
+    var settingsReturnToCatalog = false
+    var showServiceCatalog = false
+    private var settingsOriginDeepSeek = false
+    var selectedDeepSeek = UserDefaults.standard.bool(forKey: "ReadyCheck.selectedDeepSeek.v1") {
+        didSet { UserDefaults.standard.set(selectedDeepSeek, forKey: "ReadyCheck.selectedDeepSeek.v1") }
+    }
     var language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "ReadyCheck.language.v1") ?? "") ?? .zhCN {
         didSet {
             guard language != oldValue else { return }
@@ -312,6 +333,9 @@ final class ReadyCheckAppModel {
     }
     var notchQuotaSelection = NotchQuotaSelection.value() {
         didSet { notchQuotaSelection.persist(windows: snapshots.first { $0.providerId == "codex-oauth" }?.windows ?? []) }
+    }
+    var notchShowsBothQuotas = UserDefaults.standard.object(forKey: "ReadyCheck.notchShowsBothQuotas.v1") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(notchShowsBothQuotas, forKey: "ReadyCheck.notchShowsBothQuotas.v1") }
     }
     var notchStatusVisible: Bool = UserDefaults.standard.bool(forKey: notchStatusVisibleDefaultsKey) {
         didSet {
@@ -469,6 +493,8 @@ final class ReadyCheckAppModel {
 
     init(
         credentialStore: any CredentialStore = KeychainCredentialStore(),
+        deepSeekConnection: DeepSeekConnection? = nil,
+        deepSeekAlertStore: DeepSeekBalanceAlertStore? = nil,
         codexQuotaClient: CodexQuotaHTTPClient = CodexQuotaHTTPClient(),
         codexOAuthClient: CodexOAuthClient = CodexOAuthClient(),
         updateChecker: GitHubReleaseUpdateChecker = GitHubReleaseUpdateChecker(),
@@ -487,6 +513,9 @@ final class ReadyCheckAppModel {
         self.widgetVisibilityDefaults = widgetVisibilityDefaults
         self.widgetVisible = WidgetVisibilityPreference.value(defaults: widgetVisibilityDefaults)
         self.credentialStore = credentialStore
+        self.deepSeek = deepSeekConnection ?? DeepSeekConnection(store: credentialStore)
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        self.deepSeekAlertStore = deepSeekAlertStore ?? DeepSeekBalanceAlertStore(fileURL: appSupport.appendingPathComponent("ReadyCheck/deepseek-balance-alerts.json"))
         self.codexOAuthClient = codexOAuthClient
         self.updateChecker = updateChecker
         self.codexAppServerClient = codexAppServerClient
@@ -506,6 +535,15 @@ final class ReadyCheckAppModel {
                 codexQuotaClient: codexQuotaClient
             )
         )
+        self.deepSeek.onReading = { [weak self] id, snapshot in
+            await self?.processDeepSeekAlerts(connectionID: id, snapshot: snapshot)
+        }
+        self.quotaNotificationService.onOpenDeepSeekNotification = { [weak self] in
+            guard let self else { return }
+            self.selectedDeepSeek = true
+            self.mainWindowPage = .overview
+            self.openMainWindow?()
+        }
         self.quotaNotificationService.onOpenNotification = { [weak self] in
             guard let self else { return }
             self.mainWindowPage = .notifications
@@ -517,6 +555,12 @@ final class ReadyCheckAppModel {
         }
         self.bubbleWindowController.onVisibilityChanged = { [weak self] isVisible in
             self?.syncWidgetVisibilityFromWindow(isVisible)
+        }
+        self.bubbleWindowController.onNotchAttachment = { [weak self] in
+            self?.notchStatusVisible = true
+        }
+        self.notchWindowController.onNotchDetachment = { [weak self] pointer in
+            self?.detachNotch(at: pointer)
         }
         reloadLaunchAtLoginStatus()
     }
@@ -651,6 +695,14 @@ final class ReadyCheckAppModel {
         } else {
             widgetVisible = true
         }
+    }
+
+    func detachNotch(at pointer: CGPoint) {
+        notchStatusVisible = false
+        clearWidgetSnooze()
+        widgetPresentation = .bubble
+        showFloatingWidget()
+        bubbleWindowController.restoreFromNotch(model: self, at: pointer)
     }
 
     func hideFloatingWidget() {
@@ -1234,16 +1286,53 @@ final class ReadyCheckAppModel {
         } catch { resetCreditChecks = []; resetCreditChecksUnavailable = true }
     }
 
+    func navigateToMainPage(_ page: MainWindowPage) {
+        mainNavigationRequest = UUID()
+        settingsHasReturn = false
+        settingsReturnToCatalog = false
+        mainWindowPage = page
+    }
+
+    func openServiceSettings(_ target: ServiceSettingsTarget, section: MainSettingsSection = .reminders, fromCatalog: Bool = false) {
+        if mainWindowPage != .settings || fromCatalog {
+            serviceSettingsReturnPage = mainWindowPage
+            settingsOriginDeepSeek = selectedDeepSeek
+            settingsHasReturn = true
+            settingsReturnToCatalog = fromCatalog
+        }
+        if fromCatalog { showServiceCatalog = false }
+        serviceSettingsTarget = target
+        mainSettingsSection = section
+        mainWindowPage = .settings
+    }
+
+    var settingsReturnTitle: String {
+        let zh = language == .zhCN
+        if settingsReturnToCatalog { return zh ? "返回平台目录" : "Back to platforms" }
+        if serviceSettingsReturnPage == .notifications { return zh ? "返回通知记录" : "Back to notification records" }
+        let service = settingsOriginDeepSeek ? "DeepSeek" : "Codex"
+        let page = localization.text(serviceSettingsReturnPage.titleKey)
+        return zh ? "返回 \(service) \(page)" : "Back to \(service) \(page)"
+    }
+
+    func closeServiceSettings() {
+        guard settingsHasReturn else { return }
+        selectedDeepSeek = settingsOriginDeepSeek
+        mainWindowPage = serviceSettingsReturnPage
+        showServiceCatalog = settingsReturnToCatalog
+        settingsHasReturn = false
+        settingsReturnToCatalog = false
+    }
+
     func openResetCreditRules() {
         resetCreditDetailSelection = nil
-        mainWindowPage = .settings
-        mainSettingsSection = .reminders
+        openServiceSettings(.codex)
         resetCreditRulesNavigationRequest = UUID()
     }
 
     func openNextEvent(_ event: ReadyCheckNextEvent) {
         switch event.action {
-        case .connection: mainWindowPage = .settings; mainSettingsSection = .connection
+        case .connection: openServiceSettings(.codex, section: .connection)
         case .rules: openResetCreditRules()
         case .reset: mainWindowPage = .overview
         case .card(let expiry): mainWindowPage = .overview; resetCreditDetailSelection = .available(expiry)
@@ -1306,9 +1395,72 @@ final class ReadyCheckAppModel {
     }
 
     func startConnectedServices() async {
+        startDeepSeekMonitoring()
         await reloadCodexOAuthConnectionStatus()
         await refresh(reason: .openedPanel)
         startResetCreditAutomation()
+    }
+
+    func loadDeepSeekAlertRules() async {
+        guard let id = deepSeek.connectionID else { deepSeekAlertRules = []; return }
+        do {
+            let rules = try await deepSeekAlertStore.rules(connectionID: id)
+            guard deepSeek.connectionID == id else { return }
+            deepSeekAlertRules = rules
+            deepSeekAlertStorageError = false
+        } catch { deepSeekAlertRules = []; deepSeekAlertStorageError = true }
+    }
+
+    func configureDeepSeekAlert(currency: String, threshold: Decimal, enabled: Bool) async {
+        guard let id = deepSeek.connectionID else { return }
+        do {
+            try await deepSeekAlertStore.configure(connectionID: id, currency: currency, threshold: threshold, enabled: enabled)
+            await loadDeepSeekAlertRules()
+            if enabled {
+                await requestNotificationAuthorizationIfNeeded()
+                await deepSeek.refresh()
+            }
+        } catch { deepSeekAlertStorageError = true }
+    }
+
+    private func processDeepSeekAlerts(connectionID: UUID, snapshot: DeepSeekBalanceSnapshot) async {
+        do {
+            for balance in snapshot.balances {
+                guard deepSeek.connectionID == connectionID else { return }
+                if let alert = try await deepSeekAlertStore.evaluate(connectionID: connectionID, currency: balance.currency, total: balance.total) {
+                    let result = await quotaNotificationService.deliverDeepSeekBalanceAlert(alert, localization: localization, alertStore: deepSeekAlertStore)
+                    if result == .storageFailed { deepSeekAlertStorageError = true; return }
+                }
+            }
+            await loadDeepSeekAlertRules()
+        } catch { deepSeekAlertStorageError = true }
+    }
+
+    func refreshSelectedService() async {
+        if selectedDeepSeek {
+            await deepSeek.refresh()
+        } else {
+            await reloadCodexOAuthConnectionStatus()
+            await refresh(reason: .manual)
+        }
+    }
+
+    func startDeepSeekMonitoring() {
+        guard deepSeekMonitoringTask == nil else { return }
+        deepSeekMonitoringTask = Task { [weak self] in
+            await self?.deepSeek.refresh()
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(300)) }
+                catch { return }
+                guard let self else { return }
+                if self.deepSeek.isConnected { await self.deepSeek.refresh() }
+            }
+        }
+    }
+
+    func stopDeepSeekMonitoring() {
+        deepSeekMonitoringTask?.cancel()
+        deepSeekMonitoringTask = nil
     }
 
     func startResetCreditAutomation() {

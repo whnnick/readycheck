@@ -7,6 +7,142 @@ import XCTest
 
 @MainActor
 final class MainWindowTests: XCTestCase {
+    func testServiceSettingsReturnToOriginWithoutChangingAccountRules() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            quotaNotificationService: QuotaNotificationService(client: DashboardNotificationClient(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json")))
+        let selected = model.selectedDeepSeek
+        defer { model.selectedDeepSeek = selected }
+        model.selectedDeepSeek = true
+        let oldThreshold = model.lowQuotaThreshold
+        let oldAutomatic = model.automaticRecoveryEnabled
+        model.mainWindowPage = .usage
+        model.openServiceSettings(.deepSeek)
+        XCTAssertEqual(model.mainWindowPage, .settings)
+        XCTAssertEqual(model.serviceSettingsTarget, .deepSeek)
+        XCTAssertEqual(model.mainSettingsSection, .reminders)
+        XCTAssertTrue(model.settingsHasReturn)
+        XCTAssertTrue(model.settingsReturnTitle.contains("DeepSeek"))
+        model.openServiceSettings(.codex, section: .connection)
+        XCTAssertEqual(model.mainSettingsSection, .connection)
+        XCTAssertEqual(model.serviceSettingsReturnPage, .usage)
+        model.closeServiceSettings()
+        XCTAssertEqual(model.mainWindowPage, .usage)
+        XCTAssertTrue(model.selectedDeepSeek)
+        XCTAssertFalse(model.settingsHasReturn)
+        model.openServiceSettings(.deepSeek, section: .connection, fromCatalog: true)
+        model.closeServiceSettings()
+        XCTAssertTrue(model.showServiceCatalog)
+        model.navigateToMainPage(.settings)
+        model.closeServiceSettings()
+        XCTAssertEqual(model.mainWindowPage, .settings)
+        XCTAssertEqual(model.lowQuotaThreshold, oldThreshold)
+        XCTAssertEqual(model.automaticRecoveryEnabled, oldAutomatic)
+        model.mainSettingsSection = .display
+        model.serviceSettingsTarget = .deepSeek
+        model.navigateToMainPage(.overview)
+        model.navigateToMainPage(.settings)
+        XCTAssertEqual(model.mainSettingsSection, .display)
+        XCTAssertEqual(model.serviceSettingsTarget, .deepSeek)
+        XCTAssertEqual(MainWindowPage.allCases, [.overview, .usage, .notifications, .settings])
+    }
+
+    func testSettingsRoundTripRestoresActualScrollOffset() async throws {
+        _ = NSApplication.shared
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            quotaNotificationService: QuotaNotificationService(client: DashboardNotificationClient(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json")))
+        let selected = model.selectedDeepSeek
+        defer { model.selectedDeepSeek = selected }
+        model.selectedDeepSeek = false
+        model.snapshots = [makeSnapshot(now: Date())]
+        let size = CGSize(width: 740, height: 620)
+        let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let host = NSHostingView(rootView: SettingsView(model: model))
+        window.contentView = host
+        host.frame = CGRect(origin: .zero, size: size)
+        func findScroll(_ view: NSView) -> NSScrollView? {
+            if let scroll = view as? NSScrollView { return scroll }
+            return view.subviews.compactMap(findScroll).first
+        }
+        host.layoutSubtreeIfNeeded()
+        try await Task.sleep(for: .milliseconds(250))
+        let scroll = try XCTUnwrap(findScroll(host))
+        scroll.contentView.scroll(to: NSPoint(x: 0, y: 120))
+        scroll.reflectScrolledClipView(scroll.contentView)
+        try await Task.sleep(for: .milliseconds(100))
+        let original = scroll.contentView.bounds.minY
+        XCTAssertGreaterThan(original, 50)
+        model.openServiceSettings(.codex)
+        try await Task.sleep(for: .milliseconds(200))
+        model.closeServiceSettings()
+        try await Task.sleep(for: .milliseconds(250))
+        XCTAssertEqual(try XCTUnwrap(findScroll(host)).contentView.bounds.minY, original, accuracy: 2)
+    }
+
+    func testServiceSettingsAndAppSettingsRenderAtMinimumWidth() throws {
+        _ = NSApplication.shared
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let languageKey = "ReadyCheck.language.v1", saved = UserDefaults.standard.object(forKey: languageKey)
+        defer {
+            if let saved { UserDefaults.standard.set(saved, forKey: languageKey) }
+            else { UserDefaults.standard.removeObject(forKey: languageKey) }
+        }
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            quotaNotificationService: QuotaNotificationService(client: DashboardNotificationClient(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json")))
+        for language in [AppLanguage.zhCN, .enUS] {
+            model.language = language
+            for dark in [false, true] {
+                for target in [ServiceSettingsTarget.codex, .deepSeek] {
+                    model.mainWindowPage = .overview
+                    for section in [MainSettingsSection.reminders, .connection] {
+                        model.openServiceSettings(target, section: section)
+                        try render(model: model, name: "service-\(target.rawValue)-\(section.rawValue)-\(language.rawValue)-\(dark)", width: 740, dark: dark, height: 620)
+                    }
+                }
+                model.mainWindowPage = .settings
+                model.mainSettingsSection = .general
+                try render(model: model, name: "application-settings-\(language.rawValue)-\(dark)", width: 740, dark: dark)
+                try renderDesktop(DeepSeekKeySheet(connection: model.deepSeek, language: language),
+                    name: "deepseek-api-sheet-\(language.rawValue)-\(dark)",
+                    size: CGSize(width: 420, height: 400), maximumFittingHeight: 400, dark: dark)
+            }
+        }
+    }
+
+    func testConnectedDeepSeekServiceSettingsRenderWithSyntheticBalance() async throws {
+        _ = NSApplication.shared
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = InMemoryCredentialStore()
+        let connection = DeepSeekConnection(store: store, client: DeepSeekBalanceClient(loader: SettingsDeepSeekFixture()),
+            historyStore: DeepSeekBalanceHistoryStore(fileURL: directory.appendingPathComponent("deepseek-history.json")))
+        await connection.connect(key: "synthetic")
+        XCTAssertTrue(connection.isConnected)
+        let model = ReadyCheckAppModel(credentialStore: store, deepSeekConnection: connection,
+            deepSeekAlertStore: DeepSeekBalanceAlertStore(fileURL: directory.appendingPathComponent("deepseek-alerts.json")),
+            quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
+            quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
+            quotaNotificationService: QuotaNotificationService(client: DashboardNotificationClient(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json")))
+        model.openServiceSettings(.deepSeek)
+        try render(model: model, name: "service-deepSeek-connected", width: 740)
+    }
+
     func testNotificationDefaultActionOpensHistoryFromSettingsAndOnStartup() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -402,8 +538,9 @@ final class MainWindowTests: XCTestCase {
         try renderDesktop(widget, name: "widget-last-hour-en", size: BubbleWidgetPlacement.expandedSize)
     }
 
-    private func renderDesktop<Content: View>(_ content: Content, name: String, size: CGSize, maximumFittingHeight: CGFloat? = nil) throws {
+    private func renderDesktop<Content: View>(_ content: Content, name: String, size: CGSize, maximumFittingHeight: CGFloat? = nil, dark: Bool? = nil) throws {
         let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
+        if let dark { window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua) }
         window.isReleasedWhenClosed = false
         defer { window.close() }
         let host = NSHostingView(rootView: content.frame(width: size.width).background(Color(nsColor: .windowBackgroundColor)))
@@ -425,18 +562,18 @@ final class MainWindowTests: XCTestCase {
         try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: URL(fileURLWithPath: directory).appendingPathComponent("\(name).png"))
     }
 
-    private func render(model: ReadyCheckAppModel, name: String, width: CGFloat, dark: Bool = false) throws {
-        let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: width, height: 760), styleMask: [.borderless], backing: .buffered, defer: false)
+    private func render(model: ReadyCheckAppModel, name: String, width: CGFloat, dark: Bool = false, height: CGFloat = 760) throws {
+        let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: width, height: height), styleMask: [.borderless], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         window.isReleasedWhenClosed = false
         defer { window.close() }
         let host = NSHostingView(rootView: SettingsView(model: model).background(Color(nsColor: .windowBackgroundColor)))
         window.contentView = host
-        host.frame = CGRect(x: 0, y: 0, width: width, height: 760)
+        host.frame = CGRect(x: 0, y: 0, width: width, height: height)
         host.layoutSubtreeIfNeeded()
         RunLoop.main.run(until: Date().addingTimeInterval(0.7))
         XCTAssertEqual(host.bounds.width, width, accuracy: 1)
-        XCTAssertEqual(host.bounds.height, 760, accuracy: 1)
+        XCTAssertEqual(host.bounds.height, height, accuracy: 1)
         guard let directory = ProcessInfo.processInfo.environment["READYCHECK_UI_EVIDENCE_DIR"] else { return }
         let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
         host.cacheDisplay(in: host.bounds, to: bitmap)
@@ -477,5 +614,12 @@ private struct DashboardAccountReader: CodexAppServerReading {
                 primary: CodexAppServerRateLimitWindow(usedPercent: 20, durationMinutes: 300, resetsAt: Date().addingTimeInterval(7200)),
                 secondary: CodexAppServerRateLimitWindow(usedPercent: 30, durationMinutes: 10080, resetsAt: Date().addingTimeInterval(172800)),
                 creditBalance: nil, hasCredits: false, creditsUnlimited: nil, planName: nil)], resetCredits: [], tokenUsage: nil, ordinaryUsageAllowed: true)
+    }
+}
+
+private struct SettingsDeepSeekFixture: HTTPDataLoading {
+    func data(for request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        let body = Data(#"{"is_available":true,"balance_infos":[{"currency":"CNY","total_balance":"5","granted_balance":"1","topped_up_balance":"4"}]}"#.utf8)
+        return (body, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
     }
 }

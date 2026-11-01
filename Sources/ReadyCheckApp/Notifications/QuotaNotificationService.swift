@@ -3,6 +3,10 @@ import OSLog
 import ReadyCheckCore
 import UserNotifications
 
+enum DeepSeekNotificationResult: Equatable {
+    case notSubmitted, submitted, delivered, storageFailed
+}
+
 enum TestNotificationResult: Equatable {
     case idle
     case sending
@@ -70,8 +74,11 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
     private let client: any NotificationCenterClient
     private let verificationDelays: [Duration]
     private var expiryInFlight: Set<String> = []
+    private var deepSeekSubmittedIdentifiers: Set<String> = []
+    private var deepSeekInFlight: Set<String> = []
     private var submittedExpiryIdentifiers: Set<String> = []
     var onOpenNotification: (() -> Void)?
+    var onOpenDeepSeekNotification: (() -> Void)?
 
     override init() {
         let client = SystemNotificationCenterClient()
@@ -100,6 +107,33 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
             alerts: settings.alertSetting,
             style: settings.alertStyle
         )
+    }
+
+    func deliverDeepSeekBalanceAlert(_ alert: DeepSeekBalanceAlert, localization: LocalizationService,
+                                     alertStore: DeepSeekBalanceAlertStore) async -> DeepSeekNotificationResult {
+        let identifier = "readycheck.deepseek-balance.\(alert.id.uuidString)"
+        guard !deepSeekSubmittedIdentifiers.contains(identifier), deepSeekInFlight.insert(identifier).inserted else { return .notSubmitted }
+        defer { deepSeekInFlight.remove(identifier) }
+        do { guard try await alertStore.isActive(alert) else { return .notSubmitted } }
+        catch { return .storageFailed }
+        if await deliveredNotificationIdentifiers().contains(identifier) {
+            do { try await alertStore.markSubmitted(alert); try await alertStore.markDelivered(alert); return .delivered }
+            catch { return .storageFailed }
+        }
+        guard await canDeliverNotifications() else { return .notSubmitted }
+        do { guard try await alertStore.isActive(alert) else { return .notSubmitted } }
+        catch { return .storageFailed }
+        let content = notificationContent(localization: localization)
+        content.title = localization.language == .zhCN ? "DeepSeek 余额提醒" : "DeepSeek balance alert"
+        content.body = localization.language == .zhCN ? "\(alert.currency) 余额已达到你设置的提醒条件。" : "Your \(alert.currency) balance reached your alert threshold."
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
+        do { try await client.add(request) } catch { return .notSubmitted }
+        deepSeekSubmittedIdentifiers.insert(identifier)
+        do { try await alertStore.markSubmitted(alert) } catch { return .storageFailed }
+        guard await verifyDelivery(request) else { return .submitted }
+        do { try await alertStore.markDelivered(alert); return .delivered }
+        catch { return .storageFailed }
     }
 
     func sendTestNotification(localization: LocalizationService) async -> Bool {
@@ -378,9 +412,10 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         completionHandler([.banner, .list, .sound])
     }
 
-    func handleNotificationResponse(actionIdentifier: String) {
+    func handleNotificationResponse(actionIdentifier: String, notificationIdentifier: String = "") {
         guard actionIdentifier == UNNotificationDefaultActionIdentifier else { return }
-        onOpenNotification?()
+        if notificationIdentifier.hasPrefix("readycheck.deepseek-balance.") { onOpenDeepSeekNotification?() }
+        else { onOpenNotification?() }
     }
 
     nonisolated func userNotificationCenter(
@@ -388,6 +423,7 @@ final class QuotaNotificationService: NSObject, UNUserNotificationCenterDelegate
         didReceive response: UNNotificationResponse
     ) async {
         let actionIdentifier = response.actionIdentifier
-        await MainActor.run { self.handleNotificationResponse(actionIdentifier: actionIdentifier) }
+        let notificationIdentifier = response.notification.request.identifier
+        await MainActor.run { self.handleNotificationResponse(actionIdentifier: actionIdentifier, notificationIdentifier: notificationIdentifier) }
     }
 }

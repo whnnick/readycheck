@@ -2,8 +2,13 @@ import AppKit
 import ReadyCheckCore
 import SwiftUI
 
+enum ServiceSettingsTarget: String {
+    case codex, deepSeek
+}
+
 enum MainWindowPage: String, CaseIterable, Identifiable {
     case overview, usage, notifications, settings
+    static let allCases: [MainWindowPage] = [.overview, .usage, .notifications, .settings]
     var id: String { rawValue }
     var titleKey: String { "navigation.\(rawValue)" }
     var symbol: String {
@@ -25,7 +30,7 @@ enum MainWindowPage: String, CaseIterable, Identifiable {
 }
 
 enum MainSettingsSection: String, CaseIterable, Identifiable {
-    case reminders, display, connection, general
+    case connection, reminders, display, general
     var id: String { rawValue }
     var titleKey: String { "navigation.\(rawValue)" }
 }
@@ -43,7 +48,7 @@ struct MainWindowSidebar: View {
             .padding(.horizontal, 14).padding(.top, 18)
             VStack(spacing: 5) {
                 ForEach(MainWindowPage.allCases) { page in
-                    Button { model.mainWindowPage = page } label: {
+                    Button { model.navigateToMainPage(page) } label: {
                         Label(model.localization.text(page.titleKey), systemImage: page.symbol)
                             .font(.system(size: 13, weight: model.mainWindowPage == page ? .semibold : .regular))
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -57,8 +62,10 @@ struct MainWindowSidebar: View {
             }.padding(.horizontal, 10)
             Spacer(minLength: 0)
             VStack(alignment: .leading, spacing: 6) {
-                Text("Codex").font(.caption.weight(.semibold))
-                Text(model.localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected"))
+                Text(model.selectedDeepSeek ? "DeepSeek API" : "Codex").font(.caption.weight(.semibold))
+                Text(model.selectedDeepSeek
+                    ? (model.language == .zhCN ? (model.deepSeek.isConnected ? "已连接" : "未连接") : (model.deepSeek.isConnected ? "Connected" : "Not connected"))
+                    : model.localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected"))
                     .font(.caption2).foregroundStyle(.secondary).lineLimit(2)
                 Text(ReadyCheckCore.version).font(.caption2.monospacedDigit()).foregroundStyle(.tertiary)
                 Button { model.showAboutWindow() } label: {

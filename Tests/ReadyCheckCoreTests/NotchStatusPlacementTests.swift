@@ -3,6 +3,27 @@ import XCTest
 @testable import ReadyCheckCore
 
 final class NotchStatusPlacementTests: XCTestCase {
+    func testBubbleDropAttachesOnlyNearPhysicalNotchOnItsScreen() {
+        let screen = CGRect(x: -1710, y: 300, width: 1710, height: 1107)
+        let gap = CGRect(x: -947, y: 1374, width: 185, height: 33)
+        func bubble(_ x: CGFloat, _ y: CGFloat) -> CGRect { CGRect(x: x - 46, y: y - 46, width: 92, height: 92) }
+        XCTAssertTrue(NotchStatusPlacement.shouldAttach(bubbleFrame: bubble(gap.midX, gap.minY - 45), notchGap: gap, screenFrame: screen))
+        for frame in [bubble(gap.midX, gap.minY - 150), bubble(gap.minX - 100, gap.minY),
+                      bubble(100, gap.minY), bubble(gap.midX, screen.maxY + 10)] {
+            XCTAssertFalse(NotchStatusPlacement.shouldAttach(bubbleFrame: frame, notchGap: gap, screenFrame: screen))
+        }
+        XCTAssertFalse(NotchStatusPlacement.shouldAttach(bubbleFrame: bubble(gap.midX, gap.minY), notchGap: nil, screenFrame: screen))
+    }
+
+    func testDetachRequiresDeliberateDownwardMovementAndAllowsReturningToNotch() {
+        let start = CGPoint(x: -800, y: 1000)
+        for end in [CGPoint(x: -800, y: 969), CGPoint(x: -700, y: 1000), CGPoint(x: -800, y: 1050)] {
+            XCTAssertFalse(NotchStatusPlacement.shouldDetach(pointerStart: start, pointerNow: end))
+        }
+        XCTAssertTrue(NotchStatusPlacement.shouldDetach(pointerStart: start, pointerNow: CGPoint(x: -850, y: 960)))
+        XCTAssertFalse(NotchStatusPlacement.shouldDetach(pointerStart: start, pointerNow: start))
+    }
+
     func testBuildsGapBetweenAuxiliaryAreas() {
         let gap = NotchStatusPlacement.notchGap(
             leftArea: CGRect(x: 0, y: 1_074, width: 763, height: 33),

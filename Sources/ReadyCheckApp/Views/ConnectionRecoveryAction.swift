@@ -67,8 +67,7 @@ extension ReadyCheckAppModel {
         case .refresh: await refresh(reason: .manual)
         case .checkUpdates: await checkForUpdates(isManual: true)
         case .connection:
-            mainWindowPage = .settings
-            mainSettingsSection = .connection
+            openServiceSettings(.codex, section: .connection)
             openMainWindowFromWidget()
         case .waiting: break
         }

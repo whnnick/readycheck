@@ -1,0 +1,168 @@
+[
+  {
+    "id": "codex",
+    "name": "Codex",
+    "group": "编程助手",
+    "aliases": "",
+    "methods": [
+      "OAuth"
+    ],
+    "metrics": [
+      "5h / 7天额度",
+      "Token",
+      "重置卡"
+    ],
+    "note": "现有原生能力继续保留；不恢复已移除的本机 Codex 主登录。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/codex.md",
+    "batch": 1
+  },
+  {
+    "id": "claude",
+    "name": "Claude",
+    "group": "编程助手",
+    "aliases": "Anthropic Claude Code",
+    "methods": [
+      "OAuth",
+      "网页登录状态",
+      "CLI",
+      "管理接口"
+    ],
+    "metrics": [
+      "订阅额度",
+      "API用量/费用",
+      "本机记录"
+    ],
+    "note": "CodexBar 提供多条来源；订阅与 API 需分开归属，ReadyCheck 尚未实测。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/claude.md",
+    "batch": 1
+  },
+  {
+    "id": "gemini",
+    "name": "Gemini",
+    "group": "编程助手",
+    "aliases": "Google 谷歌",
+    "methods": [
+      "CLI OAuth",
+      "网页登录状态"
+    ],
+    "metrics": [
+      "CLI配额",
+      "应用订阅额度"
+    ],
+    "note": "CodexBar 将 CLI 与 Gemini 应用来源分开；账号与额度不可互相代替，ReadyCheck 尚未实测。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/gemini.md",
+    "batch": 1
+  },
+  {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "group": "模型与API服务",
+    "aliases": "深度求索",
+    "methods": [
+      "API Key",
+      "可选网站会话"
+    ],
+    "metrics": [
+      "余额",
+      "可选网站用量"
+    ],
+    "note": "优先验证官方余额接口。CodexBar 的详细用量来自可选网站会话，不代表普通 API Key 可读取；本站原型仅演示余额。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/deepseek.md",
+    "batch": 1
+  },
+  {
+    "id": "cursor",
+    "name": "Cursor",
+    "group": "编程助手",
+    "aliases": "",
+    "methods": [
+      "用户选择的会话来源"
+    ],
+    "metrics": [
+      "套餐用量",
+      "账单周期"
+    ],
+    "note": "参考 CodexBar 的应用会话或网页登录状态读取路径；ReadyCheck 尚未验证账号归属、授权和刷新，不会默认扫描其他应用或浏览器。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/cursor.md",
+    "batch": 1
+  },
+  {
+    "id": "copilot",
+    "name": "GitHub Copilot",
+    "group": "编程助手",
+    "aliases": "Copilot GitHub 微软",
+    "methods": [
+      "设备授权登录"
+    ],
+    "metrics": [
+      "高级请求额度",
+      "套餐"
+    ],
+    "note": "参考 CodexBar 的 GitHub 设备授权与内部用量接口；ReadyCheck 尚未验证适用权限和接口稳定性，不承诺凭登录即可读取。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/copilot.md",
+    "batch": 2
+  },
+  {
+    "id": "alibaba-coding-plan",
+    "name": "通义／百炼 Coding Plan",
+    "group": "模型与API服务",
+    "aliases": "Alibaba Coding Plan 阿里 通义 千问 Qwen 百炼 编程套餐",
+    "methods": [
+      "用户授权的控制台会话"
+    ],
+    "metrics": [
+      "5h / 周 / 月额度"
+    ],
+    "note": "首版仅规划百炼 Coding Plan，不泛指全部通义产品。CodexBar 以控制台会话为基线，API Key 路径存在账号和地域限制，不能把普通 Key 视为完整统计权限。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/alibaba-coding-plan.md",
+    "batch": 2
+  },
+  {
+    "id": "zai",
+    "name": "智谱 GLM",
+    "group": "模型与API服务",
+    "aliases": "z.ai zai 智谱 GLM BigModel",
+    "methods": [
+      "套餐 Key · 按地域选择"
+    ],
+    "metrics": [
+      "Coding Plan 额度",
+      "用量"
+    ],
+    "note": "首版聚焦 GLM Coding Plan；国内 BigModel 与国际 z.ai 的账号、Key 和统计范围分开验证，不能跨地域自动套用。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/zai.md",
+    "batch": 2
+  },
+  {
+    "id": "kimi",
+    "name": "Kimi Code",
+    "group": "模型与API服务",
+    "aliases": "Kimi 月之暗面 编程 Coding",
+    "methods": [
+      "Kimi Code Key"
+    ],
+    "metrics": [
+      "5h / 周额度",
+      "套餐"
+    ],
+    "note": "此入口为 Kimi Code 订阅，不是 Moonshot/Kimi 开放平台余额。需核实地区、Key 类型和实际统计字段，不把 API 余额当订阅额度。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/kimi.md",
+    "batch": 2
+  },
+  {
+    "id": "minimax",
+    "name": "MiniMax",
+    "group": "模型与API服务",
+    "aliases": "稀宇 MiniMax Coding Plan",
+    "methods": [
+      "Coding Plan Key"
+    ],
+    "metrics": [
+      "Coding Plan 额度",
+      "套餐"
+    ],
+    "note": "先验证 Coding Plan 专属 Key；普通 API Key、国内与国际地域及可选网站用量分开处理，未验证前不承诺完整 Token 或费用历史。",
+    "reference": "https://github.com/steipete/CodexBar/blob/main/docs/minimax.md",
+    "batch": 2
+  }
+]

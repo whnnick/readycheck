@@ -63,7 +63,10 @@ class CodexOAuthClient {
     if (!response.ok) {
       const details = await parseOAuthErrorResponse(response);
       const suffix = details.description || details.error;
-      throw new Error(`OAuth token request failed (HTTP ${response.status})${suffix ? `: ${suffix}` : "."}`);
+      const guidance = response.status === 403
+        ? " 请检查 Windows 系统网络设置；浏览器扩展的网络设置可能不会作用于应用。服务也可能限制当前地区。"
+        : "";
+      throw new Error(`OAuth token request failed (HTTP ${response.status})${suffix ? `: ${suffix}` : "."}${guidance}`);
     }
 
     const payload = await response.json();

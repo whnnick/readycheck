@@ -20,7 +20,11 @@ struct FloatingWidgetView: View {
             VStack(alignment: .leading, spacing: 12) {
                 header
 
-                if model.snapshots.isEmpty {
+                if model.selectedDeepSeek {
+                    DeepSeekBalancePanel(connection: model.deepSeek, language: model.language, now: now) {
+                        model.openMainWindowFromWidget()
+                    }
+                } else if model.snapshots.isEmpty {
                     emptyState
                         .contentShape(Rectangle())
                         .onTapGesture {
@@ -92,14 +96,14 @@ struct FloatingWidgetView: View {
 
                 Button {
                     Task {
-                        await model.refresh(reason: .manual)
+                        await model.refreshSelectedService()
                         now = Date()
                     }
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
                 .buttonStyle(.borderless)
-                .disabled(model.isRefreshing)
+                .disabled(model.selectedDeepSeek ? model.deepSeek.isBusy : model.isRefreshing)
                 .help(localization.text("action.refresh"))
 
                 Button {
@@ -156,6 +160,11 @@ struct FloatingWidgetView: View {
     }
 
     private var refreshSummary: String {
+        if model.selectedDeepSeek {
+            return model.deepSeek.observedAt.map {
+                "DeepSeek · " + $0.formatted(date: .omitted, time: .standard)
+            } ?? (model.language == .zhCN ? "DeepSeek 尚未更新" : "DeepSeek has not updated yet")
+        }
         guard let lastRefreshAt = model.lastRefreshAt else {
             return localization.text("status.notUpdatedYet")
         }

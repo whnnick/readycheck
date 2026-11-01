@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-30",
+  "version": "0.7.0-preview.1",
+  "data": "synthetic only",
+  "desktopViewport": [
+    1440,
+    1024
+  ],
+  "narrowViewport": [
+    520,
+    900
+  ],
+  "sourcePixels": [
+    1487,
+    1058
+  ],
+  "catalogCount": 110,
+  "images": {
+    "catalog-narrow-dark.png": "66f34b570b33faceaa115f158fdf5dc566ae436095a658fb2ebeac4ac1835720",
+    "narrow-light.png": "0e9714e43b58a34be97332cb80d231af44d9f8d789dddad0bc82d4d5c4b3921f",
+    "comparison-lower.png": "ee44975cd4fcc5190f6858d9d6abe1467c18777168d958b94cd774dbf4725fdc",
+    "provider-catalog.png": "f3f195762ac58c6ad600f0a7b1d13b7747c52afc088bfc42ce1247b5192d546b",
+    "comparison-v1.png": "a32dc9f9d8a1067336871c8fbe8f5bd5498bfd1a6afbf742e5d3f9082fedd5f3",
+    "comparison-final.png": "4e212007ca3b2985543b9f8a3c6f2d3d234d88370005c5e73278cf6769135ae1",
+    "selected-light.png": "abd847a20d3856296a9ddf5a1715285db301b715b369804586de5bc3721e57c0",
+    "deepseek-balance.png": "0d0d2355ccdb067f6bbe5ce4a37239dd2cc6582d042ccaafd43fb2b883049819",
+    "comparison-header.png": "8467c6196a48f33db910921d22b277600dbd72227f5338918f9ce2dd764270e4",
+    "desktop-light-final.png": "83367a80ab0fa5c73a4440ed5c6211eac03125682f69c5ca09dd3f97f97cb0db",
+    "desktop-light-v1.png": "88f4f0895cb31fbd3c492c4d99d79ff9a439903adcd2d0ff99e93899c54697cc",
+    "narrow-dark.png": "9c184aca586110b058cec6b822506b0fba3dece6dd151f3b02537436c401a08f",
+    "desktop-dark.png": "ceb9f6acd8692dec53533310bdcf2a57382cd6473c7a0f41b2cdbabb70ae492e",
+    "desktop-light-v2.png": "7af717948956dc26f83db097f36306b6ca93b7dd1ab893f4be6c6b0cd1231249"
+  }
+}

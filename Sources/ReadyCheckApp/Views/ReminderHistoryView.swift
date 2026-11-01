@@ -4,7 +4,16 @@ import SwiftUI
 struct ReminderHistoryPageView: View {
     let records: [QuotaReminderHistoryRecord]
     let localization: LocalizationService
+    let deepSeekRules: [DeepSeekBalanceAlertRule]
+    let openServiceSettings: ((ServiceSettingsTarget) -> Void)?
     @State private var filter: NotificationHistoryFilter = .all
+
+    init(records: [QuotaReminderHistoryRecord], localization: LocalizationService, deepSeekRules: [DeepSeekBalanceAlertRule] = [], openServiceSettings: ((ServiceSettingsTarget) -> Void)? = nil) {
+        self.records = records
+        self.localization = localization
+        self.deepSeekRules = deepSeekRules
+        self.openServiceSettings = openServiceSettings
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -23,18 +32,39 @@ struct ReminderHistoryPageView: View {
             .pickerStyle(.menu)
             .fixedSize()
             Divider()
-            if records.isEmpty {
+            let selectedRecords = filter.select(records)
+            let selectedDeepSeek = filter.selectDeepSeek(deepSeekRules)
+            if records.isEmpty && NotificationHistoryFilter.all.selectDeepSeek(deepSeekRules).isEmpty {
                 ReminderHistoryEmptyView(localization: localization).padding(.vertical, 16)
-            } else if filter.select(records).isEmpty {
+            } else if selectedRecords.isEmpty && selectedDeepSeek.isEmpty {
                 Text(localization.text("notification.history.noMatches"))
                     .foregroundStyle(.secondary).padding(.vertical, 16)
             } else {
                 LazyVStack(alignment: .leading, spacing: 18) {
-                    ForEach(NotificationHistoryPresentation.groups(filter.select(records))) { group in
+                    if !selectedRecords.isEmpty, let openServiceSettings {
+                        Button(localization.language == .zhCN ? "Codex 提醒设置" : "Codex alert settings") { openServiceSettings(.codex) }.buttonStyle(.link)
+                    }
+                    ForEach(NotificationHistoryPresentation.groups(selectedRecords)) { group in
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(group.day.map { dayText($0) } ?? localization.text("notification.history.unknownDate"))
-                                .font(.headline)
+                            Text(group.day.map { dayText($0) } ?? localization.text("notification.history.unknownDate")).font(.headline)
                             ReminderHistoryRowsView(records: group.records, localization: localization)
+                        }
+                    }
+                    if !selectedDeepSeek.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(localization.language == .zhCN ? "DeepSeek 当前规则的最近提醒" : "Latest DeepSeek alerts for current rules").font(.headline)
+                                Spacer()
+                                if let openServiceSettings {
+                                    Button(localization.language == .zhCN ? "DeepSeek 提醒设置" : "DeepSeek alert settings") { openServiceSettings(.deepSeek) }.buttonStyle(.link)
+                                }
+                            }
+                            ForEach(selectedDeepSeek, id: \.currency) { rule in
+                                if let submitted = rule.lastSubmittedAt {
+                                    Text(rule.currency + " · " + submitted.formatted(date: .abbreviated, time: .shortened) + " · " + (rule.lastDeliveredAt == nil ? (localization.language == .zhCN ? "送达未确认" : "Delivery unverified") : (localization.language == .zhCN ? "已确认送达" : "Delivery verified")))
+                                        .font(.callout).foregroundStyle(.secondary)
+                                }
+                            }
                         }
                     }
                 }

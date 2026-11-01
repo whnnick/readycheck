@@ -10,6 +10,10 @@
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-en.png" alt="ReadyCheck: See your quota. Know what comes next. Native macOS, menu bar, Widget and notch." width="960"></p>
 
 
+> **Preview candidate:** 0.7.0-dev.21 adds macOS DeepSeek API balances, platform settings and bidirectional notch/capsule dragging. 503 development tests passed; remaining retention/device checks keep this outside the stable release. See [candidate notes](docs/versions/0.7.0/RELEASE_NOTES.md) and [checks](docs/versions/0.7.0/QA.md).
+
+**Candidate artifacts (not stable downloads):** `ReadyCheck-0.7.0-dev.21-macos.dmg` and `ReadyCheck-0.7.0-dev.21-windows-x64-portable.zip`. Release preparation is tracked in QA; the stable links above remain 0.6.1.
+
 ## 0.6.1 — Notifications open their history
 
 Click a ReadyCheck notification to open notification history, even if the app was closed. Existing reminder rules and history remain intact. [Release highlights](docs/versions/0.6.1/RELEASE_NOTES.md).
@@ -120,3 +124,5 @@ Use `scripts/build_and_run.sh` for development; follow the release process for d
 [0.6.0 plan](docs/versions/0.6.0/PLAN.md) · [Checks](docs/versions/0.6.0/QA.md).
 
 [0.6.1 checks](docs/versions/0.6.1/QA.md).
+
+Multi-provider usage monitoring: [0.7.0 plan](docs/versions/0.7.0/PLAN.md) · [interactive prototype](docs/versions/0.7.0/prototype/README.md) · [checks](docs/versions/0.7.0/QA.md). Ten targets in two batches; [implementation scope](docs/versions/0.7.0/TECHNICAL.md). Codex + DeepSeek have local development acceptance; other integrations remain pending. [Service/account settings plan](docs/versions/0.7.0/SETTINGS_PLAN.md) · [retention checklist](docs/versions/0.7.0/RELEASE_AUDIT.md) · [Interaction correction plan](docs/versions/0.7.0/INTERACTION_REPLAN.md).

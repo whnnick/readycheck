@@ -18,9 +18,12 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
     private var dragStartPointer: CGPoint?
     private var outsideClickMonitor: Any?
     private var escapeMonitor: Any?
+    private let notchContextProvider: @MainActor () -> NotchWindowController.ScreenContext?
     var onVisibilityChanged: ((Bool) -> Void)?
+    var onNotchAttachment: (() -> Void)?
 
-    override init() {
+    init(notchContextProvider: @escaping @MainActor () -> NotchWindowController.ScreenContext? = NotchWindowController.screenContext) {
+        self.notchContextProvider = notchContextProvider
         super.init()
         interaction.containsPointer = { [weak self] in
             self?.panel?.frame.contains(NSEvent.mouseLocation) == true
@@ -117,6 +120,16 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         placeResting(frame, visibleFrame: visible)
         panel.orderFrontRegardless()
         onVisibilityChanged?(true)
+    }
+
+    func restoreFromNotch(model: ReadyCheckAppModel, at pointer: CGPoint) {
+        show(model: model)
+        interaction.reset()
+        let frame = CGRect(x: pointer.x - BubbleWidgetPlacement.bubbleSize.width / 2,
+            y: pointer.y - BubbleWidgetPlacement.bubbleSize.height / 2,
+            width: BubbleWidgetPlacement.bubbleSize.width, height: BubbleWidgetPlacement.bubbleSize.height)
+        let visible = targetScreen(savedFrame: frame)?.visibleFrame ?? .zero
+        placeResting(BubbleWidgetPlacement.clamped(frame, in: visible), visibleFrame: visible)
     }
 
     func updateFullscreenBehavior(hideInFullscreen: Bool) {
@@ -261,6 +274,13 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         guard let panel, dragStartFrame != nil else { return }
         dragStartFrame = nil
         dragStartPointer = nil
+        if let context = notchContextProvider(), let onNotchAttachment,
+           NotchStatusPlacement.shouldAttach(bubbleFrame: panel.frame, notchGap: context.notchGap,
+                                            screenFrame: context.screen.frame) {
+            interaction.endDrag()
+            onNotchAttachment()
+            return
+        }
         let visible = targetScreen(savedFrame: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
         let bubbleFrame = CGRect(
             x: panel.frame.midX - BubbleWidgetPlacement.bubbleSize.width / 2,

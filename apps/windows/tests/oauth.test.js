@@ -93,3 +93,28 @@ assert.deepEqual(decodeJWTPayload(accessToken)["https://api.openai.com/profile"]
 });
 
 console.log("Windows OAuth checks passed.");
+
+(async () => {
+  const grants = [];
+  const client = new CodexOAuthClient({
+    fetchImpl: async (_url, options) => {
+      grants.push(new URLSearchParams(options.body).get('grant_type'));
+      return { ok: true, json: async () => ({ access_token: 'synthetic', refresh_token: 'synthetic', expires_in: 60 }) };
+    }
+  });
+  await client.exchangeCode('synthetic', { verifier: 'synthetic' });
+  await client.refreshToken('synthetic');
+  assert.deepEqual(grants, ['authorization_code', 'refresh_token']);
+})().catch(error => { console.error(error); process.exitCode = 1; });
+
+new CodexOAuthClient({
+  fetchImpl: async () => ({ ok: false, status: 403, json: async () => ({ error: { message: "Country, region, or territory not supported" } }) })
+}).exchangeCode("synthetic-code", { verifier: "synthetic-verifier" }).then(
+  () => assert.fail("region restriction should fail"),
+  error => {
+    assert.match(error.message, /HTTP 403/);
+    assert.match(error.message, /Windows 系统网络设置/);
+    assert.match(error.message, /服务也可能限制当前地区/);
+    assert.doesNotMatch(error.message, /synthetic-code|synthetic-verifier/);
+  }
+);

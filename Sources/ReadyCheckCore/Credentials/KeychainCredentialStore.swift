@@ -11,6 +11,10 @@ public struct KeychainCredentialStore: CredentialStore {
         self.allowsInteraction = allowsInteraction
     }
 
+    public func allowingInteraction() -> KeychainCredentialStore {
+        KeychainCredentialStore(service: service, allowsInteraction: true)
+    }
+
     public func loadCredential(for key: CredentialKey) async throws -> String? {
         try await Self.perform {
             if allowsInteraction { return try loadSynchronously(for: key) }

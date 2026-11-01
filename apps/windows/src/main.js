@@ -2,7 +2,7 @@
 
 const http = require("node:http");
 const path = require("node:path");
-const { app, BrowserWindow, Menu, Notification, Tray, ipcMain, nativeImage, shell } = require("electron");
+const { app, BrowserWindow, Menu, Notification, Tray, ipcMain, nativeImage, net, shell } = require("electron");
 const { CodexOAuthClient } = require("./services/oauth");
 const { PrefsStore } = require("./services/prefs-store");
 const { QuotaHistoryStore } = require("./services/history-store");
@@ -463,8 +463,8 @@ app.whenReady().then(async () => {
   reminderStore = new QuotaReminderStore(userDataPath);
   readyState = new ReadyCheckState(prefsStore.load(), {
     tokenStore: new EncryptedTokenStore(userDataPath),
-    oauthClient: new CodexOAuthClient(),
-    usageClient: new CodexUsageClient(),
+    oauthClient: new CodexOAuthClient({ fetchImpl: net.fetch }),
+    usageClient: new CodexUsageClient({ fetchImpl: net.fetch }),
     appServerClient: new CodexAppServerClient(),
     historyStore: new QuotaHistoryStore(userDataPath)
   });

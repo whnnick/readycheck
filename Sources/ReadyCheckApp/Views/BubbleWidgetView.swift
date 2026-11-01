@@ -30,6 +30,14 @@ struct BubbleWidgetView: View {
     @State private var now = Date()
     @State private var recoveryHighlight = false
 
+    private var previewHint: String {
+        let hint = model.localization.text("widget.previewHint")
+        guard model.notchStatusAvailable else { return hint }
+        return hint + "\n" + (model.language == .zhCN
+            ? "拖到刘海附近松开，切换为刘海显示。"
+            : "Drop near the notch to switch to notch display.")
+    }
+
     private var snapshot: ProviderQuotaSnapshot? {
         model.snapshots.first { $0.providerId == "codex-oauth" }
     }
@@ -106,20 +114,31 @@ struct BubbleWidgetView: View {
                     .clipped().padding(16)
                     .opacity(reveal).allowsHitTesting(isExpanded && reveal > 0.9)
                     .accessibilityHidden(!isExpanded)
-                OrbitalQuotaDial(windows: expandedWindows, primaryLabel: primaryWindowShortLabel,
-                    canShow: snapshot?.canShowPercentages(now: now) == true, recoveryHighlight: recoveryHighlight)
+                Group {
+                    if model.selectedDeepSeek {
+                        VStack(spacing: 3) {
+                            Text("DS").font(.system(size: 15, weight: .semibold))
+                            Text(DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now))
+                                .font(.system(size: 10, weight: .medium)).monospacedDigit()
+                                .lineLimit(2).minimumScaleFactor(0.65)
+                        }.foregroundStyle(.white)
+                    } else {
+                        OrbitalQuotaDial(windows: expandedWindows, primaryLabel: primaryWindowShortLabel,
+                            canShow: snapshot?.canShowPercentages(now: now) == true, recoveryHighlight: recoveryHighlight)
                     .overlay(alignment: .topTrailing) {
                         if snapshot?.isCached == true {
                             Image(systemName: "clock.badge.exclamationmark").font(.caption).foregroundStyle(.orange)
                         }
                     }
+                    }
+                }
                     .frame(width: 76, height: 76).opacity(1 - reveal)
                     .contentShape(Circle()).onTapGesture(perform: onTap)
                     .simultaneousGesture(dragGesture).contextMenu { contextMenu }
                     .allowsHitTesting(!isExpanded).accessibilityHidden(isExpanded)
                     .accessibilityAddTraits(.isButton).accessibilityAction { onTap() }
-                    .help(model.localization.text("widget.previewHint"))
-                    .accessibilityLabel(model.localization.text("bubble.accessibility") + " "
+                    .help(previewHint)
+                    .accessibilityLabel(model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " "
                         + expandedWindows.prefix(2).map {
                             QuotaWindowDisplay.title(for: $0, localization: model.localization) + " "
                                 + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.displayableRemainingRatio : nil)
@@ -153,6 +172,12 @@ struct BubbleWidgetView: View {
 
     private func edgeTab(_ edge: BubbleWidgetPlacement.Edge) -> some View {
         VStack(spacing: 10) {
+            if model.selectedDeepSeek {
+                Text("DS").font(.system(size: 11, weight: .semibold))
+                Text(DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now))
+                    .font(.system(size: 8)).monospacedDigit().lineLimit(3).minimumScaleFactor(0.6)
+                    .frame(width: 22)
+            } else {
             codexIcon.frame(width: 16, height: 16)
             ForEach(expandedWindows.prefix(2)) { window in
                 let ratio = snapshot?.canShowPercentages(now: now) == true ? window.displayableRemainingRatio : nil
@@ -163,6 +188,7 @@ struct BubbleWidgetView: View {
                     }
                     .frame(width: 6, height: 44)
             }
+            }
         }
         .frame(width: BubbleWidgetPlacement.tabSize.width, height: BubbleWidgetPlacement.tabSize.height)
         .foregroundStyle(.white)
@@ -170,10 +196,10 @@ struct BubbleWidgetView: View {
         .onTapGesture(perform: onTap)
         .simultaneousGesture(dragGesture)
         .contextMenu { contextMenu }
-        .help(model.localization.text("widget.previewHint"))
+        .help(previewHint)
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { onTap() }
-        .accessibilityLabel(model.localization.text("bubble.accessibility") + " " + expandedWindows.prefix(2).map {
+        .accessibilityLabel(model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " " + expandedWindows.prefix(2).map {
             QuotaWindowDisplay.title(for: $0, localization: model.localization) + " "
                 + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.displayableRemainingRatio : nil)
         }.joined(separator: ", "))
@@ -185,7 +211,7 @@ struct BubbleWidgetView: View {
                 codexIcon.frame(width: 24, height: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("ReadyCheck").font(.system(size: 14, weight: .semibold))
-                    Text("Codex · " + model.localization.text(snapshot?.availabilityTextKey(now: now) ?? "status.unavailable"))
+                    Text(model.selectedDeepSeek ? "DeepSeek API" : "Codex · " + model.localization.text(snapshot?.availabilityTextKey(now: now) ?? "status.unavailable"))
                         .font(.system(size: 10)).foregroundStyle(.white.opacity(0.55)).lineLimit(1)
                 }
                 Spacer()
@@ -203,7 +229,13 @@ struct BubbleWidgetView: View {
                 .accessibilityValue(model.localization.text(isPinned ? "widget.pinStateOn" : "widget.pinStateOff"))
             }
 
-            if let snapshot, !windows.isEmpty {
+            if model.selectedDeepSeek {
+                ScrollView {
+                    DeepSeekBalancePanel(connection: model.deepSeek, language: model.language, now: now) {
+                        openMainWindow()
+                    }.environment(\.colorScheme, .dark)
+                }.scrollIndicators(.hidden).frame(maxHeight: .infinity)
+            } else if let snapshot, !windows.isEmpty {
                 ScrollView(.vertical) {
                     VStack(spacing: 8) {
                         ForEach(expandedWindows) { window in
@@ -220,16 +252,17 @@ struct BubbleWidgetView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
 
-            NextEventsView(model: model, now: now, compact: true, openMain: model.openMainWindowFromWidget)
-            miniTrend
+            if !model.selectedDeepSeek {
+                NextEventsView(model: model, now: now, compact: true, openMain: model.openMainWindowFromWidget)
+                miniTrend
+            }
             HStack {
-                Text(snapshot.map { model.localization.text($0.isCached == true ? "status.stale" : "status.lastUpdated") + " "
+                Text(model.selectedDeepSeek ? (model.deepSeek.observedAt.map { $0.formatted(date: .omitted, time: .standard) } ?? "—") : snapshot.map { model.localization.text($0.isCached == true ? "status.stale" : "status.lastUpdated") + " "
                     + DateFormatter.localizedString(from: $0.refreshedAt, dateStyle: .none, timeStyle: .short) } ?? "—")
                     .font(.system(size: 10)).foregroundStyle(snapshot?.isCached == true ? Color.orange : .white.opacity(0.5))
                 Spacer(minLength: 6)
                 Button {
-                    model.mainWindowPage = .settings
-                    model.mainSettingsSection = .reminders
+                    model.openServiceSettings(model.selectedDeepSeek ? .deepSeek : .codex)
                     model.openMainWindowFromWidget()
                 } label: {
                     Image(systemName: "bell")

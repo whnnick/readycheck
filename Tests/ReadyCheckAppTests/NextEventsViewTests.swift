@@ -25,7 +25,7 @@ final class NextEventsViewTests: XCTestCase {
         model.openNextEvent(event)
         XCTAssertNil(model.resetCreditDetailSelection, "Rules must not stay hidden behind card details")
         XCTAssertEqual(model.mainWindowPage, .settings)
-        XCTAssertEqual(model.mainSettingsSection, .reminders)
+        XCTAssertEqual(model.serviceSettingsTarget, .codex)
         XCTAssertTrue(model.resetCreditStatus.enabled, "Navigation must not change authorization")
         let firstRequest = try XCTUnwrap(model.resetCreditRulesNavigationRequest)
         model.openResetCreditRules()
@@ -74,7 +74,7 @@ final class NextEventsViewTests: XCTestCase {
             QuotaReminderHistoryRecord(id: "synthetic-scroll-\(index)", kind: .quotaRecovered,
                 status: .automaticallyWithdrawn, lastAttemptAt: Date().addingTimeInterval(Double(-index * 60)))
         }
-        model.mainWindowPage = .notifications
+        model.navigateToMainPage(.notifications)
         try await Task.sleep(for: .milliseconds(150))
         let historyScroll = try XCTUnwrap(scrollViews(host).first)
         historyScroll.contentView.scroll(to: NSPoint(x: 0, y: 200))
@@ -82,7 +82,7 @@ final class NextEventsViewTests: XCTestCase {
         XCTAssertGreaterThan(historyScroll.contentView.bounds.minY, 50)
         model.mainWindowPage = .settings
         try await Task.sleep(for: .milliseconds(150))
-        model.mainWindowPage = .notifications
+        model.navigateToMainPage(.notifications)
         try await Task.sleep(for: .milliseconds(150))
         let returnedScroll = try XCTUnwrap(scrollViews(host).first)
         XCTAssertEqual(returnedScroll.contentView.bounds.minY, 0, accuracy: 1, "Re-entering history must show its heading and refresh control")

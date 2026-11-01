@@ -2,7 +2,7 @@ import Foundation
 import ReadyCheckCore
 
 enum NotificationHistoryFilter: String, CaseIterable, Identifiable {
-    case all, quotaLow, quotaRecovered, manualResetExpiring, cardsUsed, creditsStarted
+    case all, quotaLow, quotaRecovered, manualResetExpiring, cardsUsed, creditsStarted, deepSeekBalance
     var id: Self { self }
     var labelKey: String { "notification.history.filter." + rawValue }
 
@@ -15,8 +15,14 @@ enum NotificationHistoryFilter: String, CaseIterable, Identifiable {
             case .manualResetExpiring: record.kind == .manualResetExpiring
             case .cardsUsed: record.kind == .resetCreditUsed
             case .creditsStarted: record.kind == .creditsStarted
+            case .deepSeekBalance: false
             }
         }
+    }
+
+    func selectDeepSeek(_ rules: [DeepSeekBalanceAlertRule]) -> [DeepSeekBalanceAlertRule] {
+        guard self == .all || self == .deepSeekBalance else { return [] }
+        return rules.filter { $0.lastSubmittedAt != nil }.sorted { ($0.lastSubmittedAt ?? .distantPast) > ($1.lastSubmittedAt ?? .distantPast) }
     }
 }
 

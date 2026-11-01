@@ -10,10 +10,30 @@ struct NotchDetailsView: View {
     private var windows: [QuotaWindow] { snapshot?.windows ?? [] }
 
     var body: some View {
+        Group {
+            if model.selectedDeepSeek {
+                VStack(alignment: .leading, spacing: 8) {
+                    ScrollView {
+                        DeepSeekBalancePanel(connection: model.deepSeek, language: model.language, now: now) {
+                            model.mainWindowPage = .overview
+                            model.openMainWindowFromWidget()
+                            onDismiss()
+                        }
+                    }
+                    Button(model.localization.text("bubble.openMainWindow")) {
+                        model.mainWindowPage = .overview
+                        model.openMainWindowFromWidget()
+                        onDismiss()
+                    }.buttonStyle(.plain).foregroundStyle(.cyan).font(.caption)
+                }
+            } else {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("ReadyCheck").font(.subheadline.weight(.semibold))
                 Spacer()
+                if model.notchShowsBothQuotas {
+                    Text("5h · 7d").font(.caption).foregroundStyle(.secondary)
+                } else {
                 Picker(model.localization.text("settings.quotaWindow"), selection: Binding(
                     get: { model.notchQuotaSelection.pickerSelection(in: windows) },
                     set: { model.notchQuotaSelection = $0 }
@@ -26,11 +46,13 @@ struct NotchDetailsView: View {
                         Text(QuotaWindowDisplay.shortLabel(for: window)).tag(NotchQuotaSelection.window(window.id))
                     }
                 }.labelsHidden().frame(maxWidth: 160).controlSize(.small)
+                }
             }
             ScrollView(.vertical) {
                 if let snapshot {
                     VStack(spacing: 6) {
-                        ForEach(model.notchQuotaSelection.displayWindows(in: windows)) { window in
+                        ForEach(Self.orderedWindows(windows, primary: model.notchQuotaSelection,
+                                                   showsBoth: model.notchShowsBothQuotas)) { window in
                             CompactQuotaRow(window: window, snapshot: snapshot, localization: model.localization, now: now)
                         }
                     }
@@ -53,9 +75,16 @@ struct NotchDetailsView: View {
                 }.buttonStyle(.plain).foregroundStyle(.cyan).font(.caption)
             }
         }
+            }
+        }
         .padding(.horizontal, 18).padding(.vertical, 14)
-        .background(Color.black, in: UnevenRoundedRectangle(topLeadingRadius: 20, bottomLeadingRadius: 22,
-            bottomTrailingRadius: 22, topTrailingRadius: 20))
         .environment(\.colorScheme, .dark)
+    }
+
+    static func orderedWindows(_ windows: [QuotaWindow], primary: NotchQuotaSelection, showsBoth: Bool) -> [QuotaWindow] {
+        guard showsBoth else { return primary.displayWindows(in: windows) }
+        let fixed = NotchStatusView.dualWindows(in: windows).compactMap { $0 }
+        let ids = Set(fixed.map(\.id))
+        return fixed + windows.filter { !ids.contains($0.id) }
     }
 }

@@ -19,7 +19,7 @@ EXECUTABLE_TARGET="${MACOS_DIR}/ReadyCheckApp"
 ICONSET_DIR="${BUILD_DIR}/ReadyCheck.iconset"
 ICON_SOURCE="${BUILD_DIR}/ReadyCheckIcon1024.png"
 ICON_ARCHIVE="${BUILD_DIR}/ReadyCheck.icns"
-VERSION="0.6.1"
+VERSION="0.7.0-dev.21"
 PREVIEW_SIGNING_IDENTITY="ReadyCheck Preview Signing"
 
 resolve_signing_identity() {
@@ -50,6 +50,8 @@ swift build --build-system native --disable-sandbox --scratch-path "${BUILD_DIR}
 mkdir -p "${MACOS_DIR}" "${RESOURCES_DIR}"
 cp "${EXECUTABLE_SOURCE}" "${EXECUTABLE_TARGET}"
 chmod +x "${EXECUTABLE_TARGET}"
+mkdir -p "${RESOURCES_DIR}/ReadyCheck_ReadyCheckApp.bundle"
+cp "${BUILD_DIR}/release/ReadyCheck_ReadyCheckApp.bundle/"* "${RESOURCES_DIR}/ReadyCheck_ReadyCheckApp.bundle/"
 
 generate_icon() {
     swift "${SCRIPT_DIR}/render_app_icon.swift" "${ICON_SOURCE}"

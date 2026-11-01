@@ -1,0 +1,49 @@
+{
+  "version": "0.7.0-dev.21",
+  "status": "candidate-packaged-not-published",
+  "public_source_tests": {
+    "core": 332,
+    "app": 171,
+    "failures": 0,
+    "skips": 0
+  },
+  "windows_checks": [
+    "check",
+    "smoke",
+    "smoke:ui"
+  ],
+  "macos": {
+    "architecture": "arm64",
+    "signature": "ReadyCheck Preview Signing",
+    "developer_id": false,
+    "notarized": false,
+    "mounted_version_verified": true,
+    "strict_signature_verified": true,
+    "installed_designated_requirement_matches": true,
+    "final_dmg_installed": false
+  },
+  "windows": {
+    "architecture": "x64",
+    "zip_integrity_verified": true,
+    "asar_version_networking_verified": true,
+    "affected_machine_403_verified": false
+  },
+  "artifacts": [
+    {
+      "name": "ReadyCheck-0.7.0-dev.21-macos.dmg",
+      "bytes": 3531160,
+      "sha256": "f635603fd435c1ff49b2e1fdfa0d681e11a214ba17512b0e57d7ce8d8d982779"
+    },
+    {
+      "name": "ReadyCheck-0.7.0-dev.21-windows-x64-portable.zip",
+      "bytes": 151013258,
+      "sha256": "c40cfa3c2ae025435616a2d503c25b42b89cb8d805dd4578bbc63973f0c898c8"
+    }
+  ],
+  "remote": {
+    "pushed": false,
+    "draft": null,
+    "published": false
+  },
+  "stable_release_gate": "not-cleared"
+}

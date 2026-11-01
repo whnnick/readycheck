@@ -5,22 +5,123 @@ struct NotchStatusView: View {
     @Bindable var model: ReadyCheckAppModel
 
     var isExpanded = false
+    var isDragging = false
+    var presentationAnimation: Animation?
+    var collapsedWidth: CGFloat?
     var onClick: () -> Void = {}
     var onDismiss: () -> Void = {}
 
     @State private var now = Date()
 
     var body: some View {
-        Group {
-            if isExpanded { NotchDetailsView(model: model, now: now, onDismiss: onDismiss) }
-            else { compactStatus }
+        GeometryReader { geometry in
+            ZStack(alignment: .topLeading) {
+                compactContent
+                    .frame(width: min(collapsedWidth ?? geometry.size.width, geometry.size.width),
+                           height: NotchStatusPlacement.defaultHeight)
+                    .transaction { $0.animation = nil }
+                    .opacity(isExpanded ? 0 : 1)
+                    .animation(presentationAnimation?.speed(2), value: isExpanded)
+                    .position(x: geometry.size.width / 2, y: NotchStatusPlacement.defaultHeight / 2)
+                    .allowsHitTesting(!isExpanded).accessibilityHidden(isExpanded)
+                NotchDetailsView(model: model, now: now, onDismiss: onDismiss)
+                    .frame(width: 360, height: 264)
+                    // Fade the content without animating its internal text layout.
+                    .transaction { $0.animation = nil }
+                    .opacity(isExpanded ? 1 : 0)
+                    .animation(presentationAnimation?.speed(isExpanded ? 1 : 2).delay(isExpanded ? 0.10 : 0), value: isExpanded)
+                    .position(x: geometry.size.width / 2, y: 132)
+                    .allowsHitTesting(isExpanded).accessibilityHidden(!isExpanded)
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
         }
+        .background(notchBackground.animation(presentationAnimation, value: isExpanded))
+        .clipped()
+        .transaction { $0.animation = nil }
         .task {
             while !Task.isCancelled {
                 now = Date()
                 try? await Task.sleep(for: .seconds(30))
             }
         }
+    }
+
+    private var compactContent: some View {
+        Group {
+            if model.selectedDeepSeek {
+                VStack(spacing: 4) {
+                    Text("DeepSeek API").font(.system(size: 11, weight: .semibold))
+                    Text(DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now))
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12).padding(.top, 3).padding(.bottom, 5)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(notchShape)
+                .onTapGesture(perform: onClick)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { onClick() }
+                .help(model.localization.text("notch.previewHint"))
+            } else if model.notchShowsBothQuotas {
+                dualStatus
+            } else { compactStatus }
+        }
+    }
+
+    private var notchShape: UnevenRoundedRectangle {
+        UnevenRoundedRectangle(topLeadingRadius: isExpanded || isDragging ? 20 : 0, bottomLeadingRadius: isExpanded ? 22 : 16,
+            bottomTrailingRadius: isExpanded ? 22 : 16, topTrailingRadius: isExpanded || isDragging ? 20 : 0, style: .continuous)
+    }
+
+    private var notchBackground: some View {
+        notchShape.fill(.black)
+            .overlay(notchShape.strokeBorder(.white.opacity(0.10), lineWidth: 0.6))
+    }
+
+    private var dualStatus: some View {
+        let windows = Self.dualWindows(in: snapshot?.windows ?? [])
+        return VStack(spacing: 5) {
+            quotaLine("5h", window: windows[0])
+            quotaLine("7d", window: windows[1])
+        }
+        .padding(.horizontal, 14).padding(.top, 4).padding(.bottom, 7)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(notchShape)
+        .onTapGesture(perform: onClick)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { onClick() }
+        .help(model.localization.text("notch.previewHint"))
+    }
+
+    private func quotaLine(_ label: String, window: QuotaWindow?) -> some View {
+        let ratio = Self.ratio(for: window, snapshot: snapshot, now: now)
+        return HStack(spacing: 6) {
+            Text(label).foregroundStyle(.white.opacity(0.7)).frame(width: 17, alignment: .leading)
+            GeometryReader { geometry in
+                Capsule().fill(.white.opacity(0.16))
+                    .overlay(alignment: .leading) {
+                        Capsule().fill(quotaColor(ratio).gradient)
+                            .frame(width: geometry.size.width * max(0, min(ratio ?? 0, 1)))
+                    }
+            }.frame(height: 3)
+            Text(QuotaFormatters.percentageText(for: ratio)).foregroundStyle(quotaColor(ratio))
+                .frame(width: 32, alignment: .trailing)
+        }
+        .font(.system(size: 10, weight: .medium, design: .rounded)).monospacedDigit()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Codex " + label)
+        .accessibilityValue(QuotaFormatters.percentageText(for: ratio))
+    }
+
+    static func dualWindows(in windows: [QuotaWindow]) -> [QuotaWindow?] {
+        [windows.first { $0.durationMinutes == 300 || $0.labelKey == "quota.window.codex.5h" || $0.labelKey == "quota.fiveHour" },
+         windows.first { $0.durationMinutes == 10080 || $0.labelKey == "quota.window.codex.7d" || $0.labelKey == "quota.sevenDay" }]
+    }
+
+    static func ratio(for window: QuotaWindow?, snapshot: ProviderQuotaSnapshot?, now: Date) -> Double? {
+        guard snapshot?.isCached != true, snapshot?.canShowPercentages(now: now) == true else { return nil }
+        return window?.displayableRemainingRatio
     }
 
     private var compactStatus: some View {
@@ -55,27 +156,7 @@ struct NotchStatusView: View {
         .padding(.horizontal, 13)
         .padding(.bottom, 7)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background {
-            UnevenRoundedRectangle(
-                topLeadingRadius: 0,
-                bottomLeadingRadius: 14,
-                bottomTrailingRadius: 14,
-                topTrailingRadius: 0,
-                style: .continuous
-            )
-            .fill(Color.black)
-            .overlay {
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 0,
-                    bottomLeadingRadius: 14,
-                    bottomTrailingRadius: 14,
-                    topTrailingRadius: 0,
-                    style: .continuous
-                )
-                .stroke(Color.white.opacity(0.12), lineWidth: 0.6)
-            }
-        }
-        .contentShape(Rectangle())
+        .contentShape(notchShape)
         .onTapGesture(perform: onClick)
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { onClick() }

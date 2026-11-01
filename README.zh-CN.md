@@ -10,6 +10,10 @@
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-zh.png" alt="ReadyCheck：额度看得见，下一步心里有数。原生 macOS、菜单栏、Widget 与刘海。" width="960"></p>
 
 
+> **预览候选版：**0.7.0-dev.21 新增 Mac DeepSeek API 余额、分平台设置与刘海/胶囊双向拖动，503 项开发测试通过；剩余保留/设备验收尚未解除稳定发布门槛。见[候选版说明](docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md)及[验证记录](docs/versions/0.7.0/QA.zh-CN.md)。
+
+**候选产物（非稳定下载）：**`ReadyCheck-0.7.0-dev.21-macos.dmg` 与 `ReadyCheck-0.7.0-dev.21-windows-x64-portable.zip`。发布准备见 QA，上方稳定下载仍为 0.6.1。
+
 ## 0.6.1 — 点击通知直达记录
 
 点击 ReadyCheck 通知即可打开通知记录，应用退出时也会启动并跳转。原有提醒规则和历史保留。[更新重点](docs/versions/0.6.1/RELEASE_NOTES.zh-CN.md)。
@@ -120,3 +124,5 @@ scripts/package_app.sh
 [0.6.0计划](docs/versions/0.6.0/PLAN.zh-CN.md) · [验收](docs/versions/0.6.0/QA.zh-CN.md)。
 
 [0.6.1 验收](docs/versions/0.6.1/QA.zh-CN.md)。
+
+多服务用量监控：[0.7.0 计划](docs/versions/0.7.0/PLAN.zh-CN.md) · [交互原型](docs/versions/0.7.0/prototype/README.zh-CN.md) · [黑盒检查](docs/versions/0.7.0/QA.zh-CN.md)。十家目标分两批；[实施范围](docs/versions/0.7.0/TECHNICAL.zh-CN.md)。已记录 Codex + DeepSeek 本机开发验收，其他服务待接入；[服务与账号设置规划](docs/versions/0.7.0/SETTINGS_PLAN.zh-CN.md) · [功能保留核对](docs/versions/0.7.0/RELEASE_AUDIT.zh-CN.md) · [交互修正规划](docs/versions/0.7.0/INTERACTION_REPLAN.zh-CN.md)。

@@ -53,7 +53,7 @@ final class ConnectionRecoveryActionTests: XCTestCase {
         XCTAssertEqual(model.mainWindowPage, .notifications)
         await model.performConnectionRecovery(.connection)
         XCTAssertEqual(model.mainWindowPage, .settings)
-        XCTAssertEqual(model.mainSettingsSection, .connection)
+        XCTAssertEqual(model.serviceSettingsTarget, .codex)
         XCTAssertEqual(opened, 1)
         XCTAssertEqual(model.codexOAuthStatus, .failed, "Navigation must not replace existing credentials")
         model.codexOAuthStatus = .waitingForCallback
