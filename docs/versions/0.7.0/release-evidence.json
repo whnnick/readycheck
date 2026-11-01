@@ -1,6 +1,6 @@
 {
   "version": "0.7.0-dev.21",
-  "status": "candidate-packaged-not-published",
+  "status": "draft-verified-not-published",
   "public_source_tests": {
     "core": 332,
     "app": 171,
@@ -41,9 +41,17 @@
     }
   ],
   "remote": {
-    "pushed": false,
-    "draft": null,
-    "published": false
+    "pushed": true,
+    "source_commit": "d2f100c0b3a04df6486fe9c05b63095133d9bcdd",
+    "tag": "v0.7.0-dev.21",
+    "tag_commit_verified": true,
+    "release_id": 430516266,
+    "draft": true,
+    "prerelease": true,
+    "published": false,
+    "both_assets_attached": true,
+    "download_sha256_matches_github_and_local": true,
+    "stable_latest": "v0.6.1"
   },
   "stable_release_gate": "not-cleared"
 }

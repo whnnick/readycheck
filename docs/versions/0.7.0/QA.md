@@ -7,7 +7,7 @@ The authorized package/push uses **0.7.0-dev.21**, with stable 0.6.1 downloads r
 - Public-sync source passed 332 Core +171 App tests (503), zero failures/skips, with native captures enabled. Windows check/smoke/UI-smoke passed under Node 24.
 - The mounted Apple-silicon DMG passed version, checksum and strict signature checks; its designated signing requirement matches the installed dev.21. The final DMG was not installed again during packaging. Live device acceptance above refers to the previously installed dev.21.
 - Windows ZIP integrity, x64 PE, ASAR version and both Electron-networking injections were read back; packaged text excludes credentials/internal agent files. This does not verify the affected machine's 403.
-- The distribution directory contains only the current DMG and Windows ZIP. Source push, draft upload and remote download checks are pending.
+- The distribution directory contains only the current DMG and Windows ZIP. Public `main` and the peeled `v0.7.0-dev.21` tag were verified against source commit `d2f100c`. Both packages are attached to a prerelease draft; authenticated re-downloads match both GitHub asset digests and local SHA-256. Stable latest remains `v0.6.1`; the draft is not publicly released.
 
 The [retention checklist](RELEASE_AUDIT.md) remains in progress. Its unresolved device/long-running items are not converted into passes by aggregate tests. The release-process gate remains: source and candidate artifacts can be reviewed, with no stable-release readiness claim.
 
