@@ -1,8 +1,44 @@
 # 0.7.0 — Native and prototype black-box acceptance
 
+## 2026-11-02 dev.23 package and source push
+
+The maintainer requested packaging and pushing the latest version. Prepare dev.23 artifacts and source with the existing scripts; retain draft status and stable latest 0.6.1. This does not clear the remaining device/retention gate. The earlier dev.21 [package evidence](release-evidence-dev21.json) is retained separately; [current package evidence](release-evidence.json) records dev.23 preparation.
+
+The public-sync source passed 332 Core +172 App tests (504), zero failures/skips, and matches the development runtime/test file digest. Windows check/smoke/UI-smoke, ZIP integrity, x64 PE, ASAR version, both system-networking injections and packaged-text privacy checks passed. The mounted arm64 Mac DMG passed version and strict signature checks; its designated requirement matches the installed dev.23. A first build embedded a personal resource-bundle build location; rebuilding with the existing temporary build-directory override removed it, and final binary privacy checks passed. This procedure is now documented in both release guides. The final DMG was not reinstalled during this package pass; prior installed dev.23 live acceptance remains separate. Remote push/upload/download checks are pending.
+
+## 2026-11-02 unlocked dev.22 validation and dev.23 layout follow-up
+
+The previously failing protected-file, focus, scroll and animation scopes passed after unlock. Exact dev.22 full regression passed 332 Core +171 App tests (503), zero failures/skips. The strictly verified dev.22 replaced dev.21 at the fixed Applications path with a rollback retained. After normal user-approved Keychain access, original Codex and DeepSeek refreshed successfully; no login replacement, credential inspection or card action.
+
+Installed Chinese About shows the current four feature groups. Installed English About reproduced the clipped brand/title seen in the fixture, and upward scrolling did not restore it at the default size. This is a real H04 acceptance issue, not dismissed as a fixture problem. Dev.23 preserves the content stack's natural vertical size; its English fixture now shows the complete brand/title. Native default/minimum-size scroll tests cover both locales, document overflow, bottom reachability and returning to top. Geometry checks alone passed before this fix, so visual before/after review remains separate evidence.
+
+Dev.23 full regression passed 332 Core +172 App tests (504), zero failures/skips; Windows check/smoke/UI-smoke passed with metadata-only changes. The canonical local App package and installed bundle passed strict signature checks with the existing designated requirement. Installed dev.23 About shows the complete icon/title, all four highlight groups, release-notes link and footer in both languages at the default size: [Chinese](evidence/dev23-native-about-zh-CN.png) · [English](evidence/dev23-native-about-en-US.png). Minimum-size scrolling is covered by native in-process tests, not a separately resized installed-window observation. After the user approved ordinary Keychain access, the original DeepSeek balance read succeeded and a separate manual refresh advanced its success time. Codex manual refresh also returned fresh quota windows. No re-login or credential transfer. Chinese language and the original Codex selection were restored; exported preference keys and values exactly match the fresh pre-install snapshot. Closing the main window left the running capsule available. Existing unresolved card-result and stale-card-detail states remain visible; no real card was consumed for acceptance.
+
+User-assisted installed dev.23 check: on the capsule's display, entering fullscreen in an ordinary app hid the capsule and exiting fullscreen restored it. The user confirmed both transitions. This accepts that same-display bubble path; multiple displays, separate Spaces and notch fullscreen behavior remain unverified.
+
+The user also confirmed first direct inward dragging from the current screen edge without opening details first, then repeated successfully after attaching the capsule to the opposite edge. Both-edge first-drag behavior is accepted on this device; position persistence after restarting remains unverified.
+
+The user confirmed that the installed information card follows a drag from its title. Its Refresh button entered a busy state and returned with a fresh quota reading; Close hid the card and exposed the existing display recovery controls. The original bubble, enabled visibility, remembered Reminders section and pre-check card frame were restored. Preferences match the snapshot taken after the user's edge-drag checks exactly, preserving the newer capsule placement. Card-frame persistence across restart remains unverified.
+
+Installed dev.23 chart checks: clicking a Codex quota bar displayed its interval and consumed percentage points; the rightmost bar tooltip stayed within the chart, and clicking empty plot space cleared it. A DeepSeek decrease bar displayed its interval and currency amount, and empty plot space cleared it. The user subsequently confirmed DeepSeek pointer-only hovering displays the interval and decrease amount without clicking, and moving away clears the tooltip. Codex quota pointer-only hover and daily-Token tooltip interaction remain unverified. Real account/balance screenshots were not saved to the repository.
+
+Native View → Notification History navigated correctly. Control–Command–F entered fullscreen and returned to the original window. Native-menu Escape could not be confirmed through automation; the exposed Cancel action closed the menu, so Escape remains pending. Final preferences still match the pre-card-check snapshot.
+
+Dev.21 remains a private draft; Windows affected-machine testing is unavailable and remains unverified. No public release or dev.23 distribution artifacts uploaded.
+
+## 2026-11-01 dev.22 About correction and acceptance follow-up
+
+The maintainer chose to keep dev.21 as a draft until acceptance is complete. Windows affected-machine testing is currently unavailable, not passed; no repeated retest request is pending.
+
+Live dev.21 follow-up checked actual minimal/detailed cards, including retained quota and account-benefit fields; 30/60-minute snooze deadlines and immediate resume; English UI/native View menu and return to Chinese; manual update check returning up to date. Launch-at-login and existing reminder/automatic-card state were observed, not changed. Deadline-triggered resume, full-screen/Spaces, physical card/edge dragging and another account remain unverified. All preferences were restored against the pass snapshot, including the card frame written by the layout switch. Live account captures are not committed.
+
+The About window still showed 0.6-era highlights under a dev.21 heading. Dev.22 replaces those highlights with DeepSeek API balance monitoring, platform settings, bidirectional notch/capsule interaction and retained Codex capabilities. No runtime/account/reminder behavior changes. [Chinese fixture](evidence/dev22-release-highlights-zh-CN.png) · [English fixture](evidence/dev22-release-highlights-en-US.png).
+
+Targeted 5 Core +1 App checks passed; the four highlight groups were visually inspected in both languages. The local dev.22 App builds and passes strict signing verification, but is not installed. The first full dev.22 run failed while the Mac was locked: protected temporary ledger files returned EPERM, and foreground/animation/scroll tests failed or skipped. These are not recorded as passes and file protections remain intact. A separate placement assertion exposed a half-point native frame rounding difference; test-only center tolerance is now one backing pixel, with size still exact, and that focused test passed. An unlocked focused rerun and full regression are required. Fixed-size synthetic About images do not prove an entire long English page is visible without scrolling; installed scrolling/locale acceptance remains pending. Dev.21 artifacts and remote draft verification below remain historical and do not contain the dev.22 fix.
+
 ## 2026-11-01 candidate package preparation
 
-The authorized package/push uses **0.7.0-dev.21**, with stable 0.6.1 downloads retained. This is not a stable 0.7.0 sign-off. See [candidate notes](RELEASE_NOTES.md) and the [machine-readable package checks](release-evidence.json).
+The authorized package/push uses **0.7.0-dev.21**, with stable 0.6.1 downloads retained. This is not a stable 0.7.0 sign-off. See [candidate notes](RELEASE_NOTES.md) and the [machine-readable package checks](release-evidence-dev21.json).
 
 - Public-sync source passed 332 Core +171 App tests (503), zero failures/skips, with native captures enabled. Windows check/smoke/UI-smoke passed under Node 24.
 - The mounted Apple-silicon DMG passed version, checksum and strict signature checks; its designated signing requirement matches the installed dev.21. The final DMG was not installed again during packaging. Live device acceptance above refers to the previously installed dev.21.

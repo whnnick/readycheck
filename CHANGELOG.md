@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0-dev.23 - 2026-11-02
+
+- Prepare updated Mac/Windows candidate packages and bilingual draft notes; retain stable 0.6.1 and the remaining acceptance gate.
+- Preserve the About content's natural vertical size so the English brand/title is not clipped; verify scrolling at default and minimum window sizes in both languages.
+
+## 0.7.0-dev.22 - 2026-11-01
+
+- Correct stale About highlights to describe DeepSeek API balances, platform settings and notch/capsule interaction; retain the Codex feature note.
+
 ## 0.7.0-dev.21 - 2026-11-01
 
 - Prepare Mac/Windows candidate packages and bilingual preview notes; retain stable 0.6.1 and explicitly track remaining acceptance and Windows 403 limits.

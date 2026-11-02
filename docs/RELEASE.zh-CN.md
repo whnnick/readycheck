@@ -65,6 +65,16 @@ codesign -dr - /Volumes/ReadyCheck/ReadyCheck.app
 
 这些检查通过后，再提交开发工作区。
 
+## 分发二进制隐私检查
+
+SwiftPM 会把资源包构建位置写入可执行文件。分发时使用已有构建目录参数，指定不含个人用户名或内部工作区位置的临时路径：
+
+```bash
+READYCHECK_BUILD_DIR=/private/tmp/readycheck-release-build scripts/package_dmg.sh
+```
+
+除了源码文本，还应扫描挂载 DMG 内可执行文件的个人构建路径和凭据特征。发现私人路径时，改用干净临时构建目录重新生成，并再次验证最终 DMG；制包验证与安装版/真实账号验收分别记录。
+
 ## 3. 发布公开仓库
 
 公开 `main` 发布只从 public sync 目录执行，不直接从开发工作区发布。先预览同步差异：

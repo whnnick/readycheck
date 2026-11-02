@@ -269,6 +269,39 @@ final class MainWindowTests: XCTestCase {
         }
     }
 
+    func testAboutScrollingAtDefaultAndMinimumSizesInBothLanguages() async throws {
+        _ = NSApplication.shared
+        let controller = AboutWindowController()
+        func findScroll(_ view: NSView) -> NSScrollView? {
+            if let scroll = view as? NSScrollView { return scroll }
+            return view.subviews.compactMap(findScroll).first
+        }
+        for size in [NSSize(width: 480, height: 640), NSSize(width: 420, height: 420)] {
+            for language in [AppLanguage.zhCN, .enUS] {
+                let localization = LocalizationService(language: language)
+                controller.show(localization: localization)
+                let window = try XCTUnwrap(NSApp.windows.first { $0.title == localization.text("about.title") && $0.isVisible })
+                window.setContentSize(size)
+                try await Task.sleep(for: .milliseconds(300))
+                let host = try XCTUnwrap(window.contentView)
+                let scroll = try XCTUnwrap(findScroll(host))
+                let document = try XCTUnwrap(scroll.documentView)
+                let maximum = document.bounds.height - scroll.contentView.bounds.height
+                XCTAssertEqual(scroll.contentView.bounds.minY, 0, accuracy: 1)
+                if size.height == 420 {
+                    XCTAssertGreaterThan(maximum, 100, "Long About content must belong to the scroll document")
+                    scroll.contentView.scroll(to: NSPoint(x: 0, y: max(0, maximum)))
+                    scroll.reflectScrolledClipView(scroll.contentView)
+                    XCTAssertGreaterThan(scroll.contentView.bounds.minY, 100)
+                    scroll.contentView.scroll(to: .zero)
+                    scroll.reflectScrolledClipView(scroll.contentView)
+                    XCTAssertEqual(scroll.contentView.bounds.minY, 0, accuracy: 1)
+                }
+                window.close()
+            }
+        }
+    }
+
     func testAboutWindowReusesVisibleWindowAndUpdatesLanguage() throws {
         _ = NSApplication.shared
         let controller = AboutWindowController()

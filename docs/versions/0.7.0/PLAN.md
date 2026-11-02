@@ -4,9 +4,13 @@
 
 [中文](PLAN.zh-CN.md) · [Data-access evidence](SOURCES.md) · [Service and account settings](SETTINGS_PLAN.md) · [0.6.1 retention](../0.6.1/RELEASE_AUDIT.md)
 
-Updated 2026-11-01. Unreleased dev.21 is installed at the fixed local path; each iteration's current connection and device-acceptance status is recorded in QA. Live Codex/DeepSeek API balances, a Notification Center test and selected retained paths were checked; full automated regression passed. Original card consent and normal checks recovered after unlock. Remaining device behavior and affected Windows login remain pending; distribution remains a self-signed preview; see [current and dated acceptance evidence](QA.md). The user clarified that aggregation means lightweight usage statistics, not chat or model invocation. The earlier chat-workspace direction and all three generated concepts are withdrawn and must not guide implementation.
+Updated 2026-11-02. Unreleased dev.23 is installed at the fixed local path; each iteration's current connection and device-acceptance status is recorded in QA. Live Codex/DeepSeek API balances, a Notification Center test and selected retained paths were checked; full automated regression passed. Original card consent and normal checks recovered after unlock. Remaining device behavior and affected Windows login remain pending; distribution remains a self-signed preview; see [current and dated acceptance evidence](QA.md). The user clarified that aggregation means lightweight usage statistics, not chat or model invocation. The earlier chat-workspace direction and all three generated concepts are withdrawn and must not guide implementation.
 
 ## Goal and scope
+
+Dev.23 acceptance correction: English About must retain its brand/title and permit complete content access at default and minimum sizes; preserve all content. [Checks](QA.md).
+
+Dev.22 acceptance correction: About highlights must describe the implemented 0.7 capabilities in both languages. Keep dev.21 draft private until the retention/device gate is complete. [Checks](QA.md).
 
 Dev.21: the notch must also drag down into the existing capsule at the release point. Dragging follows the pointer; a deliberate downward release detaches, while a short/sideways/returned drag stays attached. Keep click-to-expand and detail controls; preserve service, primary selection and quota layout. Existing capsule-to-notch drops remain. [Checks](QA.md).
 

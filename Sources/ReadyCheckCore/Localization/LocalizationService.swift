@@ -16,6 +16,12 @@ public struct LocalizationService: Equatable, Sendable {
 
     private static let tables: [AppLanguage: [String: String]] = [
         .enUS: [
+            "release.deepSeekBalance": "DeepSeek API balances",
+            "release.deepSeekBalanceDetail": "Connect an API key to see total, granted and topped-up balances, local decreases and balance reminders. Website/app chat usage is separate; no model-generation requests.",
+            "release.platformSettings": "Settings for each platform",
+            "release.platformSettingsDetail": "Connect Codex or DeepSeek directly and manage its reminders. Connection, Reminders, Display and General retain platform icons and remembered selections.",
+            "release.notchCapsule": "Move between the notch and capsule",
+            "release.notchCapsuleDetail": "Drag the capsule to the notch or pull the notch down. Choose stacked 5h/7d or a single quota; details expand smoothly and respect reduced motion.",
             "oauth.signIn": "Sign in to ReadyCheck",
             "oauth.singleConnectionHelp": "Sign in with your ChatGPT account in the browser. ReadyCheck remembers your sign-in.",
             "release.compactCardDetails": "Compact reset-card details",
@@ -662,6 +668,12 @@ public struct LocalizationService: Equatable, Sendable {
             "quota.window.openai.monthly": "Monthly spend"
         ],
         .zhCN: [
+            "release.deepSeekBalance": "DeepSeek API 余额",
+            "release.deepSeekBalanceDetail": "通过 API Key 查看总余额、赠送与充值分项、本机余额减少及余额提醒。网页和手机聊天用量单独计算，不发起模型生成请求。",
+            "release.platformSettings": "按平台管理连接和提醒",
+            "release.platformSettingsDetail": "直接连接 Codex 或 DeepSeek，再管理该平台提醒。连接、提醒、显示、通用入口保留平台图标与上次选择。",
+            "release.notchCapsule": "刘海和胶囊双向拖动",
+            "release.notchCapsuleDetail": "胶囊拖到刘海，刘海向下拖回胶囊。可选上下 5h/7d 或单额度，详情平滑展开并尊重减少动态效果。",
             "oauth.signIn": "登录 ReadyCheck",
             "oauth.singleConnectionHelp": "在浏览器中登录你的 ChatGPT 账号，ReadyCheck 会记住登录状态。",
             "release.compactCardDetails": "重置卡详情更紧凑",

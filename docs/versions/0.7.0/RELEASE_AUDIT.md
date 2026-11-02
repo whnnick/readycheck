@@ -11,7 +11,7 @@ These 65 baseline items are a checklist. Pending means the 0.7.0 entry point, be
 | A01 | 5-hour percentage, progress and unknown state | Automated coverage passed; live installed percentage/windows visible; unknown state automated only |
 | A02 | 7-day percentage, progress and unknown state | Automated coverage passed; live installed percentage/windows visible; unknown state automated only |
 | A03 | Reset countdown and full date/time | QuotaResetCountdownTests passed; installed countdown and full reset date/time visible |
-| A04 | Automatic / explicit primary selection; missing stays unknown; persisted choice | Automated: NotchQuotaSelectionTests; device check pending |
+| A04 | Automatic / explicit primary selection; missing stays unknown; persisted choice | Installed dev.20 single-notch selection changed the collapsed display to 7d and was restored; dual order is fixed. Unknown/missing coverage remains automated; dev.22 does not change selection logic. |
 | A05 | Ordinary-use eligibility, limit reasons and low-quota status | Partial automated coverage: QuotaModelsTests; device check pending |
 | A06 | Source, last success/attempt and diagnostics | QuotaDataDiagnosticsTests passed; installed source, attempt/success times and valid state checked |
 | A07 | Manual refresh, busy-state protection and read-only access | QuotaStoreTests passed; installed manual refresh advances success time; re-entry automated only |
@@ -24,7 +24,7 @@ These 65 baseline items are a checklist. Pending means the 0.7.0 entry point, be
 | B06 | Each reset expiration, partial missing values and GMT+8 | Automated coverage passed; installed individual dates/GMT+8 visible; partial missing automated only |
 | C01 | Local consumption: 24 hours / 7 days / 30 days | Automated coverage passed; installed 24-hour/7/30-day switch and original range restored |
 | C02 | Select quota window in history | Automated coverage passed; installed 5-hour/7-day window switch and original selection restored |
-| C03 | Quota bar hover/click, interval/point tooltip and boundaries | Automated: LocalQuotaUsageChartTests; device check pending |
+| C03 | Quota bar hover/click, interval/point tooltip and boundaries | LocalQuotaUsageChartTests passed. Installed dev.23 bar clicks show interval/points; right-edge containment and empty-plot clearing checked. Pointer-only hover remains pending. |
 | C04 | Account-isolated history, A→B→A and legacy preservation | Automated: AccountHistoryTests; device check pending |
 | C05 | Exclude resets, increases, invalid/missing readings and long gaps | Automated: QuotaUsageAggregationTests; device check pending |
 | C06 | Official daily Token chart: 7/30/90-day ranges | Installed 7/30/90-day switches/readback passed; original range restored |
@@ -41,18 +41,18 @@ These 65 baseline items are a checklist. Pending means the 0.7.0 entry point, be
 | D08 | Test notification, delivery state and Notification Center verification | QuotaNotificationServiceTests passed; installed test reports Notification Center verified; banner unconfirmed |
 | D09 | History summary/full list and persisted delivery/failure/withdrawal states | Automated coverage passed; installed delivered/withdrawn history readable; failure branch automated only |
 | E01 | Adaptive floating Widget: bubble and slim edge forms | Automated: EdgeRailWidgetTests; style selector checked in isolated UI; actual dragging pending |
-| E02 | Both edges, first direct inward drag and frame persistence | Automated: BubbleWidgetPlacementTests; device check pending |
-| E03 | Hover preview, click pin, outside retention, unpin and Escape | Automated coverage passed; installed click-pin, main-window focus changes, unpin/Escape checked; hover pending |
+| E02 | Both edges, first direct inward drag and frame persistence | BubbleWidgetPlacementTests passed. User confirmed installed dev.23 first direct inward drag without opening details, then the same success from the opposite edge. Both edges accepted on this device; restart position persistence remains pending. |
+| E03 | Hover preview, click pin, outside retention, unpin and Escape | Automated coverage passed; prior pin/unpin/Escape checks retained. Live dev.21 hover preview was observed after physical notch detachment; full pointer transitions remain pending. |
 | E04 | Both quotas and last-hour chart with5-minute bars | Automated coverage passed; installed dual quotas and one-hour/five-minute-bin chart/explanation visible |
-| E05 | Card title drag, independent buttons and saved position | Partial automated coverage: FloatingWidgetDragTests; device check pending |
-| E06 | Minimal / detailed card modes | Partial automated coverage: BubbleQuotaDisplayTests; card selector checked in isolated UI; installed build pending |
-| E07 | Show/hide, restart persistence and recovery entry | Automated: WidgetVisibilityLifecycleTests; visibility toggle checked in isolated UI; installed build pending |
+| E05 | Card title drag, independent buttons and saved position | FloatingWidgetDragTests passed. User confirmed installed dev.23 title dragging; native Refresh busy/completion and Close/recovery controls checked. Pre-check preferences restored exactly; saved position across restart remains pending. |
+| E06 | Minimal / detailed card modes | Live dev.21 minimal/detailed card switching and actual rendered fields passed; each mode retains both quotas. See the dev.22 acceptance follow-up. |
+| E07 | Show/hide, restart persistence and recovery entry | Installed dev.21 style/notch toggles retained mutual exclusion and recovery entries. Dev.23 replacement/launch preserved the latest enabled bubble and disabled notch; exact preference snapshot restored. Other restart/invalid-state recovery remains pending. |
 | E08 | Always-on-top independent from pinning and movement | Pending verification |
-| E09 | Snooze30/60 minutes, deadline and immediate resume | Automated: WidgetSnoozePreferenceTests; device check pending |
+| E09 | Snooze30/60 minutes, deadline and immediate resume | Live dev.21 30/60-minute snooze displayed the corresponding deadlines; immediate resume cleared snooze. Actual deadline expiry/restart remains pending. |
 | E10 | Reset position and recover invalid/offscreen geometry | Automated: FloatingWidgetPlacementTests; device check pending |
-| E11 | Hide in fullscreen / restore and existing Spaces policy | Automated: WidgetSpaceBehaviorTests; device check pending |
-| E12 | Notch visibility/availability, physical attachment and click-only expansion | Automated: NotchWindowControllerTests; device check pending |
-| E13 | Notch selection, unknown state, details, open Overview and outside/Escape dismiss | Automated: NotchQuotaSelectionTests; device check pending |
+| E11 | Hide in fullscreen / restore and existing Spaces policy | WidgetSpaceBehaviorTests passed. User confirmed installed dev.23 capsule hides during same-display ordinary-app fullscreen and returns on exit. Multiple displays/separate Spaces and notch behavior remain pending. |
+| E12 | Notch visibility/availability, physical attachment and click-only expansion | Installed physical notch attachment/dual rows were observed; user confirmed capsule-to-notch in dev.18 and downward detachment in dev.21. Other displays/fullscreen remain pending. |
+| E13 | Notch selection, unknown state, details, open Overview and outside/Escape dismiss | Installed dev.20 dual details have no redundant picker; single 7d selection, opening Overview and Escape were checked. Unknown states automated; dev.22 does not change this path. |
 | F01 | Status item, both quotas/reset and account summary | Automated: MenuBarQuotaLabelTests; device check pending |
 | F02 | Menu diagnostics, refresh and open main window | Partial automated coverage: MenuBarQuotaLabelTests; device check pending |
 | F03 | Menu Widget toggle and reminder entry | Partial automated coverage: WidgetVisibilityPreferenceTests; device check pending |
@@ -60,15 +60,15 @@ These 65 baseline items are a checklist. Pending means the 0.7.0 entry point, be
 | G01 | OAuth-only connection and matching-account background capabilities | Automated coverage passed; installed original OAuth session refreshes; no new authorization |
 | G02 | Connect, cancel authorization, replace sign-in and disconnect | Partial automated coverage: CodexOAuthTests; device check pending |
 | G03 | Automatic browser callback and manual callback-URL fallback | Automated: CodexOAuthTests; device check pending |
-| G04 | User-initiated Keychain retry without forced re-login | ConnectionRecoveryActionTests passed; normal dev.16 retry recovered existing OAuth/API connections |
+| G04 | User-initiated Keychain retry without forced re-login | Normal dev.21 and dev.23 Keychain retries recovered both original connections after user approval; installed dev.23 manual Codex and DeepSeek reads succeeded without re-login. |
 | G05 | OAuth-only connection and matching-account background capabilities | Partial automated coverage: CodexOAuthQuotaProviderTests; device check pending |
 | G06 | Disconnect preserves unrelated credentials and account history | Partial automated coverage: AccountHistoryTests; device check pending |
-| H01 | Bilingual UI/native menus and persisted language | Automated: LocalizationServiceTests; bilingual switch checked in isolated native UI; installed build pending |
+| H01 | Bilingual UI/native menus and persisted language | Live dev.21 English UI and native View menu switched together and returned to Chinese; original preference restored. Restart persistence remains pending. |
 | H02 | Launch-at-login toggle, installation diagnostics and approval entry | Automated coverage passed; fixed Applications bundle retains enabled login-start state; restart pending |
-| H03 | Automatic/manual update checks, prompt/dismiss and download link | Automated: UpdateCheckerTests; device check pending |
-| H04 | Persistent About, version, highlights, full notes and product information | Partial automated coverage: MainWindowTests; device check pending |
+| H03 | Automatic/manual update checks, prompt/dismiss and download link | Live dev.21 manual check completed with up-to-date state. Update-available/download/dismiss remain automated-only; no new release was exposed. |
+| H04 | Persistent About, version, highlights, full notes and product information | Installed dev.23 Chinese/English default-size icon, title, version, four highlight groups, notes link and footer checked. Native default/minimum scroll tests passed; installed minimum-size resizing was not separately checked. See current QA evidence; this clears the observed English clipping issue only. |
 | H05 | Close window keeps running, reopen and explicit quit | Old process exited and fixed-path new app launched; main-window close keeps app alive, ⌘1 reopens |
-| H06 | Native fullscreen shortcut, View navigation and Escape behavior | Automated: MainMenuTests; device check pending |
+| H06 | Native fullscreen shortcut, View navigation and Escape behavior | MainMenuTests passed. Installed dev.23 View → Notification History and Control–Command–F enter/exit checked. Native-menu Escape remains unconfirmed; Cancel action used to dismiss. |
 | I01 | Preserve preferences, frames, connection mode, thresholds and history backups | Preferences/history retained; restored platform matches preference snapshot; original automatic-use consent and normal checks recovered after unlock |
 | I02 | Serialized Keychain access, no hidden prompts or weakened access control | Automated coverage passed; original credentials usable; protected card-file EPERM safely pauses, unlock recovers; no access weakening |
 | I03 | Same-account stale cache/original timestamp; no cross-account reuse or fresh alerts | Automated: QuotaStoreTests; device check pending |

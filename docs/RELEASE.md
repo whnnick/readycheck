@@ -65,6 +65,16 @@ The root `dist` directory must contain only:
 
 Commit the development worktree after these checks pass.
 
+## Distribution binary privacy
+
+SwiftPM embeds the resource-bundle build location in the executable. For distribution, use the existing build-directory override with a temporary path that contains no personal username or internal workspace location:
+
+```bash
+READYCHECK_BUILD_DIR=/private/tmp/readycheck-release-build scripts/package_dmg.sh
+```
+
+Inspect the executable inside the mounted DMG for personal build paths and credential patterns in addition to scanning source text. If a private path is found, rebuild with a clean temporary build directory and verify the final DMG again. Keep package validation separate from installed-app/live-account acceptance.
+
 ## 3. Publish The Public Repository
 
 Use the public sync directory, not the development worktree, for the public `main` release. Preview the sync first:

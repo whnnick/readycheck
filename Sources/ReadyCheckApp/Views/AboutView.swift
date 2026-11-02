@@ -43,6 +43,7 @@ struct AboutView: View {
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }
+            .fixedSize(horizontal: false, vertical: true)
             .padding(24)
         }
         .defaultScrollAnchor(.top)
