@@ -122,13 +122,38 @@ public actor ResetCreditAutomation {
 
     @discardableResult
     public func recordCheck(_ reason: ResetCreditCheckRecord.Reason, account: String, now: Date = Date()) -> Bool {
+        recordCheck(reason, account: account, now: now, subjects: nil)
+    }
+
+    private func recordCheck(_ reason: ResetCreditCheckRecord.Reason, account: String, now: Date,
+                             subjects: [ObservedCard]?) -> Bool {
         guard let owner = QuotaHistorySample.key(for: account), var rows = try? loadChecks() else { return false }
-        if let index = rows.lastIndex(where: { $0.accountKey == owner }), rows[index].reason == reason,
+        let incidents = (reason == .cardChanged || reason == .windowMissed) ? subjects?.filter { $0.accountKey == owner &&
+            ((reason == .cardChanged && $0.status == .disappeared) || (reason == .windowMissed && $0.status == .missed)) } : nil
+        let subjectKeys = incidents?.compactMap { card -> String? in
+            guard let data = try? JSONEncoder().encode([card.creditID, String(card.expiresAt.timeIntervalSince1970),
+                card.status.rawValue, String(card.updatedAt.timeIntervalSince1970)]) else { return nil }
+            return QuotaHistorySample.key(for: data.base64EncodedString())
+        }
+        let keys = subjectKeys?.sorted()
+        let prior = rows.filter { $0.accountKey == owner && $0.reason == reason &&
+            ($0.warningSubmitted || $0.warningSuppressed == true) }
+        let covered = Set(prior.flatMap { $0.warningSubjectKeys ?? [] })
+        let suppressed = incidents.map { cards in
+            !cards.isEmpty && subjectKeys?.count == cards.count && zip(cards, subjectKeys ?? []).allSatisfy { card, key in
+                covered.contains(key) || prior.contains {
+                    // Legacy check rows predate incident keys. Only cover events already observed by that check.
+                    $0.warningSubjectKeys == nil && $0.warningSubmitted && $0.lastAt >= card.updatedAt
+                }
+            }
+        } ?? false
+        if let index = rows.lastIndex(where: { $0.accountKey == owner }), rows[index].reason == reason, rows[index].warningSubjectKeys == keys,
            reason != .serviceUnavailable || (now.timeIntervalSince(rows[index].lastAt) >= 0 && now.timeIntervalSince(rows[index].lastAt) <= 300) {
             rows[index].lastAt = now; rows[index].count += 1
         } else {
             rows.append(ResetCreditCheckRecord(id: UUID().uuidString, accountKey: owner, reason: reason,
-                firstAt: now, lastAt: now, count: 1, warningSubmitted: false))
+                firstAt: now, lastAt: now, count: 1, warningSubmitted: false,
+                warningSubjectKeys: keys, warningSuppressed: suppressed))
         }
         return saveChecks(Array(rows.sorted { $0.lastAt < $1.lastAt }.suffix(100)))
     }
@@ -247,7 +272,7 @@ public actor ResetCreditAutomation {
                     && !observed.contains { $0.accountKey == owner && $0.creditID == id
                         && ($0.status == .redeemedElsewhere || $0.status == .expired || $0.expiresAt != expiry) }
             }.sorted { $0.expiresAt! < $1.expiresAt! }
-            guard let card = cards.first else { recordCheck(observationProblem ?? .checked, account: account, now: now); return status(account: account) }
+            guard let card = cards.first else { recordCheck(observationProblem ?? .checked, account: account, now: now, subjects: observed); return status(account: account) }
             state.attempts.append(Attempt(accountKey: owner, creditID: card.id!, expiresAt: card.expiresAt!, key: UUID().uuidString, status: .pending, updatedAt: now, startedAt: now, requestCount: 0))
             index = state.attempts.count - 1
             // Persist the exact card and retry identity before any irreversible request.
@@ -269,7 +294,7 @@ public actor ResetCreditAutomation {
         completed.attempts[position].updatedAt = now
         completed.attempts[position].successNotificationPending = outcome == .reset || outcome == .alreadyRedeemed
         guard (try? save(completed)) != nil else { recordCheck(.writeFailed, account: account, now: now); return result(.storageFailed) }
-        recordCheck(observationProblem ?? .checked, account: account, now: now)
+        recordCheck(observationProblem ?? .checked, account: account, now: now, subjects: observed)
         return status(account: account)
     }
 

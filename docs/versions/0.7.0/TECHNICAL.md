@@ -2,6 +2,8 @@
 
 [中文](TECHNICAL.zh-CN.md) · [Plan](PLAN.md) · [Sources](SOURCES.md) · [Checks](QA.md)
 
+Current status (2026-11-03, dev.28): the macOS Codex + DeepSeek native slice is implemented and its core local acceptance is closed; see [the consolidated acceptance](QA.md) and [65-entry retention matrix](RELEASE_AUDIT.md) for remaining device/release boundaries. Other eight services remain catalog/planning entries; Windows balance integration is not implied. The dated design and historical progress below are retained for traceability.
+
 2026-10-30. The agreed target is ten services, in two batches of five. This is a build sequence and evidence matrix, not a claim that the prototype connects them. The first native implementation slice is **Codex retained + DeepSeek official balance**. Within batch one, complete one reliable read-only flow before adding the remaining adapters.
 
 ## Target and source matrix

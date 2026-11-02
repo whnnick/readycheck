@@ -48,6 +48,125 @@ final class ResetCreditReliabilityTests: XCTestCase {
         XCTAssertEqual(calls, 0)
     }
 
+    func testCardWarningSurvivesCredentialInterruptionAndRestartWithoutReplay() async throws {
+        let (store, client, directory) = fixture()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        _ = await store.setEnabled(true, account: "A")
+        _ = await store.tick(account: "A", token: nil, client: client, now: now)
+        await client.setCards([])
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(60))
+        let initialChecks = try await store.checks(account: "A")
+        let original = try XCTUnwrap(initialChecks.first)
+        XCTAssertTrue(original.shouldSubmitWarning)
+        _ = await store.acknowledgeCheckWarning(original.id, account: "A")
+        _ = await store.recordCheck(.credentialsUnavailable, account: "A", now: now.addingTimeInterval(120))
+        let reloaded = ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json"))
+        _ = await reloaded.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(180))
+        let checks = try await reloaded.checks(account: "A")
+        XCTAssertEqual(checks.first?.reason, .cardChanged)
+        XCTAssertFalse(try XCTUnwrap(checks.first).shouldSubmitWarning)
+        XCTAssertEqual(checks.count, 4, "Retain separate diagnostic intervals")
+        XCTAssertTrue(checks.contains { $0.id == original.id && $0.warningSubmitted })
+        let records = try await reloaded.records(account: "A")
+        XCTAssertEqual(records.first?.status, .disappeared)
+        let consumes = await client.consumes
+        XCTAssertEqual(consumes, 0)
+    }
+
+    func testNewCardAndRecurrentDisappearanceStillWarnWhileOldCardRemainsMissing() async throws {
+        let (store, client, directory) = fixture()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        _ = await store.setEnabled(true, account: "A")
+        _ = await store.tick(account: "A", token: nil, client: client, now: now)
+        await client.setCards([])
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(60))
+        var checks = try await store.checks(account: "A")
+        _ = await store.acknowledgeCheckWarning(try XCTUnwrap(checks.first).id, account: "A")
+        let other = CodexAppServerResetCredit(id: "new-card", resetType: "codexRateLimits", status: "available", expiresAt: now.addingTimeInterval(9000))
+        await client.setCards([other])
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(120))
+        await client.setCards([])
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(180))
+        checks = try await store.checks(account: "A")
+        XCTAssertTrue(try XCTUnwrap(checks.first).shouldSubmitWarning, "New missing card must not be coalesced into the old warning")
+        _ = await store.acknowledgeCheckWarning(try XCTUnwrap(checks.first).id, account: "A")
+        await client.setCards([other])
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(240))
+        checks = try await store.checks(account: "A")
+        XCTAssertFalse(try XCTUnwrap(checks.first).shouldSubmitWarning, "Removing a resolved card must not replay the remaining old anomaly")
+        await client.setCards([])
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(300))
+        checks = try await store.checks(account: "A")
+        XCTAssertTrue(try XCTUnwrap(checks.first).shouldSubmitWarning, "A recovered card disappearing again is a new incident")
+    }
+
+    func testUnsubmittedCardWarningRetriesAfterInterruptionAndDoesNotLeakAcrossAccounts() async throws {
+        let (store, client, directory) = fixture()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        _ = await store.setEnabled(true, account: "A")
+        _ = await store.tick(account: "A", token: nil, client: client, now: now)
+        await client.setCards([])
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(60))
+        _ = await store.recordCheck(.credentialsUnavailable, account: "A", now: now.addingTimeInterval(120))
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(180))
+        var checks = try await store.checks(account: "A")
+        XCTAssertTrue(try XCTUnwrap(checks.first).shouldSubmitWarning)
+        _ = await store.acknowledgeCheckWarning(try XCTUnwrap(checks.first).id, account: "A")
+        _ = await store.setEnabled(true, account: "B")
+        await client.setCards([card()])
+        _ = await store.tick(account: "B", token: nil, client: client, now: now.addingTimeInterval(240))
+        await client.setCards([])
+        _ = await store.tick(account: "B", token: nil, client: client, now: now.addingTimeInterval(300))
+        checks = try await store.checks(account: "B")
+        XCTAssertTrue(try XCTUnwrap(checks.first).shouldSubmitWarning)
+    }
+
+    func testLegacySubmittedCardCheckDoesNotReplayButNewIncidentWarns() async throws {
+        let (store, client, directory) = fixture()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        _ = await store.setEnabled(true, account: "A")
+        _ = await store.tick(account: "A", token: nil, client: client, now: now)
+        await client.setCards([])
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(60))
+        let initial = try await store.checks(account: "A")
+        _ = await store.acknowledgeCheckWarning(try XCTUnwrap(initial.first).id, account: "A")
+        let url = directory.appendingPathComponent("ledger.json.checks.json")
+        let rows = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [[String: Any]])
+        let legacy = rows.map { row in
+            var row = row; row.removeValue(forKey: "warningSubjectKeys"); row.removeValue(forKey: "warningSuppressed"); return row
+        }
+        try JSONSerialization.data(withJSONObject: legacy).write(to: url, options: .atomic)
+        let reloaded = ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json"))
+        _ = await reloaded.recordCheck(.credentialsUnavailable, account: "A", now: now.addingTimeInterval(120))
+        _ = await reloaded.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(180))
+        var checks = try await reloaded.checks(account: "A")
+        XCTAssertFalse(try XCTUnwrap(checks.first).shouldSubmitWarning)
+        XCTAssertEqual(checks.first?.warningSuppressed, true)
+        await client.setCards([card()])
+        _ = await reloaded.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(240))
+        await client.setCards([])
+        _ = await reloaded.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(300))
+        checks = try await reloaded.checks(account: "A")
+        XCTAssertTrue(try XCTUnwrap(checks.first).shouldSubmitWarning)
+    }
+
+    func testMissedWindowWarningAlsoSurvivesCredentialInterruption() async throws {
+        let (store, client, directory) = fixture()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        _ = await store.setEnabled(true, account: "A")
+        _ = await store.tick(account: "A", token: nil, client: client, now: now)
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(8000))
+        let initial = try await store.checks(account: "A")
+        XCTAssertEqual(initial.first?.reason, .windowMissed)
+        _ = await store.acknowledgeCheckWarning(try XCTUnwrap(initial.first).id, account: "A")
+        _ = await store.recordCheck(.credentialsUnavailable, account: "A", now: now.addingTimeInterval(8060))
+        _ = await store.tick(account: "A", token: nil, client: client, now: now.addingTimeInterval(8120))
+        let checks = try await store.checks(account: "A")
+        XCTAssertFalse(try XCTUnwrap(checks.first).shouldSubmitWarning)
+        let consumes = await client.consumes
+        XCTAssertEqual(consumes, 0)
+    }
+
     func testServerConsumedObservationIsSeparateFromLocalAutomaticSuccess() async throws {
         let (store, client, directory) = fixture()
         defer { try? FileManager.default.removeItem(at: directory) }

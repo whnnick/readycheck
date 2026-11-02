@@ -2,6 +2,19 @@
 
 Use this flow for every user-visible ReadyCheck release. Do not publish from an ad-hoc sequence.
 
+## Release stages
+
+Apply only the stages requested for the agreed version and release type. A later explicit request to publish a prepared preview supersedes an earlier draft hold; complete that publication without requesting the same authorization again.
+
+| Requested stage | Action | Completion evidence |
+| --- | --- | --- |
+| Package and push | Verify packages and push the agreed source/tag; preserve the current publication state. | Remote source/tag and package checks match. A source push or asset upload alone is not publication. |
+| Keep a draft | Prepare or update a draft with both packages. | `draft=true`; the existing stable latest is unchanged. |
+| Publish a public preview | Publish the verified preview with `draft=false`, `prerelease=true`, `latest=false`. | Anonymous release and download access succeed; the existing stable latest is unchanged. |
+| Publish a stable release | Clear the stable-release gate, then publish with `draft=false`, `prerelease=false`, `latest=true`. | The release and both downloads are public; stable latest matches the released version. |
+
+When only publication state changes, reuse the existing reviewed source, tag, packages and still-applicable verification. Rebuild or repeat checks when inputs change or evidence is missing. Record publication state separately from acceptance state: publishing a preview does not turn pending checks into passes.
+
 ## 1. Prepare The Version
 
 1. Update `ReadyCheckCore.version`.
@@ -13,7 +26,7 @@ Use this flow for every user-visible ReadyCheck release. Do not publish from an 
 
 Before packaging or publishing, reconcile the prior native version with the proposed release using the[feature-retention baseline](versions/0.3.0/FEATURE_RETENTION.md). The initial macOS register contains65 protected capabilities; extend it when a capability is discovered. For each relevant item, record its discoverable entry, retained behavior, test/device evidence and preference/history migration result. Specifically applicable unchanged-path evidence may be reused; source presence, aggregate test counts and prototype completion alone are insufficient.
 
-Missing controls, degraded behavior, data loss or unresolved relevant acceptance block release. Treat a prototype's omitted/simplified pages as unfinished work. Any removal or substantive change requires explicit user approval with the feature ID, before/after behavior, impact and rollback recorded before implementation. Do not make the user recall the old feature list. Windows needs its own acceptance; Mac results do not cover it.
+Unapproved feature removal, degraded behavior or data loss block any release. Unresolved relevant acceptance blocks stable release. A public preview with documented unverified scope requires explicit user authorization and verified source/packages; it does not clear the stable-release gate. Treat a prototype's omitted/simplified pages as unfinished work. Any removal or substantive change requires explicit user approval with the feature ID, before/after behavior, impact and rollback recorded before implementation. Do not make the user recall the old feature list. Windows needs its own acceptance; Mac results do not cover it.
 
 ## 2. Verify The Development Worktree
 
@@ -75,7 +88,7 @@ READYCHECK_BUILD_DIR=/private/tmp/readycheck-release-build scripts/package_dmg.s
 
 Inspect the executable inside the mounted DMG for personal build paths and credential patterns in addition to scanning source text. If a private path is found, rebuild with a clean temporary build directory and verify the final DMG again. Keep package validation separate from installed-app/live-account acceptance.
 
-## 3. Publish The Public Repository
+## 3. Sync And Push The Public Repository
 
 Use the public sync directory, not the development worktree, for the public `main` release. Preview the sync first:
 
@@ -111,7 +124,7 @@ The public sync `dist` directory must contain only:
 - `ReadyCheck-<version>-macos.dmg`
 - `windows/ReadyCheck-<version>-windows-x64-portable.zip`
 
-Then commit, tag, push, and create the GitHub Release:
+For a new source candidate, commit, tag and push. A publication-only request can reuse the already verified source and tag:
 
 ```bash
 git add -A
@@ -119,8 +132,29 @@ git commit -m "Release ReadyCheck <version> / 发布 ReadyCheck <version>"
 git tag -a v<version> -m "ReadyCheck <version>"
 git push origin HEAD:main
 git push origin v<version>
-gh release create v<version> dist/ReadyCheck-<version>-macos.dmg dist/windows/ReadyCheck-<version>-windows-x64-portable.zip --repo whnnick/readycheck --title "ReadyCheck <version>" --verify-tag --latest --notes-file <bilingual-release-notes.md>
 ```
+
+### Choose The GitHub Release Stage
+
+When preparing a new release, attach both packages to a draft. Reuse an existing draft instead of creating a duplicate:
+
+```bash
+gh release create v<version> dist/ReadyCheck-<version>-macos.dmg dist/windows/ReadyCheck-<version>-windows-x64-portable.zip --repo whnnick/readycheck --title "ReadyCheck <version>" --verify-tag --draft --latest=false --notes-file <bilingual-release-notes.md>
+```
+
+Stop here if a draft was requested. After an explicit request to publish a verified preview:
+
+```bash
+gh release edit v<version> --repo whnnick/readycheck --verify-tag --draft=false --prerelease --latest=false
+```
+
+For an explicitly requested stable release whose gate has passed:
+
+```bash
+gh release edit v<version> --repo whnnick/readycheck --verify-tag --draft=false --prerelease=false --latest
+```
+
+Keep bilingual Release notes, README download entries and the version's QA/evidence record consistent with the actual stage. Retain dated draft checks as history when publishing.
 
 If the local network cannot upload the large Windows release zip reliably, run the `Upload Windows Release Asset` GitHub Actions workflow with:
 
@@ -129,13 +163,14 @@ If the local network cannot upload the large Windows release zip reliably, run t
 
 The workflow rebuilds `scripts/package_windows_portable.sh` on a GitHub runner and uploads `ReadyCheck-<version>-windows-x64-portable.zip` to the existing release.
 
-Verify GitHub latest:
+Verify the release by its saved ID, including drafts, and compare stable latest with the expected stage:
 
 ```bash
+gh api repos/whnnick/readycheck/releases/<release-id> --jq '{tag_name, draft, prerelease, html_url, assets: [.assets[].name]}'
 gh api repos/whnnick/readycheck/releases/latest --jq '{tag_name, name, draft, prerelease, html_url, assets: [.assets[].name]}'
 ```
 
-`tag_name` must match the version just released.
+The release's tag and flags must match the chosen stage, with both verified packages attached. Stable latest must match the new version only for a stable release; a draft or preview must retain the prior stable latest. For a public release, verify anonymous access to its release page/API and both download URLs. Retain the package integrity and downloaded SHA-256 checks; these do not replace installed-app or real-device acceptance.
 
 The preview signing identity keeps local Keychain identity stable but is not a Developer ID certificate. A production Gatekeeper-ready release still requires Developer ID signing, hardened runtime configuration, notarization, and stapling.
 

@@ -87,8 +87,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             if moved { self.dragEnded() }
             else {
                 self.interaction.endDrag()
-                if self.isExpanded { self.interaction.pinPreview() }
-                else { self.interaction.click() }
+                if !self.isExpanded { self.interaction.click() }
             }
         }
 
@@ -202,7 +201,6 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             model: model,
             isExpanded: isExpanded,
             isPinned: interaction.state == .pinned,
-            onPin: { [weak self] in self?.interaction.pinPreview() },
             onTogglePin: { [weak self] in self?.interaction.togglePin() },
             tabEdge: edge,
             onTap: { [weak self] in self?.interaction.click() },

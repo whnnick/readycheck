@@ -3,6 +3,17 @@ import XCTest
 @testable import ReadyCheckApp
 
 final class QuotaMiniTrendChartTests: XCTestCase {
+    func testCurrencyScaleShowsTinyAmountsWithoutChangingQuotaDefault() {
+        let values: [Double?] = [nil, 0, 0.000001]
+        let balance = QuotaMiniTrendChart.bars(values: values, size: CGSize(width: 60, height: 22), minimumScale: 0.00000001)
+        XCTAssertEqual(balance.count, 2)
+        XCTAssertTrue(balance[0].isZero)
+        XCTAssertEqual(balance[1].rect.height, 20, accuracy: 0.001)
+        let quota = QuotaMiniTrendChart.bars(values: values, size: CGSize(width: 60, height: 22))
+        XCTAssertLessThan(quota[1].rect.height, balance[1].rect.height)
+        let invalid = QuotaMiniTrendChart.bars(values: [1], size: CGSize(width: 60, height: 22), minimumScale: .nan)
+        XCTAssertTrue(invalid[0].rect.height.isFinite)
+    }
     func testOneBarPerObservedBinPreservesMissingTimeSlots() {
         let bars = QuotaMiniTrendChart.bars(values: [0, 0.02, nil, 0.01], size: CGSize(width: 120, height: 22))
         XCTAssertEqual(bars.count, 3)

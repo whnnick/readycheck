@@ -32,6 +32,7 @@ final class WidgetInteractionControllerTests: XCTestCase {
         interaction.togglePin()
         XCTAssertEqual(interaction.state, .collapsed)
         interaction.click()
+        interaction.togglePin()
         interaction.beginDrag()
         interaction.togglePin()
         XCTAssertEqual(interaction.state, .pinned)
@@ -59,17 +60,25 @@ final class WidgetInteractionControllerTests: XCTestCase {
         XCTAssertEqual(interaction.state, .collapsed)
     }
 
-    func testClickPinsPreviewAndPointerExitCannotCloseIt() async throws {
+    func testOnlyPinButtonLocksAndPanelClicksNeverPinOrUnpin() async throws {
         let interaction = makeInteraction()
+        var inside = true
+        interaction.containsPointer = { inside }
+        interaction.click()
+        XCTAssertEqual(interaction.state, .preview)
+        interaction.click()
+        XCTAssertEqual(interaction.state, .preview)
         interaction.showPreview()
-        interaction.hoverChanged(false)
-        interaction.pinPreview()
-        try await Task.sleep(for: .milliseconds(100))
-        XCTAssertEqual(interaction.state, .pinned)
+        interaction.togglePin()
+        inside = false
         interaction.hoverChanged(false)
         try await Task.sleep(for: .milliseconds(100))
         XCTAssertEqual(interaction.state, .pinned)
         interaction.click()
+        XCTAssertEqual(interaction.state, .pinned)
+        interaction.togglePin()
+        XCTAssertEqual(interaction.state, .preview)
+        try await Task.sleep(for: .milliseconds(100))
         XCTAssertEqual(interaction.state, .collapsed)
     }
 
@@ -139,6 +148,7 @@ final class WidgetInteractionControllerTests: XCTestCase {
         interaction.onChange = { changes.append($0) }
         interaction.hoverChanged(true)
         interaction.click()
+        interaction.togglePin()
         interaction.spaceChanged()
         XCTAssertEqual(changes.last, .collapsed)
         interaction.hoverChanged(true)

@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.7.0-dev.28 - 2026-11-02
+
+- Deduplicate previously submitted card-issue warnings across credential interruptions and restarts using account-bound card incident identities, while preserving checks and retrying failed submissions. New or recurrent incidents still notify.
+- Withdraw recovered credential/read warnings after a successful card read even when an older card issue remains unresolved; distinguish suppressed repeats in history. Existing use consent and redemption behavior are unchanged. Windows metadata only; no public release.
+
+## 0.7.0-dev.27 - 2026-11-02
+
+- Expand the Codex Overview account and benefits section by default so plan, subscription, credits and reset-card details are immediately discoverable; retain manual collapse. Windows metadata only; no public release.
+
+## 0.7.0-dev.26 - 2026-11-02
+
+- Apply the selected balance-and-micro-trend direction to DeepSeek: currency above the compact balance, more legible spark bars, and a vertical edge trend.
+- Align balance and granted/topped-up breakdown side by side in details, with a taller observed-decrease chart; preserve compact notch fit, shared controls, preview-only clicks and existing positions.
+- Retain stale/error states, missing samples, currency precision and observed-decrease semantics. Windows metadata only; no public release.
+
+## 0.7.0-dev.25 - 2026-11-02
+
+- Make hover and ordinary clicks preview-only for both quota and balance capsules. Only the explicit pin control keeps details open; content/background clicks no longer pin or unpin either service.
+- Share the ReadyCheck header, labeled pin control, divider and refresh/reminder/open footer across quota and balance details, including notch details without a pin control.
+- Update both edge strips to service-aware visuals; DeepSeek now shows its mark, currency, balance and observed mini-trend instead of the old DS-only layout. Keep remembered positions and slim-strip dimensions.
+- Update capsule and preview hints in both languages, preserve original quota/balance semantics, and keep Windows changes to version metadata. Not publicly released.
+
+## 0.7.0-dev.24 - 2026-11-02
+
+- Separate connection method (OAuth / API Key) from readout kind (quota / balance); group supported connections by access method without inferring their data capabilities.
+- Adopt a shared 180x48 compact capsule with a primary reading and last-hour spark bars; restore old saved positions around their original center.
+- Give DeepSeek capsule/notch details a balance-first layout with per-currency history, refresh/pin/reminder/open controls and retained bar tooltips. Keep Codex quota, reset and reminder content, dual-notch preferences and bidirectional dragging.
+- Preserve stale, failed and missing readings; support small balance changes without changing the quota chart scale. Windows receives version metadata only. This local development update is not a public release.
+
 ## 0.7.0-dev.23 - 2026-11-02
 
 - Publish verified Mac/Windows preview packages and bilingual notes; retain stable 0.6.1 and document remaining acceptance limits.

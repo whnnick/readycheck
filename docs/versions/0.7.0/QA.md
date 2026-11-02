@@ -1,5 +1,152 @@
 # 0.7.0 — Native and prototype black-box acceptance
 
+## 2026-11-03 dev.28 package and public-source candidate
+
+Requested stage: package and push source/tag. Stable 0.6.1 and public preview dev.23 remain the download targets; no new GitHub Release/publication is part of this stage. The existing public-sync script excluded internal collaboration/build/local-campaign files and passed its sensitive-data scan. Public source/tests/scripts were byte-matched to the reviewed development tree, so the 517-test acceptance remains applicable. Public main history was checked for internal agent paths.
+
+Built from the sanitized public tree with the existing scripts. The Mac distribution build used a generic temporary build path; the final mounted DMG passed image checksum, strict application signature, dev.28/arm64 and executable private-path/internal-file checks. Signing remains the existing self-signed preview identity, not Developer ID/notarized. Windows check/smoke/UI-smoke passed using Node.js 24; the ZIP passed CRC/path/AppleDouble checks, the executable is PE x64, and ASAR contains dev.28 with 13 JS source files matching the reviewed tree and no internal/test/dependency payload.
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| ReadyCheck-0.7.0-dev.28-macos.dmg | 3564820 | `a4ce31e5778b0d15d8375769c39da33b0884dd4c7e4a970939ed420fb1011feb` |
+| ReadyCheck-0.7.0-dev.28-windows-x64-portable.zip | 151013260 | `b5924ea9adbb78f5fc931baa0e0b65986783a2ced9eb718e0cfa8dddf1705794` |
+
+Both public-sync and standard project output directories contain only the current Mac DMG and Windows ZIP; prior local installers were retained separately. The installed application was not replaced. This is package verification; source/tag visibility and unchanged Release/latest state are verified separately after pushing. Packaging does not clear the device limitations below.
+
+## 2026-11-03 dev.28 macOS acceptance closeout
+
+Scope: the Codex + DeepSeek macOS slice in [the product plan](PLAN.md) and [implementation scope](TECHNICAL.md). This closes the current acceptance execution and consolidates all 65 entries in the [retention matrix](RELEASE_AUDIT.md); it does not declare every device/edge case accepted or authorize a public release. Earlier dated entries below remain the evidence history.
+
+| Requirement / result | Current evidence |
+| --- | --- |
+| Implemented core flow | Original Codex quotas, Token history, benefits, reminders and card records retained; DeepSeek original connection, official balance/components, local decrease history and compact/details/notch flows verified. Other catalog services remain planned. |
+| Requested corrections | Account benefits default open; ordinary clicks preview and only the explicit button pins; old card incidents remain deduplicated after credential recovery and restart, while new incidents remain eligible in regression tests. |
+| Automated acceptance | 338 Core +179 App tests passed across the full run and three opt-in visual follow-ups: 517 unique tests, no outstanding failures/skips. Existing results reused because runtime inputs did not change. |
+| Installed package | Still dev.28; strict signature and byte comparison with the reviewed candidate passed. No rebuild/replacement in this closeout. |
+| Same-bundle restart | Normal quit was confirmed, the same installed app relaunched in English and both original services connected without new credential entry. English native menus matched. Returned to Chinese; all 13 tracked language/selection/display/frame preferences exactly matched the initial snapshot. This is app restart, not OS login/reboot acceptance. |
+| Notification evidence | One explicit test notification reported Center verified. Existing real recovery history retained withdrawn entries after restart. The user confirmed the test notification was visible and old credential-unavailable warnings were gone from Notification Center. |
+| Human-only UI checks | The user confirmed the current menu-bar quota/account summary, refresh and open-main action worked; both Overview and Token bar hover details appeared and disappeared normally. These are user-reported device results, not automation captures. Optional menu toggles and every More-menu route were not individually confirmed. |
+| Final state | Codex selected, Chinese, original 30-day Token range, main window closed, right-edge capsule collapsed/unpinned; original display settings, saved frames and reminder/card consent retained. No real account amounts/screenshots or credentials added to repository. |
+
+**Partially complete / remaining evidence:** simulated unknown/zero/stale/identity/error cases have automated coverage; they are not all reproduced against a real account. More-menu routes, every display placement/mode, actual snooze deadlines, another account, real DeepSeek alert cycles and OS login/wake/multiple-display/Spaces/fullscreen combinations retain the specific limits in the 65-entry matrix. Windows 403 still needs the affected Windows environment. Other eight catalog services are unimplemented integrations, outside this two-service native slice.
+
+**Release disposition:** local macOS core acceptance is complete for this slice. Stable all-platform release gates remain open where the matrix requires device evidence; no tag, public push, asset upload or release was performed. The current task needs no additional development/build/test repetition unless a remaining check exposes a defect. No scheduled follow-up was created.
+
+## 2026-11-03 dev.28 installed acceptance follow-up
+
+Scope: the installed macOS Codex + DeepSeek flow in [the version plan](PLAN.md), with the [retention audit](RELEASE_AUDIT.md) retaining device-specific limits. No runtime or package changes in this follow-up.
+
+| Requirement | Result and evidence boundary |
+| --- | --- |
+| Existing connection recovery | Codex retained fresh reads. The user completed DeepSeek's normal Keychain retry; the original connection recovered without entering or inspecting a key. Overview manual refresh advanced its successful timestamp and reported unchanged balance. |
+| Compact balance and details | The remembered right-edge balance strip and expanded balance/breakdown, shared controls and missing-sample explanation were visually checked without clipping. A missing observation interval stayed unknown instead of displaying a fresh zero. Populated bar ordering remains synthetic evidence. |
+| Preview and explicit pin | Clicking the strip opened an unpinned preview; the explicit button pinned it, content clicks retained pinning, detail refresh advanced the timestamp while pinned, and unpin collapsed the strip. No dragging or position reset. |
+| Installed notch | Temporarily enabled the existing notch setting. DeepSeek compact readout and expanded balance/components/footer were visible without clipping, manual refresh advanced the timestamp, and Escape collapsed details. Restored widget-on/notch-off, dual-quota preference unchanged. |
+| Warning persistence overnight | Saved live checks showed the same old card incident suppressed through two further read-interruption/recovery sequences overnight. Earlier read failures were marked recovered; diagnostic history and unconfirmed card outcome remained intact. This is bounded observed evidence, not an indefinite-running guarantee. |
+
+Complete regression: 338 Core + 179 App tests, no failures. The initial run skipped three opt-in native visual tests; all three then passed with evidence output enabled. Across these runs all 517 tests passed with no outstanding skips. Reviewed synthetic captures: [capsule](evidence/dev28-balance-capsule.png), [edge](evidence/dev28-balance-edge.png), [expanded](evidence/dev28-balance-expanded.png), [English notch details](evidence/dev28-balance-notch-en.png). These contain fixture data, not real account amounts. Version consistency, whitespace, new-link and added-line privacy checks passed.
+
+Final state: original Codex selection, main window closed, remembered right edge collapsed/unpinned; widget on, notch off, always-on-top and fullscreen-hide unchanged. Restored the original reminder-settings section; no credential, rule, consent or position changes. No build/install or public push/release in this follow-up.
+
+Remaining real-device limits: free horizontal capsule/left edge, Codex notch layout variants and other-display/Spaces/fullscreen combinations need separate current-build acceptance; synthetic native coverage remains distinct. Actual macOS notification removal, launch at next login/reboot, another account, real reminder thresholds and Windows 403 require their own evidence. No new service integration or public-release conclusion is implied.
+
+### Further native-entry checks
+
+Installed dev.28 View → Usage opened the actual Token page. The 7/90-day range controls changed chart coverage and the original 30-day selection was restored; UTC/source/missing-date explanations remained visible. Native-menu Cancel closed the menu. Escape did not produce a reliably observable dismissal and remains unaccepted. A chart-group click did not show a tooltip; pointer-hover acceptance remains pending. Restored Codex Overview and closed the main window, with the right edge collapsed/unpinned and no position/rule changes.
+
+The user opened the status-bar popover, but current automation still returned only the capsule window. System menu/Notification Center surfaces also could not be read, so F01–F04 and actual notification withdrawal remain pending; no pass is inferred from source code, mock rendering or the user's opening action. No runtime change, version bump, rebuild or repeated full regression was needed; the 517-test result above remains applicable.
+
+## 2026-11-02 dev.28 persistent card-warning deduplication
+
+Requirement: restoring credential access must not replay an already submitted warning for the same unresolved card incident. Check intervals remain visible. The diagnostic ledger now records hashed, account-scoped incident subjects (card identity, expiration, status and status-change time) and a separate repeat-suppression flag. Submission acknowledgement remains distinct. Old submitted rows without incident metadata cover only incidents already observed by their last check; new/recurrent incidents and other accounts remain eligible. Missing cards remain unconfirmed and no successful use is inferred.
+
+A successful read resulting in an outstanding card issue also withdraws earlier credential/read warnings. This does not withdraw unresolved redemption-result warnings. History labels suppressed repeats in Chinese and English. The protected consent/attempt ledger, eligibility, redemption RPC, idempotency and retry logic are unchanged. Synthetic checks do not redeem real cards. Existing release blockers and other device-acceptance limits remain in effect; no public release is requested.
+
+Validation and installed acceptance follow below.
+
+Regression: 338 Core + 20 targeted App tests passed with zero failures/skips. The initial three regression tests reproduced repeated warnings and missed new/recurrent incidents before the fix. Coverage includes credential interruption/restart, old-ledger migration, new and recurrent card incidents, resolving one of several incidents, unsubmitted retry, account isolation, missed-window warnings, read-warning withdrawal and preserving unknown redemption results. Development-version consistency, whitespace and added-line privacy checks passed. Installed acceptance is recorded below.
+
+The existing package script produced dev.28 with the same designated signing requirement as dev.27. Strict candidate/installed signature verification, installed version and executable byte comparison passed. A complete dev.27 backup was retained; no preference, credential or history deletion was performed. The installed app initially required normal Keychain authorization. After access recovered, the next automatic card check explicitly displayed the repeat-suppression label for the pre-existing incident and marked the credential interruption recovered. Existing diagnostic history, unresolved card status and both available-card observations remained visible; no new local redemption was shown. This verifies one recovery/check cycle, not a long-running guarantee. Actual macOS removal behavior beyond the application history was not independently inspected; notification withdrawal is covered by the synthetic client tests. DeepSeek authorization was not re-accepted in this focused follow-up. No live values/images or credentials were saved to the repository. No public push or release occurred.
+
+## 2026-11-02 dev.27 account discoverability
+
+Requirement: make the Codex Overview account and benefits section expanded by default, while retaining manual collapse. The only runtime change is the view-local disclosure state initializer; account fields, credential handling, reset actions and stored preferences are unchanged. This applies to a newly created view; manually collapsing it remains effective for that view's lifetime.
+
+Validation and installed acceptance are recorded below. Existing dev.26 capsule evidence remains applicable to unchanged paths; this change does not clear the version's other release blockers.
+
+Validation: development version consistency and whitespace checks passed. Targeted run: Core version test passed; 16 of 17 MainWindow tests passed, with an About-window height assertion failing inside the sandbox. That single test passed when rechecked outside the sandbox; no About code was changed. The run includes account-benefit zero/unknown/partial fields, bilingual minimum-size pages and scroll-position restoration. The existing package script built dev.27 with the same designated signing requirement as dev.26; strict signature, installed version and executable byte comparison passed. A complete dev.26 backup was retained. The newly launched installed app showed the account disclosure expanded before any disclosure click. Manual collapse and re-expansion succeeded. After the user completed normal Codex Keychain authorization, plan, subscription, credits and reset details recovered in the expanded section. The main window was left on these details, with Codex selected and widget position unchanged. No live values/images or credentials were stored in the repository. DeepSeek credential recovery was not re-accepted in this account-only follow-up. No public push or release.
+
+## 2026-11-02 dev.26 selected micro-trend design
+
+The user chose the third displayed concept. [Selected mock](evidence/dev26-selected-concept.png) is a visual direction, not a package screenshot. Native dimensions, position restoration, shared header/footer and explicit-only pin remain unchanged. Currency and balance stack in the compact capsule; edge trends rotate to an oldest-first vertical layout; expanded balance/breakdown align side by side above a taller observed-decrease chart.
+
+40 focused native tests passed, including new compact currency/number separation, no quota percentage, stale-state visibility and existing bilingual notch/expanded natural-height assertions. Reviewed mock-data captures: [capsule](evidence/dev26-balance-capsule.png), [edge](evidence/dev26-balance-edge.png), [details](evidence/dev26-balance-expanded.png). The implementation retains real sampling gaps rather than reproducing illustrative bars from the concept. No new assets, network calls, permissions or provider semantics. Full regression, package and installed acceptance pending.
+
+Final complete regression passed: 333 Core +178 App (511 total), zero failures/skips. The existing packaging script produced dev.26; strict candidate/installed signature checks, installed version and executable byte comparison passed. Normal exit and whole-bundle replacement retained a complete dev.25 backup. Startup still requires normal Keychain confirmation, so live-account layout acceptance is pending. No bypass, public push or release. Windows metadata only. These results supersede the pending full-test/package status above.
+
+### Post-authorization dev.26 device checks — 2026-11-02
+
+After the user completed normal Keychain authorization, the installed dev.26 showed both original services connected. Codex manual refresh completed with a new successful-read time. DeepSeek manual refresh succeeded in both Overview and expanded details, advancing the timestamp and reporting unchanged balance; no credential entry or inspection was needed.
+
+At the remembered right edge, DeepSeek displayed its service mark, currency above balance, and vertical micro-trend area. Expanded details showed balance and granted/topped-up components side by side, the taller observed-decrease area, local-observation disclaimer and complete shared header/footer without visible clipping. This live interval showed no observed decrease, so populated trend bars and their chronological ordering remain covered by synthetic evidence, not this live check.
+
+Clicking either service strip opened an unpinned preview. DeepSeek content clicks preserved preview/pinned state; the explicit pin button pinned details, refresh retained that state, and unpin collapsed the strip. Codex explicit pin/unpin and shared details were also checked. Restored Codex selection, closed main window and collapsed/unpinned right edge without dragging or resetting position. No live account images, amounts or credentials were saved to the repository.
+
+This supersedes the dev.26 authorization-pending status above. Free horizontal capsule, left edge, notch, other languages, multiple displays/Spaces/fullscreen and long-running behavior were not rechecked on-device in this follow-up. No runtime/package change or version bump was needed; the completed 511-test regression was reused. No credential, reminder or reset-card action, public push or release occurred.
+
+## 2026-11-02 dev.25 preview and chrome consistency
+
+The user found that the remembered edge strip still looked old and ordinary clicks could pin Codex differently from DeepSeek. The old controller/background/content pin paths were reproduced by changed regression assertions before removal. The explicit pin button is now the only locking action; ordinary clicks open a preview or leave its current latch unchanged.
+
+| Requirement | Check and boundary |
+| --- | --- |
+| Matching interaction | Controller tests cover both service selections, free/left/right placement, padding and content clicks, native pin-button mouse events, unpin, external dismissal and clicks during expansion. |
+| Matching base UI | Both detail types use the same header/pin/footer components; service-specific content remains separate. Notch content reuses the base UI without adding pinning. |
+| Updated edge strips | Real service mark, currency/balance and mini-history replace the old DeepSeek DS-only strip on both edges. Positions and 28x144 strip bounds remain unchanged. |
+| Fit and wording | Chinese/English capture and natural-height assertions include the shared header/footer and the two-line unchanged-balance state. Active hints describe a capsule and button-only pinning. |
+
+The 42-test focused run and final 333 Core +178 App tests (511 total) passed with zero failures/skips. Development version consistency and whitespace checks passed. The existing script built dev.25; strict signature verification passed with the same designated requirement as the installed dev.24. The app exited normally and dev.25 replaced the fixed Applications bundle, preserving a complete dev.24 backup. Installed version and byte-for-byte executable comparison passed. Startup requested normal Keychain confirmation; real-account refresh and installed-panel interaction acceptance remain pending that confirmation. No authorization bypass was attempted.
+
+Reviewed synthetic evidence: [right edge](evidence/dev25-balance-edge.png), [expanded panel](evidence/dev25-balance-expanded.png), [notch details](evidence/dev25-balance-notch.png). These are mock data, not live-account acceptance. No credentials, reminders, card consent or public download targets are changed. Earlier dev.24 device checks are not automatically dev.25 evidence. No public push or release occurred.
+
+### Post-authorization dev.25 device checks
+
+The user completed the separate normal Codex and DeepSeek Keychain prompts. Both original connections recovered without entering or inspecting credential contents. DeepSeek Overview manual refresh advanced the successful read timestamp immediately and explicitly reported unchanged balance.
+
+On the installed app, switching service updated the remembered right-edge readout. Clicking either service strip opened an unpinned preview; only its explicit pin button changed to pinned, and unpin returned to the collapsed strip. Actual Codex and DeepSeek panels showed the shared header/pin and refresh/reminder/open footer without clipping. Live-account images and values were not saved to the repository. Restored Codex selection, closed main window and collapsed/unpinned right edge without dragging or resetting position.
+
+These checks supersede the pending-authorization status above. Content/background clicks remain covered by native mouse-event regression tests, not a new live click claim. Left-edge placement, notch, multiple displays/Spaces/fullscreen and long-running behavior were not re-accepted on-device in this follow-up. No runtime/package changes, credential/rule/card actions or public release occurred; the 511-test result remains applicable.
+
+## 2026-11-02 dev.24 readout families
+
+Scope: native macOS capsule/notch presentation and supported connection grouping. The second design concept is the visual direction, not proof of exact dimensions or working animation. No new provider, credentials, inference, card use or permission change is part of this update. Public preview dev.23 and stable 0.6.1 remain unchanged.
+
+| Requirement | Implementation and acceptance boundary |
+| --- | --- |
+| Independent categories | Access method and readout kind are separate values. Tests include API Key + quota and OAuth + balance combinations, without claiming such integrations are available. |
+| Shared capsule | 180x48 compact quota/balance readout, real service marks and last-hour bars; older saved frames retain their center and edge restoration. Codex expanded content stays available. |
+| Balance details | Per-currency total/granted/topped-up readings, observed-decrease chart, existing hover/click tooltips and accessible refresh/reminder/open controls; capsule pin retained. |
+| Missing and stale | Unknown samples stay blank; failed/stale balances are not fresh zeros. Currency-scale tests preserve tiny values and the existing quota scale. |
+| Motion and interactions | Reuse existing anchored capsule/notch expansion, pin, Escape, dragging and reduced-motion paths; numeric updates use a short transition, disabled under reduced motion. Live device behavior must be checked separately. |
+
+Final source validation: 333 Core +177 App tests (510 total) passed with zero failures/skips using `READYCHECK_UI_EVIDENCE_DIR=/private/tmp/readycheck-dev24-evidence swift test --disable-sandbox`. This follows the initial 509-test run and a 40-test status follow-up. The new natural-height assertion first failed at 187pt against a 160pt notch body budget in both languages. Compact notch spacing, 28pt balance text and a 52pt chart fix that overflow; the final complete run includes the passing assertion. Fixed-size host geometry alone had not caught the scrolling crop.
+
+Reviewed synthetic evidence: [capsule](evidence/dev24-balance-capsule.png), [notch details](evidence/dev24-balance-notch.png), [connection groups](evidence/dev24-connection-groups.png). Tiny changes, full zero-axis/disclaimer visibility and Chinese/English layouts were inspected. These are synthetic images, not live-account acceptance. Development version consistency and whitespace checks passed.
+
+The existing script built the final arm64 dev.24 package; strict signature verification passed with the same designated signing requirement as dev.23. An initial dev.24 build was installed at the fixed Applications path with a complete dev.23 backup; DeepSeek selection persisted and live UI showed OAuth/API Key groups. The later notch-fit fix is in the retained final package but is NOT yet installed: the Mac is locked and native UI operation is blocked. Normal credential retry was requested without reading, entering or transferring a key; live reads still need authorization. Unlock before normal exit, final replacement and device acceptance. No lock bypass, account/rule/card authorization changes or release upload occurred. Windows changes are metadata only; existing device/release limits remain.
+
+### Post-unlock final installation and device checks
+
+This follow-up supersedes the pending-install state above. After the user unlocked the Mac, the old process exited through the native menu. The final package replaced the fixed Applications bundle, retaining the pre-fit dev.24 build as well as the earlier dev.23 backup. Strict signature verification and byte-for-byte executable comparison with the retained final candidate passed; only one fixed-path process runs.
+
+- The user completed normal Keychain access confirmation. Original DeepSeek balance reads recovered without a new login or key entry; the agent did not inspect, copy or transfer credential contents. Overview manual refresh immediately advanced the successful reading time.
+- Real edge-tab click expanded and pinned the balance panel. Total/breakdown, zero observed decrease, qualification and footer actions were visible without clipping; the panel refresh advanced its timestamp. Unpin returned to the collapsed edge tab.
+- Temporarily enabling notch display hid the desktop Widget as designed. The compact currency readout, click-to-expand details, refresh and open-Overview action passed on the actual screen; the disclaimer and footer were fully visible. This account had no new observed decrease, so positive bars and bar tooltips remain covered by synthetic/native tests rather than live spending.
+- Restored Widget on, notch off, floating-bubble style, always-on-top, automatic primary quota, dual-notch option, fullscreen-hide and the remembered Reminders/Codex settings section. Returned to Chinese DeepSeek Overview; no drag/reset-position, reminder or card-rule action was performed.
+- Remaining limits: Codex still requires credential-access confirmation, as before this device pass; no re-login or real-card test was attempted. Hover timing, bidirectional dragging, multiple displays/Spaces/fullscreen and long-running behavior were not re-accepted here. Settings still uses legacy bubble/circle terminology; that copy was not changed. No live-account screenshots or balance values were added to the repository, and no public release was uploaded.
+
+No runtime code or version changed during this follow-up; the final 510-test result above still applies.
+
 ## 2026-11-02 public dev.23 preview
 
 The maintainer explicitly requested publication of prepared dev.23. The [release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23) is now public: draft=false, prerelease=true, with both verified assets. Anonymous release API and public download URLs succeeded; asset sizes and GitHub digests still match the verified packages. Stable latest remains v0.6.1. This updates the earlier draft hold; remaining Windows affected-machine/device checks are not marked passed. Runtime source and package bytes are unchanged.

@@ -6,7 +6,7 @@ public enum BubbleWidgetPlacement {
         case right
     }
 
-    public static let bubbleSize = CGSize(width: 92, height: 92)
+    public static let bubbleSize = CGSize(width: 180, height: 48)
     public static let tabSize = CGSize(width: 28, height: 144)
     public static let expandedSize = CGSize(width: 380, height: 344)
     public static let snapDistance: CGFloat = 34

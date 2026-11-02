@@ -31,7 +31,7 @@ final class EdgeRailWidgetTests: XCTestCase {
             let panel = try XCTUnwrap(NSApp.windows.first { $0 is QuotaWidgetPanel && !previous.contains($0.windowNumber) })
             let host = try XCTUnwrap(panel.contentViewController?.children.first as? NSHostingController<BubbleWidgetView>)
             host.rootView.onTap()
-            if !pinned { host.rootView.onTogglePin() }
+            if pinned { host.rootView.onTogglePin() }
             XCTAssertTrue(host.rootView.isExpanded)
             XCTAssertEqual(host.rootView.isPinned, pinned)
             host.rootView.onDragChanged(CGSize(width: edge == .left ? 200 : -200, height: 0))
@@ -148,6 +148,7 @@ final class EdgeRailWidgetTests: XCTestCase {
         let container = try XCTUnwrap(panel.contentViewController)
         let host = try XCTUnwrap(container.children.first as? NSHostingController<BubbleWidgetView>)
         host.rootView.onTap()
+        host.rootView.onTogglePin()
         waitForBubbleLayout(panel: panel, hostedView: host.view, size: BubbleWidgetPlacement.expandedSize)
         if !NSApp.isActive && !panel.isKeyWindow {
             throw XCTSkip("Pinned-window sizing needs an unlocked foreground session; the panel could not retain keyboard focus.")
@@ -303,6 +304,7 @@ final class EdgeRailWidgetTests: XCTestCase {
             let panel = try XCTUnwrap(NSApp.windows.first { $0 is QuotaWidgetPanel && !previous.contains($0.windowNumber) })
             let host = try XCTUnwrap(panel.contentViewController?.children.first as? NSHostingController<BubbleWidgetView>)
             host.rootView.onTap()
+            host.rootView.onTogglePin()
             RunLoop.main.run(until: Date().addingTimeInterval(0.3))
             let detailFrame = panel.frame
             for windows in [[], [weekly], [hourly, weekly], [hourly, weekly, extra], [weekly]] {

@@ -6,7 +6,7 @@ struct SettingsView: View {
     @Bindable var model: ReadyCheckAppModel
 
     @State private var now = Date()
-    @State private var accountDetailsExpanded = false
+    @State private var accountDetailsExpanded = true
     @State private var showDeepSeekKey = false
     @FocusState private var deepSeekConnectFocused: Bool
     @FocusState private var settingsPlatformFocus: ServiceSettingsTarget?
@@ -295,8 +295,20 @@ struct SettingsView: View {
 
     private var settingsPlatformPicker: some View {
         HStack(spacing: 3) {
-            settingsPlatformButton(.codex)
-            settingsPlatformButton(.deepSeek)
+            if model.mainSettingsSection == .connection {
+                ForEach(ServiceConnectionMethod.allCases, id: \.rawValue) { method in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(method.title).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+                            .padding(.horizontal, 12)
+                        ForEach(ServiceSettingsTarget.allCases.filter {
+                            $0.presentation.connectionMethod == method
+                        }, id: \.rawValue) { settingsPlatformButton($0) }
+                    }
+                }
+            } else {
+                settingsPlatformButton(.codex)
+                settingsPlatformButton(.deepSeek)
+            }
         }
         .padding(3)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 9))

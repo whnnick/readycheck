@@ -1,3 +1,21 @@
+<a id="source-candidate-dev28"></a>
+
+# ReadyCheck 0.7.0-dev.28 — Packaged source candidate
+
+[简体中文](RELEASE_NOTES.zh-CN.md#source-candidate-dev28) · [Acceptance](QA.md) · [Retention matrix](RELEASE_AUDIT.md)
+
+The dev.28 Mac and Windows packages have been verified for source/tag synchronization. It is not a newly published GitHub Release. Public preview downloads remain dev.23 and stable downloads remain 0.6.1; [dev.23 preview notes](#public-preview-dev23) are preserved below.
+
+- Apply the selected DeepSeek micro-trend design to the capsule, edge strip and expanded balance/components, preserving missing/stale/error states and local-observation semantics.
+- Ordinary clicks preview; only the shared explicit pin button keeps details open. Account benefits now open by default and can still be collapsed.
+- Deduplicate an already reported card incident across credential interruptions/restarts; new incidents remain eligible. Clear recovered credential warnings while retaining unresolved card outcomes and diagnostic history.
+- macOS core acceptance covers 338 Core +179 App tests (517 unique passing tests, including three opt-in visual follow-ups), installed connection/refresh/pin/notch checks, user-confirmed menu/hover/notification checks and same-bundle restart. See QA for device limits.
+- Windows keeps the existing Codex interface; dev.24–dev.28 Windows changes are version metadata only. Windows 403, other devices and OS-login/Spaces/fullscreen boundaries remain documented and do not become accepted by packaging.
+
+macOS packages retain the established self-signed preview identity, not Developer ID signing or notarization. This packaging/source stage does not change stable latest or public preview publication state.
+
+<a id="public-preview-dev23"></a>
+
 # ReadyCheck 0.7.0-dev.23 — Public preview
 
 [简体中文](RELEASE_NOTES.zh-CN.md) · [Checks and limits](QA.md) · [Retention checklist](RELEASE_AUDIT.md)

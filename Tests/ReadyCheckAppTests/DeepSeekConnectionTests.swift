@@ -26,6 +26,13 @@ final class DeepSeekConnectionTests: XCTestCase {
         XCTAssertEqual(count, 2)
         XCTAssertTrue(DeepSeekDisplay.balanceText(connection: connection, now: Date()).hasPrefix("CNY "))
         XCTAssertEqual(DeepSeekDisplay.balanceText(connection: connection, now: Date().addingTimeInterval(301)), "—")
+        let readout = ServiceCompactReadout(model: model, now: Date())
+        XCTAssertEqual(readout.balanceHeading, "CNY")
+        XCTAssertFalse(readout.primaryText.contains("CNY"), "Currency belongs above the balance, not in its numeric line")
+        XCTAssertFalse(readout.primaryText.contains("%"), "API balance has no quota percentage")
+        let staleReadout = ServiceCompactReadout(model: model, now: Date().addingTimeInterval(301))
+        XCTAssertEqual(staleReadout.primaryText, "—")
+        XCTAssertNotEqual(staleReadout.balanceHeading, "CNY", "Unconfirmed state must remain visible")
     }
 
     func testDeepSeekNativeSurfacesWithSyntheticData() async throws {
@@ -47,6 +54,7 @@ final class DeepSeekConnectionTests: XCTestCase {
         let connection = DeepSeekConnection(store: store, client: DeepSeekBalanceClient(loader: DeepSeekStub(status: 200)),
             historyStore: historyStore)
         await connection.refresh()
+        await connection.refresh()
         let model = ReadyCheckAppModel(credentialStore: store, deepSeekConnection: connection,
             deepSeekAlertStore: DeepSeekBalanceAlertStore(fileURL: directory.appendingPathComponent("alerts.json")),
             quotaNotificationService: QuotaNotificationService(client: DeepSeekSilentNotifications(), verificationDelays: []))
@@ -55,6 +63,22 @@ final class DeepSeekConnectionTests: XCTestCase {
         model.selectedDeepSeek = true
         for language in [AppLanguage.zhCN, .enUS] {
             model.language = language
+            let reading = try XCTUnwrap(DeepSeekDisplay.readings(connection: connection, now: Date()).first)
+            let details = BalanceDetailsView(model: model, now: Date(), compact: true, openMainWindow: {})
+            let summary = details.currencySummary(reading)
+            let summaryHost = NSHostingView(rootView: summary.frame(width: 324))
+            XCTAssertLessThanOrEqual(summaryHost.fittingSize.height, 160,
+                "The first currency chart and disclaimer must fit the notch body without scrolling")
+            let headerHost = NSHostingView(rootView: details.header.frame(width: 324))
+            let footerHost = NSHostingView(rootView: details.footer.frame(width: 324))
+            XCTAssertLessThanOrEqual(summaryHost.fittingSize.height + headerHost.fittingSize.height
+                + footerHost.fittingSize.height + 16, 236,
+                "Shared chrome and the full first currency must fit the notch's inner height")
+            let expanded = BalanceDetailsView(model: model, now: Date(), openMainWindow: {})
+            let expandedSummary = NSHostingView(rootView: expanded.currencySummary(reading).frame(width: 348))
+            XCTAssertLessThanOrEqual(expandedSummary.fittingSize.height
+                + headerHost.fittingSize.height + footerHost.fittingSize.height + 16, 312,
+                "The selected balance-and-trend layout must fit the existing expanded panel")
             let views: [(String, AnyView, CGSize)] = [
                 ("overview", AnyView(ScrollView { DeepSeekOverview(connection: connection, language: language, now: Date(), days: .constant(1)).padding() }), .init(width: 620, height: 650)),
                 ("menu", AnyView(MenuBarQuotaView(model: model, openSettings: {})), .init(width: 340, height: 470)),

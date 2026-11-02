@@ -18,8 +18,7 @@ struct BubbleQuotaDisplay: Equatable {
 struct BubbleWidgetView: View {
     @Bindable var model: ReadyCheckAppModel
     let isExpanded: Bool
-    var isPinned = true
-    var onPin: () -> Void = {}
+    var isPinned = false
     var onTogglePin: () -> Void = {}
     let tabEdge: BubbleWidgetPlacement.Edge?
     let onTap: () -> Void
@@ -28,7 +27,6 @@ struct BubbleWidgetView: View {
     let onCollapse: () -> Void
 
     @State private var now = Date()
-    @State private var recoveryHighlight = false
 
     private var previewHint: String {
         let hint = model.localization.text("widget.previewHint")
@@ -50,18 +48,6 @@ struct BubbleWidgetView: View {
         model.notchQuotaSelection.resolve(in: windows)
     }
 
-    private var primaryRatio: Double? {
-        guard snapshot?.canShowPercentages(now: now) == true else { return nil }
-        return primaryWindow?.displayableRemainingRatio
-    }
-
-    private var displayedQuota: BubbleQuotaDisplay {
-        BubbleQuotaDisplay(selection: model.notchQuotaSelection, windowID: primaryWindow?.id, ratio: primaryRatio)
-    }
-
-    private var primaryWindowShortLabel: String {
-        expandedWindows.first.map(QuotaWindowDisplay.shortLabel) ?? "—"
-    }
 
     var expandedWindows: [QuotaWindow] {
         model.notchQuotaSelection.displayWindows(in: windows)
@@ -91,51 +77,28 @@ struct BubbleWidgetView: View {
                 try? await Task.sleep(for: .seconds(30))
             }
         }
-        .onChange(of: displayedQuota) { oldQuota, newQuota in
-            recoveryHighlight = newQuota.shouldHighlight(after: oldQuota)
-            guard recoveryHighlight else { return }
-            Task {
-                try? await Task.sleep(for: .milliseconds(700))
-                recoveryHighlight = false
-            }
-        }
     }
 
     private var orbitalSurface: some View {
         GeometryReader { geometry in
-            let reveal = min(1, max(0, (geometry.size.width - 140) / 200))
+            let reveal = min(1, max(0, (geometry.size.width - BubbleWidgetPlacement.bubbleSize.width)
+                / (BubbleWidgetPlacement.expandedSize.width - BubbleWidgetPlacement.bubbleSize.width)))
             let shape = WidgetPanelShape()
             ZStack {
                 shape.fill(floatingSurfaceColor)
                     .overlay(shape.strokeBorder(.white.opacity(0.22), lineWidth: 1))
-                    .onTapGesture { if isExpanded { onPin() } }
                 expandedDetails
                     .frame(width: max(0, geometry.size.width - 32), height: max(0, geometry.size.height - 32))
                     .clipped().padding(16)
                     .opacity(reveal).allowsHitTesting(isExpanded && reveal > 0.9)
                     .accessibilityHidden(!isExpanded)
-                Group {
-                    if model.selectedDeepSeek {
-                        VStack(spacing: 3) {
-                            Text("DS").font(.system(size: 15, weight: .semibold))
-                            Text(DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now))
-                                .font(.system(size: 10, weight: .medium)).monospacedDigit()
-                                .lineLimit(2).minimumScaleFactor(0.65)
-                        }.foregroundStyle(.white)
-                    } else {
-                        OrbitalQuotaDial(windows: expandedWindows, primaryLabel: primaryWindowShortLabel,
-                            canShow: snapshot?.canShowPercentages(now: now) == true, recoveryHighlight: recoveryHighlight)
-                    .overlay(alignment: .topTrailing) {
-                        if snapshot?.isCached == true {
-                            Image(systemName: "clock.badge.exclamationmark").font(.caption).foregroundStyle(.orange)
-                        }
-                    }
-                    }
-                }
-                    .frame(width: 76, height: 76).opacity(1 - reveal)
-                    .contentShape(Circle()).onTapGesture(perform: onTap)
+                ServiceCompactReadout(model: model, now: now)
+                    .frame(width: BubbleWidgetPlacement.bubbleSize.width, height: BubbleWidgetPlacement.bubbleSize.height)
+                    .opacity(1 - reveal)
+                    .contentShape(Capsule()).onTapGesture(perform: onTap)
                     .simultaneousGesture(dragGesture).contextMenu { contextMenu }
                     .allowsHitTesting(!isExpanded).accessibilityHidden(isExpanded)
+                    .accessibilityElement(children: .ignore)
                     .accessibilityAddTraits(.isButton).accessibilityAction { onTap() }
                     .help(previewHint)
                     .accessibilityLabel(model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " "
@@ -152,11 +115,11 @@ struct BubbleWidgetView: View {
         GeometryReader { geometry in
             let progress = min(1, max(0, (geometry.size.width - BubbleWidgetPlacement.tabSize.width)
                 / (BubbleWidgetPlacement.expandedSize.width - BubbleWidgetPlacement.tabSize.width)))
-            let reveal = min(1, max(0, (geometry.size.width - 140) / 200))
+            let reveal = min(1, max(0, (geometry.size.width - BubbleWidgetPlacement.bubbleSize.width)
+                / (BubbleWidgetPlacement.expandedSize.width - BubbleWidgetPlacement.bubbleSize.width)))
             let shape = WidgetPanelShape(tabProgress: 1 - progress)
             ZStack(alignment: edge == .left ? .leading : .trailing) {
                 bubbleSurface(shape)
-                    .onTapGesture { if isExpanded { onPin() } }
                 expandedDetails
                     .frame(width: max(0, geometry.size.width - 32), height: max(0, geometry.size.height - 32))
                     .clipped().padding(16)
@@ -171,25 +134,7 @@ struct BubbleWidgetView: View {
     }
 
     private func edgeTab(_ edge: BubbleWidgetPlacement.Edge) -> some View {
-        VStack(spacing: 10) {
-            if model.selectedDeepSeek {
-                Text("DS").font(.system(size: 11, weight: .semibold))
-                Text(DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now))
-                    .font(.system(size: 8)).monospacedDigit().lineLimit(3).minimumScaleFactor(0.6)
-                    .frame(width: 22)
-            } else {
-            codexIcon.frame(width: 16, height: 16)
-            ForEach(expandedWindows.prefix(2)) { window in
-                let ratio = snapshot?.canShowPercentages(now: now) == true ? window.displayableRemainingRatio : nil
-                Capsule().fill(Color.white.opacity(0.18))
-                    .overlay(alignment: .bottom) {
-                        Capsule().fill(quotaColor(for: ratio))
-                            .frame(height: 44 * max(0, min(ratio ?? 0, 1)))
-                    }
-                    .frame(width: 6, height: 44)
-            }
-            }
-        }
+        ServiceEdgeReadout(model: model, now: now)
         .frame(width: BubbleWidgetPlacement.tabSize.width, height: BubbleWidgetPlacement.tabSize.height)
         .foregroundStyle(.white)
         .contentShape(RoundedRectangle(cornerRadius: 14))
@@ -197,6 +142,7 @@ struct BubbleWidgetView: View {
         .simultaneousGesture(dragGesture)
         .contextMenu { contextMenu }
         .help(previewHint)
+        .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { onTap() }
         .accessibilityLabel(model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " " + expandedWindows.prefix(2).map {
@@ -206,36 +152,21 @@ struct BubbleWidgetView: View {
     }
 
     private var expandedDetails: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                codexIcon.frame(width: 24, height: 24)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("ReadyCheck").font(.system(size: 14, weight: .semibold))
-                    Text(model.selectedDeepSeek ? "DeepSeek API" : "Codex · " + model.localization.text(snapshot?.availabilityTextKey(now: now) ?? "status.unavailable"))
-                        .font(.system(size: 10)).foregroundStyle(.white.opacity(0.55)).lineLimit(1)
-                }
-                Spacer()
-                Button(action: onTogglePin) {
-                    Label(model.localization.text(isPinned ? "widget.pinStateOn" : "widget.pinStateOff"),
-                        systemImage: isPinned ? "pin.fill" : "pin")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(isPinned ? Color.cyan : .white.opacity(0.75))
-                        .padding(.horizontal, 9).padding(.vertical, 6)
-                        .background(isPinned ? Color.blue.opacity(0.15) : .white.opacity(0.06), in: RoundedRectangle(cornerRadius: 9))
-                }
-                .buttonStyle(.plain)
-                .help(model.localization.text(isPinned ? "bubble.unpinHelp" : "bubble.pinHelp"))
-                .accessibilityLabel(model.localization.text(isPinned ? "widget.unpinDetails" : "widget.pinDetails"))
-                .accessibilityValue(model.localization.text(isPinned ? "widget.pinStateOn" : "widget.pinStateOff"))
+        Group {
+            if model.selectedService.presentation.readoutKind == .balance {
+                BalanceDetailsView(model: model, now: now, isPinned: isPinned,
+                    onTogglePin: onTogglePin, openMainWindow: openMainWindow)
+            } else {
+                quotaExpandedDetails
             }
+        }
+    }
 
-            if model.selectedDeepSeek {
-                ScrollView {
-                    DeepSeekBalancePanel(connection: model.deepSeek, language: model.language, now: now) {
-                        openMainWindow()
-                    }.environment(\.colorScheme, .dark)
-                }.scrollIndicators(.hidden).frame(maxHeight: .infinity)
-            } else if let snapshot, !windows.isEmpty {
+    private var quotaExpandedDetails: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            WidgetDetailHeader(model: model, now: now, isPinned: isPinned, onTogglePin: onTogglePin)
+
+            if let snapshot, !windows.isEmpty {
                 ScrollView(.vertical) {
                     VStack(spacing: 8) {
                         ForEach(expandedWindows) { window in
@@ -256,35 +187,12 @@ struct BubbleWidgetView: View {
                 NextEventsView(model: model, now: now, compact: true, openMain: model.openMainWindowFromWidget)
                 miniTrend
             }
-            HStack {
-                Text(model.selectedDeepSeek ? (model.deepSeek.observedAt.map { $0.formatted(date: .omitted, time: .standard) } ?? "—") : snapshot.map { model.localization.text($0.isCached == true ? "status.stale" : "status.lastUpdated") + " "
-                    + DateFormatter.localizedString(from: $0.refreshedAt, dateStyle: .none, timeStyle: .short) } ?? "—")
-                    .font(.system(size: 10)).foregroundStyle(snapshot?.isCached == true ? Color.orange : .white.opacity(0.5))
-                Spacer(minLength: 6)
-                Button {
-                    model.openServiceSettings(model.selectedDeepSeek ? .deepSeek : .codex)
-                    model.openMainWindowFromWidget()
-                } label: {
-                    Image(systemName: "bell")
-                }
-                .buttonStyle(.plain)
-                .help(model.localization.text("navigation.reminders"))
-                .accessibilityLabel(model.localization.text("navigation.reminders"))
-                Button {
-                    openMainWindow()
-                } label: {
-                    Text(model.localization.text("bubble.openMainWindow"))
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color(red: 0.10, green: 0.65, blue: 1))
-                }
-                .buttonStyle(.plain)
-            }
+            WidgetDetailFooter(model: model, openMainWindow: openMainWindow)
 
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .foregroundStyle(.white)
         .tint(Color(red: 0.62, green: 0.80, blue: 1))
-        .onTapGesture { if !isPinned { onPin() } }
     }
 
     func openMainWindow() {
@@ -302,11 +210,6 @@ struct BubbleWidgetView: View {
                     .environment(\.colorScheme, .dark)
             }
         }
-    }
-
-    private var codexIcon: some View {
-        Image(nsImage: NSApplication.shared.applicationIconImage)
-            .resizable().scaledToFit().accessibilityHidden(true)
     }
 
     var lastHourValues: [Double?] {

@@ -77,6 +77,24 @@ final class ResetCreditCheckWarningTests: XCTestCase {
         XCTAssertTrue(old.recovered(in: [recovered, old]))
     }
 
+    func testReadRecoveryWithOutstandingCardIssueWithdrawsOnlyCredentialWarning() async {
+        for reason: ResetCreditCheckRecord.Reason in [.cardChanged, .windowMissed] {
+            let client = CheckWarningNotifications()
+            let service = QuotaNotificationService(client: client, verificationDelays: [])
+            var old = check(reason: .credentialsUnavailable); old.warningSubmitted = true
+            var urgent = check(reason: .resultUnconfirmed); urgent.warningSubmitted = true
+            var recovered = ResetCreditCheckRecord(id: "new", accountKey: "A", reason: reason,
+                firstAt: now.addingTimeInterval(60), lastAt: now.addingTimeInterval(60), count: 1, warningSubmitted: false)
+            recovered.warningSuppressed = true
+            service.clearRecoveredResetCreditCheckWarnings([recovered, old, urgent])
+            XCTAssertEqual(client.removedDelivered, ["readycheck.reset-check.credentialsUnavailable"])
+            XCTAssertFalse(urgent.recovered(in: [recovered, old, urgent]))
+            let submitted = await service.deliverResetCreditCheckWarning(recovered, localization: LocalizationService(language: .zhCN))
+            XCTAssertFalse(submitted)
+            XCTAssertTrue(client.requests.isEmpty)
+        }
+    }
+
     private func check(reason: ResetCreditCheckRecord.Reason = .serviceUnavailable, count: Int = 1, elapsed: TimeInterval = 0) -> ResetCreditCheckRecord {
         ResetCreditCheckRecord(id: reason.rawValue, accountKey: "A", reason: reason,
             firstAt: now, lastAt: now.addingTimeInterval(elapsed), count: count, warningSubmitted: false)

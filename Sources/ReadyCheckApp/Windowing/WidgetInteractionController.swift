@@ -52,15 +52,8 @@ final class WidgetInteractionController {
     }
 
     func click() {
-        guard !isDragging else { return }
-        if state == .pinned { collapse() }
-        else { cancelTimers(); setState(.pinned) }
-    }
-
-    func pinPreview() {
-        guard state == .preview, !isDragging else { return }
-        cancelTimers()
-        setState(.pinned)
+        guard !isDragging, state == .collapsed else { return }
+        showPreview()
     }
 
     func togglePin() {

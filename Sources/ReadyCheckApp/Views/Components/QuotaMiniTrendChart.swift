@@ -2,6 +2,7 @@ import SwiftUI
 
 struct QuotaMiniTrendChart: View {
     let values: [Double?]
+    var minimumScale: Double = 0.01
 
     struct Bar {
         let rect: CGRect
@@ -11,7 +12,7 @@ struct QuotaMiniTrendChart: View {
     var body: some View {
         Canvas { context, size in
             let color = Color(red: 0.60, green: 0.76, blue: 0.90)
-            for bar in Self.bars(values: values, size: size) {
+            for bar in Self.bars(values: values, size: size, minimumScale: minimumScale) {
                 let path = Path(roundedRect: bar.rect, cornerRadius: 1.5)
                 if bar.isZero {
                     context.fill(path, with: .color(color.opacity(0.28)))
@@ -25,9 +26,10 @@ struct QuotaMiniTrendChart: View {
     }
 
     /// One bar per observed five-minute bin; zero uses a marker and missing data stays blank.
-    static func bars(values: [Double?], size: CGSize) -> [Bar] {
+    static func bars(values: [Double?], size: CGSize, minimumScale: Double = 0.01) -> [Bar] {
         guard !values.isEmpty, size.width > 0, size.height > 3 else { return [] }
-        let maximum = max(0.01, values.compactMap { $0 }.filter { $0.isFinite && $0 >= 0 }.max() ?? 0)
+        let maximum = max(minimumScale.isFinite && minimumScale > 0 ? minimumScale : 0.01,
+            values.compactMap { $0 }.filter { $0.isFinite && $0 >= 0 }.max() ?? 0)
         let slotWidth = size.width / CGFloat(values.count)
         let barWidth = min(10, slotWidth * 0.5)
         let baseline = size.height - 1

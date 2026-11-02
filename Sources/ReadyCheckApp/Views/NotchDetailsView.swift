@@ -11,26 +11,16 @@ struct NotchDetailsView: View {
 
     var body: some View {
         Group {
-            if model.selectedDeepSeek {
-                VStack(alignment: .leading, spacing: 8) {
-                    ScrollView {
-                        DeepSeekBalancePanel(connection: model.deepSeek, language: model.language, now: now) {
-                            model.mainWindowPage = .overview
-                            model.openMainWindowFromWidget()
-                            onDismiss()
-                        }
-                    }
-                    Button(model.localization.text("bubble.openMainWindow")) {
-                        model.mainWindowPage = .overview
-                        model.openMainWindowFromWidget()
-                        onDismiss()
-                    }.buttonStyle(.plain).foregroundStyle(.cyan).font(.caption)
+            if model.selectedService.presentation.readoutKind == .balance {
+                BalanceDetailsView(model: model, now: now, compact: true) {
+                    model.mainWindowPage = .overview
+                    model.openMainWindowFromWidget()
+                    onDismiss()
                 }
             } else {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
+            WidgetDetailHeader(model: model, now: now)
             HStack {
-                Text("ReadyCheck").font(.subheadline.weight(.semibold))
-                Spacer()
                 if model.notchShowsBothQuotas {
                     Text("5h · 7d").font(.caption).foregroundStyle(.secondary)
                 } else {
@@ -60,19 +50,10 @@ struct NotchDetailsView: View {
                     Text(model.localization.text("empty.quota.title")).font(.caption).foregroundStyle(.secondary)
                 }
             }
-            HStack {
-                Text(snapshot?.isCached == true ? model.localization.text("status.stale") : snapshot.map {
-                    DateFormatter.localizedString(from: $0.refreshedAt, dateStyle: .none, timeStyle: .short)
-                } ?? "—").font(.caption2).foregroundStyle(.secondary)
-                if let snapshot, snapshot.ordinaryUsageAllowed == false {
-                    Text(model.localization.text("status.ordinaryUsageBlocked")).font(.caption2).foregroundStyle(.orange).lineLimit(2)
-                }
-                Spacer()
-                Button(model.localization.text("bubble.openMainWindow")) {
-                    model.mainWindowPage = .overview
-                    model.openMainWindowFromWidget()
-                    onDismiss()
-                }.buttonStyle(.plain).foregroundStyle(.cyan).font(.caption)
+            WidgetDetailFooter(model: model) {
+                model.mainWindowPage = .overview
+                model.openMainWindowFromWidget()
+                onDismiss()
             }
         }
             }

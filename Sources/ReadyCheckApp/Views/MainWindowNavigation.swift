@@ -2,7 +2,7 @@ import AppKit
 import ReadyCheckCore
 import SwiftUI
 
-enum ServiceSettingsTarget: String {
+enum ServiceSettingsTarget: String, CaseIterable {
     case codex, deepSeek
 }
 

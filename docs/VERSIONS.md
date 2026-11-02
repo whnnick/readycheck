@@ -1,5 +1,13 @@
 # Version plans / 版本规划
 
+Current source/package candidate / 当前源码/打包候选：**0.7.0-dev.28** micro-trends, explicit pinning, account discoverability and card-warning deduplication / 微型趋势、显式固定、账户可发现性及卡片异常去重；517 macOS checks passed / 517项 macOS 检查通过。[Candidate notes](versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev28) / [候选说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev28)。No new public Release; public preview remains dev.23 and stable remains 0.6.1 / 未新公开 Release，公开预览仍为 dev.23，稳定版仍为0.6.1。
+
+Previous local development / 前轮本地开发：0.7.0-dev.26 DeepSeek balance and micro-trends / DeepSeek 余额与微型趋势；[checks](versions/0.7.0/QA.md) / [验收](versions/0.7.0/QA.zh-CN.md)。No public release / 未公开发布。
+
+Previous local development / 上轮本地开发：0.7.0-dev.25 preview-only clicks, explicit pin and shared quota/balance chrome / 普通点击仅预览、显式固定及共用基础UI；[checks](versions/0.7.0/QA.md) / [验收](versions/0.7.0/QA.zh-CN.md)。No public release / 未公开发布。
+
+Local development / 本地开发：0.7.0-dev.24 shared quota/balance capsule and notch presentation / 额度与余额胶囊、刘海展示；[checks](versions/0.7.0/QA.md) / [验收](versions/0.7.0/QA.zh-CN.md)。Not published; preview downloads remain dev.23 / 未发布，公开预览下载仍为 dev.23。
+
 Local dev.23 / 本机 dev.23：504 checks and installed bilingual About passed; device acceptance continues / 504 项检查及安装版双语关于通过，继续设备验收。Dev.23 public preview and downloads verified; stable latest stays 0.6.1 / dev.23 已公开预发布并验证下载入口，稳定 latest 保留 0.6.1。
 
 Latest public preview / 最新公开预览版：0.7.0-dev.23 bidirectional notch/capsule dragging / 刘海与胶囊双向拖动；[candidate notes](versions/0.7.0/RELEASE_NOTES.md) / [候选版说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md)。Stable release gate not cleared / 稳定发布门槛未解除；[checks](versions/0.7.0/QA.md) / [黑盒验收](versions/0.7.0/QA.zh-CN.md)。Earlier results below are historical / 下方早期结果为历史记录。

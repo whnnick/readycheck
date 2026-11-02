@@ -65,6 +65,7 @@ final class BubbleWindowControllerTests: XCTestCase {
             host.rootView.model.openMainWindow = { opened = true }
             host.rootView.model.mainWindowPage = .settings
             host.rootView.onTap()
+            host.rootView.onTogglePin()
 
             host.rootView.openMainWindow()
 
@@ -80,7 +81,6 @@ final class BubbleWindowControllerTests: XCTestCase {
             var opened = false
             host.rootView.model.openMainWindow = { opened = true }
             host.rootView.onTap()
-            host.rootView.onTogglePin()
 
             host.rootView.openMainWindow()
 
@@ -92,6 +92,7 @@ final class BubbleWindowControllerTests: XCTestCase {
     func testPinnedDetailsSurviveWindowFocusLoss() throws {
         try withBubble { controller, panel, host in
             host.rootView.onTap()
+            host.rootView.onTogglePin()
             XCTAssertTrue(host.rootView.isExpanded)
             XCTAssertTrue(host.rootView.isPinned)
 
@@ -105,6 +106,7 @@ final class BubbleWindowControllerTests: XCTestCase {
     func testFocusChangeForAnotherWindowDoesNotDismissPinnedDetails() throws {
         try withBubble { controller, _, host in
             host.rootView.onTap()
+            host.rootView.onTogglePin()
             let otherWindow = NSWindow(contentRect: .zero, styleMask: [.borderless], backing: .buffered, defer: false)
             otherWindow.isReleasedWhenClosed = false
             defer { otherWindow.close() }
@@ -120,6 +122,7 @@ final class BubbleWindowControllerTests: XCTestCase {
         try withBubble { _, panel, host in
             host.rootView.onTap()
             host.rootView.onTogglePin()
+            host.rootView.onTogglePin()
 
             XCTAssertTrue(host.rootView.isExpanded)
             XCTAssertFalse(host.rootView.isPinned)
@@ -130,6 +133,7 @@ final class BubbleWindowControllerTests: XCTestCase {
     func testPinnedDetailsIgnoreExternalInteractionUntilUnpinned() throws {
         try withBubble { controller, _, host in
             host.rootView.onTap()
+            host.rootView.onTogglePin()
             controller.dismissFromExternalInteraction()
             XCTAssertTrue(host.rootView.isExpanded)
             XCTAssertTrue(host.rootView.isPinned)
@@ -147,6 +151,7 @@ final class BubbleWindowControllerTests: XCTestCase {
         try withBubble { controller, panel, host in
             host.rootView.onTap()
             host.rootView.onTogglePin()
+            host.rootView.onTogglePin()
 
             controller.windowDidResignKey(Notification(name: NSWindow.didResignKeyNotification, object: panel))
 
@@ -155,39 +160,59 @@ final class BubbleWindowControllerTests: XCTestCase {
         }
     }
 
-    func testClickingPreviewPaddingPinsDetailsAtEveryPlacement() throws {
+    func testClickingPreviewPaddingNeverPinsEitherServiceAtEveryPlacement() throws {
+        for deepSeek in [false, true] {
         for edge in [nil, BubbleWidgetPlacement.Edge.left, .right] {
-            try withBubble(edge: edge) { controller, panel, host in
+            try withBubble(edge: edge, deepSeek: deepSeek) { controller, panel, host in
                 host.rootView.onTap()
                 RunLoop.main.run(until: Date().addingTimeInterval(0.4))
-                host.rootView.onTogglePin()
                 XCTAssertFalse(host.rootView.isPinned)
                 try clickPreviewPadding(panel)
                 XCTAssertTrue(host.rootView.isExpanded)
-                XCTAssertTrue(host.rootView.isPinned, "A click on preview padding must keep details open")
+                XCTAssertFalse(host.rootView.isPinned, "Only the pin button may lock details")
                 try clickPreviewPadding(panel)
                 controller.dismissFromExternalInteraction()
-                XCTAssertTrue(host.rootView.isPinned, "Further background and outside clicks must not unpin")
+                XCTAssertFalse(host.rootView.isExpanded, "An unpinned preview must still dismiss")
             }
+        }
         }
     }
 
-    func testClickingPreviewBackgroundDuringExpansionPinsDetails() throws {
+    func testClickingPreviewBackgroundDuringExpansionDoesNotPin() throws {
         for edge in [nil, BubbleWidgetPlacement.Edge.left, .right] {
             try withBubble(edge: edge) { _, panel, host in
                 host.rootView.onTap()
-                host.rootView.onTogglePin()
                 panel.setFrame(CGRect(origin: panel.frame.origin, size: CGSize(width: 180, height: 220)), display: true)
                 panel.contentView?.layoutSubtreeIfNeeded()
                 try clickPreviewPadding(panel)
                 XCTAssertTrue(host.rootView.isExpanded)
-                XCTAssertTrue(host.rootView.isPinned)
+                XCTAssertFalse(host.rootView.isPinned)
+            }
+        }
+    }
+
+    func testBothServiceContentClicksStayPreviewAndThePinControlToggles() throws {
+        for deepSeek in [false, true] {
+            try withBubble(deepSeek: deepSeek) { _, panel, host in
+                host.rootView.onTap()
+                RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+                try click(panel, at: CGPoint(x: panel.frame.width / 2, y: panel.frame.height / 2))
+                XCTAssertFalse(host.rootView.isPinned)
+                try click(panel, at: CGPoint(x: panel.frame.width - 50, y: panel.frame.height - 30))
+                XCTAssertTrue(host.rootView.isPinned, "The shared pin button must be the explicit locking action")
+                try click(panel, at: CGPoint(x: panel.frame.width / 2, y: panel.frame.height / 2))
+                XCTAssertTrue(host.rootView.isPinned, "Content clicks must not alter an explicit pin")
+                try click(panel, at: CGPoint(x: panel.frame.width - 50, y: panel.frame.height - 30))
+                XCTAssertFalse(host.rootView.isPinned)
             }
         }
     }
 
     private func clickPreviewPadding(_ panel: QuotaWidgetPanel) throws {
-        let point = CGPoint(x: 8, y: panel.frame.height / 2)
+        try click(panel, at: CGPoint(x: 8, y: panel.frame.height / 2))
+    }
+
+    private func click(_ panel: QuotaWidgetPanel, at point: CGPoint) throws {
         for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
             let event = try XCTUnwrap(NSEvent.mouseEvent(with: type, location: point,
                 modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
@@ -197,19 +222,21 @@ final class BubbleWindowControllerTests: XCTestCase {
         }
     }
 
-    func testUnifiedWidgetRestoresAttachedStripAndOpensSharedPinnedDetails() throws {
+    func testUnifiedWidgetRestoresAttachedStripAndPinsOnlyWithTheButton() throws {
         for edge in [BubbleWidgetPlacement.Edge.left, .right] {
             try withBubble(edge: edge) { _, panel, host in
                 XCTAssertEqual(host.rootView.tabEdge, edge)
                 XCTAssertEqual(panel.frame.size, BubbleWidgetPlacement.tabSize)
                 host.rootView.onTap()
+                XCTAssertFalse(host.rootView.isPinned)
+                host.rootView.onTogglePin()
                 XCTAssertTrue(host.rootView.isPinned)
                 XCTAssertEqual(host.rootView.tabEdge, edge)
             }
         }
     }
 
-    private func withBubble(edge: BubbleWidgetPlacement.Edge? = nil, notchContext: NotchWindowController.ScreenContext? = nil,
+    private func withBubble(edge: BubbleWidgetPlacement.Edge? = nil, deepSeek: Bool = false, notchContext: NotchWindowController.ScreenContext? = nil,
                             _ body: (BubbleWindowController, QuotaWidgetPanel, NSHostingController<BubbleWidgetView>) throws -> Void) throws {
         _ = NSApplication.shared
         let defaults = UserDefaults.standard
@@ -222,6 +249,9 @@ final class BubbleWindowControllerTests: XCTestCase {
         let controller = BubbleWindowController(notchContextProvider: { notchContext })
         let model = ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
             client: BubbleTestNotificationClient(), verificationDelays: []))
+        let originalService = model.selectedDeepSeek
+        model.selectedDeepSeek = deepSeek
+        defer { model.selectedDeepSeek = originalService }
         let previous = Set(NSApp.windows.map(\.windowNumber))
         defer {
             controller.onNotchAttachment = nil

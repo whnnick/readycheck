@@ -48,15 +48,8 @@ struct NotchStatusView: View {
 
     private var compactContent: some View {
         Group {
-            if model.selectedDeepSeek {
-                VStack(spacing: 4) {
-                    Text("DeepSeek API").font(.system(size: 11, weight: .semibold))
-                    Text(DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now))
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 12).padding(.top, 3).padding(.bottom, 5)
+            if model.selectedService.presentation.readoutKind == .balance {
+                ServiceCompactReadout(model: model, now: now)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(notchShape)
                 .onTapGesture(perform: onClick)

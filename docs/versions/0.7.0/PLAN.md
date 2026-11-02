@@ -8,6 +8,12 @@ Updated 2026-11-02. Unreleased dev.23 is installed at the fixed local path; each
 
 ## Goal and scope
 
+Dev.26: implement the third displayed DeepSeek concept (micro-trend), not the earlier second concept. Keep the native 180x48 / 28x144 / 380x344 dimensions and shared interaction. Compact balance gets a currency heading and more trend space, edge trends run vertically, expanded balance and breakdown sit side by side above a taller chart. Retain existing notch fit, stale/error states and observation-only semantics. [Acceptance](QA.md).
+
+Dev.25 correction: ordinary clicks must not latch or unlatch previews. Only an explicit pin control changes the pinned state; outside/exit dismissal of temporary previews remains. Use the same detail header, pin styling and refresh/reminder/open footer for quota and balance content, and update both edge-strip visuals rather than only the free capsule. Retain placement, dragging, data and account boundaries. [Acceptance](QA.md).
+
+Dev.24 design: use the selected second concept for compact readouts. Model access method (OAuth / API Key) independently from readout kind (quota / balance); the current mappings are Codex = OAuth + quota and DeepSeek = API Key + balance, not rules for all future providers. Reuse the existing data sources and connection flows; do not add services or inference calls. The capsule becomes a shared horizontal 180x48 surface; retain Codex detail space, dual-notch options, reminder actions and bidirectional notch dragging. Balance details distinguish currencies, sampling gaps, stale data and observed decreases from official billing. [Acceptance](QA.md).
+
 Dev.23 acceptance correction: English About must retain its brand/title and permit complete content access at default and minimum sizes; preserve all content. [Checks](QA.md).
 
 Dev.22 acceptance correction: About highlights must describe the implemented 0.7 capabilities in both languages. Keep dev.21 draft private until the retention/device gate is complete. [Checks](QA.md).

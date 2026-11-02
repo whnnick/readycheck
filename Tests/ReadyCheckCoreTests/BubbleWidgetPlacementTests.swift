@@ -5,6 +5,15 @@ import XCTest
 final class BubbleWidgetPlacementTests: XCTestCase {
     private let display = CGRect(x: -1_920, y: 40, width: 1_920, height: 1_040)
 
+    func testCompactCapsuleHasSharedHorizontalProportionsAndRestoresOldCircleCenter() {
+        XCTAssertEqual(BubbleWidgetPlacement.bubbleSize, CGSize(width: 180, height: 48))
+        let oldCircle = CGRect(x: -900, y: 400, width: 92, height: 92)
+        let restored = BubbleWidgetPlacement.restoredBubbleFrame(from: oldCircle, in: display)
+        XCTAssertEqual(restored.midX, oldCircle.midX)
+        XCTAssertEqual(restored.midY, oldCircle.midY)
+        XCTAssertTrue(display.contains(restored))
+    }
+
     func testDefaultBubbleIsVisibleAndNotImmediatelySnapped() {
         let frame = BubbleWidgetPlacement.defaultFrame(in: display)
         XCTAssertTrue(display.contains(frame))

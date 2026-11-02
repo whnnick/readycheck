@@ -44,6 +44,7 @@ struct ResetCreditHistoryView: View {
                                 }
                             }.foregroundStyle(.secondary)
                             if check.warningSubmitted { Text(model.localization.text("resetCheck.warningSubmitted")).foregroundStyle(.secondary) }
+                            if check.warningSuppressed == true { Text(model.localization.text("resetCheck.warningSuppressed")).foregroundStyle(.secondary) }
                             if recovered {
                                 Text(model.localization.text("resetCheck.recovered")).foregroundStyle(.secondary)
                             }
