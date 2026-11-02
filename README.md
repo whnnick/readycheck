@@ -10,11 +10,11 @@
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-en.png" alt="ReadyCheck: See your quota. Know what comes next. Native macOS, menu bar, Widget and notch." width="960"></p>
 
 
-> **Preview candidate:** 0.7.0-dev.23 adds macOS DeepSeek API balances, platform settings and bidirectional notch/capsule dragging. 504 development tests passed; remaining retention/device checks keep this outside the stable release. See [candidate notes](docs/versions/0.7.0/RELEASE_NOTES.md) and [checks](docs/versions/0.7.0/QA.md).
+> **Public preview:** 0.7.0-dev.23 adds macOS DeepSeek API balances, platform settings and bidirectional notch/capsule dragging. 504 development tests passed; remaining retention/device checks keep this outside the stable release. See [preview notes](docs/versions/0.7.0/RELEASE_NOTES.md) and [checks](docs/versions/0.7.0/QA.md).
 
-**Candidate artifacts (not stable downloads):** `ReadyCheck-0.7.0-dev.23-macos.dmg` and `ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip`. Release preparation is tracked in QA; the stable links above remain 0.6.1.
+**Preview downloads:** [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) · [Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23). Stable downloads above remain 0.6.1.
 
-Local dev.23 passed 504 checks and installed Chinese/English About visual acceptance. Remaining device checks are tracked in QA. By maintainer choice, the latest candidate remains a draft until acceptance is completed.
+Local dev.23 passed 504 checks and installed Chinese/English About visual acceptance. Remaining device checks are tracked in QA. Dev.23 is now a public prerelease; remaining device checks stay documented without a stable-release readiness claim.
 
 ## 0.6.1 — Notifications open their history
 

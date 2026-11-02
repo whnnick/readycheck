@@ -10,11 +10,11 @@
 <p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-zh.png" alt="ReadyCheck：额度看得见，下一步心里有数。原生 macOS、菜单栏、Widget 与刘海。" width="960"></p>
 
 
-> **预览候选版：**0.7.0-dev.23 新增 Mac DeepSeek API 余额、分平台设置与刘海/胶囊双向拖动，504 项开发测试通过；剩余保留/设备验收尚未解除稳定发布门槛。见[候选版说明](docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md)及[验证记录](docs/versions/0.7.0/QA.zh-CN.md)。
+> **公开预览版：**0.7.0-dev.23 新增 Mac DeepSeek API 余额、分平台设置与刘海/胶囊双向拖动，504 项开发测试通过；剩余保留/设备验收尚未解除稳定发布门槛。见[预览版说明](docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md)及[验证记录](docs/versions/0.7.0/QA.zh-CN.md)。
 
-**候选产物（非稳定下载）：**`ReadyCheck-0.7.0-dev.23-macos.dmg` 与 `ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip`。发布准备见 QA，上方稳定下载仍为 0.6.1。
+**预览版下载：**[Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) · [Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23)。上方稳定下载仍为 0.6.1。
 
-本机 dev.23 已通过 504 项检查及安装版中英文关于视觉验收，其余设备检查见 QA；按维护者决定，最新候选版继续保留草稿，补齐验收后再发布。
+本机 dev.23 已通过 504 项检查及安装版中英文关于视觉验收，其余设备检查见 QA；dev.23 现已公开为预发布版，剩余设备检查继续记录，不宣称稳定版已全面达标。
 
 ## 0.6.1 — 点击通知直达记录
 

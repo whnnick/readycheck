@@ -1,5 +1,9 @@
 # 0.7.0 — Native and prototype black-box acceptance
 
+## 2026-11-02 public dev.23 preview
+
+The maintainer explicitly requested publication of prepared dev.23. The [release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23) is now public: draft=false, prerelease=true, with both verified assets. Anonymous release API and public download URLs succeeded; asset sizes and GitHub digests still match the verified packages. Stable latest remains v0.6.1. This updates the earlier draft hold; remaining Windows affected-machine/device checks are not marked passed. Runtime source and package bytes are unchanged.
+
 ## 2026-11-02 dev.23 package and source push
 
 The maintainer requested packaging and pushing the latest version. Prepare dev.23 artifacts and source with the existing scripts; retain draft status and stable latest 0.6.1. This does not clear the remaining device/retention gate. The earlier dev.21 [package evidence](release-evidence-dev21.json) is retained separately; [current package evidence](release-evidence.json) records dev.23 preparation.

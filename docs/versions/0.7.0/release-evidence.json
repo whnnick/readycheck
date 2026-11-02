@@ -1,6 +1,6 @@
 {
   "version": "0.7.0-dev.23",
-  "status": "draft-verified-not-published",
+  "status": "published-preview-verified",
   "public_source_tests": {
     "core": 332,
     "app": 172,
@@ -43,13 +43,16 @@
     "tag": "v0.7.0-dev.23",
     "tag_commit_verified": true,
     "release_id": 430516266,
-    "draft": true,
+    "draft": false,
     "prerelease": true,
-    "published": false,
+    "published": true,
     "both_assets_attached": true,
     "only_current_version_assets": true,
     "download_sha256_matches_github_and_local": true,
-    "stable_latest": "v0.6.1"
+    "stable_latest": "v0.6.1",
+    "release_url": "https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23",
+    "published_at": "2026-11-02T01:02:33Z",
+    "anonymous_release_and_download_urls_verified": true
   },
   "stable_release_gate": "not-cleared",
   "windows_checks": [

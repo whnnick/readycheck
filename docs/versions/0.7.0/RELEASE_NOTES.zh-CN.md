@@ -1,4 +1,4 @@
-# ReadyCheck 0.7.0-dev.23 — 预览候选版
+# ReadyCheck 0.7.0-dev.23 — 公开预览版
 
 [English](RELEASE_NOTES.md) · [验证与边界](QA.zh-CN.md) · [旧功能保留核对](RELEASE_AUDIT.zh-CN.md)
 

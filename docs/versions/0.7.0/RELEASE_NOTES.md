@@ -1,4 +1,4 @@
-# ReadyCheck 0.7.0-dev.23 — Preview candidate
+# ReadyCheck 0.7.0-dev.23 — Public preview
 
 [简体中文](RELEASE_NOTES.zh-CN.md) · [Checks and limits](QA.md) · [Retention checklist](RELEASE_AUDIT.md)
 

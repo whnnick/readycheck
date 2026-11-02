@@ -1,5 +1,9 @@
 # 0.7.0 — 原生与原型黑盒功能检查
 
+## 2026-11-02 dev.23 公开预览版
+
+维护者明确要求发布已准备好的 dev.23。[Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23) 现已公开，draft=false、prerelease=true，两端已验证附件齐全。未登录访问发布 API 及两个公开下载入口均成功，大小和 GitHub 摘要仍匹配已核验安装包；稳定 latest 保持 v0.6.1。本次更新先前暂存草稿的决定，Windows 受影响机器及剩余设备验收继续如实记录，不改为通过；运行源码和安装包字节均未变化。
+
 ## 2026-11-02 dev.23 打包与源码推送
 
 维护者要求打包并推送最新版。按既有脚本准备 dev.23 安装包与源码，继续保留草稿，稳定 latest 仍为 0.6.1，不解除其余设备/保留验收门槛。原 dev.21 [制包证据](release-evidence-dev21.json)另行保留，[当前制包证据](release-evidence.json)记录 dev.23 准备状态。

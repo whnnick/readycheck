@@ -2,7 +2,7 @@
 
 ## 0.7.0-dev.23 - 2026-11-02
 
-- Prepare updated Mac/Windows candidate packages and bilingual draft notes; retain stable 0.6.1 and the remaining acceptance gate.
+- Publish verified Mac/Windows preview packages and bilingual notes; retain stable 0.6.1 and document remaining acceptance limits.
 - Preserve the About content's natural vertical size so the English brand/title is not clipped; verify scrolling at default and minimum window sizes in both languages.
 
 ## 0.7.0-dev.22 - 2026-11-01
