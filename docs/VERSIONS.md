@@ -1,6 +1,6 @@
 # Version plans / 版本规划
 
-Local dev.23 / 本机 dev.23：504 checks and installed bilingual About passed; device acceptance continues / 504 项检查及安装版双语关于通过，继续设备验收。Dev.23 packaging replaces the candidate; drafts stay private / dev.23 正在更新候选包，继续保留草稿。
+Local dev.23 / 本机 dev.23：504 checks and installed bilingual About passed; device acceptance continues / 504 项检查及安装版双语关于通过，继续设备验收。Dev.23 packages and remote draft verified; stable latest stays 0.6.1 / dev.23 两端包及远端草稿已验证，稳定 latest 保留 0.6.1。
 
 Latest candidate / 最新候选版：0.7.0-dev.23 bidirectional notch/capsule dragging / 刘海与胶囊双向拖动；[candidate notes](versions/0.7.0/RELEASE_NOTES.md) / [候选版说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md)。Stable release gate not cleared / 稳定发布门槛未解除；[checks](versions/0.7.0/QA.md) / [黑盒验收](versions/0.7.0/QA.zh-CN.md)。Earlier results below are historical / 下方早期结果为历史记录。
 

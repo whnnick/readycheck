@@ -1,6 +1,6 @@
 {
   "version": "0.7.0-dev.23",
-  "status": "artifacts-verified-draft-push-pending",
+  "status": "draft-verified-not-published",
   "public_source_tests": {
     "core": 332,
     "app": 172,
@@ -38,10 +38,17 @@
     }
   ],
   "remote": {
-    "pushed": false,
+    "pushed": true,
+    "source_commit": "ff9d742b3a1de10b3f47d22f56c504aa375c132b",
+    "tag": "v0.7.0-dev.23",
+    "tag_commit_verified": true,
+    "release_id": 430516266,
     "draft": true,
     "prerelease": true,
     "published": false,
+    "both_assets_attached": true,
+    "only_current_version_assets": true,
+    "download_sha256_matches_github_and_local": true,
     "stable_latest": "v0.6.1"
   },
   "stable_release_gate": "not-cleared",
