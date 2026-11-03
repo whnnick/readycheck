@@ -1,132 +1,89 @@
 <p align="center"><a href="README.md">English</a> · 简体中文</p>
 
 <h1 align="center">ReadyCheck</h1>
-<p align="center"><strong>额度看得见，下一步心里有数。</strong></p>
-<p align="center">为 Mac 打造的免费开源 Codex 额度监控工具。</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.6.1"><img src="https://img.shields.io/badge/release-v0.6.1-28c99b" alt="发布 0.6.1"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-macos.dmg"><strong>↓ 下载 Mac 版</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-windows-x64-portable.zip">Windows 便携版</a></p>
-<p align="center"><a href="docs/versions/0.6.1/RELEASE_NOTES.zh-CN.md">更新重点</a> · <a href="docs/INSTALL.zh-CN.md">安装指南</a> · <a href="docs/versions/0.6.1/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">全部版本</a></p>
+<p align="center"><strong>Codex 额度、DeepSeek 余额，一处掌握。</strong></p>
+<p align="center">轻量、免费、开源的 macOS 监控工具，提供菜单栏、悬浮胶囊与刘海视图。</p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28"><img src="https://img.shields.io/badge/source-0.7.0--dev.28-3979ef" alt="源码 0.7.0-dev.28"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
+<p align="center"><a href="#从这里开始">从这里开始</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev28">当前更新</a> · <a href="docs/versions/0.7.0/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">版本索引</a></p>
 
-<p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-zh.png" alt="ReadyCheck：额度看得见，下一步心里有数。原生 macOS、菜单栏、Widget 与刘海。" width="960"></p>
+## 选择版本
 
+| 通道 | 版本 | 获取方式 |
+| --- | --- | --- |
+| **最新源码 / 已打包候选** | **0.7.0-dev.28** | [源码 tag](https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28) · [更新与安装包校验值](docs/versions/0.7.0/QA.zh-CN.md) |
+| **最新可下载预览** | **0.7.0-dev.23** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) |
+| 稳定发布通道 | 0.6.1 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-windows-x64-portable.zip) |
 
-> **公开预览版：**0.7.0-dev.23 新增 Mac DeepSeek API 余额、分平台设置与刘海/胶囊双向拖动，504 项开发测试通过；剩余保留/设备验收尚未解除稳定发布门槛。见[预览版说明](docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#public-preview-dev23)及[验证记录](docs/versions/0.7.0/QA.zh-CN.md)。
+Dev.28 安装包及源码/tag 已验证，但 **dev.28 尚无公开 GitHub Release 或托管安装包资产**。上方预览下载继续指向 dev.23。下面的能力与截图介绍当前 dev.28 源码；[预览版差异](docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#public-preview-dev23)及[发布边界](docs/versions/0.7.0/QA.zh-CN.md)均有记录。
 
-**预览版下载：**[Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) · [Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23)。上方稳定下载仍为 0.6.1。
+<p align="center"><img src="docs/versions/0.7.0/evidence/dev28-overview-zh.png" alt="ReadyCheck dev.28 原生 DeepSeek 余额总览，包含币种分项及本机历史；合成数据" width="760"></p>
+<p align="center"><sub>当前 dev.28 原生余额组件。所有截图均使用合成数据，不是真实账户。</sub></p>
 
-本机 dev.23 已通过 504 项检查及安装版中英文关于视觉验收，其余设备检查见 QA；dev.23 现已公开为预发布版，剩余设备检查继续记录，不宣称稳定版已全面达标。
+## 能看到什么
 
-源码候选：dev.28 包含 DeepSeek 微型趋势胶囊、仅按钮固定、账户权益默认展开及卡片异常持久去重；517 项 macOS 检查通过。打包/源码同步不等于新 Release 发布，上方公开预览下载仍为 dev.23。见[候选说明](docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev28)与[验收](docs/versions/0.7.0/QA.zh-CN.md)。
+| | Codex | DeepSeek API |
+| --- | --- | --- |
+| 连接 | ReadyCheck OAuth 登录 | API Key，独立保存 |
+| 当前读数 | 实际返回的配额窗口、重置时间与可用状态 | 按币种显示官方余额、赠送与充值分项 |
+| 历史 | 本机额度减少与接口返回的每日 Token 统计 | 本机观测的余额减少，缺口保持未知 |
+| 账户信息 | 套餐、订阅、Credits 与重置卡记录，默认展开 | API 余额可用性和最近成功读取时间 |
+| 提醒 | 低额度、实际恢复与重置卡到期节点 | 显式开启的余额阈值，按连接/币种隔离 |
 
-## 0.6.1 — 点击通知直达记录
-
-点击 ReadyCheck 通知即可打开通知记录，应用退出时也会启动并跳转。原有提醒规则和历史保留。[更新重点](docs/versions/0.6.1/RELEASE_NOTES.zh-CN.md)。
-
-## 从这里开始
-
-1. 下载上方 **Mac DMG**，将 ReadyCheck.app 拖到“应用程序”。
-2. 点击**登录 ReadyCheck**，在浏览器中授权你的 ChatGPT 账号。如 macOS 请求钥匙串访问，请完成系统确认。
-3. 在**设置 → 提醒**选择门槛，在**设置 → 显示**开启 Widget 或刘海。
-
-**Mac：**Apple 芯片 / arm64、macOS 14+。沿用稳定**自签名预览**身份，**未经 Developer ID 签名或公证**，首次打开前请看[安装指南](docs/INSTALL.zh-CN.md)。**Windows：**解压 x64 便携包，运行 ReadyCheck.exe，保留原界面。
-
-## 不只知道还剩多少
-
-| 看清当前状态 | 看清接下来 | 让界面适应工作 |
-| :--- | :--- | :--- |
-| 同时查看 **5 小时与 7 天额度**、准确重置时间、账户权益和本机消耗。 | 总览、菜单与 Widget 共用同一条下一步：额度重置、条件用卡窗口或待处理事项。 | 原生主窗口、菜单栏、自适应 Widget 与点击展开的刘海，按自己的习惯选择。 |
-
-<p align="center"><img src="docs/versions/0.5.1/assets/release-overview-zh.png" alt="ReadyCheck 原生总览：双额度、接下来、账户权益与本机消耗图，均为合成演示数据" width="900"></p>
-<p align="center"><sub>保留的0.5.1原生界面，使用合成数据。先看当前读数，完整权益和历史继续保留在趋势下方。</sub></p>
-
-### 0.5.1：一眼更清楚，功能都保留
-
-| 少一点打扰 | 少一点歧义 | 不砍功能 |
-| :--- | :--- | :--- |
-| 卡片明细短暂失败先自动重试，持续失败再提醒，关键异常仍及时处理。 | 分清当前数据与历史成功、实际授权与初始默认、账户Token汇总与图表范围。 | 双额度、完整权益、每张卡日期、全部提醒设置、历史和Widget一小时图都在。 |
-
-<p align="center"><img src="docs/versions/0.5.1/assets/reminders-zh.png" alt="0.5.1原生提醒设置：控件靠右、四个到期节点、当前账号自动用卡状态，使用合成数据" width="740"></p>
-
-**提醒自己选，记录能追查，控制权保留。**72／48／24／12小时到期节点与按账号自动用卡仍独立；确认用卡结果和通知状态分开，旧缺失记录不补造成功。授权响应未返回订阅日期时，提供账单入口；缺日期不等于掉线，也不会借用别的账号日期。
-
-[更新重点](docs/versions/0.5.4/RELEASE_NOTES.zh-CN.md) · [验收与边界](docs/versions/0.5.4/QA.zh-CN.md) · [65项功能保留](docs/versions/0.5.4/RELEASE_AUDIT.zh-CN.md)。
+**目前支持两条连接。** 十家服务目录还列出未来目标，其余八家尚未接入，不代表已经可读取。见[实施范围](docs/versions/0.7.0/TECHNICAL.zh-CN.md)。
 
 ## 工作时轻巧，需要时展开
 
 <table>
-<tr><th>最近一小时，随时看一眼</th><th>用卡结果，每一步看清楚</th></tr>
-<tr><td align="center"><img src="docs/versions/0.5.1/assets/widget-zh.png" alt="原生 Widget：双额度、下一步与最近一小时消耗图，使用合成数据" width="370"></td><td align="center"><img src="docs/versions/0.5.1/assets/card-result-zh.png" alt="原生只读卡片详情：授权、已记录结果和通知状态，使用合成数据" width="420"></td></tr>
-<tr><td>双额度、下一步和<strong>最近一小时图</strong>放在一起。需要时固定展开，专注时收在边缘。</td><td>查看原到期时间、账号授权、已记录结果及对应通知。通知送达与卡片兑换分别呈现。</td></tr>
+<tr><th>胶囊与贴边条</th><th>余额详情</th></tr>
+<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-capsule.png" alt="当前 DeepSeek 胶囊：币种、余额与微型趋势；合成数据" width="360"><br><img src="docs/versions/0.7.0/evidence/dev28-balance-edge.png" alt="当前 DeepSeek 竖向贴边条；合成数据" width="28"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-expanded.png" alt="当前原生 DeepSeek 展开详情，余额、分项与已观测减少；合成数据" width="440"></td></tr>
 </table>
 
-<p align="center"><sub>保留的0.5.1原生组件，使用合成数据；确认用卡结果仅为演示，不是真实兑换。</sub></p>
+- **统一交互。** 悬停或普通点击胶囊只预览；只有显式固定按钮才保持展开，内容点击保留当前选择。固定展开与窗口置顶独立。
+- **选择顺手的入口。** 菜单栏、胶囊/贴边、信息卡片或点击展开的刘海；保留记忆位置及原有显示控件。
+- **账户信息更容易找到。** 权益默认展开；卡片记录结果与通知投递分开查看。
+- **减少重复警告。** 已提醒的同一卡片异常在凭据恢复或重启后不重复提交，真正的新事件仍可提醒。
+- **可选的临期用卡。** 合格卡片的最后一小时尝试需要按账号单独授权，与只读刷新和到期提醒独立。[用卡规则](docs/versions/0.3.0/RESET_CARD_AUTOMATION.zh-CN.md)。
 
-- **一个自适应 Widget。** 气泡拖到左右边缘收成细竖条，向内拖回气泡；也可选择信息卡片，通过标题拖动。固定详情后，点击外部或切换焦点仍保持展开；取消固定恢复预览行为，Esc 可收起获得焦点的详情。
-- **不易误触的刘海。** 点击展开，点击外部或按 Esc 收起；仅悬停不会弹出详情。
-- **账户权益完整保留。** 套餐、订阅有效期、Credits、重置卡数量、逐卡到期时间、只读卡片记录和“关于”均可查看。
-- **到期提醒减少重复。** 同一卡同一到期节点在系统接受通知后不再重复提交，后续72／48／24／12小时节点独立保留；明确提交失败可重试，提交与已验证送达分别记录。
-- **各类提醒独立控制。** 低额度、恢复和重置卡到期分别控制。到期提醒默认开启；可选自动用卡默认关闭，需按账号单独授权。
-- **可选的临期自动用卡。** 授权后，在条件满足时尝试使用进入最后一小时的合格卡片。确认成功后有独立通知和历史记录，不受到期提醒开关影响。[自动用卡规则](docs/versions/0.3.0/RESET_CARD_AUTOMATION.zh-CN.md)。
+## 单位和来源说清楚
 
-## 三处界面，两类数据
+- **额度：**剩余百分比与本机减少的百分点。80% 降到 70% 是减少 10 个百分点，不是 Token 数量。
+- **Token：**Codex 返回的数量，按 UTC 自然日统计；与额度百分比没有固定换算关系。
+- **余额：**带币种的金额。本机减少只是观察，不是官方费用或 Token 账单；充值、退款和赠送到期均可能影响余额。不用百分比进度条暗示余额上限。
 
-| 入口 | 显示内容 | 来源 |
-| --- | --- | --- |
-| Widget → 额度消耗 | 所选配额最近一小时，**每柱 5 分钟**，单位为百分点。 | 当前账号在本机成功刷新留下的记录。 |
-| 总览 → 额度消耗 | 同一指标查看 **24 小时 / 7 天 / 30 天**，每柱一小时 / 六小时 / 一天。 | 与 Widget 相同的本机历史和下降计算规则。 |
-| Token 用量 → 每日 Token 数量 | 接口返回的 Token 数量，按 **UTC 自然日**汇总。 | 官方返回且匹配当前账号的 Codex 统计，可能缺失。 |
+未采样区间留空；过期/失败读数保留状态和原时间，不当作新鲜零值。历史按账号或连接隔离，无法确认归属的旧历史单独保留。
 
-**80% 降到 70%，记为消耗 10 个百分点。** 不是 10 个 Token，也不是原来 80% 的 10%。本机记录排除重置切换、无效或缺失读数、额度回升及超过十分钟的断档。跨周期累计可超过 100 个百分点，Widget 柱高按自身最大值缩放。额度与 Token **没有固定换算关系**；缺少 Token 数据不会用第二份额度图替代。使用节奏估算仅为条件参考，不承诺可工作时长。
+## 从这里开始
 
-## 能力与边界，明确写清
+1. 下载上方 **Mac 预览版 DMG**，打开后将 ReadyCheck.app 复制到“应用程序”。
+2. 在**设置 → 连接**中登录 Codex，或选择 DeepSeek 并在应用内输入 Key；需要时完成正常 macOS 钥匙串提示。
+3. 在**设置 → 显示**中选择入口，在**设置 → 提醒**中独立配置提醒。
 
-| 平台 | 发布范围 |
+[Mac 安装与升级](docs/INSTALL.zh-CN.md) · [Windows 指南](docs/WINDOWS.zh-CN.md)
+
+## 平台与验证
+
+| 平台 | 当前范围 |
 | --- | --- |
-| **macOS** | 原生总览与菜单、共享下一步、卡片记录、自适应 Widget、一小时图、可拖卡片、点击刘海及账户历史。[0.5.4 验收](docs/versions/0.5.4/QA.zh-CN.md) · [65 项功能保留审计](docs/versions/0.5.4/RELEASE_AUDIT.zh-CN.md)。 |
-| **Windows x64** | 独立便携预览，保留原界面。Mac 提醒节点、检查记录和新数据状态不宣称已移植到 Windows。[Windows 指南](docs/WINDOWS.zh-CN.md) · [验收](docs/WINDOWS_QA.zh-CN.md)。 |
+| **macOS / Apple 芯片 / 14+** | Codex + DeepSeek 原生客户端。Dev.28 有 **517 项检查通过**、安装版核心流程验收及[65项功能保留矩阵](docs/versions/0.7.0/RELEASE_AUDIT.zh-CN.md)。Mac 包沿用稳定自签名预览身份，未使用 Developer ID 签名或公证。 |
+| **Windows x64** | 独立 Electron Codex 客户端与便携 ZIP，保留原界面，不含 Mac 的 DeepSeek/刘海新能力。制包/check/smoke/UI-smoke 已通过；已报告的 OAuth 403 与 Windows 实机验收仍待完成。[Windows QA](docs/WINDOWS_QA.zh-CN.md)。 |
 
-ReadyCheck **不会自动停止或恢复 Codex 任务**。重置时间到达后，仍需新读数确认恢复；关闭期间未观测到的恢复不会补发。真实卡片兑换、另一真实账号、多显示器 / Spaces、专注 / 睡眠、VoiceOver 和 Windows 实机不宣称已全面验收，实际覆盖范围请以版本验收文档为准。
+其他账号、全部显示/Spaces/全屏组合、系统登录及每种真实提醒边界尚未全面验收，实际证据和发布门槛见[黑盒检查](docs/versions/0.7.0/QA.zh-CN.md)。
 
-## 隐私与账户访问
+## 隐私
 
-刷新读取已授权用量数据，**不发送模型生成请求**。额度刷新只读；可选用卡是单独授权的变更操作。统一使用 ReadyCheck OAuth 登录，Mac 凭据存于系统钥匙串。后台同账号 Token 和用卡能力仍通过 Codex 接口提供。历史按账号隔离，无法归属的旧历史单独保全。分享日志或截图前请移除凭据和账号信息。
+普通刷新读取已授权服务数据，不发送模型生成请求。Mac 凭据存于 Keychain，Windows 使用 Electron safeStorage。DeepSeek 凭据与 Codex 独立，本机历史保留身份边界。不要在 Issue 或截图中分享 Key、OAuth 回调 URL 或原始账号响应。
 
-ReadyCheck 是独立项目，与 OpenAI 无隶属或背书关系。Codex、ChatGPT 及其标识归 OpenAI 所有。
+ReadyCheck 不会自动停止或恢复 Codex 任务；可选用卡需单独授权。ReadyCheck 与 OpenAI、DeepSeek 无隶属关系，相关名称与标识归其所有者。
 
-## 文档与开发
+## 构建与参与
 
-[0.5.4 产品计划](docs/versions/0.5.4/PLAN.zh-CN.md) · [黑盒验收](docs/versions/0.5.4/QA.zh-CN.md)。
-
-[设计与功能保留详情](docs/versions/0.5.1/DESIGN_IMPLEMENTATION.zh-CN.md)。
-
-[安装](docs/INSTALL.zh-CN.md) · [更新日志](CHANGELOG.zh-CN.md) · [版本索引](docs/VERSIONS.md) · [贡献指南](CONTRIBUTING.md) · [发布流程](docs/RELEASE.zh-CN.md) · [安全政策](SECURITY.md) · [问题反馈](https://github.com/whnnick/readycheck/issues)
-
-源码构建需要 macOS 14+ 及兼容 Swift 6 的工具链：
+macOS 源码需要兼容 Swift 6 的工具链和 macOS 14+：
 
 ```bash
 swift test
-scripts/package_app.sh
+scripts/build_and_run.sh
 ```
 
-开发启动使用 `scripts/build_and_run.sh`，分发遵循发布流程。采用 [MIT](LICENSE) 许可。
+分发安装包遵循[发布流程](docs/RELEASE.zh-CN.md)；Windows 使用 Node.js 22.12–24 和现有打包脚本。另见[贡献指南](CONTRIBUTING.md)与[安全政策](SECURITY.md)。
 
-
-
-<details>
-<summary>产品计划、历史设计与功能保留记录</summary>
-
-- **0.4.2：**[更新说明](docs/versions/0.4.2/RELEASE_NOTES.zh-CN.md) · [验收](docs/versions/0.4.2/QA.zh-CN.md) · [功能保留](docs/versions/0.4.2/RELEASE_AUDIT.zh-CN.md)。
-- **0.4.1：**[计划](docs/versions/0.4.1/PLAN.zh-CN.md) · [验收](docs/versions/0.4.1/QA.zh-CN.md)。
-- **0.4.0：**[计划](docs/versions/0.4.0/PLAN.zh-CN.md) · [原生契约](docs/versions/0.4.0/TECHNICAL.zh-CN.md) · [更新说明](docs/versions/0.4.0/RELEASE_NOTES.zh-CN.md) · [验收](docs/versions/0.4.0/QA.zh-CN.md) · [保留审计](docs/versions/0.4.0/RELEASE_AUDIT.zh-CN.md) · [设计原型档案](docs/versions/0.4.0/prototype/README.zh-CN.md)。
-- **0.3.0：**[65 项旧功能保留基线](docs/versions/0.3.0/FEATURE_RETENTION.zh-CN.md) · [计划与边界](docs/versions/0.3.0/PLAN.zh-CN.md) · [原生契约](docs/versions/0.3.0/TECHNICAL.zh-CN.md) · [额度节奏原型](docs/versions/0.3.0/prototype/README.zh-CN.md)。原型未展示不代表获准删减功能。
-- **0.2.2：**[连接可靠性](docs/versions/0.2.2/PLAN.zh-CN.md) · [验收](docs/versions/0.2.2/QA.zh-CN.md)，已包含于 0.3.0。
-- **0.2.1：**[计划](docs/versions/0.2.1/PLAN.zh-CN.md) · [验收](docs/versions/0.2.1/QA.zh-CN.md)。
-- **0.2.0：**[计划](docs/versions/0.2.0/PLAN.zh-CN.md) · [完整检查](docs/versions/0.2.0/UPGRADE_REVIEW.zh-CN.md) · [黑盒验收](docs/versions/0.2.0/QA.zh-CN.md)。
-
-</details>
-
-[0.6.0计划](docs/versions/0.6.0/PLAN.zh-CN.md) · [验收](docs/versions/0.6.0/QA.zh-CN.md)。
-
-[0.6.1 验收](docs/versions/0.6.1/QA.zh-CN.md)。
-
-多服务用量监控：[0.7.0 计划](docs/versions/0.7.0/PLAN.zh-CN.md) · [交互原型](docs/versions/0.7.0/prototype/README.zh-CN.md) · [黑盒检查](docs/versions/0.7.0/QA.zh-CN.md)。十家目标分两批；[实施范围](docs/versions/0.7.0/TECHNICAL.zh-CN.md)。已记录 Codex + DeepSeek 本机开发验收，其他服务待接入；[服务与账号设置规划](docs/versions/0.7.0/SETTINGS_PLAN.zh-CN.md) · [功能保留核对](docs/versions/0.7.0/RELEASE_AUDIT.zh-CN.md) · [交互修正规划](docs/versions/0.7.0/INTERACTION_REPLAN.zh-CN.md)。
+[当前计划](docs/versions/0.7.0/PLAN.zh-CN.md) · [技术范围](docs/versions/0.7.0/TECHNICAL.zh-CN.md) · [更新日志](CHANGELOG.zh-CN.md) · [版本归档](docs/VERSIONS.md) · [问题反馈](https://github.com/whnnick/readycheck/issues) · [MIT 许可](LICENSE)

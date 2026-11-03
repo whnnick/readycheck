@@ -1,18 +1,28 @@
-# Version plans / 版本规划
+# Versions / 版本索引
 
-Current source/package candidate / 当前源码/打包候选：**0.7.0-dev.28** micro-trends, explicit pinning, account discoverability and card-warning deduplication / 微型趋势、显式固定、账户可发现性及卡片异常去重；517 macOS checks passed / 517项 macOS 检查通过。[Candidate notes](versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev28) / [候选说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev28)。No new public Release; public preview remains dev.23 and stable remains 0.6.1 / 未新公开 Release，公开预览仍为 dev.23，稳定版仍为0.6.1。
+| Channel / 通道 | Current version / 当前版本 | Evidence / 入口 |
+| --- | --- | --- |
+| Latest source and packaged candidate / 最新源码及打包候选 | **0.7.0-dev.28** | [Source tag / 源码](https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28) · [English notes](versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev28) / [中文说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev28) |
+| Latest downloadable preview / 最新可下载预览 | **0.7.0-dev.23** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23) · [English notes](versions/0.7.0/RELEASE_NOTES.md#public-preview-dev23) / [中文说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#public-preview-dev23) |
+| Stable release channel / 稳定发布通道 | **0.6.1** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.6.1) · [English notes](versions/0.6.1/RELEASE_NOTES.md) / [中文说明](versions/0.6.1/RELEASE_NOTES.zh-CN.md) |
 
-Previous local development / 前轮本地开发：0.7.0-dev.26 DeepSeek balance and micro-trends / DeepSeek 余额与微型趋势；[checks](versions/0.7.0/QA.md) / [验收](versions/0.7.0/QA.zh-CN.md)。No public release / 未公开发布。
+Dev.28 source/tag and local packages are verified; no dev.28 GitHub Release assets are hosted. / Dev.28 源码/tag 及本机安装包已验证，尚无 dev.28 GitHub Release 托管安装包。
 
-Previous local development / 上轮本地开发：0.7.0-dev.25 preview-only clicks, explicit pin and shared quota/balance chrome / 普通点击仅预览、显式固定及共用基础UI；[checks](versions/0.7.0/QA.md) / [验收](versions/0.7.0/QA.zh-CN.md)。No public release / 未公开发布。
+## Current 0.7.0 slice / 当前 0.7.0 切片
 
-Local development / 本地开发：0.7.0-dev.24 shared quota/balance capsule and notch presentation / 额度与余额胶囊、刘海展示；[checks](versions/0.7.0/QA.md) / [验收](versions/0.7.0/QA.zh-CN.md)。Not published; preview downloads remain dev.23 / 未发布，公开预览下载仍为 dev.23。
+Codex + DeepSeek native macOS monitoring, micro-trend capsule/notch, explicit-only pinning, default-open benefits and persistent card-warning deduplication. **517 macOS checks passed**; Windows check/smoke/UI-smoke and package integrity passed. Windows retains its existing Codex interface and the reported OAuth 403 requires real-device follow-up. / 当前 Mac 切片包含 Codex + DeepSeek、微型趋势胶囊/刘海、显式固定、账户默认展开与卡片异常持久去重；**517项 macOS 检查通过**，Windows check/smoke/UI-smoke 与包完整性通过。Windows 沿用原 Codex 界面，已报告的 OAuth 403 仍需实机跟进。
 
-Local dev.23 / 本机 dev.23：504 checks and installed bilingual About passed; device acceptance continues / 504 项检查及安装版双语关于通过，继续设备验收。Dev.23 public preview and downloads verified; stable latest stays 0.6.1 / dev.23 已公开预发布并验证下载入口，稳定 latest 保留 0.6.1。
+- [Plan](versions/0.7.0/PLAN.md) / [产品计划](versions/0.7.0/PLAN.zh-CN.md)
+- [Technical scope](versions/0.7.0/TECHNICAL.md) / [技术范围](versions/0.7.0/TECHNICAL.zh-CN.md)
+- [Black-box checks and package checksums](versions/0.7.0/QA.md) / [黑盒验收与安装包校验值](versions/0.7.0/QA.zh-CN.md)
+- [65-item retention matrix](versions/0.7.0/RELEASE_AUDIT.md) / [65项功能保留矩阵](versions/0.7.0/RELEASE_AUDIT.zh-CN.md)
+- [Service settings](versions/0.7.0/SETTINGS_PLAN.md) / [服务设置规划](versions/0.7.0/SETTINGS_PLAN.zh-CN.md) · [Prototype archive](versions/0.7.0/prototype/README.md) / [原型归档](versions/0.7.0/prototype/README.zh-CN.md)
 
-Latest public preview / 最新公开预览版：0.7.0-dev.23 bidirectional notch/capsule dragging / 刘海与胶囊双向拖动；[candidate notes](versions/0.7.0/RELEASE_NOTES.md) / [候选版说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md)。Stable release gate not cleared / 稳定发布门槛未解除；[checks](versions/0.7.0/QA.md) / [黑盒验收](versions/0.7.0/QA.zh-CN.md)。Earlier results below are historical / 下方早期结果为历史记录。
+The ten-service catalog is a plan; only Codex and DeepSeek are connected. Stable all-platform gates and device limits remain documented. / 十家服务目录是规划，当前仅接通 Codex 和 DeepSeek；稳定版全平台门槛及设备边界继续记录。
 
-- [0.7.0 usage aggregation plan](versions/0.7.0/PLAN.md) / [多模型用量聚合计划](versions/0.7.0/PLAN.zh-CN.md) · [Sources / 能力依据](versions/0.7.0/SOURCES.md) — [Prototype / 原型](versions/0.7.0/prototype/README.md) · [Checks](versions/0.7.0/QA.md) / [黑盒检查](versions/0.7.0/QA.zh-CN.md) · [Ten-service scope](versions/0.7.0/TECHNICAL.md) / [十家实施范围](versions/0.7.0/TECHNICAL.zh-CN.md) · [Retention checklist](versions/0.7.0/RELEASE_AUDIT.md) / [保留核对](versions/0.7.0/RELEASE_AUDIT.zh-CN.md) · [Interaction correction plan](versions/0.7.0/INTERACTION_REPLAN.md) / [交互修正规划](versions/0.7.0/INTERACTION_REPLAN.zh-CN.md) · [Settings proposal](versions/0.7.0/SETTINGS_PLAN.md) / [设置规划](versions/0.7.0/SETTINGS_PLAN.zh-CN.md)；Codex + DeepSeek local development acceptance recorded; revised navigation implemented in native dev.16 after preview.5, retaining platform icons/Connection-first order and clarifying DeepSeek API-balance onboarding; full 326 Core +149 App regression passed; installed checks partial and affected Windows login pending / 已记录 Codex + DeepSeek 本机开发验收，preview.5 修正导航已接入原生 dev.16，保留平台图标与连接优先排序，并明确 DeepSeek API 余额的接入范围，完整 326 Core +149 App 回归通过，安装验收部分完成，受影响 Windows 登录待验。
+## Earlier versions / 历史版本
+
+The following entries preserve the state recorded for each older version. / 下方保留各历史版本当时的记录。
 
 - [0.6.1 notes](versions/0.6.1/RELEASE_NOTES.md) / [更新说明](versions/0.6.1/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.6.1/QA.md) / [验收](versions/0.6.1/QA.zh-CN.md) · [Retention](versions/0.6.1/RELEASE_AUDIT.md) / [功能保留](versions/0.6.1/RELEASE_AUDIT.zh-CN.md)。
 

@@ -1,26 +1,47 @@
-# Install ReadyCheck
+# Install and upgrade ReadyCheck
 
-## Requirements
+[简体中文](INSTALL.zh-CN.md) · [Version channels](../README.md#choose-your-version)
 
-- Apple silicon (arm64), macOS 14 Sonoma or later
-- An internet connection for Codex OAuth and usage refresh
+## Choose a package
 
-## Install From A Release
+- macOS requires Apple silicon (arm64) and macOS 14+.
+- The latest downloadable public preview is **0.7.0-dev.23**; the stable release channel is **0.6.1**.
+- **0.7.0-dev.28** is the latest verified source/packaged candidate. Its source tag is public, but it has no public GitHub Release installer assets. Use the [README download table](../README.md#choose-your-version) for working download links.
+- Windows is a separate x64 portable client: [Windows guide](WINDOWS.md).
 
-1. Download `ReadyCheck-<version>-macos.dmg` from the GitHub Release.
-2. Open the disk image and drag `ReadyCheck.app` into Applications.
+## Install on Mac
+
+1. Download the Mac DMG for your chosen published release.
+2. Open it and copy ReadyCheck.app to Applications.
 3. Open ReadyCheck from Applications.
 
-The preview release uses a stable self-signed ReadyCheck identity, but it is not Developer ID signed or notarized. macOS may ask you to approve access to existing Keychain credentials again after an update. If macOS blocks the first launch, open **System Settings > Privacy & Security**, then select **Open Anyway** for ReadyCheck. This is a distribution limitation of the preview build, not an OAuth requirement.
+Mac preview packages use the established self-signed ReadyCheck identity, not Developer ID signing or notarization. If macOS blocks the first launch, its normal approval is under **System Settings → Privacy & Security → Open Anyway**. Updates may also require normal Keychain confirmation.
 
-## Connect Your Account
+## Connect a service
 
-Choose **Sign in to ReadyCheck** in **Settings → Connection** and finish the browser OAuth flow. The local callback normally returns through `localhost:1455`; when it does not, paste the final callback URL into the fallback field in ReadyCheck.
+| Service | In Settings → Connection | Reading scope |
+| --- | --- | --- |
+| Codex | Select Codex, choose Sign in to ReadyCheck and complete browser OAuth. | Returned quota windows and matching-account capabilities. |
+| DeepSeek | Select DeepSeek and enter your API Key directly in the native app. | Official API balance, currency and granted/topped-up components; not website/app chat usage. |
 
-Use **Disconnect** to remove ReadyCheck's stored OAuth credentials from Keychain.
+The normal Codex callback uses `localhost:1455`; if automatic completion fails, use the app's final-callback-URL fallback. Treat the complete callback URL as a credential and do not post it publicly.
 
-## Upgrading to 0.2.1
+Use **Retry credential access** when existing Keychain access needs confirmation. Complete the macOS prompt rather than replacing the saved Key. Each service's disconnect control removes its own stored credential; account/connection history remains separate. Never send a password or Key through an issue or chat.
 
-Quit ReadyCheck before replacing the app. Existing settings, credentials and history are retained. A rebuilt preview may require macOS Keychain confirmation; use Settings → Connection → Retry credential read if needed. Overview retains subscription/reset/Credits details. Find About in the sidebar footer or menu-bar More menu for release highlights. Windows is a separate portable preview and retains its previous interface.
+## Upgrade
 
-The old edge-strip choice becomes the adaptive floating Widget and retains its edge position. Information card remains separate and can be moved by its title. Release highlights live in About, not Connection settings.
+1. Quit ReadyCheck normally before replacing its application bundle.
+2. Copy the new package to the same Applications location and reopen it.
+3. Approve normal Keychain prompts if requested, then verify a fresh read for each connected service.
+
+Existing settings, saved Widget positions, histories and account-specific card consent are retained by the current upgrade path. Dev.28 same-bundle quit/relaunch and exact comparison of 13 display/selection/frame preferences passed. That does not replace OS login/reboot or all migration/device acceptance; see [current checks](versions/0.7.0/QA.md).
+
+## Find the controls
+
+- **Overview:** readings, local history and account benefits; current source opens benefits by default.
+- **Settings → Reminders:** independent quota, recovery, expiry and DeepSeek balance rules. Optional automatic card use requires separate account consent.
+- **Settings → Display:** capsule/edge strip, information card, notch, always-on-top and visibility controls. Ordinary capsule clicks preview; only the pin button keeps details open.
+- **Settings → General:** language, refresh cadence, launch at login and update checks.
+- **Notification history:** delivery/withdrawal records. Card outcomes remain in Card use and checks.
+
+For a source build use the [README instructions](../README.md#build-and-contribute). Distribution validation follows the [release process](RELEASE.md).

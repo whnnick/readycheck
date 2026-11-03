@@ -2,6 +2,7 @@
 
 ## 0.7.0-dev.28 - 2026-11-02
 
+- Refresh the bilingual GitHub overview, current native screenshots, version/download table, installation and Windows guides; document actual source versus downloadable channels. App/package versions are unchanged.
 - Deduplicate previously submitted card-issue warnings across credential interruptions and restarts using account-bound card incident identities, while preserving checks and retrying failed submissions. New or recurrent incidents still notify.
 - Withdraw recovered credential/read warnings after a successful card read even when an older card issue remains unresolved; distinguish suppressed repeats in history. Existing use consent and redemption behavior are unchanged. Windows metadata only; no public release.
 

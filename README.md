@@ -1,132 +1,89 @@
 <p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
 
 <h1 align="center">ReadyCheck</h1>
-<p align="center"><strong>See your quota. Know what comes next.</strong></p>
-<p align="center">A free, open-source Codex quota monitor, built for your Mac.</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/tag/v0.6.1"><img src="https://img.shields.io/badge/release-v0.6.1-28c99b" alt="Release 0.6.1"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-macos.dmg"><strong>↓ Download for Mac</strong></a> &nbsp; · &nbsp; <a href="https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-windows-x64-portable.zip">Windows portable</a></p>
-<p align="center"><a href="docs/versions/0.6.1/RELEASE_NOTES.md">What's new</a> · <a href="docs/INSTALL.md">Install guide</a> · <a href="docs/versions/0.6.1/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">All versions</a></p>
+<p align="center"><strong>Codex quotas. DeepSeek balances. One quiet place.</strong></p>
+<p align="center">A free, open-source macOS monitor with a menu bar, floating capsule and notch view.</p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28"><img src="https://img.shields.io/badge/source-0.7.0--dev.28-3979ef" alt="Source 0.7.0-dev.28"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev28">Current changes</a> · <a href="docs/versions/0.7.0/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
 
-<p align="center"><img src="docs/versions/0.4.1/assets/homepage-brand-en.png" alt="ReadyCheck: See your quota. Know what comes next. Native macOS, menu bar, Widget and notch." width="960"></p>
+## Choose your version
 
+| Channel | Version | Get it |
+| --- | --- | --- |
+| **Latest source / packaged candidate** | **0.7.0-dev.28** | [Source tag](https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28) · [Changes and package checksums](docs/versions/0.7.0/QA.md) |
+| **Latest downloadable preview** | **0.7.0-dev.23** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) |
+| Stable release channel | 0.6.1 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-windows-x64-portable.zip) |
 
-> **Public preview:** 0.7.0-dev.23 adds macOS DeepSeek API balances, platform settings and bidirectional notch/capsule dragging. 504 development tests passed; remaining retention/device checks keep this outside the stable release. See [preview notes](docs/versions/0.7.0/RELEASE_NOTES.md#public-preview-dev23) and [checks](docs/versions/0.7.0/QA.md).
+Dev.28 packages and source/tag are verified, but **dev.28 has no public GitHub Release or hosted installer assets**. The preview download links above intentionally remain dev.23. Features and screenshots below describe current dev.28 source; [preview differences](docs/versions/0.7.0/RELEASE_NOTES.md#public-preview-dev23) and [release limits](docs/versions/0.7.0/QA.md) are documented.
 
-**Preview downloads:** [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) · [Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23). Stable downloads above remain 0.6.1.
+<p align="center"><img src="docs/versions/0.7.0/evidence/dev28-overview-en.png" alt="ReadyCheck dev.28 native DeepSeek balance overview with currency breakdown and local history; synthetic data" width="760"></p>
+<p align="center"><sub>Current dev.28 native balance component. All screenshots use synthetic data, not a real account.</sub></p>
 
-Local dev.23 passed 504 checks and installed Chinese/English About visual acceptance. Remaining device checks are tracked in QA. Dev.23 is now a public prerelease; remaining device checks stay documented without a stable-release readiness claim.
+## What you can see
 
-Source candidate: dev.28 includes the DeepSeek micro-trend capsule, explicit-only pinning, default-open account benefits and persistent card-warning deduplication. 517 macOS checks passed. Package/source synchronization does not publish a new Release; preview downloads above remain dev.23. See [candidate notes](docs/versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev28) and [acceptance](docs/versions/0.7.0/QA.md).
+| | Codex | DeepSeek API |
+| --- | --- | --- |
+| Connection | ReadyCheck OAuth sign-in | API Key, stored separately |
+| Current reading | Returned quota windows, reset times and availability | Official balance by currency, with granted and topped-up components |
+| History | Local quota decreases and returned daily Token statistics | Locally observed balance decreases; gaps stay unknown |
+| Account details | Plan, subscription, Credits and reset-card records; expanded by default | API-balance availability and last successful read |
+| Reminders | Low quota, observed recovery and card-expiry milestones | Explicitly enabled balance thresholds, scoped to connection/currency |
 
-## 0.6.1 — Notifications open their history
+**Two supported connections.** The ten-service catalog also lists future integrations; the other eight are not connected or advertised as readable. See [implementation scope](docs/versions/0.7.0/TECHNICAL.md).
 
-Click a ReadyCheck notification to open notification history, even if the app was closed. Existing reminder rules and history remain intact. [Release highlights](docs/versions/0.6.1/RELEASE_NOTES.md).
-
-## Start here
-
-1. Download the **Mac DMG** above and drag ReadyCheck.app to Applications.
-2. Click **Sign in to ReadyCheck** and authorize your ChatGPT account in the browser. Approve Keychain access if macOS asks.
-3. Choose thresholds in **Settings → Reminders**. Enable the Widget or notch in **Settings → Display**.
-
-**Mac:** Apple silicon / arm64, macOS 14+. Stable **self-signed preview**, **not Developer ID signed or notarized**; read the [install guide](docs/INSTALL.md) before opening. **Windows:** unzip the portable x64 package and run ReadyCheck.exe; it retains its previous interface.
-
-## Beyond a remaining percentage
-
-| Know where you stand | Know what comes next | Keep your workspace yours |
-| :--- | :--- | :--- |
-| Both **5-hour and 7-day quotas**, exact reset times, account benefits and local consumption. | One shared next event across Overview, menu and Widget: reset, conditional card-use window or an issue needing attention. | A native window, menu bar, adaptive Widget and click-to-open notch. Use the surface that fits your work. |
-
-<p align="center"><img src="docs/versions/0.5.1/assets/release-overview-en.png" alt="Native ReadyCheck Overview showing both quotas, Up next, account benefits and local quota history; synthetic demonstration data" width="900"></p>
-<p align="center"><sub>Retained 0.5.1 native interface with synthetic data. Current readings first; complete benefits and history remain below the trend.</sub></p>
-
-### 0.5.1 — Clearer at a glance. Everything retained.
-
-| Less interruption | Less ambiguity | No feature cuts |
-| :--- | :--- | :--- |
-| Brief card-read failures retry quietly; sustained failures warn, critical issues remain timely. | Current data versus past success, actual consent versus initial defaults, account Token summary versus chart range. | Both quotas, full benefits, every card date, all reminder controls, history and the Widget hour chart stay. |
-
-<p align="center"><img src="docs/versions/0.5.1/assets/reminders-en.png" alt="Native0.5.1 reminder groups with trailing controls, four expiry milestones and current-account automatic-use state; synthetic data" width="740"></p>
-
-**Choose reminders. Inspect records. Keep control.**72/48/24/12-hour expiry nodes and account-specific automatic use remain independent. Confirmed card results and notification states remain separate; old missing records stay unconfirmed. If the authorized response omits a subscription date, ReadyCheck links to billing; a missing date does not mean signed out, and another account's date is never substituted.
-
-[What's new](docs/versions/0.5.4/RELEASE_NOTES.md) · [Checks and limits](docs/versions/0.5.4/QA.md) · [65-feature retention](docs/versions/0.5.4/RELEASE_AUDIT.md).
-
-## Small when working. Detailed when needed.
+## Stay small while you work
 
 <table>
-<tr><th>Keep an eye on the last hour</th><th>Understand the card result</th></tr>
-<tr><td align="center"><img src="docs/versions/0.5.1/assets/widget-en.png" alt="Native Widget with both quotas, next event and last-hour consumption chart; synthetic data" width="370"></td><td align="center"><img src="docs/versions/0.5.1/assets/card-result-en.png" alt="Native read-only card details showing authorization, recorded outcome and notification status; synthetic data" width="420"></td></tr>
-<tr><td>The Widget keeps both quotas, the next event and the <strong>last-hour chart</strong> together. Pin it when you need it; tuck it away when you don't.</td><td>Inspect the original expiry, account authorization, recorded outcome and its matching notification. Notification delivery and card redemption are separate results.</td></tr>
+<tr><th>Capsule and edge strip</th><th>Balance details</th></tr>
+<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-capsule.png" alt="Current DeepSeek capsule with currency, balance and micro-trend; synthetic data" width="360"><br><img src="docs/versions/0.7.0/evidence/dev28-balance-edge.png" alt="Current vertical DeepSeek edge strip; synthetic data" width="28"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-notch-en.png" alt="Current native English DeepSeek notch details with balance breakdown and observed decrease; synthetic data" width="440"></td></tr>
 </table>
 
-<p align="center"><sub>Retained 0.5.1 native components with synthetic data; the confirmed card outcome is a demonstration, not a real redemption.</sub></p>
+- **One shared interaction.** Hover or ordinary-click a capsule to preview. Only the explicit pin button keeps details open; content clicks preserve that choice. Pinning is separate from window always-on-top.
+- **Your preferred surface.** Use the menu bar, capsule/edge strip, information card or click-to-expand notch. Saved positions and the existing display controls remain available.
+- **Clearer account information.** Benefits open by default. Inspect recorded card outcomes separately from notification delivery.
+- **Fewer repeated warnings.** An already reported card incident is not resubmitted after credential recovery or restart; genuinely new incidents remain eligible.
+- **Optional card use.** Account-specific consent is required for an eligible expiring-card attempt. This is separate from read-only refresh and expiry reminders. [Rules](docs/versions/0.3.0/RESET_CARD_AUTOMATION.md).
 
-- **One adaptive Widget.** Drag the bubble to either edge for a slim strip, or inward for the bubble. Choose an information card and drag its title. Pinned details stay open across outside clicks and focus changes; unpin to restore preview behavior. Esc dismisses focused details.
-- **A quieter notch.** Click to expand; click outside or press Esc to dismiss. Hovering alone does not open it.
-- **Account benefits stay visible.** Plan, subscription validity, Credits, reset-card count and individual expiry dates remain, alongside read-only card records and About.
-- **Less repetition at expiry.** Once macOS accepts a reminder, the same card/milestone is not resubmitted; later72/48/24/12-hour nodes remain independent. Explicit submission failures can retry, and submitted/verified delivery are recorded separately.
-- **Separate reminder controls.** Low quota, recovery and reset-card expiry have independent controls. Expiry reminders are on by default; optional automatic card use is off by default and requires account-specific consent.
-- **Optional expiring-card use.** When authorized and conditions permit, attempt a qualifying card in its final hour. Confirmed success has its own notification and history record, independent of the expiry-reminder toggle. [Automation rules](docs/versions/0.3.0/RESET_CARD_AUTOMATION.md).
+## Keep the units honest
 
-## Three views. Two different measurements.
+- **Quota:** remaining percentages and locally observed decreases in percentage points. A drop from 80% to 70% is 10 points, not a Token count.
+- **Tokens:** returned Codex counts grouped by UTC day; there is no fixed conversion from quota percentages.
+- **Balance:** currency amounts. Local decreases are observations, not an official expense or Token bill; credits, refunds and grant expiry can affect balances. No percentage bar implies a balance limit.
 
-| View | What it shows | Source |
-| --- | --- | --- |
-| Widget → Quota consumption | Last hour of the selected quota; **5 minutes per bar**, in percentage points. | Successful local refresh samples for the current account. |
-| Overview → Quota consumption | Same metric over **24 hours / 7 days / 30 days**; one hour / six hours / one day per bar. | The same local history and decrease rule as Widget. |
-| Token usage → Daily Token counts | Returned Token counts, grouped by **UTC day**. | Official matching-account Codex statistics, when available. |
+Missing samples stay blank. Old/failed readings retain their status and original time instead of becoming a fresh zero. History is isolated by account or connection; unknown legacy ownership stays separate.
 
-**80% → 70% means 10 percentage points consumed.** It does not mean 10 Tokens, or 10% of the original 80%. Local history excludes reset changes, invalid/missing readings, increases and gaps over ten minutes. Consumption across cycles can exceed 100 points. Widget bars scale to their own maximum. There is **no fixed conversion** to Tokens; missing Token data is never replaced by a second quota chart. Pace estimates are conditional references, not promises of available work time.
+## Quick start
 
-## Clear boundaries, by design
+1. Download a **Mac preview DMG** above, open it and copy ReadyCheck.app to Applications.
+2. In **Settings → Connection**, sign in to Codex or select DeepSeek and enter your Key in the app. Approve normal macOS Keychain prompts if needed.
+3. Choose your surface under **Settings → Display**. Configure reminders separately under **Settings → Reminders**.
 
-| Platform | Release scope |
+[Mac installation and upgrades](docs/INSTALL.md) · [Windows guide](docs/WINDOWS.md)
+
+## Platforms and verification
+
+| Platform | Current scope |
 | --- | --- |
-| **macOS** | Native Overview/menu, shared next events, card records, adaptive Widget, last-hour chart, movable card, click-only notch and account/history features. [0.5.4 checks](docs/versions/0.5.4/QA.md) · [65-feature retention audit](docs/versions/0.5.4/RELEASE_AUDIT.md). |
-| **Windows x64** | Separate portable preview with its previous interface. Mac milestone controls, check records and new data-state explanations are not claimed for Windows. [Windows guide](docs/WINDOWS.md) · [Checks](docs/WINDOWS_QA.md). |
+| **macOS / Apple silicon / 14+** | Codex + DeepSeek native client. Dev.28 has **517 passing checks**, installed core-flow acceptance and a [65-item retention matrix](docs/versions/0.7.0/RELEASE_AUDIT.md). Mac packages use the existing self-signed preview identity; they are not Developer ID signed or notarized. |
+| **Windows x64** | Separate Electron Codex client and portable ZIP. It retains its existing interface and does not include the Mac DeepSeek/notch features. Packaging/check/smoke/UI-smoke passed; the reported Windows OAuth 403 and hardware acceptance remain pending. [Windows QA](docs/WINDOWS_QA.md). |
 
-ReadyCheck **does not automatically stop or resume Codex tasks**. Reset timestamps need fresh readings to confirm recovery; unobserved recovery while closed is not replayed. Real card redemption, another live account, multi-display/Spaces, Focus/sleep, VoiceOver and Windows hardware are not claimed comprehensively verified; consult the version checks for the actual coverage.
+Other accounts, all display/Spaces/fullscreen combinations, OS login and every live reminder boundary are not comprehensively accepted. Current evidence and release gates are recorded in [black-box checks](docs/versions/0.7.0/QA.md).
 
-## Privacy and account access
+## Privacy
 
-Refreshing reads authorized usage data **without model-generation requests**. Quota refresh is read-only; optional card redemption is a separately authorized mutation. ReadyCheck uses one OAuth sign-in; Mac credentials stay in Keychain. Background Token/card capabilities still use matching-account Codex interfaces. History is account-scoped, and unknown legacy ownership is kept separate. Remove credentials and account details before sharing logs or screenshots.
+Normal refresh reads authorized provider data without model-generation calls. Mac credentials stay in Keychain; Windows uses Electron safeStorage. DeepSeek credentials are independent from Codex, and local histories retain identity boundaries. Do not share keys, OAuth callback URLs or raw account payloads in issues or screenshots.
 
-ReadyCheck is independent and is not affiliated with or endorsed by OpenAI. Codex, ChatGPT and their marks belong to OpenAI.
+ReadyCheck does not automatically stop or resume Codex tasks. Optional card redemption requires separate consent. ReadyCheck is independent of OpenAI and DeepSeek; their names and marks belong to their owners.
 
-## Documentation and development
+## Build and contribute
 
-[0.5.4 product plan](docs/versions/0.5.4/PLAN.md) · [Black-box checks](docs/versions/0.5.4/QA.md).
-
-[Design and feature-retention details](docs/versions/0.5.1/DESIGN_IMPLEMENTATION.md).
-
-[Install](docs/INSTALL.md) · [Changelog](CHANGELOG.md) · [Versions](docs/VERSIONS.md) · [Contributing](CONTRIBUTING.md) · [Release process](docs/RELEASE.md) · [Security](SECURITY.md) · [Issues](https://github.com/whnnick/readycheck/issues)
-
-Source builds require macOS 14+ and a Swift 6-compatible toolchain:
+macOS source requires a Swift 6-compatible toolchain and macOS 14+:
 
 ```bash
 swift test
-scripts/package_app.sh
+scripts/build_and_run.sh
 ```
 
-Use `scripts/build_and_run.sh` for development; follow the release process for distribution. Licensed under [MIT](LICENSE).
+For distributable artifacts use the [release process](docs/RELEASE.md); Windows builds use Node.js 22.12–24 and the existing packaging script. See [contributing](CONTRIBUTING.md) and [security](SECURITY.md).
 
-
-
-<details>
-<summary>Product plans, previous designs and feature-retention records</summary>
-
-- **0.4.2:** [Release notes](docs/versions/0.4.2/RELEASE_NOTES.md) · [Checks](docs/versions/0.4.2/QA.md) · [Retention](docs/versions/0.4.2/RELEASE_AUDIT.md).
-- **0.4.1:** [Plan](docs/versions/0.4.1/PLAN.md) · [Checks](docs/versions/0.4.1/QA.md).
-- **0.4.0:** [Plan](docs/versions/0.4.0/PLAN.md) · [Native contract](docs/versions/0.4.0/TECHNICAL.md) · [Release notes](docs/versions/0.4.0/RELEASE_NOTES.md) · [Checks](docs/versions/0.4.0/QA.md) · [Retention audit](docs/versions/0.4.0/RELEASE_AUDIT.md) · [Design prototype archive](docs/versions/0.4.0/prototype/README.md).
-- **0.3.0:** [65-feature retention baseline](docs/versions/0.3.0/FEATURE_RETENTION.md) · [Plan and limits](docs/versions/0.3.0/PLAN.md) · [Native contract](docs/versions/0.3.0/TECHNICAL.md) · [Quota-pace prototype](docs/versions/0.3.0/prototype/README.md). Prototype omissions do not authorize removing features.
-- **0.2.2:** [Connection reliability](docs/versions/0.2.2/PLAN.md) · [Checks](docs/versions/0.2.2/QA.md); included in 0.3.0.
-- **0.2.1:** [Plan](docs/versions/0.2.1/PLAN.md) · [Checks](docs/versions/0.2.1/QA.md).
-- **0.2.0:** [Plan](docs/versions/0.2.0/PLAN.md) · [Upgrade review](docs/versions/0.2.0/UPGRADE_REVIEW.md) · [Black-box checks](docs/versions/0.2.0/QA.md).
-
-</details>
-
-[0.6.0 plan](docs/versions/0.6.0/PLAN.md) · [Checks](docs/versions/0.6.0/QA.md).
-
-[0.6.1 checks](docs/versions/0.6.1/QA.md).
-
-Multi-provider usage monitoring: [0.7.0 plan](docs/versions/0.7.0/PLAN.md) · [interactive prototype](docs/versions/0.7.0/prototype/README.md) · [checks](docs/versions/0.7.0/QA.md). Ten targets in two batches; [implementation scope](docs/versions/0.7.0/TECHNICAL.md). Codex + DeepSeek have local development acceptance; other integrations remain pending. [Service/account settings plan](docs/versions/0.7.0/SETTINGS_PLAN.md) · [retention checklist](docs/versions/0.7.0/RELEASE_AUDIT.md) · [Interaction correction plan](docs/versions/0.7.0/INTERACTION_REPLAN.md).
+[Current plan](docs/versions/0.7.0/PLAN.md) · [Technical scope](docs/versions/0.7.0/TECHNICAL.md) · [Changelog](CHANGELOG.md) · [Version archive](docs/VERSIONS.md) · [Issues](https://github.com/whnnick/readycheck/issues) · [MIT license](LICENSE)
