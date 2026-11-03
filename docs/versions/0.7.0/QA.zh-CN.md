@@ -1,5 +1,9 @@
 # 0.7.0 — 原生与原型黑盒功能检查
 
+## 2026-11-03 GitHub 首页回归 Codex 主线
+
+双语首页以 Codex 额度、重置、Token、账户权益与提醒为主，DeepSeek 作为补充能力。当前原生[英文](evidence/dev28-codex-overview-en.png)/[中文](evidence/dev28-codex-overview-zh.png)总览与胶囊/刘海截图使用合成账号数据。现有可选 `MainWindowTests.testMenuAndNotchRenderWithSyntheticVerifiedAccount` 加入截图样例后通过。本地链接、GitHub Markdown 渲染及改动文本敏感信息检查通过。这些截图用于展示，不作为新增实账或柱图交互验收。运行代码、安装包版本与发布通道不变。
+
 ## 2026-11-03 dev.28 打包与公开源码候选
 
 本次阶段：打包并推送源码/tag。稳定版 0.6.1 与公开预览 dev.23 继续作为下载入口，本阶段不新增 GitHub Release 或改变公开发布状态。现有公开同步脚本已排除内部协作/构建/本地运营素材，并通过敏感信息扫描；公开源码/测试/脚本与已验收开发树逐文件相同，沿用 517 项结果。已检查公开 main 历史中的内部协作路径。

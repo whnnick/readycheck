@@ -1,5 +1,9 @@
 # 0.7.0 — Native and prototype black-box acceptance
 
+## 2026-11-03 Codex-first GitHub overview
+
+The bilingual homepage now leads with Codex quotas, resets, Token usage, account benefits and reminders; DeepSeek is an additional capability. Current native [English](evidence/dev28-codex-overview-en.png) / [Chinese](evidence/dev28-codex-overview-zh.png) overview and capsule/notch images use invented account data. The opt-in `MainWindowTests.testMenuAndNotchRenderWithSyntheticVerifiedAccount` passed with the added capture fixtures. Local links, GitHub Markdown rendering and changed-text sensitive-data checks passed. These are presentation captures, not new live-account or chart-interaction acceptance. Runtime code, package versions and release channels are unchanged.
+
 ## 2026-11-03 dev.28 package and public-source candidate
 
 Requested stage: package and push source/tag. Stable 0.6.1 and public preview dev.23 remain the download targets; no new GitHub Release/publication is part of this stage. The existing public-sync script excluded internal collaboration/build/local-campaign files and passed its sensitive-data scan. Public source/tests/scripts were byte-matched to the reviewed development tree, so the 517-test acceptance remains applicable. Public main history was checked for internal agent paths.

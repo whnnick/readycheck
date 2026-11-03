@@ -1,8 +1,8 @@
 <p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
 
 <h1 align="center">ReadyCheck</h1>
-<p align="center"><strong>Codex quotas. DeepSeek balances. One quiet place.</strong></p>
-<p align="center">A free, open-source macOS monitor with a menu bar, floating capsule and notch view.</p>
+<p align="center"><strong>Know your Codex quota. See when it resets.</strong></p>
+<p align="center">A lightweight, free, open-source Codex monitor for quotas, Token usage, account benefits and reminders.</p>
 <p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28"><img src="https://img.shields.io/badge/source-0.7.0--dev.28-3979ef" alt="Source 0.7.0-dev.28"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
 <p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev28">Current changes</a> · <a href="docs/versions/0.7.0/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
 
@@ -16,33 +16,40 @@
 
 Dev.28 packages and source/tag are verified, but **dev.28 has no public GitHub Release or hosted installer assets**. The preview download links above intentionally remain dev.23. Features and screenshots below describe current dev.28 source; [preview differences](docs/versions/0.7.0/RELEASE_NOTES.md#public-preview-dev23) and [release limits](docs/versions/0.7.0/QA.md) are documented.
 
-<p align="center"><img src="docs/versions/0.7.0/evidence/dev28-overview-en.png" alt="ReadyCheck dev.28 native DeepSeek balance overview with currency breakdown and local history; synthetic data" width="760"></p>
-<p align="center"><sub>Current dev.28 native balance component. All screenshots use synthetic data, not a real account.</sub></p>
+<p align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-overview-en.png" alt="ReadyCheck dev.28 native Codex overview with 5-hour and 7-day remaining quotas, reset events and local history; synthetic data" width="760"></p>
+<p align="center"><sub>Current dev.28 Codex interface. All screenshots use synthetic data, not a real account.</sub></p>
 
-## What you can see
+## Built around everyday Codex use
 
-| | Codex | DeepSeek API |
-| --- | --- | --- |
-| Connection | ReadyCheck OAuth sign-in | API Key, stored separately |
-| Current reading | Returned quota windows, reset times and availability | Official balance by currency, with granted and topped-up components |
-| History | Local quota decreases and returned daily Token statistics | Locally observed balance decreases; gaps stay unknown |
-| Account details | Plan, subscription, Credits and reset-card records; expanded by default | API-balance availability and last successful read |
-| Reminders | Low quota, observed recovery and card-expiry milestones | Explicitly enabled balance thresholds, scoped to connection/currency |
+| Your question | What ReadyCheck shows |
+| --- | --- |
+| How much can I still use? | The 5-hour, 7-day and other returned quota windows, remaining percentages and availability. |
+| When does it recover? | Reset times and countdowns, upcoming events and usage pace based on current-cycle local samples, with an explicit explanation when samples are insufficient. |
+| What have I used recently? | Locally observed quota decreases in Overview and returned daily Token counts in Usage, with history ranges and bar hover details. |
+| What comes with my account? | Plan, subscription expiry, Credits, reset-card counts and expiry records. Account benefits open by default and can still be collapsed. |
+| When should I pay attention? | Low-quota, observed-recovery and card-expiry reminders, plus notification history. Recovered credential warnings are withdrawn; the same reported card incident does not repeatedly alert. |
+| Will it use a reset card? | Optional expiring-card attempts require separate account-specific consent, independent from read-only refresh and expiry reminders. [Card rules](docs/versions/0.3.0/RESET_CARD_AUTOMATION.md). |
 
-**Two supported connections.** The ten-service catalog also lists future integrations; the other eight are not connected or advertised as readable. See [implementation scope](docs/versions/0.7.0/TECHNICAL.md).
+Account fields depend on returned data; missing values are not invented. ReadyCheck does not automatically stop or resume Codex tasks.
 
-## Stay small while you work
+## Keep Codex in view without keeping a window open
 
 <table>
-<tr><th>Capsule and edge strip</th><th>Balance details</th></tr>
-<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-capsule.png" alt="Current DeepSeek capsule with currency, balance and micro-trend; synthetic data" width="360"><br><img src="docs/versions/0.7.0/evidence/dev28-balance-edge.png" alt="Current vertical DeepSeek edge strip; synthetic data" width="28"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-notch-en.png" alt="Current native English DeepSeek notch details with balance breakdown and observed decrease; synthetic data" width="440"></td></tr>
+<tr><th>Codex floating capsule</th><th>Codex notch details</th></tr>
+<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-capsule-en.png" alt="Current expanded Codex capsule with quota, reset and last-hour trend; synthetic data" width="360"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-notch-en.png" alt="Current Codex notch details; synthetic data" width="360"></td></tr>
 </table>
 
-- **One shared interaction.** Hover or ordinary-click a capsule to preview. Only the explicit pin button keeps details open; content clicks preserve that choice. Pinning is separate from window always-on-top.
-- **Your preferred surface.** Use the menu bar, capsule/edge strip, information card or click-to-expand notch. Saved positions and the existing display controls remain available.
-- **Clearer account information.** Benefits open by default. Inspect recorded card outcomes separately from notification delivery.
-- **Fewer repeated warnings.** An already reported card incident is not resubmitted after credential recovery or restart; genuinely new incidents remain eligible.
-- **Optional card use.** Account-specific consent is required for an eligible expiring-card attempt. This is separate from read-only refresh and expiry reminders. [Rules](docs/versions/0.3.0/RESET_CARD_AUTOMATION.md).
+- **Choose your surface.** Menu bar, floating capsule/edge strip, information card or click-to-expand notch, with saved positions and display controls.
+- **Expand when needed.** Hover or ordinary-click a capsule to preview. The explicit pin button keeps it open; content clicks preserve that choice. Pinning is separate from window always-on-top.
+- **Return to the details.** Refresh, inspect reminders or open ReadyCheck from the small view to review quota, history and account benefits.
+
+## Also supported: DeepSeek API balances
+
+The Mac client also supports a separate DeepSeek API Key connection: official balances by currency, granted/topped-up components, last successful reads and locally observed balance decreases. Balance capsule, edge and notch layouts are available. Balance-threshold reminders are explicitly enabled and scoped to connection and currency.
+
+<p align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-notch-en.png" alt="Additional capability: native DeepSeek balance details and locally observed decreases; synthetic data" width="440"></p>
+
+**Codex and DeepSeek are the two supported connections.** The other eight entries in the ten-service catalog are future integrations, not connected services. See [implementation scope](docs/versions/0.7.0/TECHNICAL.md).
 
 ## Keep the units honest
 
@@ -55,7 +62,7 @@ Missing samples stay blank. Old/failed readings retain their status and original
 ## Quick start
 
 1. Download a **Mac preview DMG** above, open it and copy ReadyCheck.app to Applications.
-2. In **Settings → Connection**, sign in to Codex or select DeepSeek and enter your Key in the app. Approve normal macOS Keychain prompts if needed.
+2. In **Settings → Connection**, sign in to Codex and approve normal macOS Keychain prompts if needed. DeepSeek users can add an API Key connection separately.
 3. Choose your surface under **Settings → Display**. Configure reminders separately under **Settings → Reminders**.
 
 [Mac installation and upgrades](docs/INSTALL.md) · [Windows guide](docs/WINDOWS.md)

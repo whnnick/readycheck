@@ -557,6 +557,19 @@ final class MainWindowTests: XCTestCase {
                 QuotaHistoryValue(windowID: "codex-primary", labelKey: "quota.window.codex.5h", remainingRatio: [0.98, 0.97, 0.95, 0.945, 0.94, 0.92, 0.9, 0.88, 0.86, 0.84, 0.82, 0.8][index], resetAt: now.addingTimeInterval(7200)),
                 QuotaHistoryValue(windowID: "codex-secondary", labelKey: "quota.window.codex.7d", remainingRatio: [0.78, 0.775, 0.77, 0.76, 0.75, 0.745, 0.74, 0.73, 0.725, 0.72, 0.715, 0.7][index], resetAt: now.addingTimeInterval(172800))])
         }
+        if ProcessInfo.processInfo.environment["READYCHECK_UI_EVIDENCE_DIR"] != nil {
+            let snapshot = makeSnapshot(now: now, details: ProviderQuotaDetails(planName: "plus",
+                subscriptionRenewalAt: now.addingTimeInterval(30 * 86400), manualResetCount: 2,
+                manualResetExpirations: [now.addingTimeInterval(7 * 86400), now.addingTimeInterval(14 * 86400)], creditBalance: "120", manualResetDetailsReadAt: now))
+            model.snapshots = [snapshot]
+            model.quotaHistorySamples = (0..<288).map { index in
+                QuotaHistorySample(providerID: "codex-oauth", recordedAt: now.addingTimeInterval(Double(index - 287) * 300),
+                    values: [
+                        QuotaHistoryValue(windowID: "codex-primary", labelKey: "quota.window.codex.5h", remainingRatio: 1 - Double(index) * 0.2 / 287, resetAt: now.addingTimeInterval(7200)),
+                        QuotaHistoryValue(windowID: "codex-secondary", labelKey: "quota.window.codex.7d", remainingRatio: 0.78 - Double(index) * 0.08 / 287, resetAt: now.addingTimeInterval(172800))],
+                    accountKey: QuotaHistorySample(snapshot: snapshot)?.accountKey)
+            }
+        }
         try renderDesktop(MenuBarQuotaView(model: model, openSettings: {}), name: "menu-bar", size: CGSize(width: 340, height: 470), maximumFittingHeight: 400)
         let healthy = model.snapshots
         model.snapshots = [makeSnapshot(now: now.addingTimeInterval(-600), isCached: true)]
@@ -569,6 +582,14 @@ final class MainWindowTests: XCTestCase {
         try renderDesktop(widget, name: "widget-last-hour", size: BubbleWidgetPlacement.expandedSize)
         model.language = .enUS
         try renderDesktop(widget, name: "widget-last-hour-en", size: BubbleWidgetPlacement.expandedSize)
+        if ProcessInfo.processInfo.environment["READYCHECK_UI_EVIDENCE_DIR"] != nil {
+            try renderDesktop(NotchStatusView(model: model, isExpanded: true), name: "notch-expanded-en", size: CGSize(width: 360, height: 264))
+            for (language, suffix) in [(AppLanguage.enUS, "en"), (.zhCN, "zh")] {
+                model.language = language
+                model.mainWindowPage = .overview
+                try render(model: model, name: "codex-overview-\(suffix)", width: 1000, dark: true, height: 1200)
+            }
+        }
     }
 
     private func renderDesktop<Content: View>(_ content: Content, name: String, size: CGSize, maximumFittingHeight: CGFloat? = nil, dark: Bool? = nil) throws {

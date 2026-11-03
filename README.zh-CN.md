@@ -1,8 +1,8 @@
 <p align="center"><a href="README.md">English</a> · 简体中文</p>
 
 <h1 align="center">ReadyCheck</h1>
-<p align="center"><strong>Codex 额度、DeepSeek 余额，一处掌握。</strong></p>
-<p align="center">轻量、免费、开源的 macOS 监控工具，提供菜单栏、悬浮胶囊与刘海视图。</p>
+<p align="center"><strong>Codex 还剩多少额度，什么时候重置，一眼看清。</strong></p>
+<p align="center">以 Codex 为核心的轻量、免费、开源监控工具：额度、Token 用量、账户权益与提醒。</p>
 <p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28"><img src="https://img.shields.io/badge/source-0.7.0--dev.28-3979ef" alt="源码 0.7.0-dev.28"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
 <p align="center"><a href="#从这里开始">从这里开始</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev28">当前更新</a> · <a href="docs/versions/0.7.0/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">版本索引</a></p>
 
@@ -16,33 +16,40 @@
 
 Dev.28 安装包及源码/tag 已验证，但 **dev.28 尚无公开 GitHub Release 或托管安装包资产**。上方预览下载继续指向 dev.23。下面的能力与截图介绍当前 dev.28 源码；[预览版差异](docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#public-preview-dev23)及[发布边界](docs/versions/0.7.0/QA.zh-CN.md)均有记录。
 
-<p align="center"><img src="docs/versions/0.7.0/evidence/dev28-overview-zh.png" alt="ReadyCheck dev.28 原生 DeepSeek 余额总览，包含币种分项及本机历史；合成数据" width="760"></p>
-<p align="center"><sub>当前 dev.28 原生余额组件。所有截图均使用合成数据，不是真实账户。</sub></p>
+<p align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-overview-zh.png" alt="ReadyCheck dev.28 原生 Codex 总览：5小时与7天剩余额度、重置节点及本机历史；合成数据" width="760"></p>
+<p align="center"><sub>当前 dev.28 Codex 界面。所有截图均使用合成数据，不是真实账户。</sub></p>
 
-## 能看到什么
+## 围绕 Codex 的日常使用
 
-| | Codex | DeepSeek API |
-| --- | --- | --- |
-| 连接 | ReadyCheck OAuth 登录 | API Key，独立保存 |
-| 当前读数 | 实际返回的配额窗口、重置时间与可用状态 | 按币种显示官方余额、赠送与充值分项 |
-| 历史 | 本机额度减少与接口返回的每日 Token 统计 | 本机观测的余额减少，缺口保持未知 |
-| 账户信息 | 套餐、订阅、Credits 与重置卡记录，默认展开 | API 余额可用性和最近成功读取时间 |
-| 提醒 | 低额度、实际恢复与重置卡到期节点 | 显式开启的余额阈值，按连接/币种隔离 |
+| 关心的问题 | ReadyCheck 提供什么 |
+| --- | --- |
+| 还能用多少？ | 同时查看 5 小时、7 天等实际返回的额度窗口、剩余比例与可用状态。 |
+| 什么时候恢复？ | 重置时间与倒计时、下一事件，以及根据当前周期本机采样显示的使用节奏；样本不足时明确说明。 |
+| 最近用了多少？ | 总览查看本机额度减少，用量页查看接口返回的每日 Token 统计；支持历史范围与柱条悬停提示。 |
+| 账户有哪些权益？ | 套餐、订阅有效期、Credits、重置卡数量与到期记录；账户与权益默认展开，仍可手动折叠。 |
+| 什么时候需要留意？ | 低额度、实际恢复和卡片到期提醒，以及通知历史；凭据恢复后撤回旧警告，同一卡片异常避免重复提醒。 |
+| 是否自动用卡？ | 独立、按账号授权的临期卡片尝试，与只读刷新、到期提醒分开。[用卡规则](docs/versions/0.3.0/RESET_CARD_AUTOMATION.zh-CN.md)。 |
 
-**目前支持两条连接。** 十家服务目录还列出未来目标，其余八家尚未接入，不代表已经可读取。见[实施范围](docs/versions/0.7.0/TECHNICAL.zh-CN.md)。
+账户字段以实际返回的数据为准，缺失值不补造。ReadyCheck 不会自动停止或恢复 Codex 任务。
 
-## 工作时轻巧，需要时展开
+## Codex 随手看，不必一直开主窗口
 
 <table>
-<tr><th>胶囊与贴边条</th><th>余额详情</th></tr>
-<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-capsule.png" alt="当前 DeepSeek 胶囊：币种、余额与微型趋势；合成数据" width="360"><br><img src="docs/versions/0.7.0/evidence/dev28-balance-edge.png" alt="当前 DeepSeek 竖向贴边条；合成数据" width="28"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-expanded.png" alt="当前原生 DeepSeek 展开详情，余额、分项与已观测减少；合成数据" width="440"></td></tr>
+<tr><th>Codex 悬浮胶囊</th><th>Codex 刘海详情</th></tr>
+<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-capsule-zh.png" alt="当前 Codex 胶囊展开视图：额度、重置与近一小时趋势；合成数据" width="360"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-notch-zh.png" alt="当前 Codex 刘海展开详情；合成数据" width="360"></td></tr>
 </table>
 
-- **统一交互。** 悬停或普通点击胶囊只预览；只有显式固定按钮才保持展开，内容点击保留当前选择。固定展开与窗口置顶独立。
-- **选择顺手的入口。** 菜单栏、胶囊/贴边、信息卡片或点击展开的刘海；保留记忆位置及原有显示控件。
-- **账户信息更容易找到。** 权益默认展开；卡片记录结果与通知投递分开查看。
-- **减少重复警告。** 已提醒的同一卡片异常在凭据恢复或重启后不重复提交，真正的新事件仍可提醒。
-- **可选的临期用卡。** 合格卡片的最后一小时尝试需要按账号单独授权，与只读刷新和到期提醒独立。[用卡规则](docs/versions/0.3.0/RESET_CARD_AUTOMATION.zh-CN.md)。
+- **选择顺手的入口。** 菜单栏、悬浮胶囊/贴边、信息卡片或点击展开的刘海，保留记忆位置及显示控件。
+- **需要时展开。** 悬停或普通点击胶囊只预览；显式固定按钮保持展开，点击内容保留选择。固定展开与窗口置顶独立。
+- **从摘要回到详情。** 在小窗中刷新、查看提醒或打开 ReadyCheck 主窗口，继续检查额度、历史与账户权益。
+
+## 补充支持：DeepSeek API 余额
+
+macOS 还支持独立的 DeepSeek API Key 连接：按币种显示官方余额、赠送/充值分项、最近成功读取时间，以及本机观测的余额减少。提供余额胶囊、贴边与刘海布局；余额阈值提醒需要显式开启，并按连接与币种隔离。
+
+<p align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-expanded.png" alt="补充能力：DeepSeek 原生余额详情与本机观测减少；合成数据" width="440"></p>
+
+目前支持 **Codex 与 DeepSeek 两条真实连接**。十家服务目录中的其余八家是未来目标，尚未接入。见[实施范围](docs/versions/0.7.0/TECHNICAL.zh-CN.md)。
 
 ## 单位和来源说清楚
 
@@ -55,7 +62,7 @@ Dev.28 安装包及源码/tag 已验证，但 **dev.28 尚无公开 GitHub Relea
 ## 从这里开始
 
 1. 下载上方 **Mac 预览版 DMG**，打开后将 ReadyCheck.app 复制到“应用程序”。
-2. 在**设置 → 连接**中登录 Codex，或选择 DeepSeek 并在应用内输入 Key；需要时完成正常 macOS 钥匙串提示。
+2. 在**设置 → 连接**中登录 Codex，需要时完成正常 macOS 钥匙串提示。DeepSeek 用户可另行添加 API Key 连接。
 3. 在**设置 → 显示**中选择入口，在**设置 → 提醒**中独立配置提醒。
 
 [Mac 安装与升级](docs/INSTALL.zh-CN.md) · [Windows 指南](docs/WINDOWS.zh-CN.md)
