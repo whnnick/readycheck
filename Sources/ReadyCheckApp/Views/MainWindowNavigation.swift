@@ -3,7 +3,8 @@ import ReadyCheckCore
 import SwiftUI
 
 enum ServiceSettingsTarget: String, CaseIterable {
-    case codex, deepSeek
+    case codex, deepSeek, muse
+    var title: String { switch self { case .codex: "Codex"; case .deepSeek: "DeepSeek"; case .muse: "Muse" } }
 }
 
 enum MainWindowPage: String, CaseIterable, Identifiable {
@@ -62,8 +63,8 @@ struct MainWindowSidebar: View {
             }.padding(.horizontal, 10)
             Spacer(minLength: 0)
             VStack(alignment: .leading, spacing: 6) {
-                Text(model.selectedDeepSeek ? "DeepSeek API" : "Codex").font(.caption.weight(.semibold))
-                Text(model.selectedDeepSeek
+                Text(model.selectedService.title).font(.caption.weight(.semibold))
+                Text(model.selectedMuse ? model.muse.statusText(language: model.language, now: Date()) : model.selectedDeepSeek
                     ? (model.language == .zhCN ? (model.deepSeek.isConnected ? "已连接" : "未连接") : (model.deepSeek.isConnected ? "Connected" : "Not connected"))
                     : model.localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected"))
                     .font(.caption2).foregroundStyle(.secondary).lineLimit(2)

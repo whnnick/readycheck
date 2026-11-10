@@ -1,0 +1,104 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import test from 'node:test';
+
+const source = await readFile(new URL('../Sources/ReadyCheckApp/Resources/MuseSubscription.js', import.meta.url), 'utf8');
+const run = new (Object.getPrototypeOf(async function(){}).constructor)(
+  'cachedActionID', 'location', 'document', 'fetch', source);
+const id = 'a'.repeat(40);
+const flight = '0:{"a":"$@1"}\n1:' + JSON.stringify({success: true, subscription: {
+  tier: {name:'Power'}, usage:{percentUsed:27,resetsAt:2000000000},
+  usageRowValueLabel:'27% used (400M tokens left)', payment_method:'must-not-escape'}});
+
+async function execute({cached = '', status = 200, stale = false, chunks = 1, payload = flight, lazy = false, homeStatus = 200, staleDOM = false} = {}) {
+  const calls = [];
+  const scripts = Array.from({length:chunks},(_,i)=>({src:`https://muse.ai/_next/static/chunks/chunk${i}.js`}));
+  scripts.push({src:'https://unrelated.example/private.js'});
+  const fetch = async (path, options) => {
+    calls.push({path, options});
+    if (options.method === 'GET') return {ok:homeStatus===200,status:homeStatus,type:homeStatus===0?'opaqueredirect':'basic',text:async()=>scripts.map(s=>`<script src="${s.src}"></script>`).join('')};
+    if (options.method === 'POST') {
+      const firstPost = calls.filter(x=>x.options.method==='POST').length===1;
+      const code = stale && firstPost ? 404 : status;
+      return {ok:code===200,status:code,text:async()=>payload};
+    }
+    const content = lazy ? (path.includes('settings.js') ? `createServerReference("${id}",x,"fetchSubscriptionAction")`
+      : 'e.A(123).then(({preloadHatchSettingsData:x})=>x({}));},123,s=>{s.v(t=>Promise.all(["static/chunks/settings.js"].map(t=>s.l(t))))}')
+      : chunks===1 ? `createServerReference("${id}",x,"fetchSubscriptionAction")` : 'no-action';
+    return {ok:true,status:200,text:async()=>content};
+  };
+  const output = JSON.parse(await run(cached,{origin:'https://muse.ai',href:'https://muse.ai/'},{scripts:staleDOM?[]:scripts},fetch));
+  return {output,calls};
+}
+
+test('reads only the subscription action; static chunks carry no credentials; unrelated fields do not escape',async()=>{
+  const {output,calls}=await execute();
+  assert.equal(output.actionID,id);
+  assert.ok(output.flight.includes('400M tokens left'));
+  assert.ok(!output.flight.includes('payment_method'));
+  for(const call of calls){
+    assert.ok(call.path.startsWith('/'));
+    assert.equal(call.options.redirect,call.options.method==='GET'?'manual':'error');
+    assert.equal(call.options.credentials,call.options.method?'same-origin':'omit');
+    if(call.options.method==='GET') assert.equal(call.options.cache,'no-store');
+    if(call.options.method==='POST') assert.deepEqual(JSON.parse(call.options.body),[{includeAgreement:true}]);
+  }
+  assert.equal(calls.filter(x=>x.options.method==='POST').length,1);
+});
+
+test('cached action avoids discovery and stale action gets one bounded rediscovery',async()=>{
+  const cached=await execute({cached:id});
+  assert.equal(cached.calls.length,1);
+  const stale=await execute({cached:id,stale:true});
+  assert.equal(stale.output.actionID,id);
+  assert.equal(stale.calls.filter(x=>x.options.method==='POST').length,2);
+});
+
+test('finds the lazy settings action without invoking unrelated server actions',async()=>{
+  const {output,calls}=await execute({lazy:true});
+  assert.equal(output.actionID,id);
+  assert.ok(calls.some(x=>x.path==='/_next/static/chunks/settings.js'));
+  assert.equal(calls.filter(x=>x.options.method==='POST').length,1);
+});
+
+test('expired session, malformed response and repeated stale action remain unavailable',async()=>{
+  assert.equal((await execute({cached:id,status:403})).output.error,'loginRequired');
+  assert.equal((await execute({cached:id,payload:'unexpected'})).output.error,'responseChanged');
+  const stale=await execute({cached:id,status:404});
+  assert.equal(stale.output.error,'responseChanged');
+  assert.equal(stale.calls.filter(x=>x.options.method==='POST').length,2);
+});
+
+test('discovery has a hard request cap and makes no POST without a discovered read action',async()=>{
+  const result=await execute({chunks:120});
+  assert.equal(result.output.error,'responseChanged');
+  assert.equal(result.calls.length,97);
+  assert.equal(result.calls.filter(x=>x.options.method==='POST').length,0);
+});
+
+test('another origin cannot read a session or issue any requests',async()=>{
+  const value=JSON.parse(await run('',{origin:'https://unrelated.example'}, {},()=>{throw Error('must not fetch');}));
+  assert.equal(value.error,'loginRequired');
+});
+
+
+test('discovers from fresh same-origin HTML after client-side sign-in, not stale login DOM',async()=>{
+  const {output,calls}=await execute({staleDOM:true});
+  assert.equal(output.actionID,id);
+  assert.equal(calls[0].path,'/');
+  assert.equal(calls[0].options.method,'GET');
+  assert.equal(calls[0].options.cache,'no-store');
+});
+
+test('signed-out homepage redirects and authentication failures stop before action discovery',async()=>{
+  for(const homeStatus of [0,401,403]) {
+    const {output,calls}=await execute({homeStatus});
+    assert.equal(output.error,'loginRequired');
+    assert.equal(calls.length,1);
+  }
+});
+
+test('failed discovery reports only its fixed stage, never page content',async()=>{
+  const {output}=await execute({chunks:120});
+  assert.deepEqual(output,{error:'responseChanged',stage:'discovery'});
+});

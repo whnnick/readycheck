@@ -7,7 +7,7 @@ ReadyCheck Windows is a separate **Electron x64 Codex client** with a portable Z
 ## Current versions
 
 - Latest public preview download: **0.7.0-dev.23**; stable release channel: **0.6.1**. Use the [download table](../README.md#choose-your-version).
-- Latest source/locally packaged candidate: **0.7.0-dev.28**, with no public Release installer assets. Dev.24–dev.28 Windows changes are version metadata only.
+- Latest source/locally packaged candidate: **0.7.0-dev.32**, with no public Release installer assets. Dev.24–dev.32 Windows changes are version metadata only.
 - Dev.28 package validation passed check/smoke/UI-smoke, ZIP CRC and PE x64 checks; ASAR version and 13 JS source files matched the reviewed tree. This is cross-platform package validation, not Windows hardware acceptance.
 
 ## Use the portable package

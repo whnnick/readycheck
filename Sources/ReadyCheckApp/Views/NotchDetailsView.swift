@@ -11,7 +11,16 @@ struct NotchDetailsView: View {
 
     var body: some View {
         Group {
-            if model.selectedService.presentation.readoutKind == .balance {
+            if model.selectedMuse {
+                VStack(alignment: .leading, spacing: 8) {
+                    WidgetDetailHeader(model: model, now: now)
+                    ScrollView { MuseUsageView(connection: model.muse, language: model.language, now: now, detailed: false) }
+                    WidgetDetailFooter(model: model) {
+                        model.mainWindowPage = .overview; model.openMainWindowFromWidget(); onDismiss()
+                    }
+                }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .foregroundStyle(.white).environment(\.colorScheme, .dark)
+            } else if model.selectedService.presentation.readoutKind == .balance {
                 BalanceDetailsView(model: model, now: now, compact: true) {
                     model.mainWindowPage = .overview
                     model.openMainWindowFromWidget()

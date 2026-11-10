@@ -17,6 +17,7 @@ enum ServiceCatalog {
         .init(id: "claude", name: "Claude", aliases: "Anthropic Claude Code", batch: 1, supported: false, summaryZH: "订阅额度与 API 统计需分别验证", summaryEN: "Subscription quota and API reporting require separate verification"),
         .init(id: "gemini", name: "Gemini", aliases: "Google 谷歌", batch: 1, supported: false, summaryZH: "CLI 与应用配额需分别验证", summaryEN: "CLI and app quota require separate verification"),
         .init(id: "deepseek", name: "DeepSeek", aliases: "深度求索", batch: 1, supported: true, summaryZH: "官方 API 余额", summaryEN: "Official API balance"),
+        .init(id: "muse", name: "Muse", aliases: "Meta muse.ai", batch: 1, supported: true, summaryZH: "Muse 应用周额度与套餐", summaryEN: "Muse app weekly allowance and plan"),
         .init(id: "cursor", name: "Cursor", aliases: "", batch: 1, supported: false, summaryZH: "套餐用量与账单周期待验证", summaryEN: "Plan usage and billing period require verification"),
         .init(id: "copilot", name: "GitHub Copilot", aliases: "GitHub 微软", batch: 2, supported: false, summaryZH: "套餐与用量统计待验证", summaryEN: "Plan and usage reporting require verification"),
         .init(id: "bailian", name: "通义／百炼 Coding Plan", aliases: "Alibaba Qwen 阿里 千问 Bailian", batch: 2, supported: false, summaryZH: "Coding Plan 用量待验证", summaryEN: "Coding Plan usage requires verification"),
@@ -98,7 +99,7 @@ struct ServiceCatalogView: View {
                             Button {
                                 if entry.supported {
                                     dismiss()
-                                    openConnectionSettings(entry.id == "deepseek" ? .deepSeek : .codex)
+                                    openConnectionSettings(entry.id == "muse" ? .muse : entry.id == "deepseek" ? .deepSeek : .codex)
                                 } else { selected = entry }
                             } label: {
                                 HStack(alignment: .center, spacing: 12) {

@@ -1,3 +1,52 @@
+<a id="source-candidate-dev32"></a>
+
+## 源码与打包候选 0.7.0-dev.32（2026-11-10）
+
+本候选包含聚合胶囊及 Muse 登录后读取修复。Mac 和 Windows 安装包在本地验证，公开下载版本见[版本索引](../../VERSIONS.md)。[实机验收与校验值](QA.zh-CN.md#dev32-package-verification)。
+
+<a id="local-dev30"></a>
+
+<a id="local-dev32"></a>
+
+## 本机开发 0.7.0-dev.32 — 聚合胶囊（2026-11-08）
+
+- 持续可见的竖向胶囊同时显示 Codex 5h/7d、DeepSeek 余额与 Muse 周额度，统一图标/圆环区、数字层级和石墨材质。[设计](AGGREGATE_CAPSULE.zh-CN.md)。
+- 服务详情在胶囊侧边展开；预览保留主窗口选择，仅固定按钮保持详情。刷新/设置/主窗口入口定位到当前查看服务。
+- 位置独立记忆，详情向内展开，可贴边并沿用稍后显示/全屏设置；原单服务双环/卡片和旧位置保留。不混合统计不同单位，不编造余额百分比、会话或 tok/s。
+- 本机已安装 dev.32，真实读取、手动刷新、点击预览、固定和位置恢复已实测。**59 项专项 Swift、9 项 JavaScript 与 29 项解锁后的原生窗口测试通过**。[黑盒状态](QA.zh-CN.md)。
+
+<a id="local-dev31"></a>
+
+## 本机开发 0.7.0-dev.31 — Muse 登录后读取修复（2026-11-04）
+
+- 修正 WebKit 异步重载，应用真正接收订阅结果与 JavaScript 异常；无网络的真实 WebKit 回归在修复前失败、修复后通过。
+- 网页登录后从同源新鲜 HTML 发现订阅读取动作，保留请求/大小/时间上限和字段白名单；仅记录固定失败阶段。
+- 重新打开登录时加载官网首页；新增“重新加载页面”，用于恢复过期登录页，不清除账号会话。
+- 新读数到达时同步主窗口/菜单栏的显示时钟，避免刷新后短暂误显示待刷新。
+- 沿用相同预览签名身份完成本机安装。14 项专项 Swift 与 9 项 JavaScript 测试通过；本机真实登录、新订阅读数、手动刷新、用量页及重新加载后的官网标签比对均通过，见[验收](QA.zh-CN.md)。
+- 未公开上传/tag/Release，Windows 仅版本元数据；其他账号、系统登录及完整显示/Spaces 组合仍未验收。
+
+# ReadyCheck 0.7.0-dev.30 — Meta Muse 应用连接
+
+[English](RELEASE_NOTES.md#local-dev30) · [验收](QA.zh-CN.md)
+
+- 新增 Muse 个人助手（muse.ai），通过 ReadyCheck 独立网页登录配置读取周额度、重置和套餐；不导入浏览器 Cookie，不发模型请求。
+- 接线总览、用量、设置、菜单栏、胶囊/贴边、卡片与刘海，保留 Codex 双环、DeepSeek 余额布局、旧选择偏好与按账号隔离的用卡行为。
+- 此阶段不含 Muse Code/API 账单、每日 Muse Token 历史或 Muse 专属提醒；Muse 真实登录及最后实机验收仍待完成。
+- 网站订阅读取动作不是公开文档 API；动作或响应变化时明确不可读，发现范围有界，只将预期订阅字段传出 WebKit。资源包包含 CodexBar 的 MIT 发现逻辑参考与许可。
+- 2026-11-04：解锁补跑清除剩余验证问题后已安装 dev.30，共覆盖 531 个不同 Swift 测试及六项 JavaScript 测试；官方登录表单已加载，账号收不到短信验证码，Muse 真实登录/读取被阻塞。
+- 仅本机 Mac 版本，Windows 仅版本元数据。公开源码/tag dev.28、预览 dev.23 与稳定 0.6.1 保持不变。
+
+<a id="local-dev29"></a>
+
+# ReadyCheck 0.7.0-dev.29 — 本机恢复 Codex 双环
+
+[English](RELEASE_NOTES.md#local-dev29) · [验收](QA.zh-CN.md)
+
+- 恢复 Codex 原有紧凑同心额度双圆环与恢复高亮，DeepSeek 保留余额与趋势胶囊。
+- 按服务使用收起尺寸，保留保存中心、贴边及显式固定状态。额度读数、连接方式、用卡授权与历史不变。
+- 本机 Mac 修复，Windows 仅版本元数据。公开源码/tag 仍为 dev.28，可下载预览仍为 dev.23，稳定版仍为 0.6.1；未新增 GitHub Release。
+
 <a id="source-candidate-dev28"></a>
 
 # ReadyCheck 0.7.0-dev.28 — 打包源码候选

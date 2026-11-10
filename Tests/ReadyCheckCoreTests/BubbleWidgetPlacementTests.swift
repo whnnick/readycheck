@@ -5,13 +5,19 @@ import XCTest
 final class BubbleWidgetPlacementTests: XCTestCase {
     private let display = CGRect(x: -1_920, y: 40, width: 1_920, height: 1_040)
 
-    func testCompactCapsuleHasSharedHorizontalProportionsAndRestoresOldCircleCenter() {
-        XCTAssertEqual(BubbleWidgetPlacement.bubbleSize, CGSize(width: 180, height: 48))
-        let oldCircle = CGRect(x: -900, y: 400, width: 92, height: 92)
-        let restored = BubbleWidgetPlacement.restoredBubbleFrame(from: oldCircle, in: display)
-        XCTAssertEqual(restored.midX, oldCircle.midX)
-        XCTAssertEqual(restored.midY, oldCircle.midY)
-        XCTAssertTrue(display.contains(restored))
+    func testCodexDialAndBalanceCapsuleRestoreTheirOwnSizesAroundTheSavedCenter() {
+        XCTAssertEqual(BubbleWidgetPlacement.bubbleSize, CGSize(width: 92, height: 92))
+        XCTAssertEqual(BubbleWidgetPlacement.balanceBubbleSize, CGSize(width: 180, height: 48))
+        for savedSize in [CGSize(width: 92, height: 92), CGSize(width: 180, height: 48)] {
+            let saved = CGRect(origin: CGPoint(x: -900, y: 400), size: savedSize)
+            for size in [BubbleWidgetPlacement.bubbleSize, BubbleWidgetPlacement.balanceBubbleSize] {
+                let restored = BubbleWidgetPlacement.restoredBubbleFrame(from: saved, in: display, size: size)
+                XCTAssertEqual(restored.size, size)
+                XCTAssertEqual(restored.midX, saved.midX)
+                XCTAssertEqual(restored.midY, saved.midY)
+                XCTAssertTrue(display.contains(restored))
+            }
+        }
     }
 
     func testDefaultBubbleIsVisibleAndNotImmediatelySnapped() {

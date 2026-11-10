@@ -1,12 +1,18 @@
 # 0.7.0 — Multi-provider usage statistics aggregator
 
+Dev.32: aggregate right-side capsule, three services together and independent side previews. The local dev.32 installation passed live reads, manual refresh and the click, pin and drag checks recorded in QA. [Design](AGGREGATE_CAPSULE.md) · [QA](QA.md).
+
 [Interaction correction plan](INTERACTION_REPLAN.md)
 
 [中文](PLAN.zh-CN.md) · [Data-access evidence](SOURCES.md) · [Service and account settings](SETTINGS_PLAN.md) · [0.6.1 retention](../0.6.1/RELEASE_AUDIT.md)
 
-Updated 2026-11-02. Unreleased dev.23 is installed at the fixed local path; each iteration's current connection and device-acceptance status is recorded in QA. Live Codex/DeepSeek API balances, a Notification Center test and selected retained paths were checked; full automated regression passed. Original card consent and normal checks recovered after unlock. Remaining device behavior and affected Windows login remain pending; distribution remains a self-signed preview; see [current and dated acceptance evidence](QA.md). The user clarified that aggregation means lightweight usage statistics, not chat or model invocation. The earlier chat-workspace direction and all three generated concepts are withdrawn and must not guide implementation.
+Updated 2026-11-03. Local dev.29 restores the Codex dial and is installed at the fixed local path; each iteration's current connection and device-acceptance status is recorded in QA. Live Codex/DeepSeek API balances, a Notification Center test and selected retained paths were checked; full automated regression passed. Original card consent and normal checks recovered after unlock. Remaining device behavior and affected Windows login remain pending; distribution remains a self-signed preview; see [current and dated acceptance evidence](QA.md). The user clarified that aggregation means lightweight usage statistics, not chat or model invocation. The earlier chat-workspace direction and all three generated concepts are withdrawn and must not guide implementation.
 
 ## Goal and scope
+
+Dev.30: add Meta Muse personal-agent weekly allowance through an independent web sign-in and the subscription-read action. Retain Codex/DeepSeek layouts, identities and consent. No CLI/API billing substitution, daily Muse history or dedicated reminder expansion. Live sign-in requires the user; see [acceptance](QA.md).
+
+Dev.29 correction: restore the original Codex 92×92 concentric quota dial and recovery highlight. Keep DeepSeek at 180×48 with its balance micro-trend. Preserve each saved center, attached edges, preview-only clicks and explicit pin state across service switches. This corrects the Codex visual regression introduced by the dev.24 shared compact readout. [Acceptance](QA.md).
 
 Dev.26: implement the third displayed DeepSeek concept (micro-trend), not the earlier second concept. Keep the native 180x48 / 28x144 / 380x344 dimensions and shared interaction. Compact balance gets a currency heading and more trend space, edge trends run vertically, expanded balance and breakdown sit side by side above a taller chart. Retain existing notch fit, stale/error states and observation-only semantics. [Acceptance](QA.md).
 

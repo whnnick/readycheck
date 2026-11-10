@@ -2,22 +2,26 @@
 
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Know your Codex quota. See when it resets.</strong></p>
-<p align="center">A lightweight, free, open-source Codex monitor for quotas, Token usage, account benefits and reminders.</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28"><img src="https://img.shields.io/badge/source-0.7.0--dev.28-3979ef" alt="Source 0.7.0-dev.28"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
-<p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev28">Current changes</a> · <a href="docs/versions/0.7.0/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
+<p align="center">An open-source Codex usage monitor. The Mac capsule shows Codex quota, DeepSeek API balance and Meta Muse weekly quota together.</p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.0-dev.32"><img src="https://img.shields.io/badge/source-0.7.0--dev.32-3979ef" alt="Source 0.7.0-dev.32"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev32">Current changes</a> · <a href="docs/versions/0.7.0/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
+
+Source candidate **0.7.0-dev.32** adds an **aggregate capsule** with Codex, DeepSeek and Muse visible together. It is installed locally, with live reads and manual refresh verified for all three services. [Design](docs/versions/0.7.0/AGGREGATE_CAPSULE.md) · [Notes](docs/versions/0.7.0/RELEASE_NOTES.md#local-dev32) · [Acceptance](docs/versions/0.7.0/QA.md).
+
+<img src="docs/versions/0.7.0/evidence/dev32-aggregate-overview-en-US.png" width="470" alt="Aggregate capsule and side detail with synthetic test values" />
 
 ## Choose your version
 
 | Channel | Version | Get it |
 | --- | --- | --- |
-| **Latest source / packaged candidate** | **0.7.0-dev.28** | [Source tag](https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28) · [Changes and package checksums](docs/versions/0.7.0/QA.md) |
+| **Public source / packaged candidate** | **0.7.0-dev.32** | [Source tag](https://github.com/whnnick/readycheck/tree/v0.7.0-dev.32) · [Changes and package checksums](docs/versions/0.7.0/QA.md) |
 | **Latest downloadable preview** | **0.7.0-dev.23** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) |
 | Stable release channel | 0.6.1 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-windows-x64-portable.zip) |
 
-Dev.28 packages and source/tag are verified, but **dev.28 has no public GitHub Release or hosted installer assets**. The preview download links above intentionally remain dev.23. Features and screenshots below describe current dev.28 source; [preview differences](docs/versions/0.7.0/RELEASE_NOTES.md#public-preview-dev23) and [release limits](docs/versions/0.7.0/QA.md) are documented.
+Dev.32 has a source tag and verified local packages. The table links to dev.23 for the downloadable preview and 0.6.1 for the stable release. [Checks and checksums](docs/versions/0.7.0/QA.md#dev32-package-verification).
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-overview-en.png" alt="ReadyCheck dev.28 native Codex overview with 5-hour and 7-day remaining quotas, reset events and local history; synthetic data" width="760"></p>
-<p align="center"><sub>Current dev.28 Codex interface. All screenshots use synthetic data, not a real account.</sub></p>
+<p align="center"><sub>Codex Overview example from dev.28. All screenshots use synthetic data.</sub></p>
 
 ## Built around everyday Codex use
 
@@ -36,10 +40,11 @@ Account fields depend on returned data; missing values are not invented. ReadyCh
 
 <table>
 <tr><th>Codex floating capsule</th><th>Codex notch details</th></tr>
-<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-capsule-en.png" alt="Current expanded Codex capsule with quota, reset and last-hour trend; synthetic data" width="360"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-notch-en.png" alt="Current Codex notch details; synthetic data" width="360"></td></tr>
+<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-capsule-en.png" alt="Example expanded Codex capsule with quota, reset and last-hour trend; synthetic data" width="360"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-notch-en.png" alt="Example Codex notch details; synthetic data" width="360"></td></tr>
 </table>
 
 - **Choose your surface.** Menu bar, floating capsule/edge strip, information card or click-to-expand notch, with saved positions and display controls.
+- **See three services together.** Choose Aggregate capsule under **Settings → Display** to preview and refresh each service in its own side panel.
 - **Expand when needed.** Hover or ordinary-click a capsule to preview. The explicit pin button keeps it open; content clicks preserve that choice. Pinning is separate from window always-on-top.
 - **Return to the details.** Refresh, inspect reminders or open ReadyCheck from the small view to review quota, history and account benefits.
 
@@ -49,7 +54,11 @@ The Mac client also supports a separate DeepSeek API Key connection: official ba
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-notch-en.png" alt="Additional capability: native DeepSeek balance details and locally observed decreases; synthetic data" width="440"></p>
 
-**Codex and DeepSeek are the two supported connections.** The other eight entries in the ten-service catalog are future integrations, not connected services. See [implementation scope](docs/versions/0.7.0/TECHNICAL.md).
+## Also supported: Meta Muse app weekly usage
+
+Open **Settings → Connection → Muse**, sign in through the separate window, then choose **Read usage and finish**. It reads weekly remaining allowance, reset, plan and available provider labels for additional allowance/renewal, refreshing every five minutes. Overview, menu bar, capsule, edge, card and notch views are wired. This connection is for the muse.ai personal agent; daily Token history and dedicated Muse reminders are not included.
+
+Codex and DeepSeek have live connection acceptance. Muse live sign-in, subscription read, manual refresh and usage-page checks passed on this Mac; other accounts remain untested. The catalog now has 11 entries, with the other eight still planned. See [implementation scope](docs/versions/0.7.0/TECHNICAL.md).
 
 ## Keep the units honest
 
@@ -71,16 +80,16 @@ Missing samples stay blank. Old/failed readings retain their status and original
 
 | Platform | Current scope |
 | --- | --- |
-| **macOS / Apple silicon / 14+** | Codex + DeepSeek native client. Dev.28 has **517 passing checks**, installed core-flow acceptance and a [65-item retention matrix](docs/versions/0.7.0/RELEASE_AUDIT.md). Mac packages use the existing self-signed preview identity; they are not Developer ID signed or notarized. |
-| **Windows x64** | Separate Electron Codex client and portable ZIP. It retains its existing interface and does not include the Mac DeepSeek/notch features. Packaging/check/smoke/UI-smoke passed; the reported Windows OAuth 403 and hardware acceptance remain pending. [Windows QA](docs/WINDOWS_QA.md). |
+| **macOS / Apple silicon / 14+** | Dev.32 includes Codex, DeepSeek and Muse in one capsule. **538 Swift tests and 9 JavaScript tests passed**. Three opt-in visual evidence tests were skipped. [Acceptance](docs/versions/0.7.0/QA.md) · [Retention](docs/versions/0.7.0/RELEASE_AUDIT.md). Mac packages use the existing self-signed preview identity, without Developer ID signing or notarization. |
+| **Windows x64** | Separate Electron Codex client and portable ZIP. It retains its existing interface and does not include the Mac DeepSeek/Muse/notch features. Packaging/check/smoke/UI-smoke passed; the reported Windows OAuth 403 and hardware acceptance remain pending. [Windows QA](docs/WINDOWS_QA.md). |
 
 Other accounts, all display/Spaces/fullscreen combinations, OS login and every live reminder boundary are not comprehensively accepted. Current evidence and release gates are recorded in [black-box checks](docs/versions/0.7.0/QA.md).
 
 ## Privacy
 
-Normal refresh reads authorized provider data without model-generation calls. Mac credentials stay in Keychain; Windows uses Electron safeStorage. DeepSeek credentials are independent from Codex, and local histories retain identity boundaries. Do not share keys, OAuth callback URLs or raw account payloads in issues or screenshots.
+Normal refresh reads authorized provider data without model-generation calls. Mac API/OAuth credentials stay in Keychain; Muse web sign-in stays in a separate WebKit session. Windows uses Electron safeStorage. DeepSeek credentials are independent from Codex, and local histories retain identity boundaries. Do not share keys, OAuth callback URLs or raw account payloads in issues or screenshots.
 
-ReadyCheck does not automatically stop or resume Codex tasks. Optional card redemption requires separate consent. ReadyCheck is independent of OpenAI and DeepSeek; their names and marks belong to their owners.
+ReadyCheck does not automatically stop or resume Codex tasks. Optional card redemption requires separate consent. ReadyCheck is independent of OpenAI, DeepSeek and Meta; their names and marks belong to their owners.
 
 ## Build and contribute
 

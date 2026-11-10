@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.7.0-dev.32 - 2026-11-08
+
+- Add a unified aggregate capsule with Codex 5h/7d, DeepSeek currency balance and Muse weekly quota visible together. Retain their distinct data semantics, freshness and unavailable states; no invented total or balance percentage.
+- Preview each service beside the capsule, with explicit pin/unpin and service-specific refresh/settings/open-main actions. Keep the rail visible and main selection unchanged during previews.
+- Add a draggable, independently remembered aggregate position and inward, screen-clamped details. Existing bubble/card choices, saved positions, snooze and full-screen preferences remain available. Windows changes are limited to version metadata. See the [source candidate and package record](docs/versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev32).
+
+## 0.7.0-dev.31 - 2026-11-04
+
+- Fix the WebKit async result bridge so subscription query results and rejected promises reach ReadyCheck instead of being discarded. Add an offline real-WebKit regression test.
+- Discover the Muse subscription reader from fresh same-origin HTML after web sign-in, instead of retaining the login page's old scripts. Keep bounded requests and account data inside the isolated web session; record only fixed failure-stage categories for diagnosis.
+- Reload Muse's official homepage when reopening sign-in and add a reload action for expired login pages. Reading failures no longer imply that a signed-in user must log in again.
+- Synchronize main-window and menu-bar display clocks when a new Muse observation arrives, avoiding a temporary stale indicator after a successful refresh.
+- Windows metadata only; local development, no public release. Live Muse reading remains an acceptance gate.
+
+## 0.7.0-dev.30 - 2026-11-03
+
+- Add Meta Muse personal-agent (muse.ai) weekly allowance, reset, plan, provider token labels and renewal details through a separate ReadyCheck web sign-in session. Muse Code and Meta API billing remain separate.
+- Add Muse to overview, usage, connection settings, service catalog, menu bar, capsule/edge, card and notch views. Retain the Codex dial, DeepSeek balance design and existing selection preferences.
+- Query only the website's subscription-read action, with bounded action discovery, timeouts and explicit expired/changed-response states. No model calls, browser-cookie import or token/billing conversion. Muse history and dedicated reminders are not included. Windows metadata only; local development, no public release.
+
+## 0.7.0-dev.29 - 2026-11-03
+
+- Restore the Codex compact concentric quota dial and recovery highlight; retain DeepSeek's separate balance-and-trend capsule.
+- Use service-specific resting sizes while preserving the saved center, edge attachment, preview-only clicks and explicit pin state across service switches. Windows metadata only; local fix, no public release.
+
 ## 0.7.0-dev.28 - 2026-11-02
 
 - Make the bilingual GitHub overview Codex-first, covering quotas, resets, Token usage, account benefits and reminders; keep DeepSeek as an additional capability. Refresh current native screenshots, version/download table, installation and Windows guides; document actual source versus downloadable channels. App/package versions are unchanged.

@@ -24,7 +24,7 @@ struct SettingsView: View {
     private var scrollIdentity: String {
         model.mainNavigationRequest.uuidString + model.mainWindowPage.rawValue + (model.mainWindowPage == .settings
             ? "-\(model.mainSettingsSection.rawValue)-\(model.serviceSettingsTarget.rawValue)"
-            : "-\(showsDeepSeek)")
+            : "-\(model.selectedService.rawValue)")
     }
     private func scrollOffset(_ identity: String) -> Binding<CGFloat> {
         Binding(get: { scrollOffsets[identity] ?? 0 }, set: { scrollOffsets[identity] = $0 })
@@ -81,6 +81,7 @@ struct SettingsView: View {
         }
         .frame(minWidth: 740, idealWidth: 900, minHeight: 620, idealHeight: 760)
         .task { await updateNowWhileVisible() }
+        .onChange(of: model.muse.observedAt) { _, _ in now = Date() }
         .task(id: deepSeek.connectionID) { await model.loadDeepSeekAlertRules() }
         .sheet(item: $model.resetCreditDetailSelection) { selection in
             ResetCreditDetailView(model: model, selection: selection, now: now)
@@ -101,17 +102,17 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(model.localization.text(model.mainWindowPage.titleKey)).font(.title2.weight(.semibold))
                     if model.mainWindowPage == .usage {
-                        Text(showsDeepSeek ? (model.language == .zhCN ? "查看 DeepSeek 的本机余额记录。" : "View local DeepSeek balance readings.") : model.localization.text("usage.pageSubtitle"))
+                        Text(model.selectedMuse ? (model.language == .zhCN ? "Muse 应用周额度" : "Muse app weekly allowance") : showsDeepSeek ? (model.language == .zhCN ? "查看 DeepSeek 的本机余额记录。" : "View local DeepSeek balance readings.") : model.localization.text("usage.pageSubtitle"))
                             .font(.caption).foregroundStyle(.secondary)
                     }
                 }
                 Spacer(minLength: 8)
                 if model.mainWindowPage == .overview || model.mainWindowPage == .usage {
                     Button(model.language == .zhCN ? "连接设置" : "Connections") {
-                        model.openServiceSettings(showsDeepSeek ? .deepSeek : .codex, section: .connection)
+                        model.openServiceSettings(model.selectedService, section: .connection)
                     }.controlSize(.small)
                     Button(model.language == .zhCN ? "提醒设置" : "Alerts") {
-                        model.openServiceSettings(showsDeepSeek ? .deepSeek : .codex)
+                        model.openServiceSettings(model.selectedService)
                     }.controlSize(.small)
                     Button(model.language == .zhCN ? "更多平台" : "More platforms") {
                         model.showServiceCatalog = true
@@ -124,6 +125,10 @@ struct SettingsView: View {
                     } label: { Image(systemName: "arrow.clockwise") }
                     .help(model.localization.text("notification.history.refresh"))
                     .accessibilityLabel(model.localization.text("notification.history.refresh"))
+                } else if (model.mainWindowPage == .overview || model.mainWindowPage == .usage) && model.selectedMuse {
+                    Button { Task { await model.muse.refresh() } } label: { Image(systemName: "arrow.clockwise") }
+                        .disabled(model.muse.isBusy || !model.muse.isEnabled)
+                        .accessibilityLabel(model.localization.text("action.refresh"))
                 } else if (model.mainWindowPage == .overview || model.mainWindowPage == .usage) && deepSeekContext {
                     Button { Task { await deepSeek.refresh() } } label: { Image(systemName: "arrow.clockwise") }
                         .disabled(deepSeek.isBusy)
@@ -139,14 +144,18 @@ struct SettingsView: View {
                     .accessibilityLabel(model.localization.text("action.refresh"))
                 }
             }
-            if (model.mainWindowPage == .overview || model.mainWindowPage == .usage) && !deepSeekContext { refreshStatusView }
+            if (model.mainWindowPage == .overview || model.mainWindowPage == .usage) && model.selectedService == .codex { refreshStatusView }
         }
     }
 
     private var overviewContent: some View {
         VStack(alignment: .leading, spacing: 14) {
             serviceSwitcher
-            if showsDeepSeek {
+            if model.selectedMuse {
+                GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+                    MuseUsageView(connection: model.muse, language: model.language, now: now)
+                }
+            } else if showsDeepSeek {
                 deepSeekReadout(usage: false)
                 Button(model.language == .zhCN ? "前往余额提醒设置" : "Balance alert settings") {
                     model.openServiceSettings(.deepSeek)
@@ -159,34 +168,38 @@ struct SettingsView: View {
 
     private var serviceSwitcher: some View {
         HStack(spacing: 3) {
-            serviceSwitcherButton("Codex", icon: "readycheck", fileExtension: "png", selected: false)
-            serviceSwitcherButton("DeepSeek", icon: "deepseek", fileExtension: "svg", selected: true)
+            ForEach(ServiceSettingsTarget.allCases, id: \.rawValue) { serviceSwitcherButton($0) }
         }
         .padding(3)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 9))
         .onMoveCommand { direction in
-            if direction == .left { model.selectedDeepSeek = false }
-            if direction == .right { model.selectedDeepSeek = true }
+            let services = ServiceSettingsTarget.allCases
+            let index = services.firstIndex(of: model.selectedService) ?? 0
+            if direction == .left { model.selectedService = services[max(0, index - 1)] }
+            if direction == .right { model.selectedService = services[min(services.count - 1, index + 1)] }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func serviceSwitcherButton(_ title: String, icon: String, fileExtension: String, selected: Bool) -> some View {
-        Button { model.selectedDeepSeek = selected } label: {
+    private func serviceSwitcherButton(_ target: ServiceSettingsTarget) -> some View {
+        let title = target.title
+        let status = target == .muse ? model.muse.statusText(language: model.language, now: now)
+            : target == .deepSeek ? deepSeekConnectionLabel : model.localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected")
+        return Button { model.selectedService = target } label: {
             HStack(spacing: 6) {
-                ServiceSwitcherIcon(name: icon, extension: fileExtension)
+                if target == .muse { Text("M").font(.caption.weight(.bold)).foregroundStyle(.cyan) }
+                else { ServiceSwitcherIcon(name: target == .codex ? "readycheck" : "deepseek", extension: target == .codex ? "png" : "svg") }
                 Text(title)
-                Text(selected ? deepSeekConnectionLabel : model.localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected"))
-                    .font(.caption2).foregroundStyle(.secondary)
+                Text(status).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
             }
             .padding(.horizontal, 12).padding(.vertical, 5)
-            .background(showsDeepSeek == selected ? Color.accentColor.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 7))
+            .background(model.selectedService == target ? Color.accentColor.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 7))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
-        .accessibilityValue(selected ? deepSeekConnectionLabel : model.localization.text(model.codexOAuthStatus == .connected ? "oauth.status.connected" : "oauth.status.notConnected"))
-        .accessibilityAddTraits(showsDeepSeek == selected ? .isSelected : [])
+        .accessibilityValue(status)
+        .accessibilityAddTraits(model.selectedService == target ? .isSelected : [])
     }
 
     private var deepSeekConnectionLabel: String {
@@ -261,7 +274,11 @@ struct SettingsView: View {
     private var usageContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             serviceSwitcher
-            if showsDeepSeek {
+            if model.selectedMuse {
+                MuseUsageView(connection: model.muse, language: model.language, now: now)
+                Text(model.language == .zhCN ? "当前连接提供周额度，不提供逐日 Token 或费用明细。" : "This connection provides weekly allowance, not daily Token or expense details.")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else if showsDeepSeek {
                 Text(model.language == .zhCN ? "此连接仅提供余额，不提供 Token 或费用统计。" : "This connection provides balances, not token or expense statistics.")
                     .font(.caption).foregroundStyle(.secondary)
                 deepSeekReadout(usage: true)
@@ -288,7 +305,7 @@ struct SettingsView: View {
                 }
             }.pickerStyle(.segmented).labelsHidden()
             Text(model.localization.text("navigation.settings") + " / " + model.localization.text(model.mainSettingsSection.titleKey)
-                + ([MainSettingsSection.reminders, .connection].contains(model.mainSettingsSection) ? " / " + (model.serviceSettingsTarget == .deepSeek ? "DeepSeek" : "Codex") : ""))
+                + ([MainSettingsSection.reminders, .connection].contains(model.mainSettingsSection) ? " / " + model.serviceSettingsTarget.title : ""))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -308,6 +325,7 @@ struct SettingsView: View {
             } else {
                 settingsPlatformButton(.codex)
                 settingsPlatformButton(.deepSeek)
+                settingsPlatformButton(.muse)
             }
         }
         .padding(3)
@@ -315,8 +333,10 @@ struct SettingsView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(model.language == .zhCN ? "平台" : "Platform")
         .onMoveCommand { direction in
-            if direction == .left { selectSettingsPlatform(.codex) }
-            if direction == .right { selectSettingsPlatform(.deepSeek) }
+            let services = ServiceSettingsTarget.allCases
+            let index = services.firstIndex(of: model.serviceSettingsTarget) ?? 0
+            if direction == .left { selectSettingsPlatform(services[max(0, index - 1)]) }
+            if direction == .right { selectSettingsPlatform(services[min(services.count - 1, index + 1)]) }
         }
         .task(id: model.serviceSettingsTarget) {
             guard restoreSettingsPlatformFocus else { return }
@@ -336,10 +356,11 @@ struct SettingsView: View {
     private func settingsPlatformButton(_ target: ServiceSettingsTarget) -> some View {
         let isCodex = target == .codex
         let selected = model.serviceSettingsTarget == target
-        let title = isCodex ? "Codex" : "DeepSeek"
+        let title = target.title
         return Button { selectSettingsPlatform(target) } label: {
             HStack(spacing: 6) {
-                ServiceSwitcherIcon(name: isCodex ? "readycheck" : "deepseek", extension: isCodex ? "png" : "svg")
+                if target == .muse { Text("M").font(.caption.weight(.bold)).foregroundStyle(.cyan) }
+                else { ServiceSwitcherIcon(name: isCodex ? "readycheck" : "deepseek", extension: isCodex ? "png" : "svg") }
                 Text(title)
             }
             .padding(.horizontal, 12).padding(.vertical, 5)
@@ -358,7 +379,10 @@ struct SettingsView: View {
             if model.mainSettingsSection == .connection || model.mainSettingsSection == .reminders { settingsPlatformPicker }
             switch model.mainSettingsSection {
             case .reminders:
-                if model.serviceSettingsTarget == .deepSeek {
+                if model.serviceSettingsTarget == .muse {
+                    Text(model.language == .zhCN ? "Muse 当前仅监控用量，尚未启用专属提醒。" : "Muse currently monitors usage; dedicated reminders are not enabled.")
+                        .foregroundStyle(.secondary)
+                } else if model.serviceSettingsTarget == .deepSeek {
                     GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { DeepSeekAlertControls(model: model) }
                 } else {
                     GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
@@ -385,12 +409,14 @@ struct SettingsView: View {
                     .toggleStyle(.switch).controlSize(.small)
                 Text(model.localization.text("settings.hideInFullscreenHelp")).font(.caption).foregroundStyle(.secondary)
             case .connection:
-                if model.serviceSettingsTarget == .deepSeek {
+                if model.serviceSettingsTarget == .muse {
+                    GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { MuseConnectionControls(model: model) }
+                } else if model.serviceSettingsTarget == .deepSeek {
                     GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { DeepSeekConnectionControls(connection: deepSeek, language: model.language) }
                 } else {
                     GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { codexOAuthProviderControls }
                 }
-                productSummary
+                if model.serviceSettingsTarget != .muse { productSummary }
             case .general:
                 GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { generalControls }
                 GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { notificationControls }
@@ -539,7 +565,7 @@ struct SettingsView: View {
             WidgetSnoozeMenu(model: model)
             WidgetSnoozeStatusView(model: model)
 
-            Text(model.localization.text("widgetPresentation.modeHint"))
+            Text(model.localization.text(model.widgetPresentation == .aggregate ? "widgetPresentation.aggregateHint" : "widgetPresentation.modeHint"))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
 

@@ -14,6 +14,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
     private var edge: BubbleWidgetPlacement.Edge?
     private let interaction = WidgetInteractionController()
     private var isExpanded: Bool { interaction.state != .collapsed }
+    private var compactSize: CGSize { model?.bubbleRestingSize ?? BubbleWidgetPlacement.bubbleSize }
     private var dragStartFrame: CGRect?
     private var dragStartPointer: CGPoint?
     private var outsideClickMonitor: Any?
@@ -51,12 +52,13 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
     func show(model: ReadyCheckAppModel) {
         self.model = model
         if let panel {
+            updateServiceLayout()
             panel.orderFrontRegardless()
             return
         }
 
         let panel = BubbleWidgetPanel(
-            contentRect: CGRect(origin: .zero, size: BubbleWidgetPlacement.bubbleSize),
+            contentRect: CGRect(origin: .zero, size: compactSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -95,6 +97,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         let host = NSHostingController(rootView: view)
         host.sizingOptions = []
         let clip = BubbleClippingView()
+        clip.compactWidth = compactSize.width
         clip.autoresizingMask = [.width, .height]
         let container = NSViewController()
         container.view = clip
@@ -114,8 +117,8 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
 
         let screen = targetScreen(savedFrame: savedFrame())
         let visible = screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
-        let frame = savedFrame().map { BubbleWidgetPlacement.restoredBubbleFrame(from: $0, in: visible) }
-            ?? BubbleWidgetPlacement.defaultFrame(in: visible)
+        let frame = savedFrame().map { BubbleWidgetPlacement.restoredBubbleFrame(from: $0, in: visible, size: compactSize) }
+            ?? BubbleWidgetPlacement.defaultFrame(in: visible, size: compactSize)
         placeResting(frame, visibleFrame: visible)
         panel.orderFrontRegardless()
         onVisibilityChanged?(true)
@@ -124,9 +127,9 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
     func restoreFromNotch(model: ReadyCheckAppModel, at pointer: CGPoint) {
         show(model: model)
         interaction.reset()
-        let frame = CGRect(x: pointer.x - BubbleWidgetPlacement.bubbleSize.width / 2,
-            y: pointer.y - BubbleWidgetPlacement.bubbleSize.height / 2,
-            width: BubbleWidgetPlacement.bubbleSize.width, height: BubbleWidgetPlacement.bubbleSize.height)
+        let frame = CGRect(x: pointer.x - compactSize.width / 2,
+            y: pointer.y - compactSize.height / 2,
+            width: compactSize.width, height: compactSize.height)
         let visible = targetScreen(savedFrame: frame)?.visibleFrame ?? .zero
         placeResting(BubbleWidgetPlacement.clamped(frame, in: visible), visibleFrame: visible)
     }
@@ -202,6 +205,7 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
             isExpanded: isExpanded,
             isPinned: interaction.state == .pinned,
             onTogglePin: { [weak self] in self?.interaction.togglePin() },
+            onServiceChange: { [weak self] in self?.updateServiceLayout() },
             tabEdge: edge,
             onTap: { [weak self] in self?.interaction.click() },
             onDragChanged: { [weak self] translation in self?.dragChanged(translation) },
@@ -214,6 +218,20 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         guard let model else { return }
         clippingView?.silhouette = isExpanded ? .expanded : (edge == nil ? .circle : .edgeTab)
         hostingController?.rootView = makeView(model: model)
+    }
+
+    private func updateServiceLayout() {
+        guard let panel, let restingFrame else { return }
+        let visible = targetScreen(savedFrame: restingFrame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+        let frame = edge == nil
+            ? BubbleWidgetPlacement.restoredBubbleFrame(from: restingFrame, in: visible, size: compactSize)
+            : restingFrame
+        self.restingFrame = frame
+        clippingView?.compactWidth = compactSize.width
+        setFrame(isExpanded ? BubbleWidgetPlacement.expandedFrame(from: frame, edge: edge, in: visible) : frame, animated: false)
+        updateView()
+        persist(frame)
+        panel.contentView?.layoutSubtreeIfNeeded()
     }
 
     private func applyInteraction(_ state: WidgetInteractionController.State) {
@@ -281,10 +299,10 @@ final class BubbleWindowController: NSObject, NSWindowDelegate {
         }
         let visible = targetScreen(savedFrame: panel.frame)?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
         let bubbleFrame = CGRect(
-            x: panel.frame.midX - BubbleWidgetPlacement.bubbleSize.width / 2,
-            y: panel.frame.midY - BubbleWidgetPlacement.bubbleSize.height / 2,
-            width: BubbleWidgetPlacement.bubbleSize.width,
-            height: BubbleWidgetPlacement.bubbleSize.height
+            x: panel.frame.midX - compactSize.width / 2,
+            y: panel.frame.midY - compactSize.height / 2,
+            width: compactSize.width,
+            height: compactSize.height
         )
         placeResting(BubbleWidgetPlacement.clamped(bubbleFrame, in: visible), visibleFrame: visible, animated: true)
         interaction.endDrag()
@@ -378,6 +396,9 @@ private final class BubbleClippingView: NSView {
     }
 
     var onPointerChange: ((Bool) -> Void)?
+    var compactWidth = BubbleWidgetPlacement.bubbleSize.width {
+        didSet { updateMask() }
+    }
 
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
@@ -448,7 +469,7 @@ private final class BubbleClippingView: NSView {
         maskLayer.shouldRasterize = true
         maskLayer.rasterizationScale = maskLayer.contentsScale
         maskLayer.frame = bounds
-        maskLayer.path = WidgetPanelShape(tabProgress: tabProgress).path(in: bounds).cgPath
+        maskLayer.path = WidgetPanelShape(tabProgress: tabProgress, compactWidth: compactWidth).path(in: bounds).cgPath
         layer.mask = maskLayer
         CATransaction.commit()
     }

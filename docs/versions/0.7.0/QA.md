@@ -1,5 +1,87 @@
 # 0.7.0 — Native and prototype black-box acceptance
 
+## 2026-11-09 dev.32 — installed aggregate capsule acceptance
+
+The right-side capsule shows Codex, DeepSeek and Muse together, following the information hierarchy in the user's Token Monitor examples. [Design contract](AGGREGATE_CAPSULE.md).
+
+| Scope | Status and evidence |
+| --- | --- |
+| Installation and live reads | Dev.32 is installed locally with Aggregate capsule selected. The preview signature was verified. Codex shows 5h/7d double rings, DeepSeek shows its currency balance with a neutral outline, and Muse shows its weekly quota. Manual refresh passed for all three services. DeepSeek recovered after system authorization. |
+| Native interaction | Click previews, pinning, switching service while pinned, unpinning, outside dismissal and Escape were verified. A pinned detail stayed open after an outside click. The Codex and DeepSeek detail actions opened the corresponding service in the main window. Previewing Muse preserved the main Codex selection. The detail opened inward, with no observed clipping on either window. |
+| Position and preferences | Both grips moved the capsule. The saved aggregate frame exactly matched its original value after both drag checks. Codex was selected and the detail was unpinned at the end. The legacy dial center, floating card frame and display preferences were checked. |
+| Automated verification | **59 focused Swift tests and 9 JavaScript tests passed**. An additional **29 native window tests** passed while the Mac was unlocked, covering the aggregate capsule, floating bubble and edge rail. |
+| Visual evidence | [Combined preview](evidence/dev32-aggregate-overview-en-US.png), [Chinese preview](evidence/dev32-aggregate-overview-zh-CN.png), [rail](evidence/dev32-aggregate-rail-en-US.png), [Muse detail](evidence/dev32-aggregate-detail-muse-en-US.png), [style picker](evidence/dev32-aggregate-picker-en-US.png). Repository evidence uses synthetic data. |
+| Pointer hover | The user confirmed on the installed app that hovering over the Muse row opens its preview and moving the pointer away dismisses it. Automated tests cover hover state transitions. |
+| Remaining acceptance | Manual hover checks for Codex and DeepSeek, other displays, Spaces, OS login and the full hardware matrix remain pending. |
+
+Local acceptance covers the three existing connections and their aggregate display. Public channels follow their own version records.
+
+<a id="dev32-package-verification"></a>
+
+### 2026-11-10 dev.32 source candidate package checks
+
+The packages were built from the public sync source. Swift regression passed 347 Core and 191 App tests, with three opt-in visual evidence tests skipped and zero failures. All nine Muse JavaScript tests passed. The macOS arm64 DMG was mounted read-only. The bundle version, strict signature, designated requirement matching the installed app, and binary privacy scan passed. The Windows x64 ZIP passed code checks, smoke and UI smoke tests, archive integrity and packaged version verification. See [Windows QA](../../WINDOWS_QA.md) for OAuth 403 and hardware coverage.
+
+| Local package | SHA-256 |
+| --- | --- |
+| `ReadyCheck-0.7.0-dev.32-macos.dmg` | `c81088fa859c10e13514606e2569103f9f964c482b6c2d98c46f974148b3f94c` |
+| `ReadyCheck-0.7.0-dev.32-windows-x64-portable.zip` | `bc15dab730a258d42b874e64ced69c8419cf812a317b8554af04632d9908bd46` |
+
+See [version channels](../../VERSIONS.md) for source, public preview and stable downloads.
+
+## 2026-11-04 dev.31 — Muse live read recovered
+
+- Requirement: a successful Muse sign-in must produce a usable weekly reading and refresh, while retaining independent sessions and Codex/DeepSeek behavior.
+- Root cause: the WebKit invocation selected the callback overload with no completion handler, discarding both the result and errors. The corrected async overload returns the value. A local real-WebKit test reproduced both failures, then passed after the fix; no network or real account fixture is used.
+- Fourteen focused Swift tests passed (Core parser/version, Muse connection/native surfaces and related bubble selection), plus nine reader JavaScript tests. Dev.30's 531-test baseline is retained; this is a targeted dev.31 rerun, not a new full-suite claim. Synthetic rendering only is saved as evidence.
+- Final dev.31 is installed with strict signature, unchanged signing requirement, byte-identical candidate executable, exact reader resource and private-path checks. The existing independent Muse login persisted across installation.
+- On-device: official sign-in succeeded; native overview and usage show weekly remaining/reset/plan/provider labels. Manual refresh advanced the read timestamp and returned a current reading. Reloading the official settings page produced the same weekly usage label as the native result; initial cached website settings were not treated as a comparison failure. Read usage and finish closes the login window on success. Reload page retains the signed-in session.
+- The live compact Muse capsule showed its weekly percentage. Clicking opened a preview; only the explicit pin control held it open, and unpin restored collapse. Its Open ReadyCheck action returned to the main window. Normal credential retries recovered the existing Codex and DeepSeek connections. Restored Codex selection and the unpinned state; display/language flags were unchanged and the floating center remained within one point of the original baseline.
+- Follow-up: synchronize main-window/menu-bar clocks on new Muse observations. All 12 Muse-focused Swift tests passed again. The installed final build advanced the live read timestamp and showed a fresh weekly percentage within 14 seconds of a manual refresh, without a false stale state.
+- No real account values, identifiers, chat contents or screenshots were added to repository evidence. Only allowlisted subscription fields leave the page; failure diagnostics contain fixed categories only.
+- Other accounts, all display/Spaces/fullscreen combinations, OS login and Muse reminders/history remain outside this acceptance. No public push/tag/Release was performed.
+
+## 2026-11-04 dev.30 — unlocked rerun and installation
+
+- The unlocked supplemental run passed all 23 affected Core and 34 App tests. Combined with the valid unaffected results, all 531 distinct Swift tests are now covered with no remaining failures or skips; six JavaScript tests passed. The failed locked run below remains historical evidence, not the current acceptance result.
+- Installed dev.30 at the existing app location with complete dev.29 and interim-bundle backups. Strict signing, unchanged designated signing requirement, installed executable byte identity, Muse reader/license resource equality and private-path checks passed.
+- Device inspection found Codex/Keychain copy still appearing below the Muse connection controls. That copy is now scoped to its applicable services; the Muse native rendering test passed again, and the corrected final bundle was installed.
+- The actual ReadyCheck · Muse window loaded the official login form. The user reported that Meta's SMS code did not arrive. Device inspection confirmed that this account's verification screen offered only SMS; the initial form accepted a phone number or email, without a separate alternative sign-in button. No resend was triggered during investigation. The window was returned to the login form. Live subscription read/refresh remains blocked on Meta account authentication; no real Muse quota values are claimed.
+- Fourteen unrelated display/language preferences were unchanged, and the floating widget center stayed within one point of its baseline. Muse is temporarily selected for connection setup; restore the previous service after live acceptance.
+
+## 2026-11-03 dev.30 — Meta Muse app connection (acceptance pending)
+
+Requirement: add Meta's Muse personal agent at muse.ai, keeping Codex primary and retaining its dial plus DeepSeek's balance layout. The installed Muse app identifier is `com.meta.endo`; Muse Code CLI and Meta API billing are separate products/data sources.
+
+| Requirement / scope | Status and evidence |
+| --- | --- |
+| Weekly allowance, reset, plan and provider labels | Implemented. Five `MuseUsageTests` passed, covering paid/free, zero/unknown, malformed/out-of-range fields, dates and stale readings. Token labels remain provider text; missing absolute counts are not inferred. |
+| Separate sign-in and disconnect | Implemented with an independent WebKit profile. Six `MuseConnectionTests` passed, covering disabled/no-read, failures, expired login, retry, disconnect/in-flight invalidation, selection/return and native rendering. No foreign browser or Muse.app credentials were read. |
+| Read-only web action | Six Node tests passed: subscription-only POST, no credentials on static chunks, cached/stale/lazy actions, expired/malformed states, discovery cap and origin restriction. Only expected subscription fields leave WebKit. |
+| Native surfaces | Both languages render overview, usage, connection settings, menu, capsule/edge, card and notch. Synthetic captures reviewed; real account rendering and sign-in remain pending. Existing Codex/DeepSeek layouts remain separate. Synthetic [overview](evidence/dev30-muse-overview-en.png), [capsule](evidence/dev30-muse-capsule.png) and [notch](evidence/dev30-muse-notch-en.png); all invented data. |
+| Complete regression | Attempted 343 Core +188 App tests. The locked machine produced 13 Core failures (5 unexpected), 17 App failures and one skip; this is not a passing full run. `CGSSessionScreenIsLocked=true` and `IOConsoleLocked=true` were confirmed. Affected suites: ResetCreditAutomationTests, ResetCreditReliabilityTests, BubbleWindowControllerTests, NextEventsViewTests, NotchWindowControllerTests; EdgeRailWidgetTests had the focus-related skip. Unlock and rerun these before installation. Do not weaken file protection or window checks. |
+| Candidate package | Existing app script built dev.30. Strict signature, version, exact bundled Muse reader/MIT notice and private-home-path binary checks passed. Not installed yet; dev.29 remains installed. |
+| Partial / excluded | No Muse daily Token history, official expense history, dedicated reminders, Muse Code or Meta API billing. Eight other catalog services remain planned. No Windows feature implementation beyond version metadata. |
+| Live environment / release blockers | Mac unlock, failed/skipped regression rerun, installation, explicit Muse sign-in, fresh read/refresh and final preference checks. No public push, tag or Release. |
+
+Sources and the third-party compatibility boundary are recorded in [technical scope](TECHNICAL.md#muse-app-read-only-slice-dev30) and [sources](SOURCES.md). No real account screenshot or raw payload is committed. Pending device acceptance must not be presented as complete.
+
+## 2026-11-03 dev.29 — restore the Codex quota dial
+
+Requirement: reverse the Codex compact-view regression introduced by dev.24, retaining the independent DeepSeek balance design. No provider, data or authorization behavior is added.
+
+| Scope | Result and evidence |
+| --- | --- |
+| Codex dial | Restored the original 92×92 concentric rings, selected-window label, stale/unknown handling and observed-recovery highlight. Native synthetic [normal](evidence/dev29-codex-dial.png) and [unknown](evidence/dev29-codex-dial-unknown.png) captures reviewed. |
+| DeepSeek retention | Retains its 180×48 [balance/trend capsule](evidence/dev29-deepseek-capsule.png), existing edge/detail/notch views and missing/stale/error semantics. `DeepSeekConnectionTests` passed. |
+| Position and interaction | Core tests cover old circle/capsule center migration and edge anchoring. New native window tests verify service switches retain the center, either attached edge and explicit pin state. Existing preview, inward drag, notch detachment and clipping checks passed. |
+| Regression | Full 338 Core +181 App tests passed: 519 unique tests, no failures/skips, with native evidence enabled. Subsequent display-copy updates passed four localization tests and the bilingual minimum-width settings render check; final caption synchronization passed the four localization tests again. |
+| Installed build | Dev.29 built through the existing app-packaging script and installed at the existing app path with a complete dev.28 backup. Both strict signatures passed and designated signing requirements matched. Candidate binary private-home-path scan passed. |
+| Live reading | Installed Codex credential access recovered through normal retry; both real quota windows, successful refresh and preview/pin/unpin were observed. No real account screenshots, values or credentials are included here. |
+| Remaining scope | Free-dial appearance is proven by native synthetic renders plus matching installed code, not a repeated physical free-drag test. Other displays, Spaces/fullscreen combinations and Windows hardware remain unaccepted. No public tag, push or Release is part of this local correction. |
+
+Final bundle strictly verified and its executable byte-matched to the installed app. The final installed build returned both live Codex percentages. Original Chinese/Codex selection, widget-off/notch-on dual layout, display controls and closed main window were restored; 15 non-position preference values matched the initial snapshot. The saved floating frame differs from the initial on-disk snapshot; no drag/reset was performed, its cause is unconfirmed, and the current saved position was not overwritten. Exact pre-update position equality is therefore not claimed. GUI tests were rerun with normal WindowServer access after sandboxed NSScreen discovery returned nil.
+
 ## 2026-11-03 Codex-first GitHub overview
 
 The bilingual homepage now leads with Codex quotas, resets, Token usage, account benefits and reminders; DeepSeek is an additional capability. Current native [English](evidence/dev28-codex-overview-en.png) / [Chinese](evidence/dev28-codex-overview-zh.png) overview and capsule/notch images use invented account data. The opt-in `MainWindowTests.testMenuAndNotchRenderWithSyntheticVerifiedAccount` passed with the added capture fixtures. Local links, GitHub Markdown rendering and changed-text sensitive-data checks passed. These are presentation captures, not new live-account or chart-interaction acceptance. Runtime code, package versions and release channels are unchanged.

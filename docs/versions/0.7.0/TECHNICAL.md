@@ -1,8 +1,12 @@
 # 0.7.0 — Ten-service implementation scope
 
+## Aggregate capsule (dev.32)
+
+[Design contract](AGGREGATE_CAPSULE.md) · [Black-box status](QA.md). A separate aggregate presentation reuses existing read-only connection models; it adds no provider polling. The rail has its own `aggregateCapsuleFrame.v1` preference, seeded from the prior bubble center without overwriting legacy positions. A second nonactivating panel opens into available screen space. Explicit pin enables keyboard focus; the existing interaction controller handles previews, dismissal and Spaces changes. Shared detail chrome accepts an explicit service, so preview/refresh never need to change main-window selection. No-screen cases defer presentation instead of persisting a zero-sized frame.
+
 [中文](TECHNICAL.zh-CN.md) · [Plan](PLAN.md) · [Sources](SOURCES.md) · [Checks](QA.md)
 
-Current status (2026-11-03, dev.28): the macOS Codex + DeepSeek native slice is implemented and its core local acceptance is closed; see [the consolidated acceptance](QA.md) and [65-entry retention matrix](RELEASE_AUDIT.md) for remaining device/release boundaries. Other eight services remain catalog/planning entries; Windows balance integration is not implied. The dated design and historical progress below are retained for traceability.
+The installed dev.32 passed live reads and manual refresh for Codex, DeepSeek and Muse on 2026-11-09. Muse uses the isolated ReadyCheck WebKit profile accepted in dev.31. The expanded catalog has 11 entries, with eight still planned. Windows remains its separate Codex client. See [acceptance](QA.md) and [retention](RELEASE_AUDIT.md). The dated design below is historical.
 
 2026-10-30. The agreed target is ten services, in two batches of five. This is a build sequence and evidence matrix, not a claim that the prototype connects them. The first native implementation slice is **Codex retained + DeepSeek official balance**. Within batch one, complete one reliable read-only flow before adding the remaining adapters.
 
@@ -51,3 +55,11 @@ The local development build now includes the independent read-only DeepSeek bala
 ## dev.2 balance history
 
 Local balance snapshots retain up to 30 days and are scoped by random connection ID and currency, with a minimum five-minute interval per currency. History contains no key. Legacy keys migrate to an identified Keychain record only after a successful read; reconnecting the same key retains its ID, while replacing the key creates a new ID without inferring account ownership. Corrupt history is not overwritten. Alerts, real-account testing and full native-window acceptance remain incomplete.
+
+## Muse app read-only slice (dev.30)
+
+The connection is for muse.ai (`com.meta.endo` desktop app), not Muse Code. It uses a dedicated persistent WebKit profile, opened only on explicit sign-in; neither other browsers' cookies nor Muse.app credentials are imported. Disconnect clears only this profile and rejects late in-flight results.
+
+Dev.31 executes the reader with the result-returning WebKit async overload. Discovery reads fresh same-origin HTML in the independent session instead of retaining the signed-out DOM; that HTML stays inside WebKit. The login window can reload. The in-page reader discovers the website's `fetchSubscriptionAction` reference, then requests that read action with `includeAgreement: true` in the same-origin browser context. Static chunk reads omit credentials; navigation is limited to HTTPS Muse/Meta login hosts and explicit Apple/Google authentication hosts. Discovery caps page/settings chunks at 96/32, batches at eight, aggregate source at 8 million characters, body at 512 KiB and fetch time at 25 seconds, with one stale-action rediscovery. Only allowlisted subscription fields leave WebKit; no cookies, conversation data, payment metadata or raw responses are logged or saved.
+
+Percentages are used directly; provider token labels remain text. Additional allowance stays separate from the weekly percentage; absent labels are not inferred from micro-dollar balances. Unknown, expired, invalid and failed reads remain unavailable rather than fresh zero. There is no Muse history, daily Token inference, card action or dedicated reminder in this slice. [Sources](SOURCES.md) and bundled [MIT notice](../../../Sources/ReadyCheckApp/Resources/CodexBar-MIT.txt).

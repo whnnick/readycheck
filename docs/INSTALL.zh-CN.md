@@ -1,12 +1,14 @@
 # 安装与升级 ReadyCheck
 
+本机已安装 dev.32，可在**设置 → 显示 → 聚合胶囊**同时查看三项服务，也可在同一设置切换双环或卡片。三项服务的真实读取与手动刷新已核验。[QA](versions/0.7.0/QA.zh-CN.md)。
+
 [English](INSTALL.md) · [版本通道](../README.zh-CN.md#选择版本)
 
 ## 选择安装包
 
 - macOS 需要 Apple 芯片（arm64）及 macOS 14+。
 - 最新可下载公开预览为 **0.7.0-dev.23**，稳定发布通道为 **0.6.1**。
-- **0.7.0-dev.28** 是最新已验证源码/打包候选，源码 tag 已公开，但尚无公开 GitHub Release 安装包资产。有效下载入口见 [README 版本表](../README.zh-CN.md#选择版本)。
+- **0.7.0-dev.32** 是最新已验证源码/打包候选，源码 tag 已公开，但尚无公开 GitHub Release 安装包资产。有效下载入口见 [README 版本表](../README.zh-CN.md#选择版本)。
 - Windows 为独立 x64 便携客户端，见[Windows 指南](WINDOWS.zh-CN.md)。
 
 ## 在 Mac 安装
@@ -23,6 +25,7 @@ Mac 预览包沿用 ReadyCheck 稳定自签名身份，尚非 Developer ID 签�
 | --- | --- | --- |
 | Codex | 选择 Codex，点击登录 ReadyCheck，完成浏览器 OAuth。 | 实际返回的配额窗口与匹配账号的能力。 |
 | DeepSeek | 选择 DeepSeek，直接在原生应用内输入 API Key。 | 官方 API 余额、币种及赠送/充值分项，不是网页/手机聊天用量。 |
+| Muse（dev.32 源码） | 选择 Muse，打开独立网页登录窗口，登录后点击“完成并读取额度”。 | Muse 个人助手周额度、重置与套餐，不是 Muse Code/API 账单；本机真实登录/读取/刷新已验收；官方登录会话过期时可点击“重新加载页面”。 |
 
 Codex 正常回调使用 `localhost:1455`；自动完成失败时，可使用应用中的最终回调 URL 兜底入口。完整回调 URL 属于凭据，不要公开分享。
 

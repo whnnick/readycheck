@@ -20,6 +20,7 @@ struct BubbleWidgetView: View {
     let isExpanded: Bool
     var isPinned = false
     var onTogglePin: () -> Void = {}
+    var onServiceChange: () -> Void = {}
     let tabEdge: BubbleWidgetPlacement.Edge?
     let onTap: () -> Void
     let onDragChanged: (CGSize) -> Void
@@ -27,6 +28,7 @@ struct BubbleWidgetView: View {
     let onCollapse: () -> Void
 
     @State private var now = Date()
+    @State private var recoveryHighlight = false
 
     private var previewHint: String {
         let hint = model.localization.text("widget.previewHint")
@@ -48,6 +50,10 @@ struct BubbleWidgetView: View {
         model.notchQuotaSelection.resolve(in: windows)
     }
 
+    private var displayedQuota: BubbleQuotaDisplay {
+        BubbleQuotaDisplay(selection: model.notchQuotaSelection, windowID: primaryWindow?.id,
+            ratio: snapshot?.canShowPercentages(now: now) == true ? primaryWindow?.displayableRemainingRatio : nil)
+    }
 
     var expandedWindows: [QuotaWindow] {
         model.notchQuotaSelection.displayWindows(in: windows)
@@ -77,13 +83,23 @@ struct BubbleWidgetView: View {
                 try? await Task.sleep(for: .seconds(30))
             }
         }
+        .onChange(of: model.selectedService) { onServiceChange() }
+        .onChange(of: displayedQuota) { oldQuota, newQuota in
+            recoveryHighlight = newQuota.shouldHighlight(after: oldQuota)
+            guard recoveryHighlight else { return }
+            Task {
+                try? await Task.sleep(for: .milliseconds(700))
+                recoveryHighlight = false
+            }
+        }
     }
 
     private var orbitalSurface: some View {
         GeometryReader { geometry in
-            let reveal = min(1, max(0, (geometry.size.width - BubbleWidgetPlacement.bubbleSize.width)
-                / (BubbleWidgetPlacement.expandedSize.width - BubbleWidgetPlacement.bubbleSize.width)))
-            let shape = WidgetPanelShape()
+            let size = model.bubbleRestingSize
+            let reveal = min(1, max(0, (geometry.size.width - size.width)
+                / (BubbleWidgetPlacement.expandedSize.width - size.width)))
+            let shape = WidgetPanelShape(compactWidth: size.width)
             ZStack {
                 shape.fill(floatingSurfaceColor)
                     .overlay(shape.strokeBorder(.white.opacity(0.22), lineWidth: 1))
@@ -92,8 +108,24 @@ struct BubbleWidgetView: View {
                     .clipped().padding(16)
                     .opacity(reveal).allowsHitTesting(isExpanded && reveal > 0.9)
                     .accessibilityHidden(!isExpanded)
-                ServiceCompactReadout(model: model, now: now)
-                    .frame(width: BubbleWidgetPlacement.bubbleSize.width, height: BubbleWidgetPlacement.bubbleSize.height)
+                Group {
+                    if model.selectedMuse {
+                        MuseCompactReadout(connection: model.muse, language: model.language, now: now)
+                    } else if model.selectedDeepSeek {
+                        ServiceCompactReadout(model: model, now: now)
+                    } else {
+                        OrbitalQuotaDial(windows: expandedWindows,
+                            primaryLabel: expandedWindows.first.map(QuotaWindowDisplay.shortLabel) ?? "—",
+                            canShow: snapshot?.canShowPercentages(now: now) == true, recoveryHighlight: recoveryHighlight)
+                            .frame(width: 76, height: 76)
+                            .overlay(alignment: .topTrailing) {
+                                if snapshot?.isCached == true {
+                                    Image(systemName: "clock.badge.exclamationmark").font(.caption).foregroundStyle(.orange)
+                                }
+                            }
+                    }
+                }
+                    .frame(width: size.width, height: size.height)
                     .opacity(1 - reveal)
                     .contentShape(Capsule()).onTapGesture(perform: onTap)
                     .simultaneousGesture(dragGesture).contextMenu { contextMenu }
@@ -101,7 +133,7 @@ struct BubbleWidgetView: View {
                     .accessibilityElement(children: .ignore)
                     .accessibilityAddTraits(.isButton).accessibilityAction { onTap() }
                     .help(previewHint)
-                    .accessibilityLabel(model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " "
+                    .accessibilityLabel(model.selectedMuse ? "Muse 7d " + QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now)) : model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " "
                         + expandedWindows.prefix(2).map {
                             QuotaWindowDisplay.title(for: $0, localization: model.localization) + " "
                                 + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.displayableRemainingRatio : nil)
@@ -115,9 +147,10 @@ struct BubbleWidgetView: View {
         GeometryReader { geometry in
             let progress = min(1, max(0, (geometry.size.width - BubbleWidgetPlacement.tabSize.width)
                 / (BubbleWidgetPlacement.expandedSize.width - BubbleWidgetPlacement.tabSize.width)))
-            let reveal = min(1, max(0, (geometry.size.width - BubbleWidgetPlacement.bubbleSize.width)
-                / (BubbleWidgetPlacement.expandedSize.width - BubbleWidgetPlacement.bubbleSize.width)))
-            let shape = WidgetPanelShape(tabProgress: 1 - progress)
+            let size = model.bubbleRestingSize
+            let reveal = min(1, max(0, (geometry.size.width - size.width)
+                / (BubbleWidgetPlacement.expandedSize.width - size.width)))
+            let shape = WidgetPanelShape(tabProgress: 1 - progress, compactWidth: size.width)
             ZStack(alignment: edge == .left ? .leading : .trailing) {
                 bubbleSurface(shape)
                 expandedDetails
@@ -134,7 +167,10 @@ struct BubbleWidgetView: View {
     }
 
     private func edgeTab(_ edge: BubbleWidgetPlacement.Edge) -> some View {
-        ServiceEdgeReadout(model: model, now: now)
+        Group {
+            if model.selectedMuse { MuseCompactReadout(connection: model.muse, language: model.language, now: now, vertical: true) }
+            else { ServiceEdgeReadout(model: model, now: now) }
+        }
         .frame(width: BubbleWidgetPlacement.tabSize.width, height: BubbleWidgetPlacement.tabSize.height)
         .foregroundStyle(.white)
         .contentShape(RoundedRectangle(cornerRadius: 14))
@@ -145,7 +181,7 @@ struct BubbleWidgetView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { onTap() }
-        .accessibilityLabel(model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " " + expandedWindows.prefix(2).map {
+        .accessibilityLabel(model.selectedMuse ? "Muse 7d " + QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now)) : model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " " + expandedWindows.prefix(2).map {
             QuotaWindowDisplay.title(for: $0, localization: model.localization) + " "
                 + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.displayableRemainingRatio : nil)
         }.joined(separator: ", "))
@@ -153,7 +189,13 @@ struct BubbleWidgetView: View {
 
     private var expandedDetails: some View {
         Group {
-            if model.selectedService.presentation.readoutKind == .balance {
+            if model.selectedMuse {
+                VStack(alignment: .leading, spacing: 10) {
+                    WidgetDetailHeader(model: model, now: now, isPinned: isPinned, onTogglePin: onTogglePin)
+                    ScrollView { MuseUsageView(connection: model.muse, language: model.language, now: now) }
+                    WidgetDetailFooter(model: model, openMainWindow: openMainWindow)
+                }.foregroundStyle(.white).environment(\.colorScheme, .dark)
+            } else if model.selectedService.presentation.readoutKind == .balance {
                 BalanceDetailsView(model: model, now: now, isPinned: isPinned,
                     onTogglePin: onTogglePin, openMainWindow: openMainWindow)
             } else {

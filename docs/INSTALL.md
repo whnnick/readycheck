@@ -1,12 +1,14 @@
 # Install and upgrade ReadyCheck
 
+The locally installed dev.32 offers **Settings → Display → Aggregate capsule** to keep all three services visible together. Choose the dial or card in the same settings. The installed preview passed live reads and manual refresh for all three services. [QA](versions/0.7.0/QA.md).
+
 [简体中文](INSTALL.zh-CN.md) · [Version channels](../README.md#choose-your-version)
 
 ## Choose a package
 
 - macOS requires Apple silicon (arm64) and macOS 14+.
 - The latest downloadable public preview is **0.7.0-dev.23**; the stable release channel is **0.6.1**.
-- **0.7.0-dev.28** is the latest verified source/packaged candidate. Its source tag is public, but it has no public GitHub Release installer assets. Use the [README download table](../README.md#choose-your-version) for working download links.
+- **0.7.0-dev.32** is the latest verified source/packaged candidate. Its source tag is public, but it has no public GitHub Release installer assets. Use the [README download table](../README.md#choose-your-version) for working download links.
 - Windows is a separate x64 portable client: [Windows guide](WINDOWS.md).
 
 ## Install on Mac
@@ -23,6 +25,7 @@ Mac preview packages use the established self-signed ReadyCheck identity, not De
 | --- | --- | --- |
 | Codex | Select Codex, choose Sign in to ReadyCheck and complete browser OAuth. | Returned quota windows and matching-account capabilities. |
 | DeepSeek | Select DeepSeek and enter your API Key directly in the native app. | Official API balance, currency and granted/topped-up components; not website/app chat usage. |
+| Muse (dev.32 source) | Select Muse, open the separate web sign-in window, sign in and choose Read usage and finish. | Muse personal-agent weekly allowance, reset and plan; not Muse Code/API billing. Live sign-in/read/refresh verified on this Mac. Use Reload page if the official login session expires. |
 
 The normal Codex callback uses `localhost:1455`; if automatic completion fails, use the app's final-callback-URL fallback. Treat the complete callback URL as a credential and do not post it publicly.
 

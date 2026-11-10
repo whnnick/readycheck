@@ -7,6 +7,74 @@ import XCTest
 
 @MainActor
 final class BubbleWindowControllerTests: XCTestCase {
+    func testMuseSwitchKeepsTheSavedCenterAndReturnsToTheCodexDial() throws {
+        try withBubble { _, panel, host in
+            let original = host.rootView.model.selectedService
+            defer { host.rootView.model.selectedService = original }
+            let center = CGPoint(x: panel.frame.midX, y: panel.frame.midY)
+            host.rootView.model.selectedService = .muse
+            RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+            XCTAssertEqual(panel.frame.size, CGSize(width: 180, height: 48))
+            host.rootView.onTap(); host.rootView.onTogglePin()
+            host.rootView.model.selectedService = .codex
+            RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+            XCTAssertTrue(host.rootView.isPinned)
+            host.rootView.onCollapse()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+            XCTAssertEqual(panel.frame.size, CGSize(width: 92, height: 92))
+            XCTAssertEqual(panel.frame.midX, center.x, accuracy: 1)
+            XCTAssertEqual(panel.frame.midY, center.y, accuracy: 1)
+        }
+    }
+
+    func testServiceSwitchResizesRestingSurfaceAndRetainsPinnedStateAndCenter() throws {
+        try withBubble { _, panel, host in
+            let model = host.rootView.model
+            let center = CGPoint(x: panel.frame.midX, y: panel.frame.midY)
+            XCTAssertEqual(panel.frame.size, CGSize(width: 92, height: 92))
+            for balance in [true, false] {
+                model.selectedDeepSeek = balance
+                RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+                XCTAssertEqual(panel.frame.size, balance ? CGSize(width: 180, height: 48) : CGSize(width: 92, height: 92))
+                XCTAssertEqual(panel.frame.midX, center.x, accuracy: 1)
+                XCTAssertEqual(panel.frame.midY, center.y, accuracy: 1)
+            }
+            host.rootView.onTap()
+            host.rootView.onTogglePin()
+            for balance in [true, false] {
+                model.selectedDeepSeek = balance
+                RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+                XCTAssertTrue(host.rootView.isPinned)
+                XCTAssertEqual(panel.frame.size, BubbleWidgetPlacement.expandedSize)
+            }
+            host.rootView.onCollapse()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+            XCTAssertEqual(panel.frame.size, CGSize(width: 92, height: 92))
+            XCTAssertEqual(panel.frame.midX, center.x, accuracy: 1)
+            XCTAssertEqual(panel.frame.midY, center.y, accuracy: 1)
+        }
+    }
+
+    func testServiceSwitchKeepsEitherAttachedEdgeAndExplicitPin() throws {
+        for edge in [BubbleWidgetPlacement.Edge.left, .right] {
+            try withBubble(edge: edge) { _, panel, host in
+                let resting = panel.frame
+                host.rootView.model.selectedDeepSeek = true
+                RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+                XCTAssertEqual(panel.frame, resting)
+                host.rootView.onTap()
+                host.rootView.onTogglePin()
+                host.rootView.model.selectedDeepSeek = false
+                RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+                XCTAssertEqual(host.rootView.tabEdge, edge)
+                XCTAssertTrue(host.rootView.isPinned)
+                host.rootView.onCollapse()
+                RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+                XCTAssertEqual(panel.frame, resting)
+            }
+        }
+    }
+
     func testDetachedBubbleAppearsAtDropPointAndPersistsInsteadOfReturningToOldEdge() throws {
         try withBubble(edge: .right) { controller, panel, host in
             let screen = try XCTUnwrap(NSScreen.main)

@@ -7,6 +7,7 @@ struct WidgetPresentationPicker: View {
 
     var body: some View {
         HStack(spacing: 6) {
+            option(.aggregate)
             option(.bubble)
             option(.card)
         }
@@ -24,7 +25,7 @@ struct WidgetPresentationPicker: View {
                     .font(.caption.weight(.medium))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                Text(localization.text(style == .bubble ? "widgetPreview.adaptive" : "widgetPreview.free"))
+                Text(localization.text(style == .aggregate ? "widgetPreview.aggregate" : style == .bubble ? "widgetPreview.adaptive" : "widgetPreview.free"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
@@ -38,12 +39,19 @@ struct WidgetPresentationPicker: View {
         .background(selection == style ? Color.accentColor.opacity(0.14) : Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(selection == style ? Color.accentColor : Color.primary.opacity(0.10), lineWidth: selection == style ? 1.5 : 0.7))
         .accessibilityAddTraits(selection == style ? .isSelected : [])
-        .help(localization.text(style == .bubble ? "widgetPreview.adaptiveHelp" : "widgetPreview.freeHelp"))
+        .help(localization.text(style == .aggregate ? "widgetPreview.aggregateHelp" : style == .bubble ? "widgetPreview.adaptiveHelp" : "widgetPreview.freeHelp"))
     }
 
     @ViewBuilder
     private func preview(_ style: WidgetPresentation) -> some View {
         switch style {
+        case .aggregate:
+            VStack(spacing: 2) {
+                ForEach(0..<3) { index in
+                    Circle().stroke([Color.cyan, .indigo, .blue][index], lineWidth: 2)
+                        .frame(width: 9, height: 9)
+                }
+            }.padding(5).background(Color.primary.opacity(0.08), in: Capsule())
         case .bubble:
             HStack(spacing: 10) {
                 ZStack {

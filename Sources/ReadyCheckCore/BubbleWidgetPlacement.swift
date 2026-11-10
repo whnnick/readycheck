@@ -6,30 +6,31 @@ public enum BubbleWidgetPlacement {
         case right
     }
 
-    public static let bubbleSize = CGSize(width: 180, height: 48)
+    public static let bubbleSize = CGSize(width: 92, height: 92)
+    public static let balanceBubbleSize = CGSize(width: 180, height: 48)
     public static let tabSize = CGSize(width: 28, height: 144)
     public static let expandedSize = CGSize(width: 380, height: 344)
     public static let snapDistance: CGFloat = 34
 
-    public static func defaultFrame(in visibleFrame: CGRect) -> CGRect {
+    public static func defaultFrame(in visibleFrame: CGRect, size: CGSize = bubbleSize) -> CGRect {
         CGRect(
-            x: max(visibleFrame.minX, visibleFrame.maxX - bubbleSize.width - 48),
+            x: max(visibleFrame.minX, visibleFrame.maxX - size.width - 48),
             y: max(visibleFrame.minY, visibleFrame.minY + 90),
-            width: bubbleSize.width,
-            height: bubbleSize.height
+            width: size.width,
+            height: size.height
         )
     }
 
-    public static func restoredBubbleFrame(from savedFrame: CGRect, in visibleFrame: CGRect) -> CGRect {
-        let centerY = savedFrame.midY - bubbleSize.height / 2
+    public static func restoredBubbleFrame(from savedFrame: CGRect, in visibleFrame: CGRect, size: CGSize = bubbleSize) -> CGRect {
+        let centerY = savedFrame.midY - size.height / 2
         let x: CGFloat
-        if savedFrame.width < bubbleSize.width,
+        if savedFrame.width < size.width,
            let edge = edge(for: savedFrame, in: visibleFrame) {
-            x = edge == .left ? visibleFrame.minX : visibleFrame.maxX - bubbleSize.width
+            x = edge == .left ? visibleFrame.minX : visibleFrame.maxX - size.width
         } else {
-            x = savedFrame.midX - bubbleSize.width / 2
+            x = savedFrame.midX - size.width / 2
         }
-        return clamped(CGRect(x: x, y: centerY, width: bubbleSize.width, height: bubbleSize.height), in: visibleFrame)
+        return clamped(CGRect(x: x, y: centerY, width: size.width, height: size.height), in: visibleFrame)
     }
 
     public static func draggedFrame(from startFrame: CGRect, pointerStart: CGPoint, pointerNow: CGPoint) -> CGRect {
@@ -58,7 +59,7 @@ public enum BubbleWidgetPlacement {
         if let edge {
             proposedX = edge == .left ? visibleFrame.minX : visibleFrame.maxX - size.width
         } else {
-            let radius = min(bubbleSize.width, size.width) / 2
+            let radius = min(restingFrame.width, size.width) / 2
             proposedX = side == .left ? restingFrame.midX - radius
                 : restingFrame.midX + radius - size.width
         }

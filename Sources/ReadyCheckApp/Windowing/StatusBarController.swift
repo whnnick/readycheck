@@ -43,6 +43,11 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     deinit { statusClock?.cancel() }
 
     private func updateQuotaLabel() {
+        if model.selectedMuse {
+            statusItem.button?.title = "Muse 7d " + QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: Date()))
+            statusItem.button?.toolTip = "ReadyCheck · Muse · " + model.muse.statusText(language: model.language, now: Date())
+            return
+        }
         if model.selectedDeepSeek {
             statusItem.button?.title = "DS " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: Date())
             statusItem.button?.toolTip = "ReadyCheck · DeepSeek API"
@@ -60,7 +65,11 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         withObservationTracking {
             _ = model.snapshots
             _ = model.notchQuotaSelection
-            _ = model.selectedDeepSeek
+            _ = model.selectedService
+            _ = model.muse.snapshot
+            _ = model.muse.observedAt
+            _ = model.muse.error
+            _ = model.muse.isBusy
             _ = model.deepSeek.snapshot
             _ = model.deepSeek.observedAt
             _ = model.deepSeek.error

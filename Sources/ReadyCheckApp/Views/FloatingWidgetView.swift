@@ -20,7 +20,10 @@ struct FloatingWidgetView: View {
             VStack(alignment: .leading, spacing: 12) {
                 header
 
-                if model.selectedDeepSeek {
+                if model.selectedMuse {
+                    MuseUsageView(connection: model.muse, language: model.language, now: now)
+                        .contentShape(Rectangle()).onTapGesture { model.openMainWindowFromWidget() }
+                } else if model.selectedDeepSeek {
                     DeepSeekBalancePanel(connection: model.deepSeek, language: model.language, now: now) {
                         model.openMainWindowFromWidget()
                     }
@@ -103,7 +106,7 @@ struct FloatingWidgetView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .buttonStyle(.borderless)
-                .disabled(model.selectedDeepSeek ? model.deepSeek.isBusy : model.isRefreshing)
+                .disabled(model.selectedServiceBusy)
                 .help(localization.text("action.refresh"))
 
                 Button {
@@ -160,6 +163,7 @@ struct FloatingWidgetView: View {
     }
 
     private var refreshSummary: String {
+        if model.selectedMuse { return model.muse.statusText(language: model.language, now: now) }
         if model.selectedDeepSeek {
             return model.deepSeek.observedAt.map {
                 "DeepSeek · " + $0.formatted(date: .omitted, time: .standard)

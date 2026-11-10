@@ -245,6 +245,7 @@ final class ReadyCheckAppModel {
     private static let oauthLogger = Logger(subsystem: "com.readycheck.app", category: "oauth")
 
     let deepSeek: DeepSeekConnection
+    let muse: MuseConnection
     var deepSeekAlertRules: [DeepSeekBalanceAlertRule] = []
     var deepSeekAlertStorageError = false
 
@@ -262,10 +263,19 @@ final class ReadyCheckAppModel {
     var settingsHasReturn = false
     var settingsReturnToCatalog = false
     var showServiceCatalog = false
-    private var settingsOriginDeepSeek = false
-    var selectedDeepSeek = UserDefaults.standard.bool(forKey: "ReadyCheck.selectedDeepSeek.v1") {
-        didSet { UserDefaults.standard.set(selectedDeepSeek, forKey: "ReadyCheck.selectedDeepSeek.v1") }
+    private var settingsOriginService: ServiceSettingsTarget = .codex
+    var selectedService = ServiceSettingsTarget(rawValue: UserDefaults.standard.string(forKey: "ReadyCheck.selectedService.v1") ?? "")
+        ?? (UserDefaults.standard.bool(forKey: "ReadyCheck.selectedDeepSeek.v1") ? .deepSeek : .codex) {
+        didSet {
+            UserDefaults.standard.set(selectedService.rawValue, forKey: "ReadyCheck.selectedService.v1")
+            UserDefaults.standard.set(selectedService == .deepSeek, forKey: "ReadyCheck.selectedDeepSeek.v1")
+        }
     }
+    var selectedDeepSeek: Bool {
+        get { selectedService == .deepSeek }
+        set { selectedService = newValue ? .deepSeek : .codex }
+    }
+    var selectedMuse: Bool { selectedService == .muse }
     var language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "ReadyCheck.language.v1") ?? "") ?? .zhCN {
         didSet {
             guard language != oldValue else { return }
@@ -292,6 +302,7 @@ final class ReadyCheckAppModel {
                 clearWidgetSnooze()
                 floatingWindowController.close()
                 bubbleWindowController.close()
+                aggregateWindowController.close()
             }
         }
     }
@@ -300,6 +311,7 @@ final class ReadyCheckAppModel {
             UserDefaults.standard.set(widgetAlwaysOnTop, forKey: Self.widgetAlwaysOnTopDefaultsKey)
             floatingWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
             bubbleWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
+            aggregateWindowController.updateLevel(alwaysOnTop: widgetAlwaysOnTop)
         }
     }
     var widgetHideInFullscreen: Bool = UserDefaults.standard.object(forKey: "ReadyCheck.widgetHideInFullscreen.v1") as? Bool ?? true {
@@ -308,6 +320,7 @@ final class ReadyCheckAppModel {
             UserDefaults.standard.set(widgetHideInFullscreen, forKey: "ReadyCheck.widgetHideInFullscreen.v1")
             floatingWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
             bubbleWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
+            aggregateWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
             notchWindowController.updateFullscreenBehavior(hideInFullscreen: widgetHideInFullscreen)
         }
     }
@@ -322,6 +335,7 @@ final class ReadyCheckAppModel {
             isSwitchingWidgetPresentation = true
             floatingWindowController.close()
             bubbleWindowController.close()
+            aggregateWindowController.close()
             isSwitchingWidgetPresentation = false
             showSelectedWidget()
         }
@@ -457,6 +471,8 @@ final class ReadyCheckAppModel {
 
     @ObservationIgnored
     private let bubbleWindowController = BubbleWindowController()
+    @ObservationIgnored
+    private let aggregateWindowController = AggregateCapsuleWindowController()
 
     @ObservationIgnored
     private let notchWindowController = NotchWindowController()
@@ -494,6 +510,7 @@ final class ReadyCheckAppModel {
     init(
         credentialStore: any CredentialStore = KeychainCredentialStore(),
         deepSeekConnection: DeepSeekConnection? = nil,
+        museConnection: MuseConnection? = nil,
         deepSeekAlertStore: DeepSeekBalanceAlertStore? = nil,
         codexQuotaClient: CodexQuotaHTTPClient = CodexQuotaHTTPClient(),
         codexOAuthClient: CodexOAuthClient = CodexOAuthClient(),
@@ -514,6 +531,7 @@ final class ReadyCheckAppModel {
         self.widgetVisible = WidgetVisibilityPreference.value(defaults: widgetVisibilityDefaults)
         self.credentialStore = credentialStore
         self.deepSeek = deepSeekConnection ?? DeepSeekConnection(store: credentialStore)
+        self.muse = museConnection ?? MuseConnection()
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         self.deepSeekAlertStore = deepSeekAlertStore ?? DeepSeekBalanceAlertStore(fileURL: appSupport.appendingPathComponent("ReadyCheck/deepseek-balance-alerts.json"))
         self.codexOAuthClient = codexOAuthClient
@@ -554,6 +572,9 @@ final class ReadyCheckAppModel {
             self?.syncWidgetVisibilityFromWindow(isVisible)
         }
         self.bubbleWindowController.onVisibilityChanged = { [weak self] isVisible in
+            self?.syncWidgetVisibilityFromWindow(isVisible)
+        }
+        self.aggregateWindowController.onVisibilityChanged = { [weak self] isVisible in
             self?.syncWidgetVisibilityFromWindow(isVisible)
         }
         self.bubbleWindowController.onNotchAttachment = { [weak self] in
@@ -601,6 +622,7 @@ final class ReadyCheckAppModel {
         switch widgetPresentation {
         case .card: floatingWindowController.show(model: self)
         case .bubble: bubbleWindowController.show(model: self)
+        case .aggregate: aggregateWindowController.show(model: self)
         }
     }
 
@@ -717,6 +739,7 @@ final class ReadyCheckAppModel {
         isSwitchingWidgetPresentation = true
         floatingWindowController.close()
         bubbleWindowController.close()
+        aggregateWindowController.close()
         isSwitchingWidgetPresentation = false
         scheduleWidgetResume()
     }
@@ -751,6 +774,7 @@ final class ReadyCheckAppModel {
             switch widgetPresentation {
             case .card: floatingWindowController.resetPosition(model: self)
             case .bubble: bubbleWindowController.resetPosition(model: self)
+            case .aggregate: aggregateWindowController.resetPosition(model: self)
             }
             isSwitchingWidgetPresentation = false
         } else {
@@ -1296,7 +1320,7 @@ final class ReadyCheckAppModel {
     func openServiceSettings(_ target: ServiceSettingsTarget, section: MainSettingsSection = .reminders, fromCatalog: Bool = false) {
         if mainWindowPage != .settings || fromCatalog {
             serviceSettingsReturnPage = mainWindowPage
-            settingsOriginDeepSeek = selectedDeepSeek
+            settingsOriginService = selectedService
             settingsHasReturn = true
             settingsReturnToCatalog = fromCatalog
         }
@@ -1310,14 +1334,14 @@ final class ReadyCheckAppModel {
         let zh = language == .zhCN
         if settingsReturnToCatalog { return zh ? "返回平台目录" : "Back to platforms" }
         if serviceSettingsReturnPage == .notifications { return zh ? "返回通知记录" : "Back to notification records" }
-        let service = settingsOriginDeepSeek ? "DeepSeek" : "Codex"
+        let service = settingsOriginService.title
         let page = localization.text(serviceSettingsReturnPage.titleKey)
         return zh ? "返回 \(service) \(page)" : "Back to \(service) \(page)"
     }
 
     func closeServiceSettings() {
         guard settingsHasReturn else { return }
-        selectedDeepSeek = settingsOriginDeepSeek
+        selectedService = settingsOriginService
         mainWindowPage = serviceSettingsReturnPage
         showServiceCatalog = settingsReturnToCatalog
         settingsHasReturn = false
@@ -1396,6 +1420,7 @@ final class ReadyCheckAppModel {
 
     func startConnectedServices() async {
         startDeepSeekMonitoring()
+        muse.startMonitoring()
         await reloadCodexOAuthConnectionStatus()
         await refresh(reason: .openedPanel)
         startResetCreditAutomation()
@@ -1437,7 +1462,13 @@ final class ReadyCheckAppModel {
     }
 
     func refreshSelectedService() async {
-        if selectedDeepSeek {
+        await refreshService(selectedService)
+    }
+
+    func refreshService(_ service: ServiceSettingsTarget) async {
+        if service == .muse {
+            await muse.refresh()
+        } else if service == .deepSeek {
             await deepSeek.refresh()
         } else {
             await reloadCodexOAuthConnectionStatus()

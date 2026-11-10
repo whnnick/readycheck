@@ -1,5 +1,87 @@
 # 0.7.0 — 原生与原型黑盒功能检查
 
+## 2026-11-09 dev.32 — 聚合胶囊实机验收
+
+需求对应。参照用户的 Token Monitor 图片，将右侧统一为 Codex、DeepSeek、Muse 同时可见的聚合胶囊。[设计约定](AGGREGATE_CAPSULE.zh-CN.md)。
+
+| 范围 | 状态与证据 |
+| --- | --- |
+| 安装与真实读取 | 本机已安装 dev.32 并选用聚合胶囊。已核验预览签名。Codex 显示 5h/7d 双环，DeepSeek 显示币种余额与中性轮廓，Muse 显示周额度。三项手动刷新通过，DeepSeek 在系统授权后恢复。 |
+| 原生交互 | 已验证点击预览、固定、固定后切换服务、取消固定、外部点击与 Esc 收起。固定详情在外部点击后保持。Codex 与 DeepSeek 的主窗口入口定位到对应服务，Muse 预览保留主窗口的 Codex 选择。详情向内侧展开，胶囊和详情均未见裁切。 |
+| 位置与偏好 | 顶部与底部握柄均可拖动。两轮测试后保存的聚合胶囊坐标与原值完全一致。最终主窗口选择 Codex，详情未固定。原双环中心、浮动卡片位置和显示偏好已核对。 |
+| 自动验证 | **59 项专项 Swift 测试与 9 项 JavaScript 测试通过**。解锁后补跑的 **29 项原生窗口测试**通过，包含聚合胶囊、浮动胶囊与边栏。 |
+| 视觉证据 | [中文组合预览](evidence/dev32-aggregate-overview-zh-CN.png)、[英文预览](evidence/dev32-aggregate-overview-en-US.png)、[胶囊](evidence/dev32-aggregate-rail-zh-CN.png)、[Muse 详情](evidence/dev32-aggregate-detail-muse-en-US.png)、[样式选项](evidence/dev32-aggregate-picker-en-US.png)。仓库中的视觉证据均使用合成数据。 |
+| 鼠标悬停 | 用户确认，在安装版中将鼠标移到 Muse 行会展开预览，移开后收起。自动化测试覆盖悬停状态切换。 |
+| 待验范围 | Codex 与 DeepSeek 的实机悬停，以及其他显示器、Spaces、系统登录和完整硬件组合待验。 |
+
+本机验收范围为现有三项连接与聚合展示。公开通道沿用各自的版本记录。
+
+<a id="dev32-package-verification"></a>
+
+### 2026-11-10 dev.32 源码候选制包验证
+
+从公开同步源码构建。Swift 全量回归中，347 项 Core 和 191 项 App 测试通过，3 项按需生成视觉证据的测试跳过，失败 0 项。9 项 Muse JavaScript 测试通过。macOS arm64 DMG 已只读挂载，包内版本、严格签名、与已安装版一致的指定要求及二进制隐私扫描通过。Windows x64 ZIP 通过代码检查、冒烟、界面冒烟、解压完整性与包内版本核验。Windows OAuth 403 和实机流程的范围见 [Windows QA](../../WINDOWS_QA.zh-CN.md)。
+
+| 本地安装包 | SHA-256 |
+| --- | --- |
+| `ReadyCheck-0.7.0-dev.32-macos.dmg` | `c81088fa859c10e13514606e2569103f9f964c482b6c2d98c46f974148b3f94c` |
+| `ReadyCheck-0.7.0-dev.32-windows-x64-portable.zip` | `bc15dab730a258d42b874e64ced69c8419cf812a317b8554af04632d9908bd46` |
+
+[版本索引](../../VERSIONS.md)区分源码候选、公开预览和稳定下载。
+
+## 2026-11-04 dev.31 — Muse 真实读取恢复
+
+- 需求对应：Muse 成功登录后应取得可用周额度并能刷新，同时保留独立会话及 Codex/DeepSeek 行为。
+- 根因：WebKit 调用选择了未设置完成回调的重载，结果和异常均被丢弃；现已改为真正返回结果的异步重载。无网络的真实 WebKit 测试复现两项失败，修复后通过，不使用真实账号样本。
+- 14 项专项 Swift 测试通过（Core 解析/版本、Muse 连接/原生界面及相关胶囊选择），另有 9 项读取器 JavaScript 测试通过。保留 dev.30 的 531 项基线；本次是 dev.31 定向补跑，不声称重跑完整套件。仅保存合成渲染证据。
+- 最终 dev.31 已安装；严格签名、相同签名要求、候选可执行文件逐字节一致、读取脚本资源一致与私人路径检查均通过；原独立 Muse 登录状态跨安装保留。
+- 实机：官方登录成功，总览/用量页显示周剩余、重置、套餐与服务端标签；手动刷新推进读取时间并取得当前读数；重新加载官网设置后，其周使用标签与原生结果一致，不把官网最初的缓存设置读数视为比较失败。“完成并读取额度”成功后关闭登录窗；“重新加载页面”保留登录状态。
+- 实机 Muse 收起胶囊显示周百分比；普通点击打开预览，只有显式固定控件保持展开，取消固定恢复收起，“打开 ReadyCheck”能返回主窗口。正常凭据重试已恢复既有 Codex 与 DeepSeek 连接；已恢复 Codex 选择及未固定状态，显示/语言开关保持一致，悬浮中心与原基线偏差不超过 1 点。
+- 补充修复：Muse 新读数到达时同步主窗口/菜单栏时钟，12 项 Muse 专项 Swift 测试再次通过。最终安装包在一次手动刷新后的 14 秒内推进真实读取时间并显示当前周百分比，没有误显示待刷新。
+- 仓库验收证据未加入真实额度、账号标识、聊天内容或截图；仅白名单订阅字段传出页面，诊断日志只有固定类别。
+- 其他账号、全部显示/Spaces/全屏组合、系统登录及 Muse 提醒/历史仍不在本次验收范围；未公开 push/tag/Release。
+
+## 2026-11-04 dev.30 — 解锁补跑与安装
+
+- 解锁补跑的 23 项受影响 Core 与 34 项 App 测试全部通过；结合仍有效的其他通过结果，共覆盖全部 531 个不同 Swift 测试，无剩余失败/跳过，另有六项 JavaScript 测试通过。下方锁屏失败记录作为历史证据保留，不是当前验收结论。
+- 已在原应用位置安装 dev.30，保留完整 dev.29 与中间包备份；严格签名、相同 designated requirement、安装可执行文件逐字节一致、Muse 脚本/许可资源一致性及私人路径检查通过。
+- 实机发现 Muse 连接控件下仍混入 Codex/Keychain 说明，现已限定到对应服务；Muse 原生渲染测试再次通过，并已安装修正后的最终包。
+- 实际“ReadyCheck · Muse”窗口已加载官方登录表单。用户反馈收不到 Meta 短信验证码；实机确认该账号的验证页只有短信选项，登录首页接受手机号或邮箱，没有单独的其他登录按钮。排查期间没有触发重发，窗口已退回登录表单。真实订阅读取/刷新仍被 Meta 账号验证阻塞，不声称已取得真实 Muse 额度。
+- 14 项无关的显示/语言偏好保持一致，悬浮组件中心与基线偏差不超过 1 点。为连接设置暂时选择 Muse；真实验收后恢复原服务。
+
+## 2026-11-03 dev.30 — Meta Muse 应用连接（验收待完成）
+
+需求对应：接入 muse.ai 的 Meta Muse 个人助手，Codex 仍为主线，保留其双环与 DeepSeek 余额布局。本机 Muse 应用标识为 `com.meta.endo`；Muse Code CLI 与 Meta API 账单是不同产品/数据源。
+
+| 需求／范围 | 状态与证据 |
+| --- | --- |
+| 周额度、重置、套餐与服务端标签 | 已实现。五项 `MuseUsageTests` 通过，覆盖付费/免费、零/未知、无效/越界字段、日期与过期读数；Token 标签保留服务端原文，不推算缺失绝对数量。 |
+| 独立登录与断开 | 使用独立 WebKit 配置接线。六项 `MuseConnectionTests` 通过，覆盖未开启不读取、失败/登录过期、重试、断开/旧请求失效、选择/返回及原生渲染；未读取其他浏览器或 Muse.app 凭据。 |
+| 网页只读动作 | 六项 Node 测试通过，覆盖仅订阅读取 POST、静态脚本不带凭据、缓存/过期/懒加载动作、过期/无效状态、发现上限与源限制；只有预期订阅字段传出 WebKit。 |
+| 原生入口 | 中英文总览、用量、连接设置、菜单、胶囊/贴边、卡片及刘海已接线并生成合成图；已目视复核，实账呈现与登录待验。既有 Codex/DeepSeek 布局保持独立。 合成[总览](evidence/dev30-muse-overview-en.png)、[胶囊](evidence/dev30-muse-capsule.png)及[刘海](evidence/dev30-muse-notch-en.png)，均为样例数据。 |
+| 完整回归 | 已尝试 343 Core +188 App。机器锁屏导致 Core 报告 13 次失败（5 次 unexpected）、App 17 次失败及 1 项跳过，不能计为完整通过；已确认 `CGSSessionScreenIsLocked=true` 与 `IOConsoleLocked=true`。受影响套件：ResetCreditAutomationTests、ResetCreditReliabilityTests、BubbleWindowControllerTests、NextEventsViewTests、NotchWindowControllerTests；EdgeRailWidgetTests 有焦点相关跳过。安装前需解锁补跑，不降低文件保护或窗口检查。 |
+| 候选包 | 现有 App 脚本构建 dev.30；严格签名、版本、随包 Muse 脚本/MIT 许可一致性及二进制私人主目录路径检查通过。尚未安装，安装版仍为 dev.29。 |
+| 部分／未实施 | 不含 Muse 每日 Token 历史、官方费用历史、专属提醒、Muse Code 或 Meta API 账单；其他八项目录服务仍待接入，Windows 除版本元数据外没有新实现。 |
+| 实机／发布阻塞 | 需解锁 Mac、补跑失败/跳过项、安装、明确完成 Muse 登录、确认新读数/刷新及最终偏好保留。未公开 push、tag 或 Release。 |
+
+来源与第三方兼容边界见[技术范围](TECHNICAL.zh-CN.md#muse-应用只读切片dev30)和[来源](SOURCES.md)，未提交实账截图或原始响应，不能把待验内容标成完成。
+
+## 2026-11-03 dev.29 — 恢复 Codex 额度双环
+
+需求对应：撤销 dev.24 造成的 Codex 收起展示回退，保留 DeepSeek 独立的余额设计；不新增服务、数据或授权行为。
+
+| 范围 | 结果与证据 |
+| --- | --- |
+| Codex 双环 | 恢复原有 92×92 同心双圆环、主窗口标签、过期/未知处理及实际回升高亮。已目视复核原生合成[正常态](evidence/dev29-codex-dial.png)与[未知态](evidence/dev29-codex-dial-unknown.png)。 |
+| DeepSeek 保留 | 继续使用 180×48 [余额趋势胶囊](evidence/dev29-deepseek-capsule.png)，保留贴边/详情/刘海及缺失、过期、失败语义；`DeepSeekConnectionTests` 通过。 |
+| 位置与交互 | Core 测试覆盖旧圆形/横胶囊中心迁移与贴边定位；新增原生窗口测试覆盖切换服务后保留中心、左右贴边和显式固定状态。既有预览、向内拖动、刘海脱离及裁切检查通过。 |
+| 回归 | 启用原生证据的完整 338 Core +181 App，共 519 个不同测试通过，无失败/跳过。后续显示文案更新通过四项本地化及中英文最小宽度设置渲染；最后标题同步再通过四项本地化测试。 |
+| 安装版 | 沿用现有 App 制包脚本构建 dev.29，在原路径安装并保留完整 dev.28 备份。两包严格签名通过且 designated requirement 相同；候选二进制私人主目录路径扫描通过。 |
+| 真实读取 | 安装版经正常重试恢复 Codex 凭据访问，实际双额度、成功刷新及预览/固定/取消固定已观察。此文档不包含实账截图、数值或凭据。 |
+| 剩余范围 | 自由双环外观由原生合成渲染与安装代码一致性证明，未重复物理自由拖动验收；其他显示器、Spaces/全屏组合与 Windows 实机仍待验。本次本机修正未创建公开 tag、push 或 Release。 |
+
+最终包严格签名及安装可执行文件逐字节核对通过，最终安装版两项 Codex 额度均恢复真实读数。已恢复中文、Codex 选中、Widget 关闭/刘海双额度开启、显示控件及主窗口关闭；15 项非位置偏好与初始快照相同。当前浮窗保存框与最初磁盘快照不同，本轮未执行拖动/重置，差异原因未确认，因此保留当前保存位置、不覆盖，不能声称升级前后位置逐字节相同。沙盒内 NSScreen 返回 nil 后，GUI 回归已在正常 WindowServer 环境重跑通过。
+
 ## 2026-11-03 GitHub 首页回归 Codex 主线
 
 双语首页以 Codex 额度、重置、Token、账户权益与提醒为主，DeepSeek 作为补充能力。当前原生[英文](evidence/dev28-codex-overview-en.png)/[中文](evidence/dev28-codex-overview-zh.png)总览与胶囊/刘海截图使用合成账号数据。现有可选 `MainWindowTests.testMenuAndNotchRenderWithSyntheticVerifiedAccount` 加入截图样例后通过。本地链接、GitHub Markdown 渲染及改动文本敏感信息检查通过。这些截图用于展示，不作为新增实账或柱图交互验收。运行代码、安装包版本与发布通道不变。

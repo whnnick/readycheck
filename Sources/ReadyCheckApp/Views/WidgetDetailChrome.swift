@@ -7,6 +7,7 @@ struct WidgetDetailHeader: View {
     let now: Date
     var isPinned = false
     var onTogglePin: (() -> Void)?
+    var service: ServiceSettingsTarget?
 
     var body: some View {
         HStack(spacing: 8) {
@@ -36,7 +37,9 @@ struct WidgetDetailHeader: View {
     }
 
     private var subtitle: String {
-        if model.selectedService.presentation.readoutKind == .balance { return "DeepSeek" }
+        let target = service ?? model.selectedService
+        if target == .muse { return "Muse · " + model.muse.statusText(language: model.language, now: now) }
+        if target == .deepSeek { return "DeepSeek" }
         let snapshot = model.snapshots.first { $0.providerId == "codex-oauth" }
         return "Codex · " + model.localization.text(snapshot?.availabilityTextKey(now: now) ?? "status.unavailable")
     }
@@ -45,9 +48,13 @@ struct WidgetDetailHeader: View {
 struct WidgetDetailFooter: View {
     let model: ReadyCheckAppModel
     let openMainWindow: () -> Void
+    var service: ServiceSettingsTarget?
 
-    private var isBalance: Bool { model.selectedService.presentation.readoutKind == .balance }
-    private var isBusy: Bool { isBalance ? model.deepSeek.isBusy : model.isRefreshing }
+    private var target: ServiceSettingsTarget { service ?? model.selectedService }
+    private var isBalance: Bool { target == .deepSeek }
+    private var isBusy: Bool {
+        switch target { case .codex: model.isRefreshing; case .deepSeek: model.deepSeek.isBusy; case .muse: model.muse.isBusy }
+    }
     private var snapshot: ProviderQuotaSnapshot? { model.snapshots.first { $0.providerId == "codex-oauth" } }
     private func text(_ zh: String, _ en: String) -> String { model.language == .zhCN ? zh : en }
 
@@ -59,14 +66,14 @@ struct WidgetDetailFooter: View {
                 Text(status)
                 if isBalance, model.deepSeek.refreshOutcome == .unchanged {
                     Text(text("余额未变化", "Balance unchanged"))
-                } else if !isBalance, snapshot?.ordinaryUsageAllowed == false {
+                } else if target == .codex, snapshot?.ordinaryUsageAllowed == false {
                     Text(model.localization.text("status.ordinaryUsageBlocked")).foregroundStyle(.orange)
                 }
             }
             .font(.system(size: 10)).foregroundStyle(.white.opacity(0.55))
             .lineLimit(2).minimumScaleFactor(0.8)
             Spacer(minLength: 0)
-            Button { Task { await model.refreshSelectedService() } } label: {
+            Button { Task { await model.refreshService(target) } } label: {
                 Group {
                     if isBusy { ProgressView().controlSize(.mini) }
                     else { Image(systemName: "arrow.clockwise") }
@@ -75,7 +82,7 @@ struct WidgetDetailFooter: View {
                 .help(model.localization.text("action.refresh"))
                 .accessibilityLabel(model.localization.text("action.refresh"))
             Button {
-                model.openServiceSettings(model.selectedService)
+                model.openServiceSettings(target)
                 model.openMainWindowFromWidget()
             } label: { Image(systemName: "bell").frame(width: 16, height: 18) }
                 .help(model.localization.text("navigation.reminders"))
@@ -90,6 +97,7 @@ struct WidgetDetailFooter: View {
     }
 
     private var status: String {
+        if target == .muse { return model.muse.statusText(language: model.language, now: Date()) }
         if isBusy { return text("正在更新", "Updating") }
         if isBalance, model.deepSeek.refreshOutcome == .failed { return text("更新失败", "Update failed") }
         let date = isBalance ? model.deepSeek.observedAt : snapshot?.refreshedAt

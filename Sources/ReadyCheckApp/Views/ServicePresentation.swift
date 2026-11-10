@@ -2,8 +2,8 @@ import Foundation
 import ReadyCheckCore
 
 enum ServiceConnectionMethod: String, CaseIterable {
-    case oauth, apiKey
-    var title: String { self == .oauth ? "OAuth" : "API Key" }
+    case oauth, apiKey, browser
+    var title: String { switch self { case .oauth: "OAuth"; case .apiKey: "API Key"; case .browser: "Web" } }
 }
 
 enum ServiceReadoutKind { case quota, balance }
@@ -18,12 +18,14 @@ extension ServiceSettingsTarget {
         switch self {
         case .codex: .init(connectionMethod: .oauth, readoutKind: .quota)
         case .deepSeek: .init(connectionMethod: .apiKey, readoutKind: .balance)
+        case .muse: .init(connectionMethod: .browser, readoutKind: .quota)
         }
     }
 }
 
 extension ReadyCheckAppModel {
-    var selectedService: ServiceSettingsTarget { selectedDeepSeek ? .deepSeek : .codex }
+    var bubbleRestingSize: CGSize { selectedService == .codex ? BubbleWidgetPlacement.bubbleSize : BubbleWidgetPlacement.balanceBubbleSize }
+    var selectedServiceBusy: Bool { selectedMuse ? muse.isBusy : selectedDeepSeek ? deepSeek.isBusy : isRefreshing }
 }
 
 struct BalanceSurfaceReading: Identifiable, Equatable {

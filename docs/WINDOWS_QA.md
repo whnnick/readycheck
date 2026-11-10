@@ -2,7 +2,7 @@
 
 [中文](WINDOWS_QA.zh-CN.md) | English
 
-Current baseline: dev.28 is a verified source/packaged candidate; public preview downloads remain dev.23 and stable remains 0.6.1. Package/check/smoke/UI-smoke passed, while the reported OAuth 403 and Windows hardware paths remain pending. See [current Windows scope](WINDOWS.md).
+Current baseline: dev.32 is a verified source/packaged candidate; public preview downloads remain dev.23 and stable remains 0.6.1. Package/check/smoke/UI-smoke passed, while the reported OAuth 403 and Windows hardware paths remain pending. See [current Windows scope](WINDOWS.md).
 
 Use this guide to validate the ReadyCheck Windows preview on Windows 10/11. Do not upload tokens, callback URLs, account ids, or raw usage payloads to GitHub Issues, screenshots, or chat.
 

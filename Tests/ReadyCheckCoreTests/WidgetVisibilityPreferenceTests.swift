@@ -50,7 +50,7 @@ final class WidgetVisibilityPreferenceTests: XCTestCase {
         WidgetPresentationPreference.set(.card, defaults: defaults)
         XCTAssertEqual(WidgetPresentationPreference.value(defaults: defaults), .card)
 
-        XCTAssertEqual(Set(WidgetPresentation.allCases), [.bubble, .card])
+        XCTAssertEqual(Set(WidgetPresentation.allCases), [.aggregate, .bubble, .card])
     }
 
     func testLegacyRailMigratesOnceWithPositionAndBackupPreserved() {

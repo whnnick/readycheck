@@ -83,7 +83,7 @@ final class DeepSeekConnectionTests: XCTestCase {
                 ("overview", AnyView(ScrollView { DeepSeekOverview(connection: connection, language: language, now: Date(), days: .constant(1)).padding() }), .init(width: 620, height: 650)),
                 ("menu", AnyView(MenuBarQuotaView(model: model, openSettings: {})), .init(width: 340, height: 470)),
                 ("widget", AnyView(FloatingWidgetView(model: model)), .init(width: 352, height: 440)),
-                ("bubble", AnyView(BubbleWidgetView(model: model, isExpanded: false, tabEdge: nil, onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})), BubbleWidgetPlacement.bubbleSize),
+                ("bubble", AnyView(BubbleWidgetView(model: model, isExpanded: false, tabEdge: nil, onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})), BubbleWidgetPlacement.balanceBubbleSize),
                 ("edge", AnyView(BubbleWidgetView(model: model, isExpanded: false, tabEdge: .left, onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})), BubbleWidgetPlacement.tabSize),
                 ("expanded", AnyView(BubbleWidgetView(model: model, isExpanded: true, tabEdge: nil, onTap: {}, onDragChanged: { _ in }, onDragEnded: {}, onCollapse: {})), BubbleWidgetPlacement.expandedSize),
                 ("notch", AnyView(NotchStatusView(model: model)), .init(width: 150, height: 60)),

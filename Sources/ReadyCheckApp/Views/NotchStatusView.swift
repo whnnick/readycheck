@@ -48,7 +48,13 @@ struct NotchStatusView: View {
 
     private var compactContent: some View {
         Group {
-            if model.selectedService.presentation.readoutKind == .balance {
+            if model.selectedMuse {
+                MuseCompactReadout(connection: model.muse, language: model.language, now: now)
+                    .contentShape(notchShape).onTapGesture(perform: onClick)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Muse 7d " + QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now)))
+                    .accessibilityAddTraits(.isButton).accessibilityAction { onClick() }
+            } else if model.selectedService.presentation.readoutKind == .balance {
                 ServiceCompactReadout(model: model, now: now)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(notchShape)

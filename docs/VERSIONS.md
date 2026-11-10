@@ -2,15 +2,15 @@
 
 | Channel / 通道 | Current version / 当前版本 | Evidence / 入口 |
 | --- | --- | --- |
-| Latest source and packaged candidate / 最新源码及打包候选 | **0.7.0-dev.28** | [Source tag / 源码](https://github.com/whnnick/readycheck/tree/v0.7.0-dev.28) · [English notes](versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev28) / [中文说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev28) |
+| Latest source and packaged candidate / 最新源码及打包候选 | **0.7.0-dev.32** | [Source tag / 源码](https://github.com/whnnick/readycheck/tree/v0.7.0-dev.32) · [English notes](versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev32) / [中文说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev32) |
 | Latest downloadable preview / 最新可下载预览 | **0.7.0-dev.23** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23) · [English notes](versions/0.7.0/RELEASE_NOTES.md#public-preview-dev23) / [中文说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#public-preview-dev23) |
 | Stable release channel / 稳定发布通道 | **0.6.1** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.6.1) · [English notes](versions/0.6.1/RELEASE_NOTES.md) / [中文说明](versions/0.6.1/RELEASE_NOTES.zh-CN.md) |
 
-Dev.28 source/tag and local packages are verified; no dev.28 GitHub Release assets are hosted. / Dev.28 源码/tag 及本机安装包已验证，尚无 dev.28 GitHub Release 托管安装包。
+Dev.28 source/tag and local packages are verified; no dev.32 GitHub Release assets are hosted. / Dev.28 源码/tag 及本机安装包已验证，尚无 dev.32 GitHub Release 托管安装包。
 
 ## Current 0.7.0 slice / 当前 0.7.0 切片
 
-Codex + DeepSeek native macOS monitoring, micro-trend capsule/notch, explicit-only pinning, default-open benefits and persistent card-warning deduplication. **517 macOS checks passed**; Windows check/smoke/UI-smoke and package integrity passed. Windows retains its existing Codex interface and the reported OAuth 403 requires real-device follow-up. / 当前 Mac 切片包含 Codex + DeepSeek、微型趋势胶囊/刘海、显式固定、账户默认展开与卡片异常持久去重；**517项 macOS 检查通过**，Windows check/smoke/UI-smoke 与包完整性通过。Windows 沿用原 Codex 界面，已报告的 OAuth 403 仍需实机跟进。
+The macOS aggregate capsule shows Codex quotas, DeepSeek API balances and Meta Muse weekly quota, with per-service previews and refresh. Windows remains a separate Codex client, with package checks complete and the reported OAuth 403 awaiting real-device follow-up. / Mac 聚合胶囊同时显示 Codex 额度、DeepSeek API 余额和 Meta Muse 周额度，可分服务预览与刷新。Windows 为独立 Codex 客户端，制包检查已完成，已报告的 OAuth 403 待实机跟进。
 
 - [Plan](versions/0.7.0/PLAN.md) / [产品计划](versions/0.7.0/PLAN.zh-CN.md)
 - [Technical scope](versions/0.7.0/TECHNICAL.md) / [技术范围](versions/0.7.0/TECHNICAL.zh-CN.md)
@@ -18,7 +18,7 @@ Codex + DeepSeek native macOS monitoring, micro-trend capsule/notch, explicit-on
 - [65-item retention matrix](versions/0.7.0/RELEASE_AUDIT.md) / [65项功能保留矩阵](versions/0.7.0/RELEASE_AUDIT.zh-CN.md)
 - [Service settings](versions/0.7.0/SETTINGS_PLAN.md) / [服务设置规划](versions/0.7.0/SETTINGS_PLAN.zh-CN.md) · [Prototype archive](versions/0.7.0/prototype/README.md) / [原型归档](versions/0.7.0/prototype/README.zh-CN.md)
 
-The ten-service catalog is a plan; only Codex and DeepSeek are connected. Stable all-platform gates and device limits remain documented. / 十家服务目录是规划，当前仅接通 Codex 和 DeepSeek；稳定版全平台门槛及设备边界继续记录。
+Codex, DeepSeek and Muse have live read evidence on this Mac. Eight other catalog entries remain planned. / 本机已核验 Codex、DeepSeek 和 Muse 的真实读取，目录中另八项为计划。
 
 ## Earlier versions / 历史版本
 

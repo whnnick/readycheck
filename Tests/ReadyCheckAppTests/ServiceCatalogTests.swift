@@ -3,10 +3,10 @@ import XCTest
 
 final class ServiceCatalogTests: XCTestCase {
     func testCatalogHasApprovedServicesInTwoBatches() {
-        XCTAssertEqual(ServiceCatalog.entries.map(\.id), ["codex", "claude", "gemini", "deepseek", "cursor", "copilot", "bailian", "glm", "kimi", "minimax"])
-        XCTAssertEqual(ServiceCatalog.filtered(query: "", batch: 1).count, 5)
+        XCTAssertEqual(ServiceCatalog.entries.map(\.id), ["codex", "claude", "gemini", "deepseek", "muse", "cursor", "copilot", "bailian", "glm", "kimi", "minimax"])
+        XCTAssertEqual(ServiceCatalog.filtered(query: "", batch: 1).count, 6)
         XCTAssertEqual(ServiceCatalog.filtered(query: "", batch: 2).count, 5)
-        XCTAssertEqual(ServiceCatalog.entries.filter(\.supported).map(\.id), ["codex", "deepseek"])
+        XCTAssertEqual(ServiceCatalog.entries.filter(\.supported).map(\.id), ["codex", "deepseek", "muse"])
     }
 
     func testSearchMatchesAliasesAndRespectsBatch() {
