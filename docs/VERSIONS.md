@@ -2,18 +2,18 @@
 
 | Channel / 通道 | Current version / 当前版本 | Evidence / 入口 |
 | --- | --- | --- |
-| Local release candidate / 本机正式候选 | **0.7.0 installed locally / 本机已安装** | [Notes](versions/0.7.0/RELEASE_NOTES.md#candidate-070) / [说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#candidate-070) · [Checks](versions/0.7.0/QA.md) / [验收](versions/0.7.0/QA.zh-CN.md) |
-| Latest source and packaged candidate / 最新源码及打包候选 | **0.7.0-dev.32** | [Source tag / 源码](https://github.com/whnnick/readycheck/tree/v0.7.0-dev.32) · [English notes](versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev32) / [中文说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev32) |
+| Installed release / 本机安装版 | **0.7.0 installed locally / 本机已安装** | [Notes](versions/0.7.0/RELEASE_NOTES.md#release-070) / [说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#release-070) · [Checks](versions/0.7.0/QA.md) / [验收](versions/0.7.0/QA.zh-CN.md) |
+| Public source / 公开源码 | **0.7.0** | [Source tag / 源码](https://github.com/whnnick/readycheck/tree/v0.7.0) · [English notes](versions/0.7.0/RELEASE_NOTES.md#release-070) / [中文说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#release-070) |
 | Latest downloadable preview / 最新可下载预览 | **0.7.0-dev.23** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0-dev.23) · [English notes](versions/0.7.0/RELEASE_NOTES.md#public-preview-dev23) / [中文说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md#public-preview-dev23) |
-| Stable release channel / 稳定发布通道 | **0.6.1** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.6.1) · [English notes](versions/0.6.1/RELEASE_NOTES.md) / [中文说明](versions/0.6.1/RELEASE_NOTES.zh-CN.md) |
+| Stable release channel / 稳定发布通道 | **0.7.0** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.0) · [English notes](versions/0.7.0/RELEASE_NOTES.md) / [中文说明](versions/0.7.0/RELEASE_NOTES.zh-CN.md) |
 
-Dev.32 source/tag and local package checks are recorded in QA. The local installed candidate is 0.7.0. / Dev.32 源码/tag 及本机包检查见验收记录，本机安装候选为 0.7.0。
+The 0.7.0 source/tag, installed Mac validation and Windows-runner results are linked in QA. / 0.7.0 源码标签、Mac 安装验收及 Windows 运行器结果见 QA。
 
 Installed Codex, DeepSeek and Muse reads and manual refresh passed. / 安装版 Codex、DeepSeek、Muse 真实读数与手动刷新通过。 [QA](versions/0.7.0/QA.md) / [验收](versions/0.7.0/QA.zh-CN.md)。
 
 ## Current 0.7.0 slice / 当前 0.7.0 切片
 
-The current local build monitors Codex, DeepSeek and Muse in one aggregate capsule, with animated side details and explicit pinning. Dev.33 focused and installed evidence is linked below. Windows package checks passed, and the reported OAuth 403 remains pending affected-device acceptance. / 当前本机版在同一聚合胶囊监控 Codex、DeepSeek 和 Muse，提供侧边详情动效与显式固定。Dev.33 专项测试及安装版证据见下方。Windows 包检查通过，已报告的 OAuth 403 仍待受影响电脑验收。
+0.7.0 monitors Codex, DeepSeek and Muse on Mac, with aggregate side details and animated transitions. Windows retains its Codex client and passed native runtime network checks. / 0.7.0 在 Mac 监控 Codex、DeepSeek、Muse，提供聚合侧边详情与动效。Windows 保留 Codex 客户端，并已通过原生网络运行时检查。
 
 - [Plan](versions/0.7.0/PLAN.md) / [产品计划](versions/0.7.0/PLAN.zh-CN.md)
 - [Technical scope](versions/0.7.0/TECHNICAL.md) / [技术范围](versions/0.7.0/TECHNICAL.zh-CN.md)
@@ -21,7 +21,7 @@ The current local build monitors Codex, DeepSeek and Muse in one aggregate capsu
 - [65-item retention matrix](versions/0.7.0/RELEASE_AUDIT.md) / [65项功能保留矩阵](versions/0.7.0/RELEASE_AUDIT.zh-CN.md)
 - [Service settings](versions/0.7.0/SETTINGS_PLAN.md) / [服务设置规划](versions/0.7.0/SETTINGS_PLAN.zh-CN.md) · [Prototype archive](versions/0.7.0/prototype/README.md) / [原型归档](versions/0.7.0/prototype/README.zh-CN.md)
 
-The ten-service catalog is a plan. Codex, DeepSeek and Muse have live macOS acceptance evidence in QA. / 十家服务目录是规划，Codex、DeepSeek 和 Muse 的 Mac 真实连接证据见验收记录。
+The service catalog is a plan. Codex, DeepSeek and Muse have live macOS acceptance evidence in QA. / 服务目录是规划，Codex、DeepSeek 和 Muse 的 Mac 真实连接证据见验收记录。
 
 ## Earlier versions / 历史版本
 

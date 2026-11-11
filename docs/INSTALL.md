@@ -1,14 +1,14 @@
 # Install and upgrade ReadyCheck
 
-The locally installed dev.32 offers **Settings → Display → Aggregate capsule** to keep all three services visible together. Choose the dial or card in the same settings. The installed preview passed live reads and manual refresh for all three services. [QA](versions/0.7.0/QA.md).
+The installed 0.7.0 release offers **Settings → Display → Aggregate capsule** with Codex, DeepSeek and Muse visible together. Real reads, manual refresh and same-bundle restart recovery passed. [QA](versions/0.7.0/QA.md).
 
 [简体中文](INSTALL.zh-CN.md) · [Version channels](../README.md#choose-your-version)
 
 ## Choose a package
 
 - macOS requires Apple silicon (arm64) and macOS 14+.
-- The latest downloadable public preview is **0.7.0-dev.23**; the stable release channel is **0.6.1**.
-- **0.7.0-dev.28** is the latest verified source/packaged candidate. Its source tag is public, but it has no public GitHub Release installer assets. Use the [README download table](../README.md#choose-your-version) for working download links.
+- Current stable release is **0.7.0**. The earlier dev.23 preview remains in release history.
+- Download the verified packages from the [README download table](../README.md#choose-your-version).
 - Windows is a separate x64 portable client: [Windows guide](WINDOWS.md).
 
 ## Install on Mac
@@ -17,7 +17,7 @@ The locally installed dev.32 offers **Settings → Display → Aggregate capsule
 2. Open it and copy ReadyCheck.app to Applications.
 3. Open ReadyCheck from Applications.
 
-Mac preview packages use the established self-signed ReadyCheck identity, not Developer ID signing or notarization. If macOS blocks the first launch, its normal approval is under **System Settings → Privacy & Security → Open Anyway**. Updates may also require normal Keychain confirmation.
+Mac packages use the established self-signed ReadyCheck identity, not Developer ID signing or notarization. If macOS blocks the first launch, its normal approval is under **System Settings → Privacy & Security → Open Anyway**. Updates may also require normal Keychain confirmation.
 
 ## Connect a service
 
@@ -25,7 +25,7 @@ Mac preview packages use the established self-signed ReadyCheck identity, not De
 | --- | --- | --- |
 | Codex | Select Codex, choose Sign in to ReadyCheck and complete browser OAuth. | Returned quota windows and matching-account capabilities. |
 | DeepSeek | Select DeepSeek and enter your API Key directly in the native app. | Official API balance, currency and granted/topped-up components; not website/app chat usage. |
-| Muse (local dev.31) | Select Muse, open the separate web sign-in window, sign in and choose Read usage and finish. | Muse personal-agent weekly allowance, reset and plan; not Muse Code/API billing. Live sign-in/read/refresh verified on this Mac. Use Reload page if the official login session expires. |
+| Muse | Select Muse, open the separate web sign-in window, sign in and choose Read usage and finish. | Muse personal-agent weekly allowance, reset and plan; not Muse Code/API billing. Live sign-in/read/refresh verified on this Mac. Use Reload page if the official login session expires. |
 
 The normal Codex callback uses `localhost:1455`; if automatic completion fails, use the app's final-callback-URL fallback. Treat the complete callback URL as a credential and do not post it publicly.
 
@@ -37,7 +37,7 @@ Use **Retry credential access** when existing Keychain access needs confirmation
 2. Copy the new package to the same Applications location and reopen it.
 3. Approve normal Keychain prompts if requested, then verify a fresh read for each connected service.
 
-Existing settings, saved Widget positions, histories and account-specific card consent are retained by the current upgrade path. Dev.28 same-bundle quit/relaunch and exact comparison of 13 display/selection/frame preferences passed. That does not replace OS login/reboot or all migration/device acceptance; see [current checks](versions/0.7.0/QA.md).
+Existing settings, saved Widget positions, histories and account-specific card consent are retained by the current upgrade path. 0.7.0 same-bundle quit/relaunch and exact comparison of 13 display/selection/frame preferences passed. That does not replace OS login/reboot or all migration/device acceptance; see [current checks](versions/0.7.0/QA.md).
 
 ## Find the controls
 

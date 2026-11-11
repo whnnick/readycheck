@@ -1,18 +1,22 @@
 # 0.7.0 — Native and prototype black-box acceptance
 
+<a id="verification-070"></a>
+
 ## 2026-11-11 — 0.7.0 release candidate
 
 ### Muse recovery
 
-The dev.33 subscription read failed repeatedly with the existing signed-in web session. Normal quit/relaunch restored real readings. The old reader retained failed cached action IDs and only rediscovered on HTTP 404. Two new offline regressions reproduced cached-action server failure and bounded persistent failure before the fix. The reader now rediscoveries once for a cached action's server error and drops the cached ID before each attempt, retaining it only after a valid parsed response. Authentication failures stop without rediscovery. The original incident's exact HTTP status was not captured, so the deployment/cache explanation remains an inference supported by the restart result and reproduced cache defect.
+The dev.33 subscription read failed repeatedly with the existing signed-in web session. Normal quit/relaunch restored real readings. The old reader retained failed cached action IDs and only rediscovered on HTTP 404. Two new offline regressions reproduced cached-action server failure and bounded persistent failure before the fix. The reader now rediscovers once for a cached action's server error and drops the cached ID before each attempt, retaining it only after a valid parsed response. Authentication failures stop without rediscovery. The original incident's exact HTTP status was not captured, so the deployment/cache explanation remains an inference supported by the restart result and reproduced cache defect.
 
 ### Verification and installation
 
 - Complete Swift regression passed 543 tests with zero failures. A subsequently added native window-level test passed separately, checking rail/detail levels, pin state and unchanged frames.
-- All 11 Muse JavaScript tests passed. Windows check, smoke and UI smoke passed with Node 24. A new Electron runtime test passed on this Mac using a loopback proxy and synthetic OAuth, token-refresh, usage, reset-metadata and 403 responses. A Windows-runner job gates the Windows release upload. Its result is pending.
-- The clean public-source export matched 234 source/test files. Release-version consistency, strict mounted DMG signing, candidate/installed signing requirement equality, exact bundled Muse reader and personal-home-path binary scan passed.
+- All 11 Muse JavaScript tests passed. Windows check, smoke and UI smoke passed with Node 24. A new Electron runtime test passed on this Mac using a loopback proxy and synthetic OAuth, token-refresh, usage, reset-metadata and 403 responses. The Windows-runner gate passed on win32, followed by a successful package-upload job. [Run 42935175540](https://github.com/whnnick/readycheck/actions/runs/42935175540).
+- The clean public-source export initially matched 234 source/test files, then 235 after the network fixture was added. Release-version consistency, strict mounted DMG signing, candidate/installed signing requirement equality, exact bundled Muse reader and personal-home-path binary scan passed.
 - Installed 0.7.0 from the verified mounted DMG, preserving the dev.33 app backup. The installed executable matches the DMG. Codex recovered after system Keychain confirmation. Muse retained its session and returned fresh readings, including the next automatic read. DeepSeek recovered its original balance after the separate system confirmation. Manual refresh completed for all three services. A same-bundle normal quit/relaunch retained the Codex and DeepSeek connections without another credential prompt; all three readings recovered after restart. The main window was closed with Codex selected and the capsule visible.
 - All 13 allowlisted display preferences match the pre-install snapshot, including the exact saved frames and Codex selection. Installed Chinese/English UI and native-menu synchronization, restoration to Chinese, display/connection/general/About routes, topmost off/on restoration and manual update check passed. Update check reported up to date.
+
+The current bilingual homepage screenshots were exported from 0.7.0 with synthetic fixtures. The focused native rendering test passed with the installed app icon. The two aggregate screenshots come from the passing full native run. No real-account captures are included.
 
 ### Retained baseline and remaining device limits
 
@@ -40,7 +44,7 @@ Core file paths are relative to `Sources/ReadyCheckCore`; App paths are relative
 ### Candidate checksums
 
 - macOS DMG SHA-256 `6dddca337a13e07ea7853d54da31ac7735c865c1357e9894bcbca055d7ebfd2d`.
-- Initial Windows x64 ZIP SHA-256 `da1b07f659e9914a8df012f06fb4cf16f37fdd3831a2f23b5674df043a34198d`. The upload workflow will rebuild Windows after its runtime checks, with the final asset digest recorded separately.
+- Initial Windows x64 ZIP SHA-256 `da1b07f659e9914a8df012f06fb4cf16f37fdd3831a2f23b5674df043a34198d`. The workflow rebuilt Windows after the runtime gate. Final Windows asset SHA-256 is `fa358cd1c3a63f018365e8403410335d9028fe91b5e92efc334c2bc27a50450b`, matching the GitHub asset record. The initial local ZIP remains historical evidence.
 
 ## 2026-11-10 dev.33 — local aggregate capsule trial
 

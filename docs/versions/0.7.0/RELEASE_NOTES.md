@@ -1,11 +1,13 @@
+<a id="release-070"></a>
+
 <a id="candidate-070"></a>
 
-## 0.7.0 release candidate (2026-11-11)
+## 0.7.0 (2026-11-11)
 
 - Codex remains the primary experience for quotas, resets, account benefits, Token history and reminders.
 - The aggregate capsule brings Codex, DeepSeek balance and Muse weekly allowance together. Side details support previews, explicit pinning and Reduce Motion-aware transitions.
 - Fix failed Muse subscription-action caching. A cached server error triggers one rediscovery, and unsuccessful reads discard the cached action for the next retry.
-- Mac 0.7.0 is installed locally. The current verification, Windows runtime gate, package digests and distribution limits are recorded in [QA](QA.md#2026-11-11--070-release-candidate).
+- Mac 0.7.0 installation passed. The current verification, Windows runtime gate, package digests and distribution limits are recorded in [QA](QA.md#verification-070).
 
 <a id="local-dev33"></a>
 

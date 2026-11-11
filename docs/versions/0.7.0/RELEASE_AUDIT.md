@@ -1,10 +1,10 @@
-# 0.7.0 feature retention audit (in progress)
+# 0.7.0 feature retention review
 
 2026-11-11 release review: all 65 original capability IDs remain present. Muse and aggregate-capsule extensions now use unique J01/J02 IDs, correcting duplicate I01/I02 labels. Exact v0.6.1 file comparison and current regression support reuse of the unchanged baseline paths listed in [0.7.0 QA](QA.md#retained-baseline-and-remaining-device-limits). Earlier pending device notes remain historical limits rather than claims of new device passes. Current candidate installation and Windows-runner results are tracked in QA.
 
 [简体中文](RELEASE_AUDIT.zh-CN.md) · [Version checks](QA.md) · [0.6.0 audit](../0.6.0/RELEASE_AUDIT.md)
 
-These 65 baseline items are a checklist. Pending means the 0.7.0 entry point, behavior and data preservation have not yet been verified; it does not imply a defect or a pass. See the previous audit for historical evidence. This table does not clear the release gate.
+The 65 baseline capabilities and two extensions are accounted for below. The dated 0.7.0 review combines exact unchanged-file comparison, applicable installed baseline evidence, current full regression, installed three-service recovery and the passing Windows-runtime gate. Earlier device notes retain their original scope. The original Windows OAuth 403 account/environment and the full hardware matrix remain documented limits in QA.
 
 2026-11-01: full dev.16 regression passed 326 Core +149 App with zero failures/skips. Rows below distinguish installed-device observations from automated edge coverage. Visible means presentation checked, not every edge/long-running behavior accepted. Unchanged rows still await device checks. The protected consent file initially returned EPERM. After user unlock, readability, original enabled consent and normal checks recovered without consent reset or card consumption. Other untested behavior remains unaccepted. See [current acceptance](QA.md) for status and Windows artifact evidence.
 
