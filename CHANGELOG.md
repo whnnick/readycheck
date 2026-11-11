@@ -1,10 +1,24 @@
 # Changelog
 
+## 0.7.0 - 2026-11-11
+
+- Keep Codex quotas, resets, account benefits, Token history and reminders at the center of the native macOS app.
+- Add DeepSeek balance monitoring and an independent Muse weekly-allowance connection.
+- Show Codex, DeepSeek and Muse together in an aggregate capsule, with service-specific side previews, explicit pinning and animated transitions that respect Reduce Motion.
+- Recover a cached Muse subscription action after a server failure through one bounded rediscovery. Discard unsuccessful cached actions so the next refresh can recover without restarting or clearing the session.
+- Retain the Windows Codex interface and add a Windows-runner gate for the Electron network stack, using synthetic OAuth, refresh, quota and 403 responses through a loopback proxy. Affected-device acceptance is tracked separately in QA.
+
+## 0.7.0-dev.33 - 2026-11-10
+
+- Refine the macOS aggregate capsule with separate Codex quota labels, clearer selection and pin states, and an action menu above a separate drag grip.
+- Fix temporary previews that could remain open after the pointer left through an empty part of the rail.
+- Fade and slide side details into view, then fade them out on dismissal. Respect macOS Reduce Motion and preserve quick reopen behavior.
+
 ## 0.7.0-dev.32 - 2026-11-08
 
 - Add a unified aggregate capsule with Codex 5h/7d, DeepSeek currency balance and Muse weekly quota visible together. Retain their distinct data semantics, freshness and unavailable states; no invented total or balance percentage.
 - Preview each service beside the capsule, with explicit pin/unpin and service-specific refresh/settings/open-main actions. Keep the rail visible and main selection unchanged during previews.
-- Add a draggable, independently remembered aggregate position and inward, screen-clamped details. Existing bubble/card choices, saved positions, snooze and full-screen preferences remain available. Windows changes are limited to version metadata. See the [source candidate and package record](docs/versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev32).
+- Add a draggable, independently remembered aggregate position and inward, screen-clamped details. Existing bubble/card choices, saved positions, snooze and full-screen preferences remain available. Windows metadata only; local development, no public release.
 
 ## 0.7.0-dev.31 - 2026-11-04
 

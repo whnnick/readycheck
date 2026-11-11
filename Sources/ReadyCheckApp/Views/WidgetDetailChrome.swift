@@ -11,11 +11,15 @@ struct WidgetDetailHeader: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(nsImage: ServiceSwitcherIcon.image(name: "readycheck", extension: "png")
-                  ?? NSApplication.shared.applicationIconImage)
-                .resizable().scaledToFit().frame(width: 24, height: 24).accessibilityHidden(true)
+            if let service {
+                AggregateServiceMark(service: service).frame(width: 32, height: 32)
+            } else {
+                Image(nsImage: ServiceSwitcherIcon.image(name: "readycheck", extension: "png")
+                      ?? NSApplication.shared.applicationIconImage)
+                    .resizable().scaledToFit().frame(width: 24, height: 24).accessibilityHidden(true)
+            }
             VStack(alignment: .leading, spacing: 2) {
-                Text("ReadyCheck").font(.system(size: 14, weight: .semibold))
+                Text(service?.title ?? "ReadyCheck").font(.system(size: 14, weight: .semibold))
                 Text(subtitle).font(.system(size: 10)).foregroundStyle(.white.opacity(0.55)).lineLimit(1)
             }
             Spacer(minLength: 6)
@@ -38,10 +42,14 @@ struct WidgetDetailHeader: View {
 
     private var subtitle: String {
         let target = service ?? model.selectedService
-        if target == .muse { return "Muse · " + model.muse.statusText(language: model.language, now: now) }
-        if target == .deepSeek { return "DeepSeek" }
+        if target == .muse {
+            return (service == nil ? "Muse · " : "") + model.muse.statusText(language: model.language, now: now)
+        }
+        if target == .deepSeek {
+            return service == nil ? "DeepSeek" : (model.language == .zhCN ? "API 余额" : "API balance")
+        }
         let snapshot = model.snapshots.first { $0.providerId == "codex-oauth" }
-        return "Codex · " + model.localization.text(snapshot?.availabilityTextKey(now: now) ?? "status.unavailable")
+        return (service == nil ? "Codex · " : "") + model.localization.text(snapshot?.availabilityTextKey(now: now) ?? "status.unavailable")
     }
 }
 
@@ -52,6 +60,7 @@ struct WidgetDetailFooter: View {
 
     private var target: ServiceSettingsTarget { service ?? model.selectedService }
     private var isBalance: Bool { target == .deepSeek }
+    private var actionSize: CGSize { service == nil ? CGSize(width: 16, height: 18) : CGSize(width: 24, height: 24) }
     private var isBusy: Bool {
         switch target { case .codex: model.isRefreshing; case .deepSeek: model.deepSeek.isBusy; case .muse: model.muse.isBusy }
     }
@@ -77,14 +86,17 @@ struct WidgetDetailFooter: View {
                 Group {
                     if isBusy { ProgressView().controlSize(.mini) }
                     else { Image(systemName: "arrow.clockwise") }
-                }.frame(width: 16, height: 18)
+                }.frame(width: actionSize.width, height: actionSize.height).contentShape(Rectangle())
             }.disabled(isBusy)
                 .help(model.localization.text("action.refresh"))
                 .accessibilityLabel(model.localization.text("action.refresh"))
             Button {
                 model.openServiceSettings(target)
                 model.openMainWindowFromWidget()
-            } label: { Image(systemName: "bell").frame(width: 16, height: 18) }
+            } label: {
+                Image(systemName: "bell")
+                    .frame(width: actionSize.width, height: actionSize.height).contentShape(Rectangle())
+            }
                 .help(model.localization.text("navigation.reminders"))
                 .accessibilityLabel(model.localization.text("navigation.reminders"))
             Button(action: openMainWindow) {

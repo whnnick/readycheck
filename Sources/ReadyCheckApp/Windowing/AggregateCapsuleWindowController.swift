@@ -1,4 +1,5 @@
 import AppKit
+import QuartzCore
 import ReadyCheckCore
 import SwiftUI
 
@@ -12,15 +13,25 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
     private weak var model: ReadyCheckAppModel?
     private var host: NSHostingController<AggregateCapsuleView>?
     private var detailHost: NSHostingController<AggregateCapsuleDetailView>?
+    private var detailTargetFrame: CGRect?
+    private var detailDismissal: UUID?
     private var dragOrigin: CGRect?
     private var outsideMonitor: Any?
     private var localMonitor: Any?
     private let visibleFrameProvider: @MainActor (CGRect?) -> CGRect
+    private let pointerLocation: @MainActor () -> CGPoint
+    private let reduceMotionProvider: @MainActor () -> Bool
     var onVisibilityChanged: ((Bool) -> Void)?
     var isPinned: Bool { interaction.state == .pinned }
 
-    init(visibleFrameProvider: @escaping @MainActor (CGRect?) -> CGRect = AggregateCapsuleWindowController.screenVisibleFrame) {
+    init(
+        visibleFrameProvider: @escaping @MainActor (CGRect?) -> CGRect = AggregateCapsuleWindowController.screenVisibleFrame,
+        pointerLocation: @escaping @MainActor () -> CGPoint = { NSEvent.mouseLocation },
+        reduceMotionProvider: @escaping @MainActor () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
+    ) {
         self.visibleFrameProvider = visibleFrameProvider
+        self.pointerLocation = pointerLocation
+        self.reduceMotionProvider = reduceMotionProvider
         super.init()
         interaction.containsPointer = { [weak self] in self?.containsPointer == true }
         interaction.onChange = { [weak self] _ in self?.updateDetail() }
@@ -48,8 +59,11 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         rail = panel
         panel.canStartDrag = { [weak panel] point in
             guard let panel else { return false }
-            return (point.y < 32 || point.y > panel.frame.height - 38)
-                && NSBezierPath(roundedRect: CGRect(origin: .zero, size: panel.frame.size), xRadius: 42, yRadius: 42).contains(point)
+            let radius = AggregateCapsuleView.cornerRadius
+            let isGrip = point.y < AggregateCapsuleView.bottomGripHeight
+                || point.y > panel.frame.height - AggregateCapsuleView.headerHeight
+            return isGrip && NSBezierPath(roundedRect: CGRect(origin: .zero, size: panel.frame.size),
+                                          xRadius: radius, yRadius: radius).contains(point)
         }
         panel.onPointerDown = { [weak self] in
             guard let self else { return }
@@ -85,6 +99,8 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         interaction.hoverChanged(inside)
     }
 
+    func railPointerExited() { interaction.hoverChanged(false) }
+
     func togglePin() { interaction.togglePin() }
     func dismissFromExternalInteraction() {
         if interaction.state == .preview { interaction.collapse() }
@@ -109,9 +125,11 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
     }
 
     func close() {
-        persist(); interaction.reset(); stopMonitors()
+        persist(); interaction.reset()
+        hideDetail(animated: false)
         rail?.delegate = nil; rail?.close(); detail?.close()
         rail = nil; detail = nil; host = nil; detailHost = nil; model = nil
+        detailTargetFrame = nil
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -130,7 +148,9 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
     private func updateRail() {
         guard let model, let rail else { return }
         let view = AggregateCapsuleView(model: model, selected: interaction.state == .collapsed ? nil : service,
-            onSelect: { [weak self] in self?.select($0) }, onHover: { [weak self] in self?.hover($0, inside: $1) })
+            isPinned: isPinned, onSelect: { [weak self] in self?.select($0) },
+            onHover: { [weak self] in self?.hover($0, inside: $1) },
+            onLeaveRail: { [weak self] in self?.railPointerExited() })
         if let host { host.rootView = view }
         else {
             let host = NSHostingController(rootView: view); host.sizingOptions = []
@@ -141,27 +161,102 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
     private func updateDetail() {
         updateRail()
         guard interaction.state != .collapsed, let model, let rail else {
-            detail?.orderOut(nil); stopMonitors(); return
+            hideDetail(animated: !interaction.isDragging)
+            return
         }
         let visible = visibleFrame(for: rail.frame)
-        guard visible.width > 0, visible.height > 0 else { detail?.orderOut(nil); stopMonitors(); return }
+        guard visible.width > 0, visible.height > 0 else {
+            hideDetail(animated: false)
+            return
+        }
         let frame = AggregateCapsulePlacement.detailFrame(beside: rail.frame, in: visible)
+        guard frame.width > 0, frame.height > 0 else {
+            hideDetail(animated: false)
+            return
+        }
         let panel = detail ?? QuotaWidgetPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         configure(panel, model: model)
+        panel.animationBehavior = .none
         panel.title = "ReadyCheck · " + service.rawValue
         let view = AggregateCapsuleDetailView(model: model, service: service, isPinned: isPinned,
-            onTogglePin: { [weak self] in self?.togglePin() }, onHover: { [weak self] in self?.interaction.hoverChanged($0) })
+            onTogglePin: { [weak self] in self?.togglePin() }, onHover: { [weak self] inside in
+                guard let self, !inside || self.interaction.state != .collapsed else { return }
+                self.interaction.hoverChanged(inside)
+            })
         if let detailHost { detailHost.rootView = view }
         else {
             let host = NSHostingController(rootView: view); host.sizingOptions = []
             panel.contentViewController = host; detailHost = host
         }
         detail = panel
-        panel.setFrame(frame, display: true)
+        presentDetail(panel, frame: frame, beside: rail.frame)
+        startMonitors()
+    }
+
+    private func presentDetail(_ panel: QuotaWidgetPanel, frame: CGRect, beside railFrame: CGRect) {
+        let isEntering = !panel.isVisible
+        let isReopening = detailDismissal != nil
+        let animate = !reduceMotionProvider() && (isEntering || isReopening)
+        detailDismissal = nil
+        panel.ignoresMouseEvents = false
         panel.allowsKeyboard = isPinned
+
+        if isEntering {
+            let towardRail: CGFloat = frame.midX < railFrame.midX ? 6 : -6
+            panel.alphaValue = animate ? 0 : 1
+            panel.setFrame(animate ? frame.offsetBy(dx: towardRail, dy: 0) : frame, display: true)
+        } else if detailTargetFrame != frame {
+            panel.setFrame(frame, display: true)
+        }
+        detailTargetFrame = frame
+
         if isPinned { panel.makeKeyAndOrderFront(nil) }
         else { panel.resignKey(); panel.orderFrontRegardless() }
-        startMonitors()
+
+        if animate {
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.16
+                context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                panel.animator().alphaValue = 1
+                if isEntering { panel.animator().setFrame(frame, display: true) }
+            }
+        } else if isReopening {
+            panel.alphaValue = 1
+        }
+    }
+
+    private func hideDetail(animated: Bool) {
+        stopMonitors()
+        guard let panel = detail else { return }
+        panel.allowsKeyboard = false
+        if panel.isKeyWindow { panel.resignKey() }
+        panel.ignoresMouseEvents = true
+
+        guard panel.isVisible, animated, !reduceMotionProvider() else {
+            finishDetailDismissal(panel)
+            return
+        }
+        guard detailDismissal == nil else { return }
+
+        let dismissal = UUID()
+        detailDismissal = dismissal
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.10
+            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            panel.animator().alphaValue = 0
+        }, completionHandler: { [weak self, weak panel] in
+            Task { @MainActor in
+                // A new preview may have reused this panel before the fade finished.
+                guard let self, let panel, self.detailDismissal == dismissal else { return }
+                self.finishDetailDismissal(panel)
+            }
+        })
+    }
+
+    private func finishDetailDismissal(_ panel: QuotaWidgetPanel) {
+        detailDismissal = nil
+        panel.orderOut(nil)
+        panel.alphaValue = 1
     }
 
     func finishDrag() {
@@ -173,11 +268,11 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
     }
 
     private var containsPointer: Bool {
-        [(rail as QuotaWidgetPanel?, CGFloat(42)), (detail, CGFloat(24))].contains { panel, radius in
-            guard let panel, panel.isVisible else { return false }
+        [(rail as QuotaWidgetPanel?, AggregateCapsuleView.cornerRadius), (detail, CGFloat(24))].contains { panel, radius in
+            guard let panel, panel.isVisible, !panel.ignoresMouseEvents else { return false }
             let rect = CGRect(origin: .zero, size: panel.frame.size)
             return NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius)
-                .contains(panel.convertPoint(fromScreen: NSEvent.mouseLocation))
+                .contains(panel.convertPoint(fromScreen: pointerLocation()))
         }
     }
 
@@ -192,7 +287,10 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         rail.setFrame(AggregateCapsulePlacement.restoredFrame(from: rail.frame, in: visible), display: true)
         persist(); updateDetail()
     }
-    @objc private func spaceChanged() { interaction.spaceChanged() }
+    @objc private func spaceChanged() {
+        hideDetail(animated: false)
+        interaction.spaceChanged()
+    }
 
     private func startMonitors() {
         stopMonitors()

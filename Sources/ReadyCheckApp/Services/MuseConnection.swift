@@ -119,8 +119,10 @@ final class MuseWebSession: NSObject, MuseUsageReading, WKNavigationDelegate, WK
         }
         guard let url = Bundle.module.url(forResource: "MuseSubscription", withExtension: "js"),
               let script = try? String(contentsOf: url, encoding: .utf8) else { throw MuseUsageError.responseChanged }
+        let cachedActionID = actionID
+        actionID = ""
         let value: Any?
-        do { value = try await Self.runReaderScript(script, actionID: actionID, in: webView) }
+        do { value = try await Self.runReaderScript(script, actionID: cachedActionID, in: webView) }
         catch { throw MuseUsageError.network }
         guard let text = value as? String, let data = text.data(using: .utf8), data.count <= 524_288,
               let envelope = try? JSONDecoder().decode(Envelope.self, from: data) else {
@@ -135,7 +137,7 @@ final class MuseWebSession: NSObject, MuseUsageReading, WKNavigationDelegate, WK
             case "loginRequired": throw MuseUsageError.loginRequired
             case "timedOut": throw MuseUsageError.timedOut
             case "network": throw MuseUsageError.network
-            default: actionID = ""; throw MuseUsageError.responseChanged
+            default: throw MuseUsageError.responseChanged
             }
         }
         guard let flight = envelope.flight else {

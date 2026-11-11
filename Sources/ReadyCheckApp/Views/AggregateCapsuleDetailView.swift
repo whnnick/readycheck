@@ -48,7 +48,6 @@ struct AggregateCapsuleDetailView: View {
     @ViewBuilder private var codexDetails: some View {
         let snapshot = model.snapshots.first { $0.providerId == "codex-oauth" }
         if let snapshot {
-            Text("Codex").font(.headline)
             ForEach(snapshot.windows.filter(QuotaWindowPresentation.shouldShow)) { window in
                 let ratio = NotchStatusView.ratio(for: window, snapshot: snapshot, now: now)
                 VStack(alignment: .leading, spacing: 7) {
@@ -68,7 +67,6 @@ struct AggregateCapsuleDetailView: View {
                     }
                 }
             }
-            Text(model.localization.text(snapshot.availabilityTextKey(now: now))).font(.caption).foregroundStyle(.secondary)
         } else {
             Text(model.language == .zhCN ? "Codex 尚无额度读数，请在连接设置中重试。" : "No Codex reading. Retry in connection settings.")
                 .font(.callout).foregroundStyle(.secondary)

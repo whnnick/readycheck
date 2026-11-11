@@ -2,11 +2,15 @@
 
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Codex 还剩多少额度，什么时候重置，一眼看清。</strong></p>
-<p align="center">以 Codex 为核心的开源用量监控。Mac 聚合胶囊同时显示 Codex 额度、DeepSeek API 余额和 Meta Muse 周额度。</p>
+<p align="center">以 Codex 为核心的轻量、免费、开源监控工具：额度、Token 用量、账户权益与提醒。</p>
 <p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.0-dev.32"><img src="https://img.shields.io/badge/source-0.7.0--dev.32-3979ef" alt="源码 0.7.0-dev.32"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
-<p align="center"><a href="#从这里开始">从这里开始</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#source-candidate-dev32">当前更新</a> · <a href="docs/versions/0.7.0/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">版本索引</a></p>
+<p align="center"><a href="#从这里开始">从这里开始</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#candidate-070">当前更新</a> · <a href="docs/versions/0.7.0/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">版本索引</a></p>
 
-源码候选 **0.7.0-dev.32** 新增 **聚合胶囊**，Codex、DeepSeek、Muse 同时可见。已在本机安装，三项服务的真实读取与手动刷新已核验。[设计](docs/versions/0.7.0/AGGREGATE_CAPSULE.zh-CN.md) · [更新说明](docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#local-dev32) · [验收](docs/versions/0.7.0/QA.zh-CN.md)。
+本机已安装 **0.7.0 正式候选**，包含聚合胶囊、侧边详情动效及 Muse 订阅接口缓存恢复修复。[更新说明](docs/versions/0.7.0/RELEASE_NOTES.zh-CN.md#candidate-070) · [验收](docs/versions/0.7.0/QA.zh-CN.md)。
+
+候选安装版的 Codex、DeepSeek、Muse 真实读数及手动刷新均通过。[当前状态](docs/versions/0.7.0/QA.zh-CN.md)。
+
+本机 0.7.0 正式候选的安装包为 `ReadyCheck-0.7.0-macos.dmg` 与 `ReadyCheck-0.7.0-windows-x64-portable.zip`，验证进度见[验收记录](docs/versions/0.7.0/QA.zh-CN.md)。
 
 <img src="docs/versions/0.7.0/evidence/dev32-aggregate-overview-zh-CN.png" width="470" alt="聚合胶囊与侧边详情合成界面，数值均为测试数据" />
 
@@ -18,10 +22,10 @@
 | **最新可下载预览** | **0.7.0-dev.23** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) |
 | 稳定发布通道 | 0.6.1 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-windows-x64-portable.zip) |
 
-dev.32 提供源码标签和本地制包记录。公开预览下载见上表的 dev.23，稳定下载见 0.6.1。[验收与校验值](docs/versions/0.7.0/QA.zh-CN.md#dev32-package-verification)。
+Dev.32 源码/tag 及本机安装包验证见[验收记录](docs/versions/0.7.0/QA.zh-CN.md)。公开安装包下载位于 dev.23。下方截图沿用各自标注的源码版本。
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-overview-zh.png" alt="ReadyCheck dev.28 原生 Codex 总览：5小时与7天剩余额度、重置节点及本机历史；合成数据" width="760"></p>
-<p align="center"><sub>Codex 总览示例（dev.28）。所有截图均使用合成数据。</sub></p>
+<p align="center"><sub>当前 dev.28 Codex 界面。所有截图均使用合成数据，不是真实账户。</sub></p>
 
 ## 围绕 Codex 的日常使用
 
@@ -40,11 +44,10 @@ dev.32 提供源码标签和本地制包记录。公开预览下载见上表的 
 
 <table>
 <tr><th>Codex 悬浮胶囊</th><th>Codex 刘海详情</th></tr>
-<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-capsule-zh.png" alt="Codex 单服务胶囊示例：额度、重置与近一小时趋势；合成数据" width="360"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-notch-zh.png" alt="Codex 刘海详情示例；合成数据" width="360"></td></tr>
+<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-capsule-zh.png" alt="当前 Codex 胶囊展开视图：额度、重置与近一小时趋势；合成数据" width="360"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-notch-zh.png" alt="当前 Codex 刘海展开详情；合成数据" width="360"></td></tr>
 </table>
 
 - **选择顺手的入口。** 菜单栏、悬浮胶囊/贴边、信息卡片或点击展开的刘海，保留记忆位置及显示控件。
-- **同时看三项服务。** 在**设置 → 显示**选择聚合胶囊，侧边预览各服务详情，并可单独刷新。
 - **需要时展开。** 悬停或普通点击胶囊只预览；显式固定按钮保持展开，点击内容保留选择。固定展开与窗口置顶独立。
 - **从摘要回到详情。** 在小窗中刷新、查看提醒或打开 ReadyCheck 主窗口，继续检查额度、历史与账户权益。
 
@@ -54,7 +57,7 @@ macOS 还支持独立的 DeepSeek API Key 连接：按币种显示官方余额�
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-expanded.png" alt="补充能力：DeepSeek 原生余额详情与本机观测减少；合成数据" width="440"></p>
 
-## 补充支持：Meta Muse 应用周额度
+## 补充支持：Meta Muse 应用周额度（本机 dev.31）
 
 在**设置 → 连接 → Muse** 中打开独立登录窗口，登录后点击“完成并读取额度”。提供周剩余额度、重置、套餐及服务端提供的额外额度/续期标签，每 5 分钟自动刷新，支持总览、菜单栏、胶囊、贴边、卡片与刘海。此连接面向 muse.ai 个人助手，当前不含逐日 Token 历史或 Muse 专属提醒。
 
@@ -80,7 +83,7 @@ Codex 与 DeepSeek 已有真实连接验收；Muse 已通过本机真实登录�
 
 | 平台 | 当前范围 |
 | --- | --- |
-| **macOS / Apple 芯片 / 14+** | dev.32 将 Codex、DeepSeek 和 Muse 聚合到一个胶囊。**538 项 Swift 测试和 9 项 JavaScript 测试通过**，另有 3 项按需生成视觉证据的测试跳过。[验收](docs/versions/0.7.0/QA.zh-CN.md) · [功能保留](docs/versions/0.7.0/RELEASE_AUDIT.zh-CN.md)。Mac 包沿用稳定自签名预览身份，未使用 Developer ID 签名或公证。 |
+| **macOS / Apple 芯片 / 14+** | 本机 dev.32 将 Codex、DeepSeek 和 Muse 聚合到一个胶囊。**59 项专项 Swift、9 项 JavaScript 与 29 项解锁后的原生窗口测试通过**。[验收](docs/versions/0.7.0/QA.zh-CN.md) · [功能保留](docs/versions/0.7.0/RELEASE_AUDIT.zh-CN.md)。Mac 包沿用稳定自签名预览身份，未使用 Developer ID 签名或公证。 |
 | **Windows x64** | 独立 Electron Codex 客户端与便携 ZIP，保留原界面，不含 Mac 的 DeepSeek/Muse/刘海新能力。制包/check/smoke/UI-smoke 已通过；已报告的 OAuth 403 与 Windows 实机验收仍待完成。[Windows QA](docs/WINDOWS_QA.zh-CN.md)。 |
 
 其他账号、全部显示/Spaces/全屏组合、系统登录及每种真实提醒边界尚未全面验收，实际证据和发布门槛见[黑盒检查](docs/versions/0.7.0/QA.zh-CN.md)。

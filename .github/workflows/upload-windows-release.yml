@@ -15,7 +15,41 @@ permissions:
   contents: write
 
 jobs:
+  windows-runtime-checks:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/windows
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/windows/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check services
+        run: npm run check
+
+      - name: Check application wiring
+        run: npm run smoke
+
+      - name: Check UI behavior
+        run: npm run smoke:ui
+
+      - name: Check Electron network stack
+        run: npm run smoke:network
+
   upload-windows-release:
+    needs: windows-runtime-checks
     runs-on: ubuntu-latest
 
     steps:

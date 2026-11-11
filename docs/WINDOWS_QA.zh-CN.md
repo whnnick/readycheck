@@ -2,7 +2,7 @@
 
 [English](WINDOWS_QA.md) | 中文
 
-当前基线：dev.32 为已验证源码/打包候选，公开预览下载仍为 dev.23、稳定版为0.6.1。制包/check/smoke/UI-smoke 已通过；已报告的 OAuth 403 及 Windows 实机路径仍待验，见[当前 Windows 范围](WINDOWS.zh-CN.md)。
+当前基线：dev.28 为已验证源码/打包候选，公开预览下载仍为 dev.23、稳定版为0.6.1。制包/check/smoke/UI-smoke 已通过；已报告的 OAuth 403 及 Windows 实机路径仍待验，见[当前 Windows 范围](WINDOWS.zh-CN.md)。
 
 这份手册用于在 Windows 10/11 电脑上验证 ReadyCheck Windows 预览版。不要把 token、回调 URL、account id 或原始 usage 响应上传到 GitHub Issue、截图或聊天里。
 

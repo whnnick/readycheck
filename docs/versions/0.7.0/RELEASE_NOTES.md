@@ -1,10 +1,23 @@
-<a id="source-candidate-dev32"></a>
+<a id="candidate-070"></a>
 
-## Source and packaged candidate 0.7.0-dev.32 (2026-11-10)
+## 0.7.0 release candidate (2026-11-11)
 
-This candidate includes the aggregate capsule and the Muse read-after-sign-in fix. The Mac and Windows packages are verified locally. See [version channels](../../VERSIONS.md) for public downloads and [QA](QA.md#dev32-package-verification) for checksums and device coverage.
+- Codex remains the primary experience for quotas, resets, account benefits, Token history and reminders.
+- The aggregate capsule brings Codex, DeepSeek balance and Muse weekly allowance together. Side details support previews, explicit pinning and Reduce Motion-aware transitions.
+- Fix failed Muse subscription-action caching. A cached server error triggers one rediscovery, and unsuccessful reads discard the cached action for the next retry.
+- Mac 0.7.0 is installed locally. The current verification, Windows runtime gate, package digests and distribution limits are recorded in [QA](QA.md#2026-11-11--070-release-candidate).
+
+<a id="local-dev33"></a>
+
+## Local development 0.7.0-dev.33 — capsule interaction and motion (2026-11-10)
+
+- Refined the aggregate capsule and added fade/slide transitions for side details, including Reduce Motion and rapid reopening.
+- Installed acceptance covers three-service readings, explicit pinning, Escape, reopening and the user's Codex hover/header-exit check. All eight sampled display preferences matched the upgrade baseline.
+- The capsule regression passed 37 focused Swift tests. The versioned candidate passed 12 focused tests. Isolated v0.6.1 upgrade/rollback data checks and Windows package checks also passed. [Evidence and remaining stable-release gates](QA.md).
 
 <a id="local-dev30"></a>
+
+<a id="source-candidate-dev32"></a>
 
 <a id="local-dev32"></a>
 

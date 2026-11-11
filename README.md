@@ -2,11 +2,15 @@
 
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Know your Codex quota. See when it resets.</strong></p>
-<p align="center">An open-source Codex usage monitor. The Mac capsule shows Codex quota, DeepSeek API balance and Meta Muse weekly quota together.</p>
+<p align="center">A lightweight, free, open-source Codex monitor for quotas, Token usage, account benefits and reminders.</p>
 <p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.0-dev.32"><img src="https://img.shields.io/badge/source-0.7.0--dev.32-3979ef" alt="Source 0.7.0-dev.32"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
-<p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.md#source-candidate-dev32">Current changes</a> · <a href="docs/versions/0.7.0/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
+<p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.0/RELEASE_NOTES.md#candidate-070">Current changes</a> · <a href="docs/versions/0.7.0/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
 
-Source candidate **0.7.0-dev.32** adds an **aggregate capsule** with Codex, DeepSeek and Muse visible together. It is installed locally, with live reads and manual refresh verified for all three services. [Design](docs/versions/0.7.0/AGGREGATE_CAPSULE.md) · [Notes](docs/versions/0.7.0/RELEASE_NOTES.md#local-dev32) · [Acceptance](docs/versions/0.7.0/QA.md).
+Local **0.7.0 release candidate** is installed, with the aggregate capsule, animated side details and the Muse subscription-cache recovery fix. [Notes](docs/versions/0.7.0/RELEASE_NOTES.md#candidate-070) · [Acceptance](docs/versions/0.7.0/QA.md).
+
+Codex, DeepSeek and Muse reads and manual refresh passed in the installed candidate. [Current status](docs/versions/0.7.0/QA.md).
+
+The local 0.7.0 release candidate uses `ReadyCheck-0.7.0-macos.dmg` and `ReadyCheck-0.7.0-windows-x64-portable.zip`. Validation is tracked in [QA](docs/versions/0.7.0/QA.md).
 
 <img src="docs/versions/0.7.0/evidence/dev32-aggregate-overview-en-US.png" width="470" alt="Aggregate capsule and side detail with synthetic test values" />
 
@@ -18,10 +22,10 @@ Source candidate **0.7.0-dev.32** adds an **aggregate capsule** with Codex, Deep
 | **Latest downloadable preview** | **0.7.0-dev.23** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) |
 | Stable release channel | 0.6.1 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.6.1/ReadyCheck-0.6.1-windows-x64-portable.zip) |
 
-Dev.32 has a source tag and verified local packages. The table links to dev.23 for the downloadable preview and 0.6.1 for the stable release. [Checks and checksums](docs/versions/0.7.0/QA.md#dev32-package-verification).
+Dev.32 source/tag and local package verification are recorded in the [acceptance notes](docs/versions/0.7.0/QA.md). Public installer downloads are available through dev.23. Screenshots below retain their labelled source versions.
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-overview-en.png" alt="ReadyCheck dev.28 native Codex overview with 5-hour and 7-day remaining quotas, reset events and local history; synthetic data" width="760"></p>
-<p align="center"><sub>Codex Overview example from dev.28. All screenshots use synthetic data.</sub></p>
+<p align="center"><sub>Current dev.28 Codex interface. All screenshots use synthetic data, not a real account.</sub></p>
 
 ## Built around everyday Codex use
 
@@ -40,11 +44,10 @@ Account fields depend on returned data; missing values are not invented. ReadyCh
 
 <table>
 <tr><th>Codex floating capsule</th><th>Codex notch details</th></tr>
-<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-capsule-en.png" alt="Example expanded Codex capsule with quota, reset and last-hour trend; synthetic data" width="360"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-notch-en.png" alt="Example Codex notch details; synthetic data" width="360"></td></tr>
+<tr><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-capsule-en.png" alt="Current expanded Codex capsule with quota, reset and last-hour trend; synthetic data" width="360"></td><td align="center"><img src="docs/versions/0.7.0/evidence/dev28-codex-notch-en.png" alt="Current Codex notch details; synthetic data" width="360"></td></tr>
 </table>
 
 - **Choose your surface.** Menu bar, floating capsule/edge strip, information card or click-to-expand notch, with saved positions and display controls.
-- **See three services together.** Choose Aggregate capsule under **Settings → Display** to preview and refresh each service in its own side panel.
 - **Expand when needed.** Hover or ordinary-click a capsule to preview. The explicit pin button keeps it open; content clicks preserve that choice. Pinning is separate from window always-on-top.
 - **Return to the details.** Refresh, inspect reminders or open ReadyCheck from the small view to review quota, history and account benefits.
 
@@ -54,7 +57,7 @@ The Mac client also supports a separate DeepSeek API Key connection: official ba
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/dev28-balance-notch-en.png" alt="Additional capability: native DeepSeek balance details and locally observed decreases; synthetic data" width="440"></p>
 
-## Also supported: Meta Muse app weekly usage
+## Also supported: Meta Muse app weekly usage (local dev.31)
 
 Open **Settings → Connection → Muse**, sign in through the separate window, then choose **Read usage and finish**. It reads weekly remaining allowance, reset, plan and available provider labels for additional allowance/renewal, refreshing every five minutes. Overview, menu bar, capsule, edge, card and notch views are wired. This connection is for the muse.ai personal agent; daily Token history and dedicated Muse reminders are not included.
 
@@ -80,7 +83,7 @@ Missing samples stay blank. Old/failed readings retain their status and original
 
 | Platform | Current scope |
 | --- | --- |
-| **macOS / Apple silicon / 14+** | Dev.32 includes Codex, DeepSeek and Muse in one capsule. **538 Swift tests and 9 JavaScript tests passed**. Three opt-in visual evidence tests were skipped. [Acceptance](docs/versions/0.7.0/QA.md) · [Retention](docs/versions/0.7.0/RELEASE_AUDIT.md). Mac packages use the existing self-signed preview identity, without Developer ID signing or notarization. |
+| **macOS / Apple silicon / 14+** | Local dev.32 includes Codex, DeepSeek and Muse in one capsule. **59 focused Swift tests, 9 JavaScript tests and 29 unlocked native window checks passed**. [Acceptance](docs/versions/0.7.0/QA.md) · [Retention](docs/versions/0.7.0/RELEASE_AUDIT.md). Mac packages use the existing self-signed preview identity, without Developer ID signing or notarization. |
 | **Windows x64** | Separate Electron Codex client and portable ZIP. It retains its existing interface and does not include the Mac DeepSeek/Muse/notch features. Packaging/check/smoke/UI-smoke passed; the reported Windows OAuth 403 and hardware acceptance remain pending. [Windows QA](docs/WINDOWS_QA.md). |
 
 Other accounts, all display/Spaces/fullscreen combinations, OS login and every live reminder boundary are not comprehensively accepted. Current evidence and release gates are recorded in [black-box checks](docs/versions/0.7.0/QA.md).

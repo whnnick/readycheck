@@ -53,9 +53,13 @@ try {
             headers: {Accept: "text/x-component", "Content-Type": "text/plain;charset=UTF-8", "Next-Action": action},
             body: JSON.stringify([{includeAgreement: true}])});
     };
-    let action = /^[0-9a-f]{40,64}$/.test(cachedActionID || "") ? cachedActionID : await discover();
+    const hasCachedAction = /^[0-9a-f]{40,64}$/.test(cachedActionID || "");
+    let action = hasCachedAction ? cachedActionID : await discover();
     let response = await post(action);
-    if (response.status === 404) { action = await discover(); response = await post(action); }
+    if (response.status === 404 || (hasCachedAction && response.status >= 500)) {
+        action = await discover();
+        response = await post(action);
+    }
     if (response.status === 401 || response.status === 403) return JSON.stringify({error: "loginRequired", stage});
     if (!response.ok) return JSON.stringify({error: response.status === 404 ? "responseChanged" : "network", stage});
     const body = await response.text();

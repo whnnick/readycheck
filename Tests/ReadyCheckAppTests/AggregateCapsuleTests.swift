@@ -16,7 +16,8 @@ final class AggregateCapsuleTests: XCTestCase {
             let readings = AggregateServiceSummary.readings(model: model, now: now)
             XCTAssertEqual(readings.map(\.id), [.codex, .deepSeek, .muse])
             XCTAssertEqual(readings[0].value, "82%")
-            XCTAssertEqual(readings[0].caption, "5h · 7d 64%")
+            XCTAssertEqual(readings[0].primaryPeriod, "5h")
+            XCTAssertEqual(readings[0].caption, "7d 64%")
             XCTAssertEqual(readings[0].rings.count, 2)
             XCTAssertEqual(readings[1].caption, "CNY")
             XCTAssertFalse(readings[1].value.contains("%"))
@@ -36,6 +37,7 @@ final class AggregateCapsuleTests: XCTestCase {
                 windows: old.windows.filter { $0.durationMinutes == 10_080 }, errors: [], ordinaryUsageAllowed: true)]
             let reading = try XCTUnwrap(AggregateServiceSummary.readings(model: model, now: Date()).first)
             XCTAssertEqual(reading.value, "64%")
+            XCTAssertEqual(reading.primaryPeriod, "7d")
             XCTAssertFalse(reading.caption.contains("5h"))
             XCTAssertEqual(reading.rings.count, 1)
         }
@@ -47,11 +49,16 @@ final class AggregateCapsuleTests: XCTestCase {
             let previous = defaults.object(forKey: key)
             let legacy = defaults.object(forKey: "ReadyCheck.bubbleWidgetFrame.v1") as? String
             let visible = CGRect(x: 0, y: 0, width: 1440, height: 900)
-            let controller = AggregateCapsuleWindowController(visibleFrameProvider: { _ in visible })
+            let controller = AggregateCapsuleWindowController(
+                visibleFrameProvider: { _ in visible }, reduceMotionProvider: { true }
+            )
             defer { controller.close(); if let previous { defaults.set(previous, forKey: key) } else { defaults.removeObject(forKey: key) } }
             controller.show(model: model)
-            let frame = try XCTUnwrap(controller.rail).frame
+            let rail = try XCTUnwrap(controller.rail)
+            let frame = rail.frame
             XCTAssertEqual(frame.size, AggregateCapsulePlacement.size)
+            XCTAssertTrue(rail.canStartDrag(CGPoint(x: frame.width / 2, y: 6)))
+            XCTAssertFalse(rail.canStartDrag(CGPoint(x: frame.width / 2, y: 22)), "The menu is outside the drag grip")
             let selection = model.selectedService
             controller.select(.muse)
             XCTAssertTrue(controller.rail?.isVisible == true)
@@ -84,6 +91,113 @@ final class AggregateCapsuleTests: XCTestCase {
         }
     }
 
+    func testWindowLevelChangesPreservePinningAndPlacement() async throws {
+        try await withFixture { model in
+            let defaults = UserDefaults.standard
+            let key = AggregateCapsuleWindowController.frameKey
+            let previous = defaults.object(forKey: key)
+            let controller = AggregateCapsuleWindowController(reduceMotionProvider: { true })
+            defer {
+                controller.close()
+                if let previous { defaults.set(previous, forKey: key) }
+                else { defaults.removeObject(forKey: key) }
+            }
+            controller.show(model: model)
+            controller.select(.codex)
+            let rail = try XCTUnwrap(controller.rail)
+            let detail = try XCTUnwrap(controller.detail)
+            let railFrame = rail.frame
+            let detailFrame = detail.frame
+            controller.updateLevel(alwaysOnTop: false)
+            XCTAssertEqual(rail.level, .normal)
+            XCTAssertEqual(detail.level, .normal)
+            XCTAssertFalse(controller.isPinned)
+            controller.togglePin()
+            controller.updateLevel(alwaysOnTop: true)
+            XCTAssertEqual(rail.level, .floating)
+            XCTAssertEqual(detail.level, .floating)
+            XCTAssertTrue(controller.isPinned)
+            controller.updateLevel(alwaysOnTop: false)
+            XCTAssertTrue(controller.isPinned)
+            XCTAssertEqual(rail.frame, railFrame)
+            XCTAssertEqual(detail.frame, detailFrame)
+            controller.togglePin()
+            controller.dismissFromExternalInteraction()
+            XCTAssertFalse(detail.isVisible)
+            XCTAssertTrue(rail.isVisible)
+            XCTAssertEqual(rail.frame, railFrame)
+        }
+    }
+
+    func testLeavingRailChromeDismissesPreviewAfterLeavingAServiceRow() async throws {
+        try await withFixture { model in
+            let key = AggregateCapsuleWindowController.frameKey
+            let previous = UserDefaults.standard.object(forKey: key)
+            let pointer = TestPointer()
+            let controller = AggregateCapsuleWindowController(
+                visibleFrameProvider: { _ in CGRect(x: 0, y: 0, width: 1440, height: 900) },
+                pointerLocation: { pointer.location }, reduceMotionProvider: { true }
+            )
+            defer {
+                controller.close()
+                UserDefaults.standard.set(previous, forKey: key)
+            }
+            controller.show(model: model)
+            let frame = try XCTUnwrap(controller.rail).frame
+            controller.select(.muse)
+
+            pointer.location = CGPoint(x: frame.midX, y: frame.maxY - 19)
+            controller.hover(.muse, inside: false)
+            try await Task.sleep(for: .milliseconds(300))
+            XCTAssertTrue(controller.detail?.isVisible == true, "The pointer is still over the rail header")
+
+            pointer.location = CGPoint(x: frame.midX, y: frame.maxY + 30)
+            controller.railPointerExited()
+            try await Task.sleep(for: .milliseconds(300))
+            XCTAssertFalse(controller.detail?.isVisible == true, "Leaving from the header must start dismissal again")
+            XCTAssertTrue(controller.rail?.isVisible == true)
+        }
+    }
+
+    func testReopeningWhileFadingOutKeepsTheNewPreviewVisible() async throws {
+        try await withFixture { model in
+            let key = AggregateCapsuleWindowController.frameKey
+            let previous = UserDefaults.standard.object(forKey: key)
+            let visible = CGRect(x: 0, y: 0, width: 1440, height: 900)
+            let controller = AggregateCapsuleWindowController(
+                visibleFrameProvider: { _ in visible }, reduceMotionProvider: { false }
+            )
+            defer {
+                controller.close()
+                UserDefaults.standard.set(previous, forKey: key)
+            }
+            controller.show(model: model)
+            let railFrame = try XCTUnwrap(controller.rail).frame
+            let restingFrame = AggregateCapsulePlacement.detailFrame(beside: railFrame, in: visible)
+            controller.select(.codex)
+            let detail = try XCTUnwrap(controller.detail)
+            XCTAssertTrue(detail.isVisible)
+            try await Task.sleep(for: .milliseconds(300))
+            XCTAssertEqual(detail.frame, restingFrame)
+            XCTAssertEqual(detail.alphaValue, 1, accuracy: 0.01)
+
+            controller.dismissFromExternalInteraction()
+            XCTAssertTrue(detail.ignoresMouseEvents, "A fading panel cannot intercept clicks")
+            controller.select(.muse)
+            XCTAssertEqual(controller.service, .muse)
+            XCTAssertFalse(detail.ignoresMouseEvents)
+            try await Task.sleep(for: .milliseconds(300))
+            XCTAssertTrue(detail.isVisible, "The old dismissal must not hide the reopened panel")
+            XCTAssertEqual(detail.alphaValue, 1, accuracy: 0.01)
+            XCTAssertEqual(detail.frame, restingFrame)
+
+            controller.dismissFromExternalInteraction()
+            try await Task.sleep(for: .milliseconds(300))
+            XCTAssertFalse(detail.isVisible)
+            XCTAssertTrue(controller.rail?.isVisible == true)
+        }
+    }
+
     func testUnavailableScreenDoesNotPersistAZeroSizedCapsule() async throws {
         try await withFixture { model in
             let before = UserDefaults.standard.object(forKey: AggregateCapsuleWindowController.frameKey) as? String
@@ -102,7 +216,7 @@ final class AggregateCapsuleTests: XCTestCase {
                 try capture(AnyView(AggregateCapsuleView(model: model, selected: .codex, onSelect: { _ in }, onHover: { _, _ in })),
                     size: AggregateCapsulePlacement.size, name: "rail-\(language.rawValue)")
                 let pair = HStack(spacing: 10) {
-                    AggregateCapsuleDetailView(model: model, service: .codex, isPinned: true, onTogglePin: {}, onHover: { _ in })
+                    AggregateCapsuleDetailView(model: model, service: .codex, isPinned: false, onTogglePin: {}, onHover: { _ in })
                         .frame(width: 360, height: 400)
                     AggregateCapsuleView(model: model, selected: .codex, onSelect: { _ in }, onHover: { _, _ in })
                         .frame(width: 84, height: 392)
@@ -117,6 +231,10 @@ final class AggregateCapsuleTests: XCTestCase {
                     size: CGSize(width: 530, height: 130), name: "picker-\(language.rawValue)")
             }
         }
+    }
+
+    @MainActor private final class TestPointer {
+        var location = CGPoint.zero
     }
 
     private func capture(_ view: AnyView, size: CGSize, name: String) throws {

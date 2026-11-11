@@ -1,5 +1,71 @@
 # 0.7.0 — 原生与原型黑盒功能检查
 
+## 2026-11-11 — 0.7.0 正式候选
+
+### Muse 恢复
+
+dev.33 在保留登录会话时反复订阅读取失败，正常退出重开后真实读数恢复。旧读取器会保留失败的接口缓存，仅 HTTP 404 会触发重新发现。新增两项离线回归在修复前复现了缓存接口的服务端错误与持续失败边界。修复后，缓存接口返回服务端错误时最多重新发现并重试一次；每次读取前清除缓存，仅在响应解析成功后重新保存。鉴权失败直接停止重新发现。原故障的精确 HTTP 状态未被捕获，因此网站部署/接口缓存解释仍是基于重启恢复和已复现缓存缺陷的推断。
+
+### 验证与安装
+
+- 完整 Swift 回归 543 项零失败；随后新增的原生窗口层级测试单独通过，核对胶囊与详情层级、固定状态及位置保持。
+- 11 项 Muse JavaScript 测试全部通过。Windows check、smoke 和 UI smoke 在 Node 24 下通过。新增 Electron 真实运行时测试已在这台 Mac 通过，使用本机代理和合成响应验证 OAuth、令牌刷新、额度、重置元数据及 403 提示。Windows 发布上传新增 Windows 运行器门槛，其结果待回读。
+- 公开源码导出与开发树 234 份源码/测试文件一致。发布版本一致性、挂载 DMG 严格签名、候选与安装版签名要求一致、内置 Muse 读取器内容一致和二进制私人主目录路径检查通过。
+- 已从核验的 DMG 安装 0.7.0，保留 dev.33 应用备份；安装版可执行文件与 DMG 一致。Codex 在系统钥匙串确认后恢复，Muse 保留会话并返回新读数，下一次自动读取也恢复。DeepSeek 在单独的系统确认后恢复原余额，三项服务手动刷新完成。同一应用包正常退出重开后，Codex 和 DeepSeek 连接保留且未再次要求凭据授权，重启后三项读数均恢复，最终关闭主窗口，保留 Codex 选择和可见胶囊。
+- 13 项白名单显示偏好全部与安装前一致，包括精确保存帧和 Codex 选择。安装版中英文界面与原生菜单同步、恢复中文、显示/连接/通用/关于入口、置顶关闭再恢复及手动更新检查通过，更新检查返回已是最新版本。
+
+### 保留基线与设备边界
+
+0.6.1/0.6.0 版本审计已记录硬件组合和真实异常分支的边界。下列未修改路径已逐文件核对与 v0.6.1 完全一致，并通过当前完整回归；当前原生入口/渲染测试和安装版观察补充该基线。未实际执行的设备检查继续保留其范围说明。
+
+| 功能编号 | 完全保留的正式代码文件 |
+| --- | --- |
+| A05 | `Models/QuotaModels.swift` |
+| A08 | `Scheduling/RefreshScheduler.swift` |
+| C04、G06 | `Stores/QuotaHistoryStore.swift` |
+| C05 | `Usage/QuotaUsageAggregation.swift` |
+| C07、C08 | `Usage/TokenUsageComparison.swift` |
+| D02 | `Notifications/LowQuotaReminder.swift` |
+| D03–D06 | `Notifications/QuotaReminder.swift` |
+| G02、G03 | `Auth/CodexOAuth.swift`、`Auth/OAuthLoopbackCallbackServer.swift` |
+| G05 | `Providers/CodexOAuthQuotaProvider.swift` |
+| I03 | `Stores/QuotaStore.swift` |
+| H02 | `App/LaunchAtLoginInstallation.swift`（App 目标） |
+| E11 | `Windowing/WidgetSpaceBehavior.swift`（App 目标） |
+
+59 份视图/窗口实现文件也与已验收 dev.33 完全一致，因此复用该版本的安装版悬停、显式固定和过渡证据，并结合当前回归与安装检查。
+
+Core 路径相对 `Sources/ReadyCheckCore`，App 路径相对 `Sources/ReadyCheckApp`。0.6.1 升级与回退隔离数据探针见下方记录。本轮未重新执行完整的已安装 v0.6.1 升级、实际系统登录/唤醒及每种多屏/Spaces 组合。用户当前无可测试的 Windows 电脑；Windows 运行器使用合成响应，原报 403 设备的真实账号验收继续作为明确边界。Mac 安装包使用原有自签名身份，尚无 Developer ID 签名或公证。
+
+### 候选包校验值
+
+- macOS DMG SHA-256 为 `6dddca337a13e07ea7853d54da31ac7735c865c1357e9894bcbca055d7ebfd2d`。
+- 初始 Windows x64 ZIP SHA-256 为 `da1b07f659e9914a8df012f06fb4cf16f37fdd3831a2f23b5674df043a34198d`。上传流程将在运行时检查后重建 Windows 包，最终附件摘要另行记录。
+
+## 2026-11-10 dev.33 — 聚合胶囊本机试用包
+
+本候选包含[胶囊界面优化](AGGREGATE_CAPSULE.zh-CN.md#dev33-界面优化)与详情动效。胶囊及交互回归共 37 项通过，带新版本号的候选再通过 12 项专项 Swift 测试，包含快速重开、减弱动态效果及版本检查。
+
+macOS arm64 DMG 已通过镜像完整性、包内版本、严格签名和二进制隐私检查。包内指定签名要求与已安装的 dev.32 预览版一致。备份 dev.32 后将候选安装到原“应用程序”位置。安装版可执行文件与候选一致，抽查的八项显示偏好与升级前完全一致。
+
+实机通过胶囊操作菜单及“打开 ReadyCheck”动作、点击打开 Muse 详情、显式固定、按 Esc 收起及再次打开。Muse 启动后读数正常。Codex 和 DeepSeek 在分别完成 macOS 钥匙串确认后恢复额度和余额读取，胶囊同时显示三项真实读数。主窗口切回 Codex，详情已收起，抽查的八项显示偏好仍与升级前一致。用户在 dev.33 安装版确认：悬停 Codex 行会展开详情，经过 ReadyCheck 标题停留后移出，详情正常收起。全程无需点击。
+
+DMG SHA-256：`f8b09b94ad027b1c234f16128311642cd8c7f42c1859189ae07a2ca2c5b6e930`。
+
+### 升级兼容性与 Windows 复测准备
+
+隔离探针使用 v0.6.1 标签的正式存储代码生成合成账号、历史、提醒、重置卡授权和显示偏好。dev.33 成功读取，并写入新的历史与提醒设置。v0.6.1 随后读回更新，并核对保留的数据。探针使用内存凭据存储。仍待验证从已安装的 v0.6.1 完整升级，包括真实钥匙串访问。
+
+dev.33 Windows x64 便携 ZIP 通过自动检查和冒烟测试，并核对了压缩包完整性、包内版本和 x64 可执行文件。仍需在此前 OAuth 返回 HTTP 403 的 Windows 电脑上复测浏览器登录、额度刷新与重启恢复。
+
+Windows x64 ZIP SHA-256: `5bea36d9d9b9a65243bf76774ae40ba63e5952c594b8671dbf4dafa6217eda32`.
+
+### 2026-11-11 安装版运行补验
+
+当前安装版仍为 dev.33。胶囊菜单的“打开 ReadyCheck”实际进入主窗口。显示设置可见原有 widget 开启、置顶开启、聚合样式选中、刘海关闭状态。本轮未切换开关或移动位置，因此 E08 的窗口层级行为仍待验。
+
+Muse 当前显示读取失败。正常刷新、通过现有登录窗口读取及重新加载页面均未恢复额度；页面仍显示已登录会话。固定类别诊断日志记录失败位于订阅读取阶段，底层 HTTP 状态与原因尚未确认。本项作为当时的 J01 及稳定发布阻塞，早前真实读取成功记录保留为历史证据。Codex、DeepSeek 仍显示已连接。已关闭 Muse 窗口、恢复 Codex 选择并收起主窗口，聚合胶囊保持显示。
+
 ## 2026-11-09 dev.32 — 聚合胶囊实机验收
 
 需求对应。参照用户的 Token Monitor 图片，将右侧统一为 Codex、DeepSeek、Muse 同时可见的聚合胶囊。[设计约定](AGGREGATE_CAPSULE.zh-CN.md)。
@@ -15,19 +81,6 @@
 | 待验范围 | Codex 与 DeepSeek 的实机悬停，以及其他显示器、Spaces、系统登录和完整硬件组合待验。 |
 
 本机验收范围为现有三项连接与聚合展示。公开通道沿用各自的版本记录。
-
-<a id="dev32-package-verification"></a>
-
-### 2026-11-10 dev.32 源码候选制包验证
-
-从公开同步源码构建。Swift 全量回归中，347 项 Core 和 191 项 App 测试通过，3 项按需生成视觉证据的测试跳过，失败 0 项。9 项 Muse JavaScript 测试通过。macOS arm64 DMG 已只读挂载，包内版本、严格签名、与已安装版一致的指定要求及二进制隐私扫描通过。Windows x64 ZIP 通过代码检查、冒烟、界面冒烟、解压完整性与包内版本核验。Windows OAuth 403 和实机流程的范围见 [Windows QA](../../WINDOWS_QA.zh-CN.md)。
-
-| 本地安装包 | SHA-256 |
-| --- | --- |
-| `ReadyCheck-0.7.0-dev.32-macos.dmg` | `c81088fa859c10e13514606e2569103f9f964c482b6c2d98c46f974148b3f94c` |
-| `ReadyCheck-0.7.0-dev.32-windows-x64-portable.zip` | `bc15dab730a258d42b874e64ced69c8419cf812a317b8554af04632d9908bd46` |
-
-[版本索引](../../VERSIONS.md)区分源码候选、公开预览和稳定下载。
 
 ## 2026-11-04 dev.31 — Muse 真实读取恢复
 

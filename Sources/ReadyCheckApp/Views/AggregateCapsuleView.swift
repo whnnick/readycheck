@@ -6,6 +6,7 @@ struct AggregateServiceSummary: Identifiable {
     let id: ServiceSettingsTarget
     let title: String
     let value: String
+    let primaryPeriod: String?
     let caption: String
     let rings: [Double?]
 
@@ -21,14 +22,22 @@ struct AggregateServiceSummary: Identifiable {
         let balanceCaption = model.deepSeek.credentialError ? (zh ? "需授权" : "Allow access")
             : model.deepSeek.error != nil ? (zh ? "读取失败" : "Read failed")
             : balanceValid ? balance!.currency : (zh ? "待连接/刷新" : "Connect / refresh")
+        let codexCaption: String
+        if primary != nil, weekly != nil {
+            codexCaption = "7d " + QuotaFormatters.percentageText(for: ratio(weekly))
+        } else if primary != nil || weekly != nil {
+            codexCaption = zh ? "剩余额度" : "Remaining"
+        } else {
+            codexCaption = zh ? "暂无读数" : "No reading"
+        }
         return [
             Self(id: .codex, title: "Codex", value: QuotaFormatters.percentageText(for: ratio(primary ?? weekly)),
-                 caption: primary != nil ? "5h · 7d " + QuotaFormatters.percentageText(for: ratio(weekly)) : (zh ? "7d 周额度" : "7d weekly"),
+                 primaryPeriod: primary != nil ? "5h" : weekly.map { _ in "7d" }, caption: codexCaption,
                  rings: primary != nil ? [ratio(primary), ratio(weekly)] : [ratio(weekly)]),
             Self(id: .deepSeek, title: "DeepSeek", value: balanceValid ? (balance.flatMap { $0.total }.map(BalanceSurfaceReading.amount) ?? "—") : "—",
-                 caption: balanceCaption, rings: []),
+                 primaryPeriod: nil, caption: balanceCaption, rings: []),
             Self(id: .muse, title: "Muse", value: QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now)),
-                 caption: model.muse.remainingRatio(now: now) != nil ? (zh ? "7d 周额度" : "7d weekly")
+                 primaryPeriod: nil, caption: model.muse.remainingRatio(now: now) != nil ? (zh ? "7d 周额度" : "7d weekly")
                     : model.muse.isBusy ? (zh ? "读取中" : "Reading") : (zh ? "待连接/刷新" : "Connect / refresh"),
                  rings: [model.muse.remainingRatio(now: now)])
         ]
@@ -36,74 +45,139 @@ struct AggregateServiceSummary: Identifiable {
 }
 
 struct AggregateCapsuleView: View {
+    static let cornerRadius: CGFloat = 42
+    static let headerHeight: CGFloat = 38
+    static let bottomGripHeight: CGFloat = 12
+
     let model: ReadyCheckAppModel
     var selected: ServiceSettingsTarget?
+    var isPinned = false
     let onSelect: (ServiceSettingsTarget) -> Void
     let onHover: (ServiceSettingsTarget, Bool) -> Void
+    var onLeaveRail: () -> Void = {}
     @State private var now = Date()
 
+    private var moreActionsLabel: String { model.language == .zhCN ? "胶囊更多操作" : "More capsule actions" }
+    private var dragHelp: String { model.language == .zhCN ? "拖动以移动聚合胶囊" : "Drag to move the aggregate capsule" }
+
     var body: some View {
+        let shell = RoundedRectangle(cornerRadius: Self.cornerRadius)
         VStack(spacing: 0) {
             VStack(spacing: 3) {
-                Capsule().fill(.white.opacity(0.25)).frame(width: 18, height: 3)
-                Text("ReadyCheck").font(.system(size: 8, weight: .medium)).foregroundStyle(.white.opacity(0.5))
-            }.frame(height: 38).help(model.language == .zhCN ? "拖动以移动聚合胶囊" : "Drag to move the aggregate capsule")
+                grip
+                Text("ReadyCheck").font(.system(size: 8, weight: .medium)).foregroundStyle(.white.opacity(0.58))
+            }
+            .frame(maxWidth: .infinity).frame(height: Self.headerHeight)
+            .contentShape(Rectangle()).help(dragHelp)
             ScrollView(.vertical) {
                 VStack(spacing: 3) {
                     ForEach(AggregateServiceSummary.readings(model: model, now: now)) { item in
-                        AggregateCapsuleItem(item: item, selected: selected == item.id,
+                        AggregateCapsuleItem(item: item, selected: selected == item.id, pinned: isPinned && selected == item.id,
                             onSelect: { onSelect(item.id) }, onHover: { onHover(item.id, $0) })
                     }
                 }.frame(maxWidth: .infinity)
             }.scrollIndicators(.hidden)
-            Image(systemName: "ellipsis").font(.system(size: 11, weight: .medium)).foregroundStyle(.white.opacity(0.4))
-                .frame(height: 32).frame(maxWidth: .infinity)
+            Menu { actions } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 12, weight: .semibold))
+                    .frame(width: 30, height: 18)
+            }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden)
+            .frame(width: 34, height: 20)
+            .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 7))
+            .help(moreActionsLabel).accessibilityLabel(moreActionsLabel)
+            .accessibilityIdentifier("aggregate.moreActions")
+            grip.frame(maxWidth: .infinity).frame(height: Self.bottomGripHeight)
+                .contentShape(Rectangle()).help(dragHelp)
         }
         .foregroundStyle(.white)
-        .background(AggregateCapsuleSurface(cornerRadius: 42))
-        .clipShape(RoundedRectangle(cornerRadius: 42))
-        .contextMenu {
-            Button(model.localization.text("bubble.openMainWindow")) { model.openMainWindowFromWidget() }
-            Button(model.localization.text("action.resetWidgetPosition")) { model.resetFloatingWidgetPosition() }
-            Button(model.language == .zhCN ? "稍后显示（15 分钟）" : "Snooze for 15 minutes") { model.snoozeFloatingWidget(minutes: 15) }
-            Button(model.localization.text("action.hideWidget")) { model.hideFloatingWidget() }
+        .environment(\.colorScheme, .dark)
+        .background(AggregateCapsuleSurface(cornerRadius: Self.cornerRadius))
+        .clipShape(shell)
+        .contentShape(shell)
+        .onHover { inside in
+            if !inside { onLeaveRail() }
         }
+        .contextMenu { actions }
         .task { while !Task.isCancelled { now = Date(); try? await Task.sleep(for: .seconds(1)) } }
         .onChange(of: model.muse.observedAt) { _, _ in now = Date() }
+    }
+
+    private var grip: some View {
+        Capsule().fill(.white.opacity(0.30)).frame(width: 18, height: 3)
+            .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private var actions: some View {
+        Button(model.localization.text("bubble.openMainWindow")) { model.openMainWindowFromWidget() }
+        Button(model.localization.text("action.resetWidgetPosition")) { model.resetFloatingWidgetPosition() }
+        Button(model.language == .zhCN ? "稍后显示（15 分钟）" : "Snooze for 15 minutes") { model.snoozeFloatingWidget(minutes: 15) }
+        Button(model.localization.text("action.hideWidget")) { model.hideFloatingWidget() }
     }
 }
 
 private struct AggregateCapsuleItem: View {
     let item: AggregateServiceSummary
     let selected: Bool
+    let pinned: Bool
     let onSelect: () -> Void
     let onHover: (Bool) -> Void
+
     var body: some View {
-        Button(action: { onSelect() }, label: { self.content })
-            .buttonStyle(.plain).onHover(perform: onHover)
+        Button(action: onSelect) { content }
+            .buttonStyle(.plain)
+            .onHover(perform: onHover)
             .help(accessibilityText)
             .accessibilityLabel(accessibilityText)
+            .accessibilityAddTraits(selected ? .isSelected : [])
     }
-    private var accessibilityText: String { "\(item.title) \(item.value), \(item.caption)" }
+
+    private var accessibilityText: String {
+        [item.title, item.primaryPeriod, item.value, item.caption].compactMap { $0 }.joined(separator: ", ")
+    }
+
     private var content: some View {
-        VStack(spacing: 3) {
-            AggregateServiceMark(service: item.id, rings: item.rings).frame(width: 48, height: 48)
-            Text(item.title).font(.system(size: 9, weight: .medium)).foregroundStyle(Color.white.opacity(0.7))
-            valueText
-            captionText
+        let shape = RoundedRectangle(cornerRadius: 20)
+        let tint = AggregateServiceMark.tint(item.id)
+        return VStack(spacing: 2) {
+            AggregateServiceMark(service: item.id, rings: item.rings).frame(width: 44, height: 44)
+            Text(item.title)
+                .font(.system(size: 9.5, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.76))
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(item.value)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .monospacedDigit().lineLimit(1).minimumScaleFactor(0.65)
+                if let period = item.primaryPeriod {
+                    Text(period)
+                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.72))
+                        .padding(.horizontal, 3).padding(.vertical, 1)
+                        .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 4))
+                }
+            }
+            .padding(.horizontal, 4)
+            Text(item.caption)
+                .font(.system(size: 9, weight: .medium)).monospacedDigit()
+                .foregroundStyle(.white.opacity(0.65)).lineLimit(1).minimumScaleFactor(0.75)
         }
         .frame(width: 72, height: 102)
-        .background(highlight, in: RoundedRectangle(cornerRadius: 22))
-        .contentShape(RoundedRectangle(cornerRadius: 22))
-    }
-    private var highlight: Color { selected ? Color.white.opacity(0.07) : Color.clear }
-    private var valueText: some View {
-        Text(item.value).font(.system(size: 15, weight: .semibold, design: .rounded))
-            .monospacedDigit().lineLimit(1).minimumScaleFactor(0.65)
-    }
-    private var captionText: some View {
-        Text(item.caption).font(.system(size: 8.5, weight: .medium)).monospacedDigit()
-            .foregroundStyle(Color.white.opacity(0.55)).lineLimit(1).minimumScaleFactor(0.75)
+        .background(selected ? tint.opacity(0.10) : .clear, in: shape)
+        .overlay {
+            if selected {
+                shape.strokeBorder(tint.opacity(0.33), lineWidth: 1).allowsHitTesting(false)
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if pinned {
+                Image(systemName: "pin.fill")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(tint)
+                    .padding(7)
+                    .allowsHitTesting(false).accessibilityHidden(true)
+            }
+        }
+        .contentShape(shape)
     }
 }
 

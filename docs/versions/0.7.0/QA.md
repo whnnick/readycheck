@@ -1,5 +1,71 @@
 # 0.7.0 — Native and prototype black-box acceptance
 
+## 2026-11-11 — 0.7.0 release candidate
+
+### Muse recovery
+
+The dev.33 subscription read failed repeatedly with the existing signed-in web session. Normal quit/relaunch restored real readings. The old reader retained failed cached action IDs and only rediscovered on HTTP 404. Two new offline regressions reproduced cached-action server failure and bounded persistent failure before the fix. The reader now rediscoveries once for a cached action's server error and drops the cached ID before each attempt, retaining it only after a valid parsed response. Authentication failures stop without rediscovery. The original incident's exact HTTP status was not captured, so the deployment/cache explanation remains an inference supported by the restart result and reproduced cache defect.
+
+### Verification and installation
+
+- Complete Swift regression passed 543 tests with zero failures. A subsequently added native window-level test passed separately, checking rail/detail levels, pin state and unchanged frames.
+- All 11 Muse JavaScript tests passed. Windows check, smoke and UI smoke passed with Node 24. A new Electron runtime test passed on this Mac using a loopback proxy and synthetic OAuth, token-refresh, usage, reset-metadata and 403 responses. A Windows-runner job gates the Windows release upload. Its result is pending.
+- The clean public-source export matched 234 source/test files. Release-version consistency, strict mounted DMG signing, candidate/installed signing requirement equality, exact bundled Muse reader and personal-home-path binary scan passed.
+- Installed 0.7.0 from the verified mounted DMG, preserving the dev.33 app backup. The installed executable matches the DMG. Codex recovered after system Keychain confirmation. Muse retained its session and returned fresh readings, including the next automatic read. DeepSeek recovered its original balance after the separate system confirmation. Manual refresh completed for all three services. A same-bundle normal quit/relaunch retained the Codex and DeepSeek connections without another credential prompt; all three readings recovered after restart. The main window was closed with Codex selected and the capsule visible.
+- All 13 allowlisted display preferences match the pre-install snapshot, including the exact saved frames and Codex selection. Installed Chinese/English UI and native-menu synchronization, restoration to Chinese, display/connection/general/About routes, topmost off/on restoration and manual update check passed. Update check reported up to date.
+
+### Retained baseline and remaining device limits
+
+The versioned 0.6.1/0.6.0 audit already preserves limits for hardware combinations and live failure branches. For the unchanged paths below, exact file equality with v0.6.1 was checked and the current complete regression passed. Current native entry/rendering tests and observed installed state supplement that baseline. This reuses applicable evidence rather than labelling unperformed device checks as passed.
+
+| Capability IDs | Exact retained production files |
+| --- | --- |
+| A05 | `Models/QuotaModels.swift` |
+| A08 | `Scheduling/RefreshScheduler.swift` |
+| C04, G06 | `Stores/QuotaHistoryStore.swift` |
+| C05 | `Usage/QuotaUsageAggregation.swift` |
+| C07, C08 | `Usage/TokenUsageComparison.swift` |
+| D02 | `Notifications/LowQuotaReminder.swift` |
+| D03–D06 | `Notifications/QuotaReminder.swift` |
+| G02, G03 | `Auth/CodexOAuth.swift`, `Auth/OAuthLoopbackCallbackServer.swift` |
+| G05 | `Providers/CodexOAuthQuotaProvider.swift` |
+| I03 | `Stores/QuotaStore.swift` |
+| H02 | `App/LaunchAtLoginInstallation.swift` (App target) |
+| E11 | `Windowing/WidgetSpaceBehavior.swift` (App target) |
+
+The 59 view/window implementation files also exactly match the accepted dev.33 build, allowing reuse of its installed hover, explicit-pinning and transition evidence alongside the current regression and installation checks.
+
+Core file paths are relative to `Sources/ReadyCheckCore`; App paths are relative to `Sources/ReadyCheckApp`. The isolated 0.6.1 upgrade/rollback data probe is recorded below. Full installed-v0.6.1 upgrade, physical OS login/wake and every monitor/Spaces combination were not newly exercised. The user has no Windows machine available for the reported OAuth 403. Windows-runner verification will use synthetic responses, with affected-machine real-account acceptance still a recorded limit. The Mac package uses the existing self-signed identity and is not Developer ID signed or notarized.
+
+### Candidate checksums
+
+- macOS DMG SHA-256 `6dddca337a13e07ea7853d54da31ac7735c865c1357e9894bcbca055d7ebfd2d`.
+- Initial Windows x64 ZIP SHA-256 `da1b07f659e9914a8df012f06fb4cf16f37fdd3831a2f23b5674df043a34198d`. The upload workflow will rebuild Windows after its runtime checks, with the final asset digest recorded separately.
+
+## 2026-11-10 dev.33 — local aggregate capsule trial
+
+The candidate contains the [capsule refinements](AGGREGATE_CAPSULE.md#dev33-interface-refinement) and animated detail transitions. The 37-test capsule and interaction regression passed. The versioned candidate passed 12 focused Swift tests, including quick reopen, Reduce Motion and version metadata.
+
+The macOS arm64 DMG passed image integrity, mounted bundle version, strict signing and binary privacy checks. Its designated requirement matches the installed dev.32 preview. The mounted candidate was installed in the original Applications location after backing up dev.32. The executable matches the candidate and all eight sampled display preferences match their pre-upgrade values.
+
+Installed checks passed for opening the capsule menu and its Open ReadyCheck action, opening the Muse detail, explicitly pinning, dismissing with Escape and opening it again. Muse reads returned after launch. Codex quota and DeepSeek balance reads resumed after their separate macOS Keychain confirmations. All three readings were visible in the capsule. The main selection was restored to Codex, the detail was closed, and the eight sampled display preferences still matched the pre-upgrade snapshot. On the installed dev.33, the user confirmed that hovering over the Codex row opens its detail and that pausing over the ReadyCheck header before moving the pointer out dismisses the detail. No click was needed.
+
+DMG SHA-256: `f8b09b94ad027b1c234f16128311642cd8c7f42c1859189ae07a2ca2c5b6e930`.
+
+### Upgrade and Windows retest preparation
+
+An isolated probe used the production stores from the v0.6.1 tag to seed synthetic account, history, reminder, reset-card authorization and display data. The dev.33 stores read the fixture and wrote updated history and reminder preferences. The v0.6.1 stores then read those updates and verified the retained data. The probe used an in-memory credential store. Full app upgrade from the installed v0.6.1 bundle, including real Keychain access, is pending.
+
+The dev.33 Windows x64 portable ZIP passed the automated checks and smoke tests. ZIP integrity, the packaged version and x64 executable were verified. On the Windows PC that reported OAuth HTTP 403, browser login, quota refresh and restart persistence are pending.
+
+Windows x64 ZIP SHA-256: `5bea36d9d9b9a65243bf76774ae40ba63e5952c594b8671dbf4dafa6217eda32`.
+
+### 2026-11-11 installed runtime follow-up
+
+The installed app is still dev.33. Opening the capsule menu and its Open ReadyCheck action reached the main window. Display settings exposed the existing widget-on, always-on-top-on, aggregate-selected and notch-off values. No toggle or position change was made, so this does not clear the E08 window-layer behavior check.
+
+Muse showed a read failure. A normal refresh, reading through the existing sign-in window and reloading that page did not recover the quota. The page showed an existing signed-in session. Fixed-category diagnostic logs reported failure at the subscription stage. The underlying HTTP status and cause remain unconfirmed. This is a then-current J01/stable-release blocker and supersedes earlier live-read success as evidence of present availability. Codex and DeepSeek retained their connected states. The Muse window was closed, Codex was reselected and the main window was closed, leaving the aggregate capsule visible.
+
 ## 2026-11-09 dev.32 — installed aggregate capsule acceptance
 
 The right-side capsule shows Codex, DeepSeek and Muse together, following the information hierarchy in the user's Token Monitor examples. [Design contract](AGGREGATE_CAPSULE.md).
@@ -15,19 +81,6 @@ The right-side capsule shows Codex, DeepSeek and Muse together, following the in
 | Remaining acceptance | Manual hover checks for Codex and DeepSeek, other displays, Spaces, OS login and the full hardware matrix remain pending. |
 
 Local acceptance covers the three existing connections and their aggregate display. Public channels follow their own version records.
-
-<a id="dev32-package-verification"></a>
-
-### 2026-11-10 dev.32 source candidate package checks
-
-The packages were built from the public sync source. Swift regression passed 347 Core and 191 App tests, with three opt-in visual evidence tests skipped and zero failures. All nine Muse JavaScript tests passed. The macOS arm64 DMG was mounted read-only. The bundle version, strict signature, designated requirement matching the installed app, and binary privacy scan passed. The Windows x64 ZIP passed code checks, smoke and UI smoke tests, archive integrity and packaged version verification. See [Windows QA](../../WINDOWS_QA.md) for OAuth 403 and hardware coverage.
-
-| Local package | SHA-256 |
-| --- | --- |
-| `ReadyCheck-0.7.0-dev.32-macos.dmg` | `c81088fa859c10e13514606e2569103f9f964c482b6c2d98c46f974148b3f94c` |
-| `ReadyCheck-0.7.0-dev.32-windows-x64-portable.zip` | `bc15dab730a258d42b874e64ced69c8419cf812a317b8554af04632d9908bd46` |
-
-See [version channels](../../VERSIONS.md) for source, public preview and stable downloads.
 
 ## 2026-11-04 dev.31 — Muse live read recovered
 

@@ -10,7 +10,7 @@ const flight = '0:{"a":"$@1"}\n1:' + JSON.stringify({success: true, subscription
   tier: {name:'Power'}, usage:{percentUsed:27,resetsAt:2000000000},
   usageRowValueLabel:'27% used (400M tokens left)', payment_method:'must-not-escape'}});
 
-async function execute({cached = '', status = 200, stale = false, chunks = 1, payload = flight, lazy = false, homeStatus = 200, staleDOM = false} = {}) {
+async function execute({cached = '', status = 200, stale = false, staleStatus = 404, chunks = 1, payload = flight, lazy = false, homeStatus = 200, staleDOM = false} = {}) {
   const calls = [];
   const scripts = Array.from({length:chunks},(_,i)=>({src:`https://muse.ai/_next/static/chunks/chunk${i}.js`}));
   scripts.push({src:'https://unrelated.example/private.js'});
@@ -19,7 +19,7 @@ async function execute({cached = '', status = 200, stale = false, chunks = 1, pa
     if (options.method === 'GET') return {ok:homeStatus===200,status:homeStatus,type:homeStatus===0?'opaqueredirect':'basic',text:async()=>scripts.map(s=>`<script src="${s.src}"></script>`).join('')};
     if (options.method === 'POST') {
       const firstPost = calls.filter(x=>x.options.method==='POST').length===1;
-      const code = stale && firstPost ? 404 : status;
+      const code = stale && firstPost ? staleStatus : status;
       return {ok:code===200,status:code,text:async()=>payload};
     }
     const content = lazy ? (path.includes('settings.js') ? `createServerReference("${id}",x,"fetchSubscriptionAction")`
@@ -52,6 +52,30 @@ test('cached action avoids discovery and stale action gets one bounded rediscove
   const stale=await execute({cached:id,stale:true});
   assert.equal(stale.output.actionID,id);
   assert.equal(stale.calls.filter(x=>x.options.method==='POST').length,2);
+});
+
+test('a cached action rejected with a server error is rediscovered once and recovers',async()=>{
+  const cachedID = 'b'.repeat(40);
+  const {output,calls}=await execute({cached:cachedID,stale:true,staleStatus:500});
+  assert.equal(output.actionID,id);
+  assert.ok(output.flight.includes('400M tokens left'));
+  const posts=calls.filter(x=>x.options.method==='POST');
+  assert.equal(posts.length,2);
+  assert.equal(posts[0].options.headers['Next-Action'],cachedID);
+  assert.equal(posts[1].options.headers['Next-Action'],id);
+});
+
+test('persistent server failure is bounded and authentication failure does not rediscover',async()=>{
+  const failed=await execute({cached:id,status:502});
+  assert.equal(failed.output.error,'network');
+  assert.equal(failed.calls.filter(x=>x.options.method==='POST').length,2);
+  const fresh=await execute({status:502});
+  assert.equal(fresh.calls.filter(x=>x.options.method==='POST').length,1);
+  for(const status of [401,403]) {
+    const signedOut=await execute({cached:id,status});
+    assert.equal(signedOut.output.error,'loginRequired');
+    assert.equal(signedOut.calls.length,1);
+  }
 });
 
 test('finds the lazy settings action without invoking unrelated server actions',async()=>{
