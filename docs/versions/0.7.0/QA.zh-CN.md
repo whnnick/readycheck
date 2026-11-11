@@ -1,5 +1,13 @@
 # 0.7.0 — 原生与原型黑盒功能检查
 
+## 2026-11-11 — 正式发布回读
+
+[v0.7.0](https://github.com/whnnick/readycheck/releases/tag/v0.7.0) 已公开为稳定 latest。匿名 latest API 确认发布 ID 441109139，draft=false、prerelease=false。公开源码/标签指向 5394b9b7497acff7600cbad72c3e946aa6255b98。[Windows CI 记录](https://github.com/whnnick/readycheck/actions/runs/42935175540)中的 Windows 运行时检查和制包上传两项任务均成功，最终标签的应用源码与该次测试一致。
+
+三个附件均已无 GitHub 凭据重新下载，Mac DMG、Windows ZIP 和 SHA256SUMS 各自与 GitHub 附件摘要一致。ZIP CRC 通过，Windows 可执行文件为 x64 PE32+，ASAR 版本为 0.7.0，包内 13 份 JS 源码与已审阅源码一致，内部协作文件已排除。安装版 Mac 的严格签名及与已验证 DMG 的可执行文件一致性在正常签名环境下通过；正常重启和截图导出后的 13 项偏好最终比较通过。
+
+最终两端安装包 SHA-256 见下方，SHA256SUMS 摘要为 `fd6a409fc753638f9351ddbc5d09ea82eb078e946b34a706f43daa52be3a973f`。中英文 README、安装/Windows 指南、发布说明、截图和仓库描述已更新。Mac 自签名分发及原 Windows 403 电脑的边界继续明确保留。
+
 <a id="verification-070"></a>
 
 ## 2026-11-11 — 0.7.0 正式候选

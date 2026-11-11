@@ -1,5 +1,13 @@
 # 0.7.0 — Native and prototype black-box acceptance
 
+## 2026-11-11 — stable release verification
+
+Published [v0.7.0](https://github.com/whnnick/readycheck/releases/tag/v0.7.0) as the stable latest release. Anonymous latest API confirmed release ID 441109139 with draft=false and prerelease=false. Public source/tag target is 5394b9b7497acff7600cbad72c3e946aa6255b98. [Windows CI run](https://github.com/whnnick/readycheck/actions/runs/42935175540) passed both the Windows-runtime checks and package/upload jobs. Its tested application sources are unchanged in the final tag.
+
+All three assets were downloaded without GitHub credentials. Mac DMG, Windows ZIP and SHA256SUMS match their individual GitHub asset digests. ZIP CRC passed, the Windows executable is x64 PE32+, and ASAR version 0.7.0 plus all 13 packaged JS sources match the reviewed tree. Internal collaboration files are excluded. Installed Mac strict signing and executable equality with the verified DMG passed in the normal signing environment. The final 13-preference comparison passed after restart and screenshot export.
+
+Final package SHA-256 values are recorded below. SHA256SUMS has digest `fd6a409fc753638f9351ddbc5d09ea82eb078e946b34a706f43daa52be3a973f`. Bilingual README, installation/Windows guides, release notes, screenshots and repository description were updated. The self-signed Mac distribution and original-machine Windows 403 limits remain explicit.
+
 <a id="verification-070"></a>
 
 ## 2026-11-11 — 0.7.0 release candidate
