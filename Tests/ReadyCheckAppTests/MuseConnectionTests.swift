@@ -54,6 +54,25 @@ final class MuseConnectionTests: XCTestCase {
         }
     }
 
+    func testStartupRetriesOneTransientReadWithoutRetryingAnExpiredSession() async throws {
+        for failure in [MuseUsageError.network, .timedOut, .loginRequired] {
+            try await withConnection { connection, reader, _ in
+                reader.firstFailure = failure
+                connection.startMonitoring()
+                for _ in 0..<30 {
+                    if connection.snapshot != nil || connection.error == .loginRequired { break }
+                    await Task.yield()
+                }
+
+                let expired = failure == .loginRequired
+                XCTAssertEqual(reader.reads, expired ? 1 : 2)
+                XCTAssertEqual(connection.error, expired ? .loginRequired : nil)
+                XCTAssertEqual(connection.snapshot != nil, !expired)
+                await connection.disconnect()
+            }
+        }
+    }
+
     func testDisconnectRejectsAnInFlightReadingAndClearsOnlyItsOwnSession() async throws {
         try await withConnection { connection, reader, defaults in
             reader.hold = true
@@ -170,12 +189,14 @@ final class MuseConnectionTests: XCTestCase {
 @MainActor
 private final class MuseTestReader: MuseUsageReading {
     var failure: MuseUsageError?
+    var firstFailure: MuseUsageError?
     var reads = 0
     var clears = 0
     var hold = false
     var pending: CheckedContinuation<MuseUsageSnapshot, Error>?
     func read() async throws -> MuseUsageSnapshot {
         reads += 1
+        if reads == 1, let firstFailure { throw firstFailure }
         if hold { return try await withCheckedThrowingContinuation { pending = $0 } }
         if let failure { throw failure }
         return try MuseConnectionTests.snapshot()

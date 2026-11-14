@@ -10,9 +10,10 @@ const flight = '0:{"a":"$@1"}\n1:' + JSON.stringify({success: true, subscription
   tier: {name:'Power'}, usage:{percentUsed:27,resetsAt:2000000000},
   usageRowValueLabel:'27% used (400M tokens left)', payment_method:'must-not-escape'}});
 
-async function execute({cached = '', status = 200, stale = false, staleStatus = 404, chunks = 1, payload = flight, lazy = false, homeStatus = 200, staleDOM = false} = {}) {
+async function execute({cached = '', status = 200, stale = false, staleStatus = 404, chunks = 1, payload = flight, lazy = false, immutable = false, homeStatus = 200, staleDOM = false, separatedSettings = false} = {}) {
   const calls = [];
-  const scripts = Array.from({length:chunks},(_,i)=>({src:`https://muse.ai/_next/static/chunks/chunk${i}.js`}));
+  const chunkDirectory = immutable ? 'static/immutable/chunks' : 'static/chunks';
+  const scripts = Array.from({length:chunks},(_,i)=>({src:`https://muse.ai/_next/${chunkDirectory}/chunk${i}.js`}));
   scripts.push({src:'https://unrelated.example/private.js'});
   const fetch = async (path, options) => {
     calls.push({path, options});
@@ -22,8 +23,17 @@ async function execute({cached = '', status = 200, stale = false, staleStatus = 
       const code = stale && firstPost ? staleStatus : status;
       return {ok:code===200,status:code,text:async()=>payload};
     }
+    const moduleReference = 'e.A(123).then(({preloadHatchSettingsData:x})=>x({}));';
+    const loader = `},123,s=>{s.v(t=>Promise.all(["${chunkDirectory}/settings.js"].map(t=>s.l(t))))}`;
+    if (separatedSettings) {
+      const content = path.endsWith('/settings.js') ? `createServerReference("${id}",x,"fetchSubscriptionAction")`
+        : path.endsWith('/chunk90.js') ? moduleReference
+        : path.endsWith('/chunk59.js') ? loader
+        : 'x'.repeat(300000);
+      return {ok:true,status:200,text:async()=>content};
+    }
     const content = lazy ? (path.includes('settings.js') ? `createServerReference("${id}",x,"fetchSubscriptionAction")`
-      : 'e.A(123).then(({preloadHatchSettingsData:x})=>x({}));},123,s=>{s.v(t=>Promise.all(["static/chunks/settings.js"].map(t=>s.l(t))))}')
+      : moduleReference + loader)
       : chunks===1 ? `createServerReference("${id}",x,"fetchSubscriptionAction")` : 'no-action';
     return {ok:true,status:200,text:async()=>content};
   };
@@ -85,6 +95,34 @@ test('finds the lazy settings action without invoking unrelated server actions',
   assert.equal(calls.filter(x=>x.options.method==='POST').length,1);
 });
 
+test('discovers the subscription action in immutable page and settings chunks',async()=>{
+  const {output,calls}=await execute({lazy:true,immutable:true});
+  assert.equal(output.actionID,id);
+  const chunks = calls.filter(call => call.path.includes('/chunks/'));
+  assert.deepEqual(chunks.map(call => call.path), [
+    '/_next/static/immutable/chunks/chunk0.js',
+    '/_next/static/immutable/chunks/settings.js',
+  ]);
+  assert.ok(chunks.every(call => call.options.credentials === 'omit'));
+});
+
+test('discovers settings near the end of a large page with the loader in an earlier chunk',async()=>{
+  const {output,calls}=await execute({chunks:107,immutable:true,separatedSettings:true});
+  assert.equal(output.actionID,id);
+  const paths = calls.map(call => call.path);
+  assert.ok(paths.indexOf('/_next/static/immutable/chunks/chunk90.js') <
+    paths.indexOf('/_next/static/immutable/chunks/chunk59.js'));
+  assert.ok(paths.includes('/_next/static/immutable/chunks/settings.js'));
+  assert.ok(!paths.includes('/_next/static/immutable/chunks/chunk0.js'));
+  assert.equal(calls.filter(call => call.options.method === 'POST').length,1);
+});
+
+test('rediscovers once when a cached action receives a conflict',async()=>{
+  const {output,calls}=await execute({cached:'b'.repeat(40),stale:true,staleStatus:409,lazy:true,immutable:true});
+  assert.equal(output.actionID,id);
+  assert.equal(calls.filter(call => call.options.method === 'POST').length,2);
+});
+
 test('expired session, malformed response and repeated stale action remain unavailable',async()=>{
   assert.equal((await execute({cached:id,status:403})).output.error,'loginRequired');
   assert.equal((await execute({cached:id,payload:'unexpected'})).output.error,'responseChanged');
@@ -94,9 +132,9 @@ test('expired session, malformed response and repeated stale action remain unava
 });
 
 test('discovery has a hard request cap and makes no POST without a discovered read action',async()=>{
-  const result=await execute({chunks:120});
+  const result=await execute({chunks:150});
   assert.equal(result.output.error,'responseChanged');
-  assert.equal(result.calls.length,97);
+  assert.equal(result.calls.length,129);
   assert.equal(result.calls.filter(x=>x.options.method==='POST').length,0);
 });
 
@@ -123,6 +161,6 @@ test('signed-out homepage redirects and authentication failures stop before acti
 });
 
 test('failed discovery reports only its fixed stage, never page content',async()=>{
-  const {output}=await execute({chunks:120});
+  const {output}=await execute({chunks:150});
   assert.deepEqual(output,{error:'responseChanged',stage:'discovery'});
 });

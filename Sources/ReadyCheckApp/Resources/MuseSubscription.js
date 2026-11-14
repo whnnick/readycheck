@@ -6,10 +6,10 @@ const deadline = new AbortController();
 const timer = setTimeout(() => deadline.abort(), 25000);
 let stage = "home";
 try {
-    const pathsIn = text => [...new Set((text.match(/static\/chunks\/[\w~.-]+\.js/g) || [])
+    const pathsIn = text => [...new Set((text.match(/static\/(?:immutable\/)?chunks\/[\w~.-]+\.js/g) || [])
         .map(path => "/_next/" + path))];
     const readChunk = async path => {
-        if (!/^\/_next\/static\/chunks\/[\w~.-]+\.js$/.test(path)) return "";
+        if (!/^\/_next\/static\/(?:immutable\/)?chunks\/[\w~.-]+\.js$/.test(path)) return "";
         const r = await fetch(path, {credentials: "omit", signal: deadline.signal, redirect: "error"});
         const text = r.ok ? await r.text() : "";
         if (text.length > 2000000) throw Error("responseChanged");
@@ -26,23 +26,39 @@ try {
         if (!home.ok) throw Error("network");
         const html = await home.text();
         if (html.length > 8000000) throw Error("responseChanged");
-        const paths = pathsIn(html).slice(0, 96);
+        // Muse loads its page-specific entry points after the shared runtime chunks.
+        const paths = pathsIn(html).slice(0, 128).reverse();
         stage = "discovery";
-        let source = "";
+        const settingsModules = new Set();
+        const loaders = new Map();
+        let bytesRead = 0;
         for (let i = 0; i < paths.length; i += 8) {
-            source += "\n" + (await Promise.all(paths.slice(i, i + 8).map(readChunk))).join("\n");
-            if (source.length > 8000000) throw Error("responseChanged");
-            const direct = actionFrom(source);
-            if (direct) return direct;
-            const module = /\.A\((\d+)\)\.then\(\(\{[^}]*Settings/.exec(source)?.[1];
-            const loader = module && new RegExp("[,{\\[]" + module + ",\\w+=>\\{\\w+\\.v\\(\\w+=>Promise\\.all\\(\\[([^\\]]*)").exec(source);
-            if (!loader) continue;
-            const settings = pathsIn(loader[1]).slice(0, 32);
-            for (let j = 0; j < settings.length; j += 8) {
-                const bodies = await Promise.all(settings.slice(j, j + 8).map(readChunk));
-                for (const body of bodies) { const id = actionFrom(body); if (id) return id; }
+            const bodies = await Promise.all(paths.slice(i, i + 8).map(readChunk));
+            for (const body of bodies) {
+                bytesRead += body.length;
+                if (bytesRead > 32000000) throw Error("responseChanged");
+                const direct = actionFrom(body);
+                if (direct) return direct;
+                for (const [, module] of body.matchAll(/\.A\((\d+)\)\.then\(\(\{preloadHatchSettingsData[:},]/g)) {
+                    settingsModules.add(module);
+                }
+                for (const [, module, dependencies] of body.matchAll(/[,{\[](\d+),\w+=>\{\w+\.v\(\w+=>Promise\.all\(\[([^\]]*)/g)) {
+                    const settings = pathsIn(dependencies);
+                    if (settings.length > 0) loaders.set(module, settings);
+                }
             }
-            break;
+            for (const module of settingsModules) {
+                const settings = loaders.get(module)?.slice(0, 32);
+                if (!settings) continue;
+                settingsModules.delete(module);
+                for (let j = 0; j < settings.length; j += 8) {
+                    const bodies = await Promise.all(settings.slice(j, j + 8).map(readChunk));
+                    for (const body of bodies) {
+                        const id = actionFrom(body);
+                        if (id) return id;
+                    }
+                }
+            }
         }
         throw Error("responseChanged");
     };
@@ -56,7 +72,7 @@ try {
     const hasCachedAction = /^[0-9a-f]{40,64}$/.test(cachedActionID || "");
     let action = hasCachedAction ? cachedActionID : await discover();
     let response = await post(action);
-    if (response.status === 404 || (hasCachedAction && response.status >= 500)) {
+    if (response.status === 404 || (hasCachedAction && (response.status === 409 || response.status >= 500))) {
         action = await discover();
         response = await post(action);
     }

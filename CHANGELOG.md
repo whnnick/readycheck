@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1 - 2026-11-14
+
+- Fix Muse weekly allowance reads after a website deployment moved the settings reader into later immutable chunks. Recover once from a stale action that returns a conflict and retry a transient startup read once using the existing Muse session.
+
 ## 0.7.0 - 2026-11-11
 
 - Keep Codex quotas, resets, account benefits, Token history and reminders at the center of the native macOS app.

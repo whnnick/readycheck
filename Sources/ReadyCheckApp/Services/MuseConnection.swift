@@ -81,10 +81,15 @@ final class MuseConnection {
     func startMonitoring() {
         guard isEnabled, monitoring == nil else { return }
         monitoring = Task { [weak self] in
+            await self?.refresh()
+            if !Task.isCancelled, self?.snapshot == nil,
+               self?.error == .network || self?.error == .timedOut {
+                await self?.refresh()
+            }
             while !Task.isCancelled {
                 guard self != nil else { return }
-                await self?.refresh()
                 do { try await Task.sleep(for: .seconds(300)) } catch { return }
+                await self?.refresh()
             }
         }
     }

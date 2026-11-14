@@ -1,5 +1,11 @@
 # 0.7.0 — Native and prototype black-box acceptance
 
+## 2026-11-14 — 0.7.1-dev.1 Muse recovery
+
+- On the installed macOS build, the existing Muse session returned a real weekly percentage and reset time. Initial read, manual refresh and quit/relaunch passed. The first candidate sometimes needed a second read after launch. The final build retries one transient startup failure automatically.
+- Fourteen JavaScript tests and fourteen targeted Swift tests passed, including late-loading immutable chunks, a stale-action conflict, the startup retry and the WebKit result bridge. The installed executable and reader matched the verified signed candidate.
+- After the user renewed macOS Keychain access, the installed build displayed live Codex quota and DeepSeek balance. The overview was returned to Muse with its weekly quota visible. This is a local macOS build.
+
 ## 2026-11-11 — stable release verification
 
 Published [v0.7.0](https://github.com/whnnick/readycheck/releases/tag/v0.7.0) as the stable latest release. Anonymous latest API confirmed release ID 441109139 with draft=false and prerelease=false. Public source/tag target is 5394b9b7497acff7600cbad72c3e946aa6255b98. [Windows CI run](https://github.com/whnnick/readycheck/actions/runs/42935175540) passed both the Windows-runtime checks and package/upload jobs. Its tested application sources are unchanged in the final tag.

@@ -1,5 +1,11 @@
 # 0.7.0 — 原生与原型黑盒功能检查
 
+## 2026-11-14 — 0.7.1-dev.1 Muse 恢复验收
+
+- macOS 安装版通过原 Muse 会话读到真实周额度和重置时间，启动自动读取、手动刷新、退出重开均通过。首个候选包偶尔需要再次刷新，最终版会对启动时的临时读取错误自动重试一次。
+- 14 项 JavaScript 测试与 14 项专项 Swift 测试通过，覆盖靠后加载的新目录脚本、旧接口冲突、启动重试和 WebKit 结果桥接。已安装可执行文件和读取脚本与签名候选一致。
+- 用户完成 macOS 钥匙串确认后，安装版已实测显示 Codex 额度和 DeepSeek 余额。总览已回到 Muse，周额度正常显示。这是本机 macOS 版本。
+
 ## 2026-11-11 — 正式发布回读
 
 [v0.7.0](https://github.com/whnnick/readycheck/releases/tag/v0.7.0) 已公开为稳定 latest。匿名 latest API 确认发布 ID 441109139，draft=false、prerelease=false。公开源码/标签指向 5394b9b7497acff7600cbad72c3e946aa6255b98。[Windows CI 记录](https://github.com/whnnick/readycheck/actions/runs/42935175540)中的 Windows 运行时检查和制包上传两项任务均成功，最终标签的应用源码与该次测试一致。
