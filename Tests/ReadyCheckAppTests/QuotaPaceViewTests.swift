@@ -7,7 +7,7 @@ import UserNotifications
 
 @MainActor
 final class QuotaPaceViewTests: XCTestCase {
-    func testSharedPaceRetainsOffAndBilingualExistingSurfaceFrames() throws {
+    func testSharedPaceRetainsOffAndBilingualExistingSurfaceFrames() async throws {
         _ = NSApplication.shared
         let oldIcon = NSApp.applicationIconImage
         if let path = ProcessInfo.processInfo.environment["READYCHECK_UI_APP_ICON"], let icon = NSImage(contentsOfFile: path) { NSApp.applicationIconImage = icon }
@@ -19,13 +19,21 @@ final class QuotaPaceViewTests: XCTestCase {
             else { UserDefaults.standard.removeObject(forKey: "ReadyCheck.language.v1") }
             try? FileManager.default.removeItem(at: directory)
         }
-        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+        let now = Date()
+        let credentials = InMemoryCredentialStore()
+        let tokens = CodexOAuthTokenStore(credentialStore: credentials)
+        try await tokens.saveToken(CodexOAuthToken(accessToken: "fixture-access", refreshToken: "fixture-refresh",
+            idToken: nil, tokenType: "Bearer", expiresAt: now.addingTimeInterval(3600),
+            accountID: "synthetic-account", email: nil))
+        let model = ReadyCheckAppModel(credentialStore: credentials,
             quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             codexAppServerClient: PaceNoNetworkReader(),
             rateLimitMonitor: CodexAppServerRateLimitMonitor(candidateExecutableURLs: []),
-            quotaNotificationService: QuotaNotificationService(client: PaceNotificationClient(), verificationDelays: []))
-        let now = Date()
+            quotaNotificationService: QuotaNotificationService(client: PaceNotificationClient(), verificationDelays: []),
+            resetCreditAutomation: ResetCreditAutomation(fileURL: directory.appendingPathComponent("ledger.json")))
+        await model.reloadCodexOAuthConnectionStatus()
+        XCTAssertEqual(model.codexOAuthStatus, .connected)
         func snapshot(_ date: Date, _ remaining: Double, allowed: Bool? = true) -> ProviderQuotaSnapshot {
             ProviderQuotaSnapshot(providerId: "codex-oauth", displayName: "Codex", status: .available,
                 source: .appServer, refreshedAt: date, staleAfter: now.addingTimeInterval(300),

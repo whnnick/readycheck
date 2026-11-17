@@ -36,13 +36,13 @@ final class ServicePresentationTests: XCTestCase {
             historyStore: DeepSeekBalanceHistoryStore(fileURL: directory.appendingPathComponent("history.json")))
         let model = ReadyCheckAppModel(credentialStore: store, deepSeekConnection: connection,
             quotaNotificationService: QuotaNotificationService(client: ClaritySilentNotifications(), verificationDelays: []))
-        let originalService = model.selectedDeepSeek, originalLanguage = model.language
-        defer { model.selectedDeepSeek = originalService; model.language = originalLanguage }
+        let originalService = model.selectedService, originalLanguage = model.language
+        defer { model.selectedService = originalService; model.language = originalLanguage }
         model.selectedDeepSeek = true
         for language in [AppLanguage.zhCN, .enUS] {
             model.language = language
-            XCTAssertEqual(ServiceCompactReadout(model: model, now: Date()).secondaryText,
-                language == .zhCN ? "连接未就绪" : "Connection not ready")
+            XCTAssertTrue(model.quickDisplayServices.isEmpty)
+            XCTAssertNil(model.quickDisplayService)
         }
         await connection.connect(key: "synthetic")
         XCTAssertEqual(ServiceCompactReadout(model: model, now: Date()).secondaryText, "Collecting readings")
@@ -51,7 +51,9 @@ final class ServicePresentationTests: XCTestCase {
         let failed = ServiceCompactReadout(model: model, now: Date())
         XCTAssertEqual(failed.primaryText, "—")
         XCTAssertEqual(failed.secondaryText, "Update failed")
-        model.selectedDeepSeek = false
+        model.codexOAuthStatus = .connected
+        model.selectedService = .codex
+        XCTAssertEqual(model.quickDisplayService, .codex)
         XCTAssertEqual(ServiceCompactReadout(model: model, now: Date()).secondaryText, "Reset unconfirmed")
     }
 

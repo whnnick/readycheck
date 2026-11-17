@@ -96,6 +96,7 @@ struct FloatingWidgetView: View {
 
                     Spacer()
                 }
+                .frame(minHeight: 24, alignment: .topLeading)
                 .overlay { WidgetDragRegion() }
                 .help(localization.text("widget.dragHint"))
 

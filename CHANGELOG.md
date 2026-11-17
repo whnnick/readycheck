@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.2 - 2026-11-17
+
+- Choose which connected services appear in macOS Quick display. Settings, overview, usage, the catalog, menu and capsule share the Codex → Muse → DeepSeek order.
+- The aggregate capsule fits its visible services and animates detail changes on hover. The macOS menu bar shows the ReadyCheck icon.
+- Automatic refresh runs every minute, with an explanation in Settings and manual refresh still available.
+- Enlarge the floating card's title drag area and cover notch clicks and service filtering in regression tests.
+
 ## 0.7.2-dev.12 - 2026-11-17
 
 - Use Codex, Muse, then DeepSeek across service pickers, the catalog, and the aggregate capsule. Keyboard navigation and Quick display filtering follow the same order.

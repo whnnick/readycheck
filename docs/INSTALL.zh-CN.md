@@ -1,13 +1,13 @@
 # 安装与升级 ReadyCheck
 
-已安装的 0.7.0 在**设置 → 显示 → 聚合胶囊**同时展示 Codex、DeepSeek 和 Muse，真实读取、手动刷新及同包重启恢复通过。[QA](versions/0.7.0/QA.zh-CN.md)。
+在**设置 → 显示 → 快捷展示**勾选 Codex、Muse、DeepSeek。该选择用于聚合胶囊和 ReadyCheck 菜单。自动刷新间隔固定为 1 分钟。[验收记录](versions/0.7.2/QA.zh-CN.md)。
 
 [English](INSTALL.md) · [版本通道](../README.zh-CN.md#选择版本)
 
 ## 选择安装包
 
 - macOS 需要 Apple 芯片（arm64）及 macOS 14+。
-- 当前稳定正式版为 **0.7.0**，此前 dev.23 预览版保留在发布历史中。
+- 当前稳定正式版为 **0.7.2**。
 - 从 [README 版本表](../README.zh-CN.md#选择版本)下载已验证安装包。
 - Windows 为独立 x64 便携客户端，见[Windows 指南](WINDOWS.zh-CN.md)。
 
@@ -24,8 +24,8 @@ Mac 安装包沿用 ReadyCheck 稳定自签名身份，尚非 Developer ID 签�
 | 服务 | 设置 → 连接中的操作 | 读取范围 |
 | --- | --- | --- |
 | Codex | 选择 Codex，点击登录 ReadyCheck，完成浏览器 OAuth。 | 实际返回的配额窗口与匹配账号的能力。 |
-| DeepSeek | 选择 DeepSeek，直接在原生应用内输入 API Key。 | 官方 API 余额、币种及赠送/充值分项，不是网页/手机聊天用量。 |
 | Muse | 选择 Muse，打开独立网页登录窗口，登录后点击“完成并读取额度”。 | Muse 个人助手周额度、重置与套餐，不是 Muse Code/API 账单；本机真实登录/读取/刷新已验收；官方登录会话过期时可点击“重新加载页面”。 |
+| DeepSeek | 选择 DeepSeek，直接在原生应用内输入 API Key。 | 官方 API 余额、币种及赠送/充值分项，不是网页/手机聊天用量。 |
 
 Codex 正常回调使用 `localhost:1455`；自动完成失败时，可使用应用中的最终回调 URL 兜底入口。完整回调 URL 属于凭据，不要公开分享。
 

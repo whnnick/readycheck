@@ -3,16 +3,10 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Codex 还剩多少额度，什么时候重置，一眼看清。</strong></p>
 <p align="center">以 Codex 为核心的轻量、免费、开源监控工具：额度、Token 用量、账户权益与提醒。</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.2-dev.12"><img src="https://img.shields.io/badge/source-0.7.2--dev.12-3979ef" alt="源码 0.7.2-dev.12"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.2"><img src="https://img.shields.io/badge/source-0.7.2-3979ef" alt="源码 0.7.2"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
 <p align="center"><a href="#从这里开始">从这里开始</a> · <a href="docs/versions/0.7.2/RELEASE_NOTES.zh-CN.md">当前更新</a> · <a href="docs/versions/0.7.2/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">版本索引</a></p>
 
-**ReadyCheck 0.7.1** 修复 Muse 网站更新后周额度无法读取的问题。[发布说明](docs/versions/0.7.1/RELEASE_NOTES.zh-CN.md) · [验收](docs/versions/0.7.1/QA.zh-CN.md)。
-
-Muse 在原有会话下通过了自动读取、手动刷新及重开验收。Codex 额度和 DeepSeek 余额也已实测。
-
-0.7.1 正式版安装包为 `ReadyCheck-0.7.1-macos.dmg` 与 `ReadyCheck-0.7.1-windows-x64-portable.zip`，验证进度见[验收记录](docs/versions/0.7.1/QA.zh-CN.md)。
-
-**0.7.2-dev.12 预览版**将设置、服务选择、菜单与聚合胶囊统一按 Codex、Muse、DeepSeek 排列。 [预览更新说明](docs/versions/0.7.2/RELEASE_NOTES.zh-CN.md) · [验收](docs/versions/0.7.2/QA.zh-CN.md)。
+**ReadyCheck 0.7.2** 将 Codex、Muse、DeepSeek 的顺序统一到各个入口。macOS 支持勾选快捷服务和窄版聚合胶囊，菜单栏仅保留图标。自动刷新固定为每分钟一次。 [发布说明](docs/versions/0.7.2/RELEASE_NOTES.zh-CN.md) · [验收](docs/versions/0.7.2/QA.zh-CN.md)。
 
 <img src="docs/versions/0.7.0/evidence/0.7.0-aggregate-overview-zh-CN.png" width="470" alt="聚合胶囊与侧边详情合成界面，数值均为测试数据" />
 
@@ -20,14 +14,14 @@ Muse 在原有会话下通过了自动读取、手动刷新及重开验收。Cod
 
 | 通道 | 版本 | 获取方式 |
 | --- | --- | --- |
-| 稳定发布通道 | 0.7.1 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.1/ReadyCheck-0.7.1-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.1/ReadyCheck-0.7.1-windows-x64-portable.zip) |
-| **公开源码** | **0.7.2-dev.12** | [源码 tag](https://github.com/whnnick/readycheck/tree/v0.7.2-dev.12) · [预览更新](docs/versions/0.7.2/RELEASE_NOTES.zh-CN.md) |
-| **最新预览版** | **0.7.2-dev.12** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-windows-x64-portable.zip) |
+| 稳定发布通道 | 0.7.2 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2/ReadyCheck-0.7.2-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2/ReadyCheck-0.7.2-windows-x64-portable.zip) |
+| **公开源码** | **0.7.2** | [源码 tag](https://github.com/whnnick/readycheck/tree/v0.7.2) · [发布说明](docs/versions/0.7.2/RELEASE_NOTES.zh-CN.md) |
+| **上一预览版** | **0.7.2-dev.12** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-windows-x64-portable.zip) |
 
-稳定版下载为 0.7.1，安装包检查、Windows 运行器结果和设备边界见[验收记录](docs/versions/0.7.1/QA.zh-CN.md)。
+稳定版下载为 0.7.2，安装包检查、Windows 运行器结果和设备边界见[验收记录](docs/versions/0.7.2/QA.zh-CN.md)。
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/0.7.0-codex-overview-zh.png" alt="ReadyCheck 0.7.0 原生 Codex 总览：5小时与7天剩余额度、重置节点及本机历史；合成数据" width="760"></p>
-<p align="center"><sub>当前 0.7.0 Codex 界面。所有截图均使用合成数据，不是真实账户。</sub></p>
+<p align="center"><sub>0.7.0 Codex 界面。所有截图均使用合成数据，不是真实账户。</sub></p>
 
 ## 围绕 Codex 的日常使用
 
@@ -75,7 +69,7 @@ Codex 与 DeepSeek 已有真实连接验收；Muse 已通过本机真实登录�
 
 ## 从这里开始
 
-1. 下载上方 **Mac 预览版 DMG**，打开后将 ReadyCheck.app 复制到“应用程序”。
+1. 下载上方 **Mac DMG**，打开后将 ReadyCheck.app 复制到“应用程序”。
 2. 在**设置 → 连接**中登录 Codex，需要时完成正常 macOS 钥匙串提示。DeepSeek 用户可另行添加 API Key 连接。
 3. 在**设置 → 显示**中选择入口，在**设置 → 提醒**中独立配置提醒。
 

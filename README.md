@@ -3,16 +3,10 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Know your Codex quota. See when it resets.</strong></p>
 <p align="center">A lightweight, free, open-source Codex monitor for quotas, Token usage, account benefits and reminders.</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.2-dev.12"><img src="https://img.shields.io/badge/source-0.7.2--dev.12-3979ef" alt="Source 0.7.2-dev.12"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.2"><img src="https://img.shields.io/badge/source-0.7.2-3979ef" alt="Source 0.7.2"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
 <p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.2/RELEASE_NOTES.md">Current changes</a> · <a href="docs/versions/0.7.2/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
 
-**ReadyCheck 0.7.1** restores Muse weekly allowance reads after a website update. [Release notes](docs/versions/0.7.1/RELEASE_NOTES.md) · [Verification](docs/versions/0.7.1/QA.md).
-
-The macOS fix was verified with an existing Muse session at launch, after a manual refresh, and after relaunch. Codex and DeepSeek readings were also verified.
-
-The 0.7.1 release includes `ReadyCheck-0.7.1-macos.dmg` and `ReadyCheck-0.7.1-windows-x64-portable.zip`. Validation is tracked in [QA](docs/versions/0.7.1/QA.md).
-
-**0.7.2-dev.12 preview** uses Codex, Muse, then DeepSeek across settings, service pickers, the menu and the aggregate capsule. [Preview notes](docs/versions/0.7.2/RELEASE_NOTES.md) · [Verification](docs/versions/0.7.2/QA.md).
+**ReadyCheck 0.7.2** uses the same order for Codex, Muse and DeepSeek across the app. macOS adds a configurable compact capsule and an icon-only menu bar. Automatic refresh runs once per minute. [Release notes](docs/versions/0.7.2/RELEASE_NOTES.md) · [Verification](docs/versions/0.7.2/QA.md).
 
 <img src="docs/versions/0.7.0/evidence/0.7.0-aggregate-overview-en-US.png" width="470" alt="Aggregate capsule and side detail with synthetic test values" />
 
@@ -20,14 +14,14 @@ The 0.7.1 release includes `ReadyCheck-0.7.1-macos.dmg` and `ReadyCheck-0.7.1-wi
 
 | Channel | Version | Get it |
 | --- | --- | --- |
-| Stable release channel | 0.7.1 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.1/ReadyCheck-0.7.1-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.1/ReadyCheck-0.7.1-windows-x64-portable.zip) |
-| **Public source** | **0.7.2-dev.12** | [Source tag](https://github.com/whnnick/readycheck/tree/v0.7.2-dev.12) · [Preview notes](docs/versions/0.7.2/RELEASE_NOTES.md) |
-| **Latest preview** | **0.7.2-dev.12** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-windows-x64-portable.zip) |
+| Stable release channel | 0.7.2 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2/ReadyCheck-0.7.2-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2/ReadyCheck-0.7.2-windows-x64-portable.zip) |
+| **Public source** | **0.7.2** | [Source tag](https://github.com/whnnick/readycheck/tree/v0.7.2) · [Release notes](docs/versions/0.7.2/RELEASE_NOTES.md) |
+| **Previous preview** | **0.7.2-dev.12** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-windows-x64-portable.zip) |
 
-The stable downloads contain 0.7.1. Package checks, Windows-runner results and remaining device limits are recorded in [QA](docs/versions/0.7.1/QA.md).
+The stable downloads contain 0.7.2. Package checks, Windows-runner results and remaining device limits are recorded in [QA](docs/versions/0.7.2/QA.md).
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/0.7.0-codex-overview-en.png" alt="ReadyCheck 0.7.0 native Codex overview with 5-hour and 7-day remaining quotas, reset events and local history; synthetic data" width="760"></p>
-<p align="center"><sub>Current 0.7.0 Codex interface. All screenshots use synthetic data, not a real account.</sub></p>
+<p align="center"><sub>0.7.0 Codex interface. All screenshots use synthetic data, not a real account.</sub></p>
 
 ## Built around everyday Codex use
 
@@ -75,7 +69,7 @@ Missing samples stay blank. Old/failed readings retain their status and original
 
 ## Quick start
 
-1. Download a **Mac preview DMG** above, open it and copy ReadyCheck.app to Applications.
+1. Download a **Mac DMG** above, open it and copy ReadyCheck.app to Applications.
 2. In **Settings → Connection**, sign in to Codex and approve normal macOS Keychain prompts if needed. DeepSeek users can add an API Key connection separately.
 3. Choose your surface under **Settings → Display**. Configure reminders separately under **Settings → Reminders**.
 

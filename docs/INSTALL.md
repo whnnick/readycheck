@@ -1,13 +1,13 @@
 # Install and upgrade ReadyCheck
 
-The installed 0.7.0 release offers **Settings → Display → Aggregate capsule** with Codex, DeepSeek and Muse visible together. Real reads, manual refresh and same-bundle restart recovery passed. [QA](versions/0.7.0/QA.md).
+In **Settings → Display → Quick display**, choose Codex, Muse and DeepSeek for the aggregate capsule and the ReadyCheck menu. Automatic refresh runs every minute. [Verification](versions/0.7.2/QA.md).
 
 [简体中文](INSTALL.zh-CN.md) · [Version channels](../README.md#choose-your-version)
 
 ## Choose a package
 
 - macOS requires Apple silicon (arm64) and macOS 14+.
-- Current stable release is **0.7.0**. The earlier dev.23 preview remains in release history.
+- Current stable release is **0.7.2**.
 - Download the verified packages from the [README download table](../README.md#choose-your-version).
 - Windows is a separate x64 portable client: [Windows guide](WINDOWS.md).
 
@@ -24,8 +24,8 @@ Mac packages use the established self-signed ReadyCheck identity, not Developer 
 | Service | In Settings → Connection | Reading scope |
 | --- | --- | --- |
 | Codex | Select Codex, choose Sign in to ReadyCheck and complete browser OAuth. | Returned quota windows and matching-account capabilities. |
-| DeepSeek | Select DeepSeek and enter your API Key directly in the native app. | Official API balance, currency and granted/topped-up components; not website/app chat usage. |
 | Muse | Select Muse, open the separate web sign-in window, sign in and choose Read usage and finish. | Muse personal-agent weekly allowance, reset and plan; not Muse Code/API billing. Live sign-in/read/refresh verified on this Mac. Use Reload page if the official login session expires. |
+| DeepSeek | Select DeepSeek and enter your API Key directly in the native app. | Official API balance, currency and granted/topped-up components; not website/app chat usage. |
 
 The normal Codex callback uses `localhost:1455`; if automatic completion fails, use the app's final-callback-URL fallback. Treat the complete callback URL as a credential and do not post it publicly.
 

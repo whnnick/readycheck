@@ -48,6 +48,21 @@ final class NotchWindowControllerTests: XCTestCase {
         }
     }
 
+    func testDisconnectedNotchClickOpensQuickDisplaySettings() throws {
+        try withNotch(connected: false) { _, panel, host in
+            let model = host.rootView.model
+            var opened = false
+            model.openMainWindow = { opened = true }
+            let point = CGPoint(x: panel.frame.midX, y: panel.frame.midY)
+            try send(.leftMouseDown, at: point, to: panel)
+            try send(.leftMouseUp, at: point, to: panel)
+            XCTAssertTrue(opened)
+            XCTAssertEqual(model.mainWindowPage, .settings)
+            XCTAssertEqual(model.mainSettingsSection, .display)
+            XCTAssertFalse(host.rootView.isExpanded)
+        }
+    }
+
     func testRefreshDoesNotSnapDraggingNotchAndCancellationPreventsDetachment() throws {
         try withNotch { controller, panel, host in
             let original = panel.frame
@@ -88,13 +103,14 @@ final class NotchWindowControllerTests: XCTestCase {
         }
     }
 
-    private func withNotch(_ body: (NotchWindowController, QuotaWidgetPanel, NSHostingController<NotchStatusView>) throws -> Void) throws {
+    private func withNotch(connected: Bool = true, _ body: (NotchWindowController, QuotaWidgetPanel, NSHostingController<NotchStatusView>) throws -> Void) throws {
         _ = NSApplication.shared
         let screen = try XCTUnwrap(NSScreen.main)
         let gap = CGRect(x: screen.frame.midX - 92.5, y: screen.frame.maxY - 33, width: 185, height: 33)
         let controller = NotchWindowController(screenContextProvider: { .init(screen: screen, notchGap: gap) }, reduceMotionProvider: { true })
         let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
             quotaNotificationService: QuotaNotificationService(client: NotchNotificationClient(), verificationDelays: []))
+        if connected { model.codexOAuthStatus = .connected }
         let existing = Set(NSApp.windows.map(\.windowNumber))
         controller.show(model: model)
         defer { controller.close() }

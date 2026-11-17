@@ -2,6 +2,16 @@
 
 [简体中文](QA.zh-CN.md) · [Changelog](../../../CHANGELOG.md)
 
+## 0.7.2 stable
+
+- This release retains Quick display, the shared service order, the menu-bar icon and one-minute polling. Credentials, local history, reminders and card-redemption consent keep their existing data formats. [Feature retention](../0.7.0/RELEASE_AUDIT.md)
+- The floating card has a larger title drag area. Notch tests cover opening details when a service is available and opening Display settings when there are no services. The pace fixture uses a signed-in account that matches its snapshots. Compact readout tests exercise the actual Quick display filtering.
+- 20 targeted Swift tests passed, covering the four previously failing cases. The Mac distribution retains the ReadyCheck self-signed identity. The original Windows 403 device is outside the fixes in this version and still awaits a retest.
+
+- The public-source macOS suite ran 555 cases with no failures and 3 opt-in native evidence skips. The mounted DMG passed its disk image checksum, strict signature, version, bundled Muse reader and private-path checks. The installed app was launched from Applications and its saved capsule frame matched the previous version.
+- The installed Connection and Quick display lists match the overview order of Codex, Muse and DeepSeek. The three selections remained checked and General displays the fixed one-minute cadence. Muse loaded its existing session and showed a live reading.
+- The local Windows ZIP passed CRC, version and comparison of all 16 packaged web source files. The separate GitHub workflow runs Electron UI and proxy/network smoke checks on Windows before uploading the release ZIP.
+
 ## 0.7.2-dev.12 shared service order
 
 - Connection, Reminders, Quick display, overview, usage, the catalog, the menu popover and the aggregate capsule use Codex, Muse, then DeepSeek. Filters preserve that order. Connection methods stay paired with their service, and saved service IDs are unchanged.
