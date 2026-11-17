@@ -10,6 +10,7 @@
 
 - The public-source macOS suite ran 555 cases with no failures and 3 opt-in native evidence skips. The mounted DMG passed its disk image checksum, strict signature, version, bundled Muse reader and private-path checks. The installed app was launched from Applications and its saved capsule frame matched the previous version.
 - The installed Connection and Quick display lists match the overview order of Codex, Muse and DeepSeek. The three selections remained checked and General displays the fixed one-minute cadence. Muse loaded its existing session and showed a live reading.
+- After the user confirmed both Keychain prompts, the installed 0.7.2 displayed live Codex 5-hour and 7-day quota and a live DeepSeek balance with gift and top-up amounts. Manual refresh returned a success status for both. Muse continued to show its weekly allowance.
 - The local Windows ZIP passed CRC, version and comparison of all 16 packaged web source files. The separate GitHub workflow runs Electron UI and proxy/network smoke checks on Windows before uploading the release ZIP.
 
 ## 0.7.2-dev.12 shared service order
