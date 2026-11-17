@@ -1,13 +1,13 @@
 # Install and upgrade ReadyCheck
 
-In **Settings → Display → Quick display**, choose Codex, Muse and DeepSeek for the aggregate capsule and the ReadyCheck menu. Automatic refresh runs every minute. [Verification](versions/0.7.2/QA.md).
+In **Settings → Display → Quick display**, choose Codex, Muse and DeepSeek for the aggregate capsule and the ReadyCheck menu. Automatic refresh runs every minute. [Verification](versions/0.7.3/QA.md).
 
 [简体中文](INSTALL.zh-CN.md) · [Version channels](../README.md#choose-your-version)
 
 ## Choose a package
 
 - macOS requires Apple silicon (arm64) and macOS 14+.
-- Current stable release is **0.7.2**.
+- Current stable release is **0.7.3**.
 - Download the verified packages from the [README download table](../README.md#choose-your-version).
 - Windows is a separate x64 portable client: [Windows guide](WINDOWS.md).
 

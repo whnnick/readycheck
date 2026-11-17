@@ -13,7 +13,7 @@ struct ServiceSwitcherIcon: View {
     }
 
     static func image(name: String, extension fileExtension: String) -> NSImage? {
-        guard let url = Bundle.module.url(forResource: name, withExtension: fileExtension) else { return nil }
+        guard let url = ReadyCheckResources.url(forResource: name, withExtension: fileExtension) else { return nil }
         return NSImage(contentsOf: url)
     }
 }

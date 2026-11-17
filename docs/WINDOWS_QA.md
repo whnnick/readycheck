@@ -2,7 +2,7 @@
 
 [中文](WINDOWS_QA.zh-CN.md) | English
 
-The prior Win32 runtime baseline was **0.7.0**. Windows-runner check/smoke/UI-smoke, native Electron proxy networking and package upload passed in [CI](https://github.com/whnnick/readycheck/actions/runs/42935175540). Real-account reproduction on the original OAuth 403 machine remains unavailable. See [0.7.2 verification](versions/0.7.2/QA.md) · [Windows scope](WINDOWS.md).
+The prior Win32 runtime baseline was **0.7.0**. Windows-runner check/smoke/UI-smoke, native Electron proxy networking and package upload passed in [CI](https://github.com/whnnick/readycheck/actions/runs/42935175540). Real-account reproduction on the original OAuth 403 machine remains unavailable. See [0.7.3 verification](versions/0.7.3/QA.md) · [Windows scope](WINDOWS.md).
 
 Use this guide to validate the ReadyCheck Windows on Windows 10/11. Do not upload tokens, callback URLs, account ids, or raw usage payloads to GitHub Issues, screenshots, or chat.
 

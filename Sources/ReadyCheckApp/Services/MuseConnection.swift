@@ -122,7 +122,7 @@ final class MuseWebSession: NSObject, MuseUsageReading, WKNavigationDelegate, WK
             if window?.isVisible == true { throw MuseUsageError.loginRequired }
             try await loadHome()
         }
-        guard let url = Bundle.module.url(forResource: "MuseSubscription", withExtension: "js"),
+        guard let url = ReadyCheckResources.url(forResource: "MuseSubscription", withExtension: "js"),
               let script = try? String(contentsOf: url, encoding: .utf8) else { throw MuseUsageError.responseChanged }
         let cachedActionID = actionID
         actionID = ""

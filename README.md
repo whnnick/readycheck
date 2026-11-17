@@ -3,10 +3,10 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Know your Codex quota. See when it resets.</strong></p>
 <p align="center">A lightweight, free, open-source Codex monitor for quotas, Token usage, account benefits and reminders.</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.2"><img src="https://img.shields.io/badge/source-0.7.2-3979ef" alt="Source 0.7.2"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
-<p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.2/RELEASE_NOTES.md">Current changes</a> · <a href="docs/versions/0.7.2/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.3"><img src="https://img.shields.io/badge/source-0.7.3-3979ef" alt="Source 0.7.3"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.3/RELEASE_NOTES.md">Current changes</a> · <a href="docs/versions/0.7.3/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
 
-**ReadyCheck 0.7.2** uses the same order for Codex, Muse and DeepSeek across the app. macOS adds a configurable compact capsule and an icon-only menu bar. Automatic refresh runs once per minute. [Release notes](docs/versions/0.7.2/RELEASE_NOTES.md) · [Verification](docs/versions/0.7.2/QA.md).
+**ReadyCheck 0.7.3** fixes a macOS startup crash after restarting or clearing the build directory. The app loads service icons and the Muse quota reader from its own resources. [Release notes](docs/versions/0.7.3/RELEASE_NOTES.md) · [Verification](docs/versions/0.7.3/QA.md).
 
 <img src="docs/versions/0.7.0/evidence/0.7.0-aggregate-overview-en-US.png" width="470" alt="Aggregate capsule and side detail with synthetic test values" />
 
@@ -14,11 +14,11 @@
 
 | Channel | Version | Get it |
 | --- | --- | --- |
-| Stable release channel | 0.7.2 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2/ReadyCheck-0.7.2-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2/ReadyCheck-0.7.2-windows-x64-portable.zip) |
-| **Public source** | **0.7.2** | [Source tag](https://github.com/whnnick/readycheck/tree/v0.7.2) · [Release notes](docs/versions/0.7.2/RELEASE_NOTES.md) |
+| Stable release channel | 0.7.3 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.3/ReadyCheck-0.7.3-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.3/ReadyCheck-0.7.3-windows-x64-portable.zip) |
+| **Public source** | **0.7.3** | [Source tag](https://github.com/whnnick/readycheck/tree/v0.7.3) · [Release notes](docs/versions/0.7.3/RELEASE_NOTES.md) |
 | **Previous preview** | **0.7.2-dev.12** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-windows-x64-portable.zip) |
 
-The stable downloads contain 0.7.2. Package checks, Windows-runner results and remaining device limits are recorded in [QA](docs/versions/0.7.2/QA.md).
+The stable downloads contain 0.7.3. Package checks, Windows-runner results and remaining device limits are recorded in [QA](docs/versions/0.7.3/QA.md).
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/0.7.0-codex-overview-en.png" alt="ReadyCheck 0.7.0 native Codex overview with 5-hour and 7-day remaining quotas, reset events and local history; synthetic data" width="760"></p>
 <p align="center"><sub>0.7.0 Codex interface. All screenshots use synthetic data, not a real account.</sub></p>

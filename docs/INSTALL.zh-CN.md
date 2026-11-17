@@ -1,13 +1,13 @@
 # 安装与升级 ReadyCheck
 
-在**设置 → 显示 → 快捷展示**勾选 Codex、Muse、DeepSeek。该选择用于聚合胶囊和 ReadyCheck 菜单。自动刷新间隔固定为 1 分钟。[验收记录](versions/0.7.2/QA.zh-CN.md)。
+在**设置 → 显示 → 快捷展示**勾选 Codex、Muse、DeepSeek。该选择用于聚合胶囊和 ReadyCheck 菜单。自动刷新间隔固定为 1 分钟。[验收记录](versions/0.7.3/QA.zh-CN.md)。
 
 [English](INSTALL.md) · [版本通道](../README.zh-CN.md#选择版本)
 
 ## 选择安装包
 
 - macOS 需要 Apple 芯片（arm64）及 macOS 14+。
-- 当前稳定正式版为 **0.7.2**。
+- 当前稳定正式版为 **0.7.3**。
 - 从 [README 版本表](../README.zh-CN.md#选择版本)下载已验证安装包。
 - Windows 为独立 x64 便携客户端，见[Windows 指南](WINDOWS.zh-CN.md)。
 

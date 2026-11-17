@@ -6,8 +6,8 @@ ReadyCheck Windows 是独立的 **Electron x64 Codex 客户端**，提供便携 
 
 ## 当前版本
 
-- 当前稳定正式版下载为 **0.7.2**，见[下载表](../README.zh-CN.md#选择版本)。
-- 0.7.2 已提供源码标签及两端安装包。
+- 当前稳定正式版下载为 **0.7.3**，见[下载表](../README.zh-CN.md#选择版本)。
+- 0.7.3 已提供源码标签及两端安装包。
 - Windows 运行器上的 check/smoke/UI-smoke 及原生 Electron 本机代理测试通过。原报 OAuth 403 的电脑仍无法进行真实账号复现。[CI 证据](https://github.com/whnnick/readycheck/actions/runs/42935175540)。
 
 ## 使用便携包

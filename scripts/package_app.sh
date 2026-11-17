@@ -19,7 +19,7 @@ EXECUTABLE_TARGET="${MACOS_DIR}/ReadyCheckApp"
 ICONSET_DIR="${BUILD_DIR}/ReadyCheck.iconset"
 ICON_SOURCE="${BUILD_DIR}/ReadyCheckIcon1024.png"
 ICON_ARCHIVE="${BUILD_DIR}/ReadyCheck.icns"
-VERSION="0.7.2"
+VERSION="0.7.3"
 PREVIEW_SIGNING_IDENTITY="ReadyCheck Preview Signing"
 
 resolve_signing_identity() {
@@ -52,6 +52,9 @@ cp "${EXECUTABLE_SOURCE}" "${EXECUTABLE_TARGET}"
 chmod +x "${EXECUTABLE_TARGET}"
 mkdir -p "${RESOURCES_DIR}/ReadyCheck_ReadyCheckApp.bundle"
 cp "${BUILD_DIR}/release/ReadyCheck_ReadyCheckApp.bundle/"* "${RESOURCES_DIR}/ReadyCheck_ReadyCheckApp.bundle/"
+for resource in readycheck.png deepseek.svg MuseSubscription.js; do
+    test -s "${RESOURCES_DIR}/ReadyCheck_ReadyCheckApp.bundle/${resource}"
+done
 
 generate_icon() {
     swift "${SCRIPT_DIR}/render_app_icon.swift" "${ICON_SOURCE}"

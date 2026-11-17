@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.3 - 2026-11-17
+
+- Fix a macOS startup crash after a reboot or cleanup of the build directory. ReadyCheck loads icons and the Muse quota reader from the installed app.
+
+## 0.7.3-dev.1 - 2026-11-17
+
+- Fix a macOS startup crash after a reboot or cleanup of the build directory. ReadyCheck loads icons and the Muse quota reader from the installed app.
+
 ## 0.7.2 - 2026-11-17
 
 - Choose which connected services appear in macOS Quick display. Settings, overview, usage, the catalog, menu and capsule share the Codex → Muse → DeepSeek order.

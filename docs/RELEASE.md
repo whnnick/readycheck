@@ -80,11 +80,13 @@ Commit the development worktree after these checks pass.
 
 ## Distribution binary privacy
 
-SwiftPM embeds the resource-bundle build location in the executable. For distribution, use the existing build-directory override with a temporary path that contains no personal username or internal workspace location:
+Use a clean temporary build directory without personal usernames or private workspace paths for distribution:
 
 ```bash
 READYCHECK_BUILD_DIR=/private/tmp/readycheck-release-build scripts/package_dmg.sh
 ```
+
+Before uploading, move that build directory and open the packaged app from a separate location. Check that the service icons render and the Muse reader can load from the installed app. Restoring the build directory must never be necessary to launch the app.
 
 Inspect the executable inside the mounted DMG for personal build paths and credential patterns in addition to scanning source text. If a private path is found, rebuild with a clean temporary build directory and verify the final DMG again. Keep package validation separate from installed-app/live-account acceptance.
 
