@@ -30,18 +30,23 @@ struct AggregateServiceSummary: Identifiable {
         } else {
             codexCaption = zh ? "暂无读数" : "No reading"
         }
-        let services = model.quickDisplayServices
-        return [
-            Self(id: .codex, title: "Codex", value: QuotaFormatters.percentageText(for: ratio(primary ?? weekly)),
-                 primaryPeriod: primary != nil ? "5h" : weekly.map { _ in "7d" }, caption: codexCaption,
-                 rings: primary != nil ? [ratio(primary), ratio(weekly)] : [ratio(weekly)]),
-            Self(id: .muse, title: "Muse", value: QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now)),
-                 primaryPeriod: nil, caption: model.muse.remainingRatio(now: now) != nil ? (zh ? "7d 周额度" : "7d weekly")
-                    : model.muse.isBusy ? (zh ? "读取中" : "Reading") : (zh ? "待连接/刷新" : "Connect / refresh"),
-                 rings: [model.muse.remainingRatio(now: now)]),
-            Self(id: .deepSeek, title: "DeepSeek", value: balanceValid ? (balance.flatMap { $0.total }.map(BalanceSurfaceReading.amount) ?? "—") : "—",
-                 primaryPeriod: nil, caption: balanceCaption, rings: [])
-        ].filter { services.contains($0.id) }
+        return model.quickDisplayServices.map { service in
+            switch service {
+            case .codex:
+                return Self(id: service, title: service.title, value: QuotaFormatters.percentageText(for: ratio(primary ?? weekly)),
+                    primaryPeriod: primary != nil ? "5h" : weekly.map { _ in "7d" }, caption: codexCaption,
+                    rings: primary != nil ? [ratio(primary), ratio(weekly)] : [ratio(weekly)])
+            case .muse:
+                let remaining = model.muse.remainingRatio(now: now)
+                return Self(id: service, title: service.title, value: QuotaFormatters.percentageText(for: remaining),
+                    primaryPeriod: nil, caption: remaining != nil ? (zh ? "7d 周额度" : "7d weekly")
+                        : model.muse.isBusy ? (zh ? "读取中" : "Reading") : (zh ? "待连接/刷新" : "Connect / refresh"),
+                    rings: [remaining])
+            case .deepSeek:
+                return Self(id: service, title: service.title, value: balanceValid ? (balance.map { BalanceSurfaceReading.amount($0.total) } ?? "—") : "—",
+                    primaryPeriod: nil, caption: balanceCaption, rings: [])
+            }
+        }
     }
 }
 

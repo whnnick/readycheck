@@ -22,6 +22,10 @@ For new providers, use the one-minute automatic refresh policy for read-only usa
 
 新接入的服务沿用每分钟自动刷新策略，仅查询用量或余额。macOS 使用 `RefreshPolicy.default`，并保留手动刷新。
 
+Use the shared service order in `ServiceSettingsTarget.allCases` for service lists and keyboard navigation. Check affected settings, overview, usage, catalog, popover, and widget surfaces together when changing provider behavior.
+
+所有服务列表和键盘导航使用 `ServiceSettingsTarget.allCases` 的统一顺序。修改服务相关行为时，同时核对受影响的设置、总览、用量、服务目录、菜单和小组件。
+
 ## Pull Requests
 
 Include a short summary, verification evidence, and screenshots for visible UI changes. Add or update focused tests when behavior changes.

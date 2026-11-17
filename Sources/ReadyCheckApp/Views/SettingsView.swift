@@ -311,20 +311,16 @@ struct SettingsView: View {
 
     private var settingsPlatformPicker: some View {
         HStack(spacing: 3) {
-            if model.mainSettingsSection == .connection {
-                ForEach(ServiceConnectionMethod.allCases, id: \.rawValue) { method in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(method.title).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+            ForEach(ServiceSettingsTarget.allCases, id: \.self) { service in
+                VStack(alignment: .leading, spacing: 4) {
+                    if model.mainSettingsSection == .connection {
+                        Text(service.presentation.connectionMethod.title)
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.secondary)
                             .padding(.horizontal, 12)
-                        ForEach(ServiceSettingsTarget.allCases.filter {
-                            $0.presentation.connectionMethod == method
-                        }, id: \.rawValue) { settingsPlatformButton($0) }
                     }
+                    settingsPlatformButton(service)
                 }
-            } else {
-                settingsPlatformButton(.codex)
-                settingsPlatformButton(.deepSeek)
-                settingsPlatformButton(.muse)
             }
         }
         .padding(3)
@@ -430,7 +426,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text(model.localization.text("settings.quickDisplay")).font(.headline)
                 Text(model.localization.text("settings.quickDisplayHelp")).font(.caption).foregroundStyle(.secondary)
-                ForEach(ServiceSettingsTarget.quickDisplayOrder, id: \.self) { service in
+                ForEach(ServiceSettingsTarget.allCases, id: \.self) { service in
                     HStack {
                         Toggle(service.title, isOn: Binding(
                             get: { model.quickDisplaySelection.contains(service) },

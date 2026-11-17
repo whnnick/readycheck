@@ -131,7 +131,7 @@ final class AggregateCapsuleTests: XCTestCase {
             controller.select(.muse)
             XCTAssertEqual(controller.detail?.isVisible, false)
 
-            model.quickDisplaySelection = Set(ServiceSettingsTarget.quickDisplayOrder)
+            model.quickDisplaySelection = Set(ServiceSettingsTarget.allCases)
             try await Task.sleep(for: .milliseconds(120))
             XCTAssertEqual(rail.frame, initial)
         }

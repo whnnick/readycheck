@@ -6,24 +6,35 @@ struct ServiceCatalogEntry: Identifiable {
     let name: String
     let aliases: String
     let batch: Int
-    let supported: Bool
+    var service: ServiceSettingsTarget? = nil
+    var supported: Bool { service != nil }
     let summaryZH: String
     let summaryEN: String
 }
 
 enum ServiceCatalog {
-    static let entries: [ServiceCatalogEntry] = [
-        .init(id: "codex", name: "Codex", aliases: "OpenAI", batch: 1, supported: true, summaryZH: "订阅额度、Token 与重置卡", summaryEN: "Subscription quota, tokens and reset cards"),
-        .init(id: "claude", name: "Claude", aliases: "Anthropic Claude Code", batch: 1, supported: false, summaryZH: "订阅额度与 API 统计需分别验证", summaryEN: "Subscription quota and API reporting require separate verification"),
-        .init(id: "gemini", name: "Gemini", aliases: "Google 谷歌", batch: 1, supported: false, summaryZH: "CLI 与应用配额需分别验证", summaryEN: "CLI and app quota require separate verification"),
-        .init(id: "deepseek", name: "DeepSeek", aliases: "深度求索", batch: 1, supported: true, summaryZH: "官方 API 余额", summaryEN: "Official API balance"),
-        .init(id: "muse", name: "Muse", aliases: "Meta muse.ai", batch: 1, supported: true, summaryZH: "Muse 应用周额度与套餐", summaryEN: "Muse app weekly allowance and plan"),
-        .init(id: "cursor", name: "Cursor", aliases: "", batch: 1, supported: false, summaryZH: "套餐用量与账单周期待验证", summaryEN: "Plan usage and billing period require verification"),
-        .init(id: "copilot", name: "GitHub Copilot", aliases: "GitHub 微软", batch: 2, supported: false, summaryZH: "套餐与用量统计待验证", summaryEN: "Plan and usage reporting require verification"),
-        .init(id: "bailian", name: "通义／百炼 Coding Plan", aliases: "Alibaba Qwen 阿里 千问 Bailian", batch: 2, supported: false, summaryZH: "Coding Plan 用量待验证", summaryEN: "Coding Plan usage requires verification"),
-        .init(id: "glm", name: "智谱 GLM Coding Plan", aliases: "z.ai zai BigModel Zhipu", batch: 2, supported: false, summaryZH: "按地域区分的套餐额度待验证", summaryEN: "Region-specific plan quota requires verification"),
-        .init(id: "kimi", name: "Kimi Code", aliases: "月之暗面 Moonshot", batch: 2, supported: false, summaryZH: "编程订阅额度待验证", summaryEN: "Coding subscription quota requires verification"),
-        .init(id: "minimax", name: "MiniMax Coding Plan", aliases: "稀宇", batch: 2, supported: false, summaryZH: "编程套餐额度待验证", summaryEN: "Coding plan quota requires verification")
+    static let entries: [ServiceCatalogEntry] = ServiceSettingsTarget.allCases.map { service in
+        let id = service.rawValue.lowercased()
+        switch service {
+        case .codex:
+            return .init(id: id, name: service.title, aliases: "OpenAI", batch: 1, service: service,
+                summaryZH: "订阅额度、Token 与重置卡", summaryEN: "Subscription quota, tokens and reset cards")
+        case .muse:
+            return .init(id: id, name: service.title, aliases: "Meta muse.ai", batch: 1, service: service,
+                summaryZH: "Muse 应用周额度与套餐", summaryEN: "Muse app weekly allowance and plan")
+        case .deepSeek:
+            return .init(id: id, name: service.title, aliases: "深度求索", batch: 1, service: service,
+                summaryZH: "官方 API 余额", summaryEN: "Official API balance")
+        }
+    } + [
+        .init(id: "claude", name: "Claude", aliases: "Anthropic Claude Code", batch: 1, summaryZH: "订阅额度与 API 统计需分别验证", summaryEN: "Subscription quota and API reporting require separate verification"),
+        .init(id: "gemini", name: "Gemini", aliases: "Google 谷歌", batch: 1, summaryZH: "CLI 与应用配额需分别验证", summaryEN: "CLI and app quota require separate verification"),
+        .init(id: "cursor", name: "Cursor", aliases: "", batch: 1, summaryZH: "套餐用量与账单周期待验证", summaryEN: "Plan usage and billing period require verification"),
+        .init(id: "copilot", name: "GitHub Copilot", aliases: "GitHub 微软", batch: 2, summaryZH: "套餐与用量统计待验证", summaryEN: "Plan and usage reporting require verification"),
+        .init(id: "bailian", name: "通义／百炼 Coding Plan", aliases: "Alibaba Qwen 阿里 千问 Bailian", batch: 2, summaryZH: "Coding Plan 用量待验证", summaryEN: "Coding Plan usage requires verification"),
+        .init(id: "glm", name: "智谱 GLM Coding Plan", aliases: "z.ai zai BigModel Zhipu", batch: 2, summaryZH: "按地域区分的套餐额度待验证", summaryEN: "Region-specific plan quota requires verification"),
+        .init(id: "kimi", name: "Kimi Code", aliases: "月之暗面 Moonshot", batch: 2, summaryZH: "编程订阅额度待验证", summaryEN: "Coding subscription quota requires verification"),
+        .init(id: "minimax", name: "MiniMax Coding Plan", aliases: "稀宇", batch: 2, summaryZH: "编程套餐额度待验证", summaryEN: "Coding plan quota requires verification")
     ]
 
     static func filtered(query: String, batch: Int) -> [ServiceCatalogEntry] {
@@ -84,7 +95,7 @@ struct ServiceCatalogView: View {
                 }.labelsHidden().frame(width: 150)
             }
             let results = ServiceCatalog.filtered(query: query, batch: batch)
-            Text(text("\(results.count) 个服务 · 按开发批次排序", "\(results.count) services · Ordered by batch"))
+            Text(text("\(results.count) 个服务 · 已接入服务优先", "\(results.count) services · Supported services first"))
                 .font(.caption).foregroundStyle(.secondary)
             Divider()
             if results.isEmpty {
@@ -97,9 +108,9 @@ struct ServiceCatalogView: View {
                     LazyVStack(spacing: 0) {
                         ForEach(results) { entry in
                             Button {
-                                if entry.supported {
+                                if let service = entry.service {
                                     dismiss()
-                                    openConnectionSettings(entry.id == "muse" ? .muse : entry.id == "deepseek" ? .deepSeek : .codex)
+                                    openConnectionSettings(service)
                                 } else { selected = entry }
                             } label: {
                                 HStack(alignment: .center, spacing: 12) {

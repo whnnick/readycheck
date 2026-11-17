@@ -2,9 +2,9 @@
 
 | Channel / 通道 | Current version / 当前版本 | Evidence / 入口 |
 | --- | --- | --- |
-| Installed release / 本机安装版 | **0.7.2-dev.10** | [Mac checks](versions/0.7.2/QA.md) / [本机验收](versions/0.7.2/QA.zh-CN.md) |
-| Public source / 公开源码 | **0.7.2-dev.11** | [Source tag / 源码](https://github.com/whnnick/readycheck/tree/v0.7.2-dev.11) · [English notes](versions/0.7.2/RELEASE_NOTES.md) / [中文说明](versions/0.7.2/RELEASE_NOTES.zh-CN.md) |
-| Latest downloadable preview / 最新可下载预览 | **0.7.2-dev.11** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.2-dev.11) · [English notes](versions/0.7.2/RELEASE_NOTES.md) / [中文说明](versions/0.7.2/RELEASE_NOTES.zh-CN.md) |
+| Installed release / 本机安装版 | **0.7.2-dev.12** | [Mac checks](versions/0.7.2/QA.md) / [本机验收](versions/0.7.2/QA.zh-CN.md) |
+| Public source / 公开源码 | **0.7.2-dev.12** | [Source tag / 源码](https://github.com/whnnick/readycheck/tree/v0.7.2-dev.12) · [English notes](versions/0.7.2/RELEASE_NOTES.md) / [中文说明](versions/0.7.2/RELEASE_NOTES.zh-CN.md) |
+| Latest downloadable preview / 最新可下载预览 | **0.7.2-dev.12** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.2-dev.12) · [English notes](versions/0.7.2/RELEASE_NOTES.md) / [中文说明](versions/0.7.2/RELEASE_NOTES.zh-CN.md) |
 | Stable release channel / 稳定发布通道 | **0.7.1** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.1) · [English notes](versions/0.7.1/RELEASE_NOTES.md) / [中文说明](versions/0.7.1/RELEASE_NOTES.zh-CN.md) |
 
 The 0.7.0 source/tag, installed Mac validation and Windows-runner results are linked in QA. / 0.7.0 源码标签、Mac 安装验收及 Windows 运行器结果见 QA。

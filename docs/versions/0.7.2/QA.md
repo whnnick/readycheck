@@ -2,12 +2,23 @@
 
 [简体中文](QA.zh-CN.md) · [Changelog](../../../CHANGELOG.md)
 
+## 0.7.2-dev.12 shared service order
+
+- Connection, Reminders, Quick display, overview, usage, the catalog, the menu popover and the aggregate capsule use Codex, Muse, then DeepSeek. Filters preserve that order. Connection methods stay paired with their service, and saved service IDs are unchanged.
+- 30 targeted Swift tests passed, and the two catalog tests passed again on the final source. The signed build was installed and opened. The installed checks covered overview, usage, Connection, Reminders, Quick display, the catalog, and right-arrow navigation from Codex to Muse. After Keychain confirmation, the aggregate capsule showed all three live readings in the same order and the original three options remained checked. The popover was covered by synthetic tests, with a physical menu-bar click still pending.
+
+### Public preview package checks
+
+- The public-source Swift run executed 554 cases, including 3 opt-in skips. Four cases failed, all of which also failed in the preceding preview run. The 30 targeted tests for the shared service order and affected surfaces passed.
+- The mounted Mac DMG passed version, strict preview signature, bundled Muse reader and private-path checks. The Windows package passed CRC, version and comparison of its 16 packaged web source files. Node 24 checks and UI smoke passed.
+
 ## 0.7.2-dev.11 one-minute refresh
 
 - **A07 and A08.** The requested change replaces the 1/3/5-minute selector with a fixed one-minute cadence and an explanation. Previous interval preferences are ignored. Manual, wake and quota-event refresh continue to use their existing routes. Roll back to the preceding release to restore the selector. Stored account credentials and history formats are unchanged.
 - Codex runs its automatic timer independently of visible windows. Codex, DeepSeek and Muse use the same macOS refresh policy. Future provider integrations should use that policy for ordinary polling. DeepSeek five-minute chart buckets represent aggregation only.
 - Windows keeps its Codex-only preview scope and uses the same one-minute cadence, including when a saved preference contains an older interval.
 - Development verification ran 36 focused Swift tests with 1 opt-in skip and no failures. Windows check, smoke, and UI smoke passed with Node 24. Live provider cadence, menu-bar clicks and the original Windows OAuth 403 device remain pending.
+- The published DMG was installed and launched. General settings show the fixed one-minute explanation, and the Muse detail page displays the same cadence and a live reading. After Keychain confirmation, Codex showed a signed-in state and DeepSeek showed its live balance. A full background cadence measurement remains pending.
 
 ### Public preview package checks
 

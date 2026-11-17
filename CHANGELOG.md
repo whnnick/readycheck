@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.2-dev.12 - 2026-11-17
+
+- Use Codex, Muse, then DeepSeek across service pickers, the catalog, and the aggregate capsule. Keyboard navigation and Quick display filtering follow the same order.
+
 ## 0.7.2-dev.11 - 2026-11-17
 
 - Refresh connected services every minute while ReadyCheck runs on macOS and Windows. Settings explains the fixed cadence, and manual refresh remains available.

@@ -1,7 +1,7 @@
 import Foundation
 import ReadyCheckCore
 
-enum ServiceConnectionMethod: String, CaseIterable {
+enum ServiceConnectionMethod {
     case oauth, apiKey, browser
     var title: String { switch self { case .oauth: "OAuth"; case .apiKey: "API Key"; case .browser: "Web" } }
 }
@@ -14,8 +14,6 @@ struct ServicePresentation: Equatable {
 }
 
 extension ServiceSettingsTarget {
-    static let quickDisplayOrder: [Self] = [.codex, .muse, .deepSeek]
-
     var presentation: ServicePresentation {
         switch self {
         case .codex: .init(connectionMethod: .oauth, readoutKind: .quota)
@@ -42,7 +40,7 @@ extension ReadyCheckAppModel {
     }
 
     var quickDisplayServices: [ServiceSettingsTarget] {
-        ServiceSettingsTarget.quickDisplayOrder.filter { quickDisplaySelection.contains($0) && isConnectedForQuickDisplay($0) }
+        ServiceSettingsTarget.allCases.filter { quickDisplaySelection.contains($0) && isConnectedForQuickDisplay($0) }
     }
 
     var quickDisplayService: ServiceSettingsTarget? {

@@ -276,7 +276,7 @@ final class ReadyCheckAppModel {
     private static let quickDisplaySelectionKey = "ReadyCheck.quickDisplayServices.v1"
     var quickDisplaySelection: Set<ServiceSettingsTarget> {
         didSet {
-            widgetVisibilityDefaults.set(ServiceSettingsTarget.quickDisplayOrder
+            widgetVisibilityDefaults.set(ServiceSettingsTarget.allCases
                 .filter(quickDisplaySelection.contains).map(\.rawValue), forKey: Self.quickDisplaySelectionKey)
         }
     }
@@ -532,7 +532,7 @@ final class ReadyCheckAppModel {
         self.resetCreditClient = resetCreditClient
         self.widgetVisibilityDefaults = widgetVisibilityDefaults
         self.quickDisplaySelection = Set(widgetVisibilityDefaults.stringArray(forKey: Self.quickDisplaySelectionKey)?
-            .compactMap(ServiceSettingsTarget.init(rawValue:)) ?? ServiceSettingsTarget.quickDisplayOrder)
+            .compactMap(ServiceSettingsTarget.init(rawValue:)) ?? ServiceSettingsTarget.allCases)
         self.widgetVisible = WidgetVisibilityPreference.value(defaults: widgetVisibilityDefaults)
         self.credentialStore = credentialStore
         self.deepSeek = deepSeekConnection ?? DeepSeekConnection(store: credentialStore)

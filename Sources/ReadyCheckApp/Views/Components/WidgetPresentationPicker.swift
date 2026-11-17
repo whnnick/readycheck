@@ -47,8 +47,8 @@ struct WidgetPresentationPicker: View {
         switch style {
         case .aggregate:
             VStack(spacing: 2) {
-                ForEach(0..<3) { index in
-                    Circle().stroke([Color.cyan, .indigo, .blue][index], lineWidth: 2)
+                ForEach(ServiceSettingsTarget.allCases.prefix(3), id: \.self) { service in
+                    Circle().stroke(AggregateServiceMark.tint(service), lineWidth: 2)
                         .frame(width: 9, height: 9)
                 }
             }.padding(5).background(Color.primary.opacity(0.08), in: Capsule())

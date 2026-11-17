@@ -3,7 +3,7 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Know your Codex quota. See when it resets.</strong></p>
 <p align="center">A lightweight, free, open-source Codex monitor for quotas, Token usage, account benefits and reminders.</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.2-dev.11"><img src="https://img.shields.io/badge/source-0.7.2--dev.11-3979ef" alt="Source 0.7.2-dev.11"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.2-dev.12"><img src="https://img.shields.io/badge/source-0.7.2--dev.12-3979ef" alt="Source 0.7.2-dev.12"></a> <a href="docs/INSTALL.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT license"></a></p>
 <p align="center"><a href="#quick-start">Quick start</a> · <a href="docs/versions/0.7.2/RELEASE_NOTES.md">Current changes</a> · <a href="docs/versions/0.7.2/QA.md">Checks &amp; limits</a> · <a href="docs/VERSIONS.md">Versions</a></p>
 
 **ReadyCheck 0.7.1** restores Muse weekly allowance reads after a website update. [Release notes](docs/versions/0.7.1/RELEASE_NOTES.md) · [Verification](docs/versions/0.7.1/QA.md).
@@ -12,7 +12,7 @@ The macOS fix was verified with an existing Muse session at launch, after a manu
 
 The 0.7.1 release includes `ReadyCheck-0.7.1-macos.dmg` and `ReadyCheck-0.7.1-windows-x64-portable.zip`. Validation is tracked in [QA](docs/versions/0.7.1/QA.md).
 
-**0.7.2-dev.11 preview** adds service selection for the aggregate capsule and menu, an icon-only macOS menu bar, and fixed one-minute refresh. [Preview notes](docs/versions/0.7.2/RELEASE_NOTES.md) · [Verification](docs/versions/0.7.2/QA.md).
+**0.7.2-dev.12 preview** uses Codex, Muse, then DeepSeek across settings, service pickers, the menu and the aggregate capsule. [Preview notes](docs/versions/0.7.2/RELEASE_NOTES.md) · [Verification](docs/versions/0.7.2/QA.md).
 
 <img src="docs/versions/0.7.0/evidence/0.7.0-aggregate-overview-en-US.png" width="470" alt="Aggregate capsule and side detail with synthetic test values" />
 
@@ -21,8 +21,8 @@ The 0.7.1 release includes `ReadyCheck-0.7.1-macos.dmg` and `ReadyCheck-0.7.1-wi
 | Channel | Version | Get it |
 | --- | --- | --- |
 | Stable release channel | 0.7.1 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.1/ReadyCheck-0.7.1-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.1/ReadyCheck-0.7.1-windows-x64-portable.zip) |
-| **Public source** | **0.7.2-dev.11** | [Source tag](https://github.com/whnnick/readycheck/tree/v0.7.2-dev.11) · [Preview notes](docs/versions/0.7.2/RELEASE_NOTES.md) |
-| **Latest preview** | **0.7.2-dev.11** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.11/ReadyCheck-0.7.2-dev.11-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.11/ReadyCheck-0.7.2-dev.11-windows-x64-portable.zip) |
+| **Public source** | **0.7.2-dev.12** | [Source tag](https://github.com/whnnick/readycheck/tree/v0.7.2-dev.12) · [Preview notes](docs/versions/0.7.2/RELEASE_NOTES.md) |
+| **Latest preview** | **0.7.2-dev.12** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-windows-x64-portable.zip) |
 
 The stable downloads contain 0.7.1. Package checks, Windows-runner results and remaining device limits are recorded in [QA](docs/versions/0.7.1/QA.md).
 

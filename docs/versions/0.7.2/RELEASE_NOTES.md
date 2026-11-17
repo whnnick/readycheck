@@ -1,7 +1,8 @@
-# ReadyCheck 0.7.2-dev.11 preview
+# ReadyCheck 0.7.2-dev.12 preview
 
 [简体中文](RELEASE_NOTES.zh-CN.md) · [Verification](QA.md)
 
+- Settings, overview, usage, service catalog, the menu and the aggregate capsule use the same order: **Codex → Muse → DeepSeek**. Keyboard navigation and filtered lists keep that order.
 - Connected services refresh every minute while ReadyCheck is running. The interval setting is replaced by a short explanation. Manual refresh remains available. Refresh reads usage or balance without a model request.
 - On macOS, **Settings → Display → Quick display** controls which connected services appear in the capsule and its menus. The right-side capsule is narrow and fits the number of visible services. An empty capsule keeps a shortcut to settings.
 - The macOS menu bar shows a single ReadyCheck icon. Click it to see selected services. The side detail fades between services as you move across their icons.

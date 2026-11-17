@@ -3,7 +3,8 @@ import ReadyCheckCore
 import SwiftUI
 
 enum ServiceSettingsTarget: String, CaseIterable {
-    case codex, deepSeek, muse
+    // Declaration order drives every service list. Keep raw values stable for saved settings.
+    case codex, muse, deepSeek
     var title: String { switch self { case .codex: "Codex"; case .deepSeek: "DeepSeek"; case .muse: "Muse" } }
 }
 
