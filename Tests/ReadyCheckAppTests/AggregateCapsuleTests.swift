@@ -14,18 +14,126 @@ final class AggregateCapsuleTests: XCTestCase {
             XCTAssertEqual(model.selectedService, original, "Refreshing a side detail cannot switch the main window")
             let now = Date()
             let readings = AggregateServiceSummary.readings(model: model, now: now)
-            XCTAssertEqual(readings.map(\.id), [.codex, .deepSeek, .muse])
+            XCTAssertEqual(readings.map(\.id), [.codex, .muse, .deepSeek])
             XCTAssertEqual(readings[0].value, "82%")
             XCTAssertEqual(readings[0].primaryPeriod, "5h")
-            XCTAssertEqual(readings[0].caption, "7d 64%")
+            XCTAssertFalse(readings[0].caption.contains("%"), "The weekly number is only in the detail")
             XCTAssertEqual(readings[0].rings.count, 2)
-            XCTAssertEqual(readings[1].caption, "CNY")
-            XCTAssertFalse(readings[1].value.contains("%"))
-            XCTAssertTrue(readings[1].rings.isEmpty, "Currency balance cannot masquerade as quota progress")
-            XCTAssertEqual(readings[2].value, "73%")
+            XCTAssertEqual(try XCTUnwrap(readings[0].rings[1]), 0.64, accuracy: 0.0001)
+            XCTAssertEqual(readings[2].caption, "CNY")
+            XCTAssertFalse(readings[2].value.contains("%"))
+            XCTAssertTrue(readings[2].rings.isEmpty, "Currency balance cannot masquerade as quota progress")
+            XCTAssertEqual(readings[1].value, "73%")
             for reading in AggregateServiceSummary.readings(model: model, now: now.addingTimeInterval(301)) {
                 XCTAssertEqual(reading.value, "—", "Expired reading must not look current: \(reading.title)")
             }
+        }
+    }
+
+    func testQuickDisplayRequiresBothConnectionAndSelection() async throws {
+        try await withFixture { model in
+            model.selectedService = .deepSeek
+            model.quickDisplaySelection = [.codex, .muse]
+            XCTAssertEqual(model.quickDisplayServices, [.codex, .muse])
+            XCTAssertEqual(model.quickDisplayService, .codex)
+            XCTAssertEqual(model.selectedService, .deepSeek)
+            XCTAssertEqual(AggregateServiceSummary.readings(model: model, now: Date()).map(\.id), [.codex, .muse])
+
+            model.quickDisplaySelection.insert(.deepSeek)
+            XCTAssertEqual(model.quickDisplayService, .deepSeek)
+            XCTAssertEqual(model.bubbleRestingSize, BubbleWidgetPlacement.balanceBubbleSize)
+            await model.deepSeek.disconnect()
+            await model.muse.disconnect()
+            model.codexOAuthStatus = .failed
+            XCTAssertEqual(model.quickDisplaySelection, [.codex, .muse, .deepSeek])
+            XCTAssertTrue(model.quickDisplayServices.isEmpty)
+            XCTAssertNil(model.quickDisplayService)
+            XCTAssertTrue(AggregateServiceSummary.readings(model: model, now: Date()).isEmpty)
+            XCTAssertEqual(model.bubbleRestingSize, BubbleWidgetPlacement.bubbleSize)
+
+            model.codexOAuthStatus = .connected
+            XCTAssertEqual(model.quickDisplayServices, [.codex])
+        }
+    }
+
+    func testQuickDisplayRestoresSavedChoiceIncludingAnEmptySelection() {
+        let suite = "quick-display-fixture-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        func makeModel() -> ReadyCheckAppModel {
+            ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+                quotaNotificationService: QuotaNotificationService(client: ClaritySilentNotifications(), verificationDelays: []),
+                widgetVisibilityDefaults: defaults)
+        }
+        let original = makeModel()
+        XCTAssertEqual(original.quickDisplaySelection, [.codex, .muse, .deepSeek])
+        XCTAssertTrue(original.quickDisplayServices.isEmpty)
+        original.quickDisplaySelection = [.muse]
+        XCTAssertEqual(makeModel().quickDisplaySelection, [.muse])
+        original.quickDisplaySelection = []
+        let restored = makeModel()
+        restored.codexOAuthStatus = .connected
+        XCTAssertEqual(restored.quickDisplaySelection, [])
+        XCTAssertTrue(restored.quickDisplayServices.isEmpty)
+    }
+
+    func testQuickDisplayRendersFilteredAndEmptySurfacesInBothLanguages() async throws {
+        try await withFixture { model in
+            model.selectedService = .codex
+            for language in [AppLanguage.zhCN, .enUS] {
+                model.language = language
+                for selection: Set<ServiceSettingsTarget> in [[.codex, .muse], []] {
+                    model.quickDisplaySelection = selection
+                    let suffix = "\(selection.count)-\(language.rawValue)"
+                    try capture(AnyView(AggregateCapsuleView(model: model, onSelect: { _ in }, onHover: { _, _ in })),
+                        size: AggregateCapsulePlacement.size(serviceCount: selection.count), name: "quick-display-rail-\(suffix)")
+                    try capture(AnyView(MenuBarQuotaView(model: model, openSettings: {})),
+                        size: CGSize(width: 340, height: 520), name: "quick-display-menu-\(suffix)")
+                }
+                model.mainWindowPage = .settings
+                model.mainSettingsSection = .display
+                try capture(AnyView(SettingsView(model: model)),
+                    size: CGSize(width: 900, height: 760), name: "quick-display-settings-\(language.rawValue)")
+            }
+        }
+    }
+
+    func testQuickDisplayResizesRailInPlaceAndClosesHiddenPinnedDetail() async throws {
+        try await withFixture { model in
+            let suite = "quick-display-frame-\(UUID().uuidString)"
+            let defaults = UserDefaults(suiteName: suite)!
+            defer { defaults.removePersistentDomain(forName: suite) }
+            let visible = CGRect(x: 0, y: 0, width: 1440, height: 900)
+            let initial = CGRect(x: 1392, y: 330, width: 48, height: 204)
+            defaults.set(NSStringFromRect(initial), forKey: AggregateCapsuleWindowController.frameKey)
+            let controller = AggregateCapsuleWindowController(visibleFrameProvider: { _ in visible },
+                reduceMotionProvider: { true }, defaults: defaults)
+            defer { controller.close() }
+            controller.show(model: model)
+            let rail = try XCTUnwrap(controller.rail)
+            XCTAssertEqual(rail.frame, initial)
+            controller.select(.muse)
+            controller.togglePin()
+            XCTAssertTrue(controller.isPinned)
+
+            model.quickDisplaySelection = [.codex, .deepSeek]
+            try await Task.sleep(for: .milliseconds(120))
+            XCTAssertFalse(controller.isPinned)
+            XCTAssertEqual(controller.detail?.isVisible, false)
+            XCTAssertEqual(rail.frame.size, AggregateCapsulePlacement.size(serviceCount: 2))
+            XCTAssertEqual(rail.frame.midY, initial.midY)
+            XCTAssertEqual(rail.frame.maxX, initial.maxX)
+
+            model.quickDisplaySelection = []
+            try await Task.sleep(for: .milliseconds(120))
+            XCTAssertEqual(rail.frame.size, AggregateCapsulePlacement.size(serviceCount: 0))
+            XCTAssertTrue(rail.isVisible)
+            controller.select(.muse)
+            XCTAssertEqual(controller.detail?.isVisible, false)
+
+            model.quickDisplaySelection = Set(ServiceSettingsTarget.quickDisplayOrder)
+            try await Task.sleep(for: .milliseconds(120))
+            XCTAssertEqual(rail.frame, initial)
         }
     }
 
@@ -71,8 +179,13 @@ final class AggregateCapsuleTests: XCTestCase {
             XCTAssertTrue(controller.detail?.isVisible == true)
             controller.hover(.deepSeek, inside: true)
             XCTAssertEqual(controller.service, .muse, "Hover cannot change a pinned detail")
+            let openPanel = try XCTUnwrap(controller.detail)
+            let openFrame = openPanel.frame
             controller.select(.deepSeek)
             XCTAssertTrue(controller.isPinned)
+            XCTAssertTrue(controller.detail === openPanel, "Changing services reuses the detail window")
+            XCTAssertEqual(openPanel.frame, openFrame)
+            XCTAssertEqual(openPanel.title, "ReadyCheck · deepSeek")
             controller.togglePin(); controller.dismissFromExternalInteraction()
             XCTAssertFalse(controller.detail?.isVisible == true)
             XCTAssertTrue(controller.rail?.isVisible == true)
@@ -159,6 +272,39 @@ final class AggregateCapsuleTests: XCTestCase {
         }
     }
 
+    func testHoverSwitchUpdatesMountedDetailWithoutMovingIt() async throws {
+        try await withFixture { model in
+            let suite = "aggregate-hover-\(UUID())"
+            let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+            let visible = CGRect(x: 0, y: 0, width: 1440, height: 900)
+            let controller = AggregateCapsuleWindowController(visibleFrameProvider: { _ in visible },
+                reduceMotionProvider: { true }, defaults: defaults)
+            defer { controller.close(); defaults.removePersistentDomain(forName: suite) }
+            controller.show(model: model)
+            controller.select(.codex)
+            let panel = try XCTUnwrap(controller.detail)
+            let host = try XCTUnwrap(panel.contentViewController as? NSHostingController<AggregateCapsuleDetailView>)
+            let state = host.rootView.state
+            let frame = panel.frame
+
+            for next in [ServiceSettingsTarget.muse, .deepSeek, .codex] {
+                controller.hover(controller.service, inside: false)
+                controller.hover(next, inside: true)
+                XCTAssertTrue(panel.isVisible)
+                XCTAssertTrue(controller.detail === panel)
+                XCTAssertTrue(panel.contentViewController === host)
+                XCTAssertTrue(host.rootView.state === state)
+                XCTAssertEqual(state.service, next)
+                XCTAssertEqual(panel.frame, frame)
+            }
+
+            controller.togglePin()
+            controller.hover(.muse, inside: true)
+            XCTAssertTrue(state.isPinned)
+            XCTAssertEqual(state.service, .codex)
+        }
+    }
+
     func testReopeningWhileFadingOutKeepsTheNewPreviewVisible() async throws {
         try await withFixture { model in
             let key = AggregateCapsuleWindowController.frameKey
@@ -177,6 +323,8 @@ final class AggregateCapsuleTests: XCTestCase {
             controller.select(.codex)
             let detail = try XCTUnwrap(controller.detail)
             XCTAssertTrue(detail.isVisible)
+            XCTAssertLessThan(detail.alphaValue, 1, "The entering detail starts partially transparent")
+            XCTAssertNotEqual(detail.frame.minX, restingFrame.minX, "The detail begins beside the rail before sliding inward")
             try await Task.sleep(for: .milliseconds(300))
             XCTAssertEqual(detail.frame, restingFrame)
             XCTAssertEqual(detail.alphaValue, 1, accuracy: 0.01)
@@ -198,6 +346,48 @@ final class AggregateCapsuleTests: XCTestCase {
         }
     }
 
+    func testCompactRailStaysVisibleAtBothEdgesAndCanDragInward() async throws {
+        try await withFixture { model in
+            let visible = CGRect(x: 0, y: 0, width: 1440, height: 900)
+            let suite = "aggregate-dock-\(UUID())"
+            let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+            let key = AggregateCapsuleWindowController.frameKey
+            let controller = AggregateCapsuleWindowController(visibleFrameProvider: { _ in visible },
+                pointerLocation: { .zero }, reduceMotionProvider: { true }, defaults: defaults)
+            defer { controller.close(); defaults.removePersistentDomain(forName: suite) }
+
+            for right in [false, true] {
+                let old = CGRect(x: right ? 1356 : 0, y: 180, width: 84, height: 392)
+                defaults.set(NSStringFromRect(old), forKey: key)
+                controller.show(model: model)
+                let rail = try XCTUnwrap(controller.rail)
+                let compact = rail.frame
+                XCTAssertEqual(compact.size, CGSize(width: 48, height: 204))
+                XCTAssertEqual(compact.midY, old.midY)
+                XCTAssertEqual(right ? compact.maxX : compact.minX, right ? visible.maxX : visible.minX)
+
+                controller.select(.muse)
+                XCTAssertTrue(controller.detail?.isVisible == true)
+                controller.togglePin()
+                controller.railPointerExited()
+                XCTAssertTrue(controller.detail?.isVisible == true)
+                controller.togglePin()
+                controller.dismissFromExternalInteraction()
+                XCTAssertEqual(rail.frame, compact)
+                XCTAssertTrue(rail.isVisible)
+
+                XCTAssertTrue(rail.canStartDrag(CGPoint(x: compact.width / 2, y: 6)))
+                let start = CGPoint(x: compact.midX, y: compact.minY + 6)
+                let offset: CGFloat = right ? -170 : 170
+                rail.onPointerDown()
+                rail.onPointerDrag(start, CGPoint(x: start.x + offset, y: start.y))
+                rail.onPointerUp(true)
+                XCTAssertEqual(rail.frame, compact.offsetBy(dx: offset, dy: 0))
+                controller.close()
+            }
+        }
+    }
+
     func testUnavailableScreenDoesNotPersistAZeroSizedCapsule() async throws {
         try await withFixture { model in
             let before = UserDefaults.standard.object(forKey: AggregateCapsuleWindowController.frameKey) as? String
@@ -213,17 +403,19 @@ final class AggregateCapsuleTests: XCTestCase {
         try await withFixture { model in
             for language in [AppLanguage.zhCN, .enUS] {
                 model.language = language
-                try capture(AnyView(AggregateCapsuleView(model: model, selected: .codex, onSelect: { _ in }, onHover: { _, _ in })),
-                    size: AggregateCapsulePlacement.size, name: "rail-\(language.rawValue)")
+                let rail = AnyView(AggregateCapsuleView(model: model, selected: .codex, isPinned: true,
+                    onSelect: { _ in }, onHover: { _, _ in }))
+                try capture(rail, size: AggregateCapsulePlacement.size, name: "rail-\(language.rawValue)")
+                try capture(rail, size: AggregateCapsulePlacement.size, name: "rail-light-\(language.rawValue)", colorScheme: .light)
                 let pair = HStack(spacing: 10) {
-                    AggregateCapsuleDetailView(model: model, service: .codex, isPinned: false, onTogglePin: {}, onHover: { _ in })
+                    AggregateCapsuleDetailView(model: model, state: AggregateCapsuleDetailState(), onTogglePin: {}, onHover: { _ in })
                         .frame(width: 360, height: 400)
                     AggregateCapsuleView(model: model, selected: .codex, onSelect: { _ in }, onHover: { _, _ in })
-                        .frame(width: 84, height: 392)
+                        .frame(width: AggregateCapsulePlacement.size.width, height: AggregateCapsulePlacement.size.height)
                 }.padding(8)
                 try capture(AnyView(pair), size: CGSize(width: 470, height: 416), name: "overview-\(language.rawValue)")
                 for service in ServiceSettingsTarget.allCases {
-                    try capture(AnyView(AggregateCapsuleDetailView(model: model, service: service, isPinned: true, onTogglePin: {}, onHover: { _ in })),
+                    try capture(AnyView(AggregateCapsuleDetailView(model: model, state: AggregateCapsuleDetailState(service: service, isPinned: true), onTogglePin: {}, onHover: { _ in })),
                         size: AggregateCapsulePlacement.detailSize, name: "detail-\(service.rawValue)-\(language.rawValue)")
                 }
                 try capture(AnyView(WidgetPresentationPicker(selection: .constant(.aggregate), localization: model.localization)
@@ -237,11 +429,11 @@ final class AggregateCapsuleTests: XCTestCase {
         var location = CGPoint.zero
     }
 
-    private func capture(_ view: AnyView, size: CGSize, name: String) throws {
+    private func capture(_ view: AnyView, size: CGSize, name: String, colorScheme: ColorScheme = .dark) throws {
         let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
-        window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named: .darkAqua)
+        window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named: colorScheme == .dark ? .darkAqua : .aqua)
         defer { window.close() }
-        let host = NSHostingView(rootView: view.environment(\.colorScheme, .dark))
+        let host = NSHostingView(rootView: view.environment(\.colorScheme, colorScheme))
         window.contentView = host; host.frame = CGRect(origin: .zero, size: size)
         host.layoutSubtreeIfNeeded()
         RunLoop.main.run(until: Date().addingTimeInterval(0.15))
@@ -278,19 +470,20 @@ final class AggregateCapsuleTests: XCTestCase {
                 used: 100 - remaining, limit: 100, remaining: remaining, unit: .percent,
                 resetAt: now.addingTimeInterval(Double(minutes) * 60), confidence: .verified, durationMinutes: minutes)
         }
-        model.snapshots = [ProviderQuotaSnapshot(providerId: "codex-oauth", displayName: "Codex", status: .available, source: .appServer,
+        model.codexOAuthStatus = .connected
+        model.snapshots = [ProviderQuotaSnapshot(providerId: "codex-oauth", displayName: "Codex", status: .available, source: .oauthAPI,
             refreshedAt: now, staleAfter: now.addingTimeInterval(300), windows: windows, errors: [], ordinaryUsageAllowed: true)]
         try await body(model)
     }
 }
 
-private struct AggregateBalanceLoader: HTTPDataLoading {
+struct AggregateBalanceLoader: HTTPDataLoading {
     func data(for request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         (Data(#"{"is_available":true,"balance_infos":[{"currency":"CNY","total_balance":"28.60","granted_balance":"3.10","topped_up_balance":"25.50"}]}"#.utf8),
          HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
     }
 }
-@MainActor private final class AggregateMuseReader: MuseUsageReading {
+@MainActor final class AggregateMuseReader: MuseUsageReading {
     func read() async throws -> MuseUsageSnapshot { try MuseConnectionTests.snapshot() }
     func clearSession() async { }
 }

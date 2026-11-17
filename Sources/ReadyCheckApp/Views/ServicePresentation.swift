@@ -14,6 +14,8 @@ struct ServicePresentation: Equatable {
 }
 
 extension ServiceSettingsTarget {
+    static let quickDisplayOrder: [Self] = [.codex, .muse, .deepSeek]
+
     var presentation: ServicePresentation {
         switch self {
         case .codex: .init(connectionMethod: .oauth, readoutKind: .quota)
@@ -24,8 +26,57 @@ extension ServiceSettingsTarget {
 }
 
 extension ReadyCheckAppModel {
-    var bubbleRestingSize: CGSize { selectedService == .codex ? BubbleWidgetPlacement.bubbleSize : BubbleWidgetPlacement.balanceBubbleSize }
-    var selectedServiceBusy: Bool { selectedMuse ? muse.isBusy : selectedDeepSeek ? deepSeek.isBusy : isRefreshing }
+    func isConnectedForQuickDisplay(_ service: ServiceSettingsTarget) -> Bool {
+        switch service {
+        case .codex:
+            let snapshot = snapshots.first { $0.providerId == "codex-oauth" }
+            return codexOAuthStatus == .connected
+                && snapshot?.errors.contains("oauth.error.keychainUnavailable") != true
+                && snapshot?.recoveryAction != .connect && snapshot?.recoveryAction != .reconnect
+        case .deepSeek:
+            return deepSeek.isConnected && deepSeek.snapshot != nil && !deepSeek.credentialError
+                && deepSeek.error != .unauthorized
+        case .muse:
+            return muse.isConnected
+        }
+    }
+
+    var quickDisplayServices: [ServiceSettingsTarget] {
+        ServiceSettingsTarget.quickDisplayOrder.filter { quickDisplaySelection.contains($0) && isConnectedForQuickDisplay($0) }
+    }
+
+    var quickDisplayService: ServiceSettingsTarget? {
+        let services = quickDisplayServices
+        return services.contains(selectedService) ? selectedService : services.first
+    }
+
+    var quickDisplayServiceBusy: Bool {
+        switch quickDisplayService {
+        case .codex: isRefreshing
+        case .deepSeek: deepSeek.isBusy
+        case .muse: muse.isBusy
+        case nil: false
+        }
+    }
+
+    func showQuickDisplaySettings() {
+        navigateToMainPage(.settings)
+        mainSettingsSection = .display
+        openMainWindowFromWidget()
+    }
+
+    func openQuickDisplayOverview() {
+        if let quickDisplayService { selectedService = quickDisplayService }
+        navigateToMainPage(.overview)
+        openMainWindowFromWidget()
+    }
+
+    var bubbleRestingSize: CGSize {
+        switch quickDisplayService {
+        case .deepSeek, .muse: BubbleWidgetPlacement.balanceBubbleSize
+        default: BubbleWidgetPlacement.bubbleSize
+        }
+    }
 }
 
 struct BalanceSurfaceReading: Identifiable, Equatable {

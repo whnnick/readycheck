@@ -23,6 +23,7 @@ let rateLimitEventTimer = null;
 let rateLimitMonitor = null;
 let oauthCallbackServer = null;
 
+const AUTO_REFRESH_INTERVAL_MS = 60_000;
 const isWindows = process.platform === "win32";
 const WIDGET_BOUNDS = {
   minimal: { width: 330, height: 220 },
@@ -221,7 +222,6 @@ function updatePrefs(partial) {
     }
   }
 
-  scheduleRefresh();
   broadcastState();
   return snapshotWithReminderHistory();
 }
@@ -415,10 +415,9 @@ function scheduleRefresh() {
     clearInterval(refreshTimer);
   }
 
-  const intervalMs = readyState.prefs.refreshIntervalMinutes * 60 * 1000;
   refreshTimer = setInterval(() => {
-    refreshQuota().catch(() => {});
-  }, intervalMs);
+    if (!readyState.isRefreshing) refreshQuota().catch(() => {});
+  }, AUTO_REFRESH_INTERVAL_MS);
 }
 
 function scheduleRateLimitEventRefresh() {

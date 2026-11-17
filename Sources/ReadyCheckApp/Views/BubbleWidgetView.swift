@@ -83,7 +83,7 @@ struct BubbleWidgetView: View {
                 try? await Task.sleep(for: .seconds(30))
             }
         }
-        .onChange(of: model.selectedService) { onServiceChange() }
+        .onChange(of: model.quickDisplayService) { onServiceChange() }
         .onChange(of: displayedQuota) { oldQuota, newQuota in
             recoveryHighlight = newQuota.shouldHighlight(after: oldQuota)
             guard recoveryHighlight else { return }
@@ -109,9 +109,11 @@ struct BubbleWidgetView: View {
                     .opacity(reveal).allowsHitTesting(isExpanded && reveal > 0.9)
                     .accessibilityHidden(!isExpanded)
                 Group {
-                    if model.selectedMuse {
+                    if model.quickDisplayService == nil {
+                        Image(systemName: "slider.horizontal.3").foregroundStyle(.white)
+                    } else if model.quickDisplayService == .muse {
                         MuseCompactReadout(connection: model.muse, language: model.language, now: now)
-                    } else if model.selectedDeepSeek {
+                    } else if model.quickDisplayService == .deepSeek {
                         ServiceCompactReadout(model: model, now: now)
                     } else {
                         OrbitalQuotaDial(windows: expandedWindows,
@@ -127,17 +129,13 @@ struct BubbleWidgetView: View {
                 }
                     .frame(width: size.width, height: size.height)
                     .opacity(1 - reveal)
-                    .contentShape(Capsule()).onTapGesture(perform: onTap)
+                    .contentShape(Capsule()).onTapGesture(perform: openPreviewOrSettings)
                     .simultaneousGesture(dragGesture).contextMenu { contextMenu }
                     .allowsHitTesting(!isExpanded).accessibilityHidden(isExpanded)
                     .accessibilityElement(children: .ignore)
-                    .accessibilityAddTraits(.isButton).accessibilityAction { onTap() }
-                    .help(previewHint)
-                    .accessibilityLabel(model.selectedMuse ? "Muse 7d " + QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now)) : model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " "
-                        + expandedWindows.prefix(2).map {
-                            QuotaWindowDisplay.title(for: $0, localization: model.localization) + " "
-                                + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.displayableRemainingRatio : nil)
-                        }.joined(separator: ", "))
+                    .accessibilityAddTraits(.isButton).accessibilityAction { openPreviewOrSettings() }
+                    .help(model.quickDisplayService == nil ? model.localization.text("settings.quickDisplay") : previewHint)
+                    .accessibilityLabel(compactAccessibilityLabel)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
@@ -168,34 +166,38 @@ struct BubbleWidgetView: View {
 
     private func edgeTab(_ edge: BubbleWidgetPlacement.Edge) -> some View {
         Group {
-            if model.selectedMuse { MuseCompactReadout(connection: model.muse, language: model.language, now: now, vertical: true) }
+            if model.quickDisplayService == nil { Image(systemName: "slider.horizontal.3") }
+            else if model.quickDisplayService == .muse { MuseCompactReadout(connection: model.muse, language: model.language, now: now, vertical: true) }
             else { ServiceEdgeReadout(model: model, now: now) }
         }
         .frame(width: BubbleWidgetPlacement.tabSize.width, height: BubbleWidgetPlacement.tabSize.height)
         .foregroundStyle(.white)
         .contentShape(RoundedRectangle(cornerRadius: 14))
-        .onTapGesture(perform: onTap)
+        .onTapGesture(perform: openPreviewOrSettings)
         .simultaneousGesture(dragGesture)
         .contextMenu { contextMenu }
-        .help(previewHint)
+        .help(model.quickDisplayService == nil ? model.localization.text("settings.quickDisplay") : previewHint)
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)
-        .accessibilityAction { onTap() }
-        .accessibilityLabel(model.selectedMuse ? "Muse 7d " + QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now)) : model.selectedDeepSeek ? "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now) : model.localization.text("bubble.accessibility") + " " + expandedWindows.prefix(2).map {
-            QuotaWindowDisplay.title(for: $0, localization: model.localization) + " "
-                + QuotaFormatters.percentageText(for: snapshot?.canShowPercentages(now: now) == true ? $0.displayableRemainingRatio : nil)
-        }.joined(separator: ", "))
+        .accessibilityAction { openPreviewOrSettings() }
+        .accessibilityLabel(compactAccessibilityLabel)
     }
 
     private var expandedDetails: some View {
         Group {
-            if model.selectedMuse {
+            if model.quickDisplayService == nil {
+                VStack(alignment: .leading, spacing: 12) {
+                    WidgetDetailHeader(model: model, now: now, isPinned: isPinned, onTogglePin: onTogglePin)
+                    Button(model.localization.text("settings.quickDisplay"), action: model.showQuickDisplaySettings)
+                    Spacer()
+                }.foregroundStyle(.white).environment(\.colorScheme, .dark)
+            } else if model.quickDisplayService == .muse {
                 VStack(alignment: .leading, spacing: 10) {
                     WidgetDetailHeader(model: model, now: now, isPinned: isPinned, onTogglePin: onTogglePin)
                     ScrollView { MuseUsageView(connection: model.muse, language: model.language, now: now) }
                     WidgetDetailFooter(model: model, openMainWindow: openMainWindow)
                 }.foregroundStyle(.white).environment(\.colorScheme, .dark)
-            } else if model.selectedService.presentation.readoutKind == .balance {
+            } else if model.quickDisplayService == .deepSeek {
                 BalanceDetailsView(model: model, now: now, isPinned: isPinned,
                     onTogglePin: onTogglePin, openMainWindow: openMainWindow)
             } else {
@@ -225,10 +227,8 @@ struct BubbleWidgetView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
 
-            if !model.selectedDeepSeek {
-                NextEventsView(model: model, now: now, compact: true, openMain: model.openMainWindowFromWidget)
-                miniTrend
-            }
+            NextEventsView(model: model, now: now, compact: true, openMain: model.openMainWindowFromWidget)
+            miniTrend
             WidgetDetailFooter(model: model, openMainWindow: openMainWindow)
 
         }
@@ -237,9 +237,31 @@ struct BubbleWidgetView: View {
         .tint(Color(red: 0.62, green: 0.80, blue: 1))
     }
 
+    private var compactAccessibilityLabel: String {
+        switch model.quickDisplayService {
+        case .muse:
+            return "Muse 7d " + QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now))
+        case .deepSeek:
+            return "DeepSeek API " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: now)
+        case .codex:
+            let canShow = snapshot?.canShowPercentages(now: now) == true
+            let remaining = expandedWindows.prefix(2).map { window in
+                QuotaWindowDisplay.title(for: window, localization: model.localization) + " "
+                    + QuotaFormatters.percentageText(for: canShow ? window.displayableRemainingRatio : nil)
+            }.joined(separator: ", ")
+            return model.localization.text("bubble.accessibility") + " " + remaining
+        case nil:
+            return model.localization.text("settings.quickDisplay")
+        }
+    }
+
+    private func openPreviewOrSettings() {
+        if model.quickDisplayService == nil { model.showQuickDisplaySettings() }
+        else { onTap() }
+    }
+
     func openMainWindow() {
-        model.mainWindowPage = .overview
-        model.openMainWindowFromWidget()
+        model.openQuickDisplayOverview()
         if !isPinned { onCollapse() }
     }
 
@@ -295,8 +317,11 @@ struct BubbleWidgetView: View {
 
     @ViewBuilder
     private var contextMenu: some View {
-        Button(model.localization.text("bubble.openDetails"), action: onTap)
-        Button(model.localization.text("bubble.openMainWindow")) { model.openMainWindowFromWidget() }
+        if model.quickDisplayService != nil {
+            Button(model.localization.text("bubble.openDetails"), action: onTap)
+        }
+        Button(model.localization.text("bubble.openMainWindow"), action: openMainWindow)
+        Button(model.localization.text("settings.quickDisplay"), action: model.showQuickDisplaySettings)
         Divider()
         WidgetSnoozeMenu(model: model)
         Button(model.localization.text("action.hideWidget")) { model.hideFloatingWidget() }

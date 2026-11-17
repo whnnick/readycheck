@@ -1,35 +1,53 @@
+import Observation
 import ReadyCheckCore
 import SwiftUI
 
+@MainActor @Observable
+final class AggregateCapsuleDetailState {
+    var service: ServiceSettingsTarget
+    var isPinned: Bool
+
+    init(service: ServiceSettingsTarget = .codex, isPinned: Bool = false) {
+        self.service = service
+        self.isPinned = isPinned
+    }
+}
+
 struct AggregateCapsuleDetailView: View {
     let model: ReadyCheckAppModel
-    let service: ServiceSettingsTarget
-    let isPinned: Bool
+    let state: AggregateCapsuleDetailState
     let onTogglePin: () -> Void
     let onHover: (Bool) -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var now = Date()
+    private var service: ServiceSettingsTarget { state.service }
 
     var body: some View {
         VStack(spacing: 12) {
-            WidgetDetailHeader(model: model, now: now, isPinned: isPinned, onTogglePin: onTogglePin, service: service)
+            WidgetDetailHeader(model: model, now: now, isPinned: state.isPinned, onTogglePin: onTogglePin, service: service)
             Divider().overlay(.white.opacity(0.08))
-            ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 16) {
-                    switch service {
-                    case .codex: codexDetails
-                    case .muse: MuseUsageView(connection: model.muse, language: model.language, now: now,
-                        progressColor: AggregateServiceMark.ringColor(model.muse.remainingRatio(now: now), normal: AggregateServiceMark.tint(.muse)))
-                    case .deepSeek:
-                        let details = BalanceDetailsView(model: model, now: now, openMainWindow: {})
-                        let readings = DeepSeekDisplay.readings(connection: model.deepSeek, now: now)
-                        if readings.isEmpty {
-                            Text(model.language == .zhCN ? "暂无余额，请在连接设置中重试。" : "No balance. Retry in connection settings.")
-                                .font(.callout).foregroundStyle(.secondary)
+            ZStack {
+                ScrollView(.vertical) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        switch service {
+                        case .codex: codexDetails
+                        case .muse: MuseUsageView(connection: model.muse, language: model.language, now: now,
+                            progressColor: AggregateServiceMark.ringColor(model.muse.remainingRatio(now: now), normal: AggregateServiceMark.tint(.muse)))
+                        case .deepSeek:
+                            let details = BalanceDetailsView(model: model, now: now, openMainWindow: {})
+                            let readings = DeepSeekDisplay.readings(connection: model.deepSeek, now: now)
+                            if readings.isEmpty {
+                                Text(model.language == .zhCN ? "暂无余额，请在连接设置中重试。" : "No balance. Retry in connection settings.")
+                                    .font(.callout).foregroundStyle(.secondary)
+                            }
+                            ForEach(readings) { details.currencySummary($0) }
                         }
-                        ForEach(readings) { details.currencySummary($0) }
-                    }
-                }.frame(maxWidth: .infinity, alignment: .leading)
-            }.scrollIndicators(.hidden)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                }.scrollIndicators(.hidden)
+                .id(service)
+                .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 4)), removal: .opacity))
+            }
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.20), value: service)
             WidgetDetailFooter(model: model, openMainWindow: {
                 model.selectedService = service
                 model.mainWindowPage = .overview

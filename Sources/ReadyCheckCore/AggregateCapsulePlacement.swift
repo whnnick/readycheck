@@ -1,15 +1,26 @@
 import CoreGraphics
 
 public enum AggregateCapsulePlacement {
-    public static let size = CGSize(width: 84, height: 392)
+    public static let rowHeight: CGFloat = 54
+    public static let rowSpacing: CGFloat = 4
+    public static let size = size(serviceCount: 3)
+
+    public static func size(serviceCount: Int) -> CGSize {
+        let rows = CGFloat(max(1, serviceCount))
+        return CGSize(width: 48, height: 34 + rows * rowHeight + (rows - 1) * rowSpacing)
+    }
     public static let detailSize = CGSize(width: 360, height: 400)
     public static let gap: CGFloat = 10
 
-    public static func restoredFrame(from saved: CGRect?, in visible: CGRect) -> CGRect {
+    public static func restoredFrame(from saved: CGRect?, in visible: CGRect, size: CGSize = size) -> CGRect {
         let size = CGSize(width: min(size.width, visible.width), height: min(size.height, visible.height))
         let seed = saved ?? BubbleWidgetPlacement.defaultFrame(in: visible, size: size)
-        return BubbleWidgetPlacement.clamped(CGRect(x: seed.midX - size.width / 2,
-            y: seed.midY - size.height / 2, width: size.width, height: size.height), in: visible)
+        let x: CGFloat
+        if abs(seed.minX - visible.minX) < 0.5 { x = visible.minX }
+        else if abs(seed.maxX - visible.maxX) < 0.5 { x = visible.maxX - size.width }
+        else { x = seed.midX - size.width / 2 }
+        return BubbleWidgetPlacement.clamped(CGRect(x: x, y: seed.midY - size.height / 2,
+            width: size.width, height: size.height), in: visible)
     }
 
     public static func snappedFrame(_ frame: CGRect, in visible: CGRect) -> CGRect {

@@ -116,6 +116,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         appModel.stopRateLimitMonitoring()
         appModel.stopResetCreditAutomation()
+        appModel.stopCodexMonitoring()
         appModel.stopDeepSeekMonitoring()
     }
 
@@ -253,6 +254,7 @@ final class ReadyCheckAppModel {
     private let deepSeekAlertStore: DeepSeekBalanceAlertStore
 
     @ObservationIgnored
+    private var codexMonitoringTask: Task<Void, Never>?
     private var deepSeekMonitoringTask: Task<Void, Never>?
 
     var mainWindowPage: MainWindowPage = .overview
@@ -271,6 +273,13 @@ final class ReadyCheckAppModel {
             UserDefaults.standard.set(selectedService == .deepSeek, forKey: "ReadyCheck.selectedDeepSeek.v1")
         }
     }
+    private static let quickDisplaySelectionKey = "ReadyCheck.quickDisplayServices.v1"
+    var quickDisplaySelection: Set<ServiceSettingsTarget> {
+        didSet {
+            widgetVisibilityDefaults.set(ServiceSettingsTarget.quickDisplayOrder
+                .filter(quickDisplaySelection.contains).map(\.rawValue), forKey: Self.quickDisplaySelectionKey)
+        }
+    }
     var selectedDeepSeek: Bool {
         get { selectedService == .deepSeek }
         set { selectedService = newValue ? .deepSeek : .codex }
@@ -282,12 +291,6 @@ final class ReadyCheckAppModel {
             UserDefaults.standard.set(language.rawValue, forKey: "ReadyCheck.language.v1")
             onLanguageChanged?()
         }
-    }
-    var refreshInterval: TimeInterval = {
-        let saved = UserDefaults.standard.double(forKey: "ReadyCheck.refreshInterval.v1")
-        return [60.0, 180, 300].contains(saved) ? saved : 60
-    }() {
-        didSet { UserDefaults.standard.set(refreshInterval, forKey: "ReadyCheck.refreshInterval.v1") }
     }
     var widgetVisible: Bool {
         didSet {
@@ -528,6 +531,8 @@ final class ReadyCheckAppModel {
             Self.defaultQuotaReminderURL.deletingLastPathComponent().appendingPathComponent("reset-credit-automation.json"))
         self.resetCreditClient = resetCreditClient
         self.widgetVisibilityDefaults = widgetVisibilityDefaults
+        self.quickDisplaySelection = Set(widgetVisibilityDefaults.stringArray(forKey: Self.quickDisplaySelectionKey)?
+            .compactMap(ServiceSettingsTarget.init(rawValue:)) ?? ServiceSettingsTarget.quickDisplayOrder)
         self.widgetVisible = WidgetVisibilityPreference.value(defaults: widgetVisibilityDefaults)
         self.credentialStore = credentialStore
         self.deepSeek = deepSeekConnection ?? DeepSeekConnection(store: credentialStore)
@@ -1152,7 +1157,7 @@ final class ReadyCheckAppModel {
     func shouldAutomaticallyRefresh(now: Date) -> Bool {
         guard !isRefreshing else { return false }
 
-        let scheduler = RefreshScheduler(policy: RefreshPolicy(interval: refreshInterval))
+        let scheduler = RefreshScheduler()
         return scheduler.shouldRefresh(lastRefresh: lastRefreshAt, now: now, reason: .automatic)
     }
 
@@ -1423,6 +1428,7 @@ final class ReadyCheckAppModel {
         muse.startMonitoring()
         await reloadCodexOAuthConnectionStatus()
         await refresh(reason: .openedPanel)
+        startCodexMonitoring()
         startResetCreditAutomation()
     }
 
@@ -1476,12 +1482,38 @@ final class ReadyCheckAppModel {
         }
     }
 
+    private func startCodexMonitoring() {
+        guard codexMonitoringTask == nil else { return }
+        codexMonitoringTask = Task { [weak self] in
+            while !Task.isCancelled {
+                let delay: TimeInterval
+                if let self {
+                    let now = Date()
+                    if self.shouldAutomaticallyRefresh(now: now) {
+                        await self.refresh(reason: .automatic)
+                    }
+                    let elapsed = self.lastRefreshAt.map { Date().timeIntervalSince($0) } ?? RefreshPolicy.default.interval
+                    delay = max(1, RefreshPolicy.default.interval - elapsed)
+                } else {
+                    return
+                }
+                do { try await Task.sleep(for: .seconds(delay)) }
+                catch { return }
+            }
+        }
+    }
+
+    func stopCodexMonitoring() {
+        codexMonitoringTask?.cancel()
+        codexMonitoringTask = nil
+    }
+
     func startDeepSeekMonitoring() {
         guard deepSeekMonitoringTask == nil else { return }
         deepSeekMonitoringTask = Task { [weak self] in
             await self?.deepSeek.refresh()
             while !Task.isCancelled {
-                do { try await Task.sleep(for: .seconds(300)) }
+                do { try await Task.sleep(for: .seconds(RefreshPolicy.default.interval)) }
                 catch { return }
                 guard let self else { return }
                 if self.deepSeek.isConnected { await self.deepSeek.refresh() }

@@ -5,7 +5,6 @@ const path = require("node:path");
 
 const DEFAULT_PREFS = {
   language: "zh-CN",
-  refreshIntervalMinutes: 1,
   widgetVisible: true,
   widgetAlwaysOnTop: true,
   widgetDisplayMode: "minimal"
@@ -38,9 +37,6 @@ function normalizePrefs(input) {
   const prefs = { ...DEFAULT_PREFS, ...(input || {}) };
   return {
     language: prefs.language === "en" ? "en" : "zh-CN",
-    refreshIntervalMinutes: [1, 3, 5].includes(Number(prefs.refreshIntervalMinutes))
-      ? Number(prefs.refreshIntervalMinutes)
-      : DEFAULT_PREFS.refreshIntervalMinutes,
     widgetVisible: Boolean(prefs.widgetVisible),
     widgetAlwaysOnTop: Boolean(prefs.widgetAlwaysOnTop),
     widgetDisplayMode: prefs.widgetDisplayMode === "detailed" ? "detailed" : "minimal"

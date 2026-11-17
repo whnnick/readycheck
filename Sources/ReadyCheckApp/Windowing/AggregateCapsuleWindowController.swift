@@ -9,29 +9,35 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
     private(set) var rail: BubbleWidgetPanel?
     private(set) var detail: QuotaWidgetPanel?
     private(set) var service: ServiceSettingsTarget = .codex
-    private let interaction = WidgetInteractionController()
+    private let interaction = WidgetInteractionController(hoverDelay: .milliseconds(350))
     private weak var model: ReadyCheckAppModel?
     private var host: NSHostingController<AggregateCapsuleView>?
-    private var detailHost: NSHostingController<AggregateCapsuleDetailView>?
+    private let detailState = AggregateCapsuleDetailState()
     private var detailTargetFrame: CGRect?
     private var detailDismissal: UUID?
     private var dragOrigin: CGRect?
     private var outsideMonitor: Any?
     private var localMonitor: Any?
+    private let defaults: UserDefaults
     private let visibleFrameProvider: @MainActor (CGRect?) -> CGRect
     private let pointerLocation: @MainActor () -> CGPoint
     private let reduceMotionProvider: @MainActor () -> Bool
     var onVisibilityChanged: ((Bool) -> Void)?
     var isPinned: Bool { interaction.state == .pinned }
+    private var railSize: CGSize {
+        AggregateCapsulePlacement.size(serviceCount: model?.quickDisplayServices.count ?? 0)
+    }
 
     init(
         visibleFrameProvider: @escaping @MainActor (CGRect?) -> CGRect = AggregateCapsuleWindowController.screenVisibleFrame,
         pointerLocation: @escaping @MainActor () -> CGPoint = { NSEvent.mouseLocation },
-        reduceMotionProvider: @escaping @MainActor () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
+        reduceMotionProvider: @escaping @MainActor () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion },
+        defaults: UserDefaults = .standard
     ) {
         self.visibleFrameProvider = visibleFrameProvider
         self.pointerLocation = pointerLocation
         self.reduceMotionProvider = reduceMotionProvider
+        self.defaults = defaults
         super.init()
         interaction.containsPointer = { [weak self] in self?.containsPointer == true }
         interaction.onChange = { [weak self] _ in self?.updateDetail() }
@@ -51,7 +57,7 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         let saved = savedFrame()
         let visible = visibleFrame(for: saved)
         guard visible.width > 0, visible.height > 0 else { return }
-        let panel = BubbleWidgetPanel(contentRect: AggregateCapsulePlacement.restoredFrame(from: saved, in: visible),
+        let panel = BubbleWidgetPanel(contentRect: AggregateCapsulePlacement.restoredFrame(from: saved, in: visible, size: railSize),
             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         configure(panel, model: model)
         panel.title = "ReadyCheck · " + (model.language == .zhCN ? "聚合胶囊" : "Aggregate capsule")
@@ -78,21 +84,24 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
             guard let self else { return }
             if moved { self.finishDrag() }
             self.dragOrigin = nil; self.interaction.endDrag()
+            self.updateVisibleServices()
         }
         updateRail()
         // Attaching a hosting controller can replace the initial content size.
-        panel.setFrame(AggregateCapsulePlacement.restoredFrame(from: saved, in: visible), display: true)
+        panel.setFrame(AggregateCapsulePlacement.restoredFrame(from: saved, in: visible, size: railSize), display: true)
         panel.orderFrontRegardless()
     }
 
     func select(_ service: ServiceSettingsTarget) {
+        guard model?.quickDisplayServices.contains(service) == true else { return }
         self.service = service
         if interaction.state == .collapsed { interaction.click() }
         else { updateDetail() }
     }
 
     func hover(_ service: ServiceSettingsTarget, inside: Bool) {
-        if inside && interaction.state != .pinned {
+        if inside && model?.quickDisplayServices.contains(service) != true { return }
+        if inside && interaction.state != .pinned && self.service != service {
             self.service = service
             if interaction.state == .preview { updateDetail() }
         }
@@ -120,7 +129,7 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         guard let rail else { return }
         let visible = visibleFrame(for: rail.frame)
         guard visible.width > 0, visible.height > 0 else { return }
-        rail.setFrame(AggregateCapsulePlacement.restoredFrame(from: nil, in: visible), display: true)
+        rail.setFrame(AggregateCapsulePlacement.restoredFrame(from: nil, in: visible, size: railSize), display: true)
         persist(); updateDetail()
     }
 
@@ -128,7 +137,7 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         persist(); interaction.reset()
         hideDetail(animated: false)
         rail?.delegate = nil; rail?.close(); detail?.close()
-        rail = nil; detail = nil; host = nil; detailHost = nil; model = nil
+        rail = nil; detail = nil; host = nil; model = nil
         detailTargetFrame = nil
     }
 
@@ -150,7 +159,8 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         let view = AggregateCapsuleView(model: model, selected: interaction.state == .collapsed ? nil : service,
             isPinned: isPinned, onSelect: { [weak self] in self?.select($0) },
             onHover: { [weak self] in self?.hover($0, inside: $1) },
-            onLeaveRail: { [weak self] in self?.railPointerExited() })
+            onLeaveRail: { [weak self] in self?.railPointerExited() },
+            onServicesChanged: { [weak self] in self?.updateVisibleServices() })
         if let host { host.rootView = view }
         else {
             let host = NSHostingController(rootView: view); host.sizingOptions = []
@@ -158,9 +168,20 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         }
     }
 
+    private func updateVisibleServices() {
+        guard !interaction.isDragging, let rail else { return }
+        if model?.quickDisplayServices.contains(service) != true { interaction.collapse() }
+        let visible = visibleFrame(for: rail.frame)
+        guard visible.width > 0, visible.height > 0 else { return }
+        let frame = AggregateCapsulePlacement.restoredFrame(from: rail.frame, in: visible, size: railSize)
+        guard frame != rail.frame else { return }
+        rail.setFrame(frame, display: true)
+        updateDetail()
+    }
+
     private func updateDetail() {
         updateRail()
-        guard interaction.state != .collapsed, let model, let rail else {
+        guard interaction.state != .collapsed, let model, model.quickDisplayServices.contains(service), let rail else {
             hideDetail(animated: !interaction.isDragging)
             return
         }
@@ -178,15 +199,17 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         configure(panel, model: model)
         panel.animationBehavior = .none
         panel.title = "ReadyCheck · " + service.rawValue
-        let view = AggregateCapsuleDetailView(model: model, service: service, isPinned: isPinned,
-            onTogglePin: { [weak self] in self?.togglePin() }, onHover: { [weak self] inside in
-                guard let self, !inside || self.interaction.state != .collapsed else { return }
-                self.interaction.hoverChanged(inside)
-            })
-        if let detailHost { detailHost.rootView = view }
-        else {
-            let host = NSHostingController(rootView: view); host.sizingOptions = []
-            panel.contentViewController = host; detailHost = host
+        if detailState.service != service { detailState.service = service }
+        if detailState.isPinned != isPinned { detailState.isPinned = isPinned }
+        if panel.contentViewController == nil {
+            let view = AggregateCapsuleDetailView(model: model, state: detailState,
+                onTogglePin: { [weak self] in self?.togglePin() }, onHover: { [weak self] inside in
+                    guard let self, !inside || self.interaction.state != .collapsed else { return }
+                    self.interaction.hoverChanged(inside)
+                })
+            let host = NSHostingController(rootView: view)
+            host.sizingOptions = []
+            panel.contentViewController = host
         }
         detail = panel
         presentDetail(panel, frame: frame, beside: rail.frame)
@@ -202,10 +225,9 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         panel.allowsKeyboard = isPinned
 
         if isEntering {
-            let towardRail: CGFloat = frame.midX < railFrame.midX ? 6 : -6
-            panel.alphaValue = animate ? 0 : 1
-            panel.setFrame(animate ? frame.offsetBy(dx: towardRail, dy: 0) : frame, display: true)
-        } else if detailTargetFrame != frame {
+            panel.alphaValue = animate ? 0.18 : 1
+            panel.setFrame(animate ? frameNearRail(frame, railFrame: railFrame) : frame, display: true)
+        } else if detailTargetFrame != frame || (isReopening && !animate) {
             panel.setFrame(frame, display: true)
         }
         detailTargetFrame = frame
@@ -215,10 +237,10 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
 
         if animate {
             NSAnimationContext.runAnimationGroup { context in
-                context.duration = 0.16
-                context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                context.duration = 0.22
+                context.timingFunction = CAMediaTimingFunction(controlPoints: 0.32, 0.72, 0, 1)
                 panel.animator().alphaValue = 1
-                if isEntering { panel.animator().setFrame(frame, display: true) }
+                panel.animator().setFrame(frame, display: true)
             }
         } else if isReopening {
             panel.alphaValue = 1
@@ -238,12 +260,16 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         }
         guard detailDismissal == nil else { return }
 
+        let destination = rail.flatMap { rail in
+            detailTargetFrame.map { frameNearRail($0, railFrame: rail.frame) }
+        }
         let dismissal = UUID()
         detailDismissal = dismissal
         NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.10
-            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            context.duration = 0.16
+            context.timingFunction = CAMediaTimingFunction(controlPoints: 0.23, 1, 0.32, 1)
             panel.animator().alphaValue = 0
+            if let destination { panel.animator().setFrame(destination, display: true) }
         }, completionHandler: { [weak self, weak panel] in
             Task { @MainActor in
                 // A new preview may have reused this panel before the fade finished.
@@ -251,6 +277,11 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
                 self.finishDetailDismissal(panel)
             }
         })
+    }
+
+    private func frameNearRail(_ frame: CGRect, railFrame: CGRect) -> CGRect {
+        let gap = AggregateCapsulePlacement.gap
+        return frame.offsetBy(dx: frame.midX < railFrame.midX ? gap : -gap, dy: 0)
     }
 
     private func finishDetailDismissal(_ panel: QuotaWidgetPanel) {
@@ -263,7 +294,8 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         guard let rail else { return }
         let visible = visibleFrame(for: rail.frame)
         guard visible.width > 0, visible.height > 0 else { return }
-        rail.setFrame(AggregateCapsulePlacement.snappedFrame(rail.frame, in: visible), display: true)
+        let fitted = AggregateCapsulePlacement.restoredFrame(from: rail.frame, in: visible, size: railSize)
+        rail.setFrame(AggregateCapsulePlacement.snappedFrame(fitted, in: visible), display: true)
         persist()
     }
 
@@ -284,7 +316,7 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         guard let rail else { sessionActivated(); return }
         let visible = visibleFrame(for: rail.frame)
         guard visible.width > 0, visible.height > 0 else { return }
-        rail.setFrame(AggregateCapsulePlacement.restoredFrame(from: rail.frame, in: visible), display: true)
+        rail.setFrame(AggregateCapsulePlacement.restoredFrame(from: rail.frame, in: visible, size: railSize), display: true)
         persist(); updateDetail()
     }
     @objc private func spaceChanged() {
@@ -319,7 +351,7 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
     }
     private func savedFrame() -> CGRect? {
         for key in [Self.frameKey, "ReadyCheck.bubbleWidgetFrame.v1"] {
-            if let value = UserDefaults.standard.string(forKey: key) {
+            if let value = defaults.string(forKey: key) {
                 let frame = NSRectFromString(value)
                 if [frame.minX, frame.minY, frame.width, frame.height].allSatisfy(\.isFinite), frame.width > 0, frame.height > 0 { return frame }
             }
@@ -327,6 +359,6 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         return nil
     }
     private func persist() {
-        if let rail { UserDefaults.standard.set(NSStringFromRect(rail.frame), forKey: Self.frameKey) }
+        if let rail { defaults.set(NSStringFromRect(rail.frame), forKey: Self.frameKey) }
     }
 }

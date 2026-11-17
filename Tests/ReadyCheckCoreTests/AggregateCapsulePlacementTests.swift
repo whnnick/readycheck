@@ -23,11 +23,38 @@ final class AggregateCapsulePlacementTests: XCTestCase {
         }
     }
 
+    func testOldDockedSizeKeepsItsEdgeAndVerticalCenterOnResize() {
+        let visible = CGRect(x: -1440, y: 30, width: 1440, height: 870)
+        let left = CGRect(x: visible.minX, y: 200, width: 84, height: 392)
+        let right = CGRect(x: visible.maxX - 84, y: 200, width: 84, height: 392)
+        let compactLeft = AggregateCapsulePlacement.restoredFrame(from: left, in: visible)
+        let compactRight = AggregateCapsulePlacement.restoredFrame(from: right, in: visible)
+        XCTAssertEqual(compactLeft.size, CGSize(width: 48, height: 204))
+        XCTAssertEqual(compactRight.size, compactLeft.size)
+        XCTAssertEqual(compactLeft.minX, visible.minX)
+        XCTAssertEqual(compactRight.maxX, visible.maxX)
+        XCTAssertEqual(compactLeft.midY, left.midY)
+        XCTAssertEqual(compactRight.midY, right.midY)
+    }
+
+    func testEachServiceCountUsesOnlyTheSpaceNeededAndRetainsItsDock() {
+        let visible = CGRect(x: 50, y: 20, width: 1440, height: 900)
+        let original = CGRect(x: visible.maxX - 48, y: 260, width: 48, height: 204)
+        for (count, height) in [(0, 88.0), (1, 88.0), (2, 146.0), (3, 204.0)] {
+            let size = AggregateCapsulePlacement.size(serviceCount: count)
+            let frame = AggregateCapsulePlacement.restoredFrame(from: original, in: visible, size: size)
+            XCTAssertEqual(frame.height, height)
+            XCTAssertEqual(frame.width, original.width)
+            XCTAssertEqual(frame.midY, original.midY)
+            XCTAssertEqual(frame.maxX, visible.maxX)
+        }
+    }
+
     func testShortScreensClampBothSurfacesAndSnapPreservesVerticalPlacement() {
-        let visible = CGRect(x: 100, y: -500, width: 500, height: 300)
+        let visible = CGRect(x: 100, y: -500, width: 500, height: 150)
         let rail = AggregateCapsulePlacement.restoredFrame(from: CGRect(x: 550, y: -100, width: 92, height: 92), in: visible)
         XCTAssertTrue(visible.contains(rail))
-        XCTAssertEqual(rail.height, 300)
+        XCTAssertEqual(rail.height, 150)
         let detail = AggregateCapsulePlacement.detailFrame(beside: rail, in: visible)
         XCTAssertTrue(visible.contains(detail))
         XCTAssertFalse(rail.intersects(detail))

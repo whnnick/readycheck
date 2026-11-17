@@ -92,15 +92,20 @@ final class MuseConnectionTests: XCTestCase {
     }
 
     func testThirdServiceSelectionAndSettingsReturnPreserveExistingLayouts() async throws {
-        try await withConnection { connection, _, _ in
-            let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(), museConnection: connection, quotaNotificationService: QuotaNotificationService(client: ClaritySilentNotifications(), verificationDelays: []))
+        try await withConnection { connection, _, defaults in
+            let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(), museConnection: connection,
+                quotaNotificationService: QuotaNotificationService(client: ClaritySilentNotifications(), verificationDelays: []),
+                widgetVisibilityDefaults: defaults)
+            model.codexOAuthStatus = .connected
             let original = model.selectedService
             defer { model.selectedService = original }
             model.selectedDeepSeek = false
             XCTAssertEqual(model.selectedService, .codex)
             XCTAssertEqual(model.bubbleRestingSize, CGSize(width: 92, height: 92))
             model.selectedDeepSeek = true
-            XCTAssertEqual(model.bubbleRestingSize, CGSize(width: 180, height: 48))
+            XCTAssertEqual(model.quickDisplayService, .codex, "An unsigned service cannot resize the capsule")
+            XCTAssertEqual(model.bubbleRestingSize, CGSize(width: 92, height: 92))
+            await connection.refresh()
             model.selectedService = .muse
             XCTAssertFalse(model.selectedDeepSeek)
             XCTAssertEqual(model.bubbleRestingSize, CGSize(width: 180, height: 48))

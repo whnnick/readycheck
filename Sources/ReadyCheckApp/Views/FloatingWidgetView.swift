@@ -12,7 +12,7 @@ struct FloatingWidgetView: View {
     }
 
     private var visibleSnapshots: ArraySlice<ProviderQuotaSnapshot> {
-        model.snapshots.prefix(2)
+        model.snapshots.filter { $0.providerId == "codex-oauth" }.prefix(2)
     }
 
     var body: some View {
@@ -20,18 +20,20 @@ struct FloatingWidgetView: View {
             VStack(alignment: .leading, spacing: 12) {
                 header
 
-                if model.selectedMuse {
+                if model.quickDisplayService == nil {
+                    Button(localization.text("settings.quickDisplay"), action: model.showQuickDisplaySettings)
+                } else if model.quickDisplayService == .muse {
                     MuseUsageView(connection: model.muse, language: model.language, now: now)
-                        .contentShape(Rectangle()).onTapGesture { model.openMainWindowFromWidget() }
-                } else if model.selectedDeepSeek {
+                        .contentShape(Rectangle()).onTapGesture { model.openQuickDisplayOverview() }
+                } else if model.quickDisplayService == .deepSeek {
                     DeepSeekBalancePanel(connection: model.deepSeek, language: model.language, now: now) {
-                        model.openMainWindowFromWidget()
+                        model.openQuickDisplayOverview()
                     }
-                } else if model.snapshots.isEmpty {
+                } else if visibleSnapshots.isEmpty {
                     emptyState
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            model.openMainWindowFromWidget()
+                            model.openQuickDisplayOverview()
                         }
                 } else {
                     VStack(spacing: 10) {
@@ -46,7 +48,7 @@ struct FloatingWidgetView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        model.openMainWindowFromWidget()
+                        model.openQuickDisplayOverview()
                     }
                     NextEventsView(model: model, now: now, compact: true, openMain: model.openMainWindowFromWidget)
                 }
@@ -79,9 +81,9 @@ struct FloatingWidgetView: View {
                         Text(localization.text("app.name"))
                             .font(.headline)
 
-                        Text(refreshSummary)
-                            .font(.caption2)
-                            .foregroundStyle(Color.primary.opacity(0.72))
+                        if model.quickDisplayService != nil {
+                            Text(refreshSummary).font(.caption2).foregroundStyle(Color.primary.opacity(0.72))
+                        }
                     }
 
                     Text(localization.text("status.autoUpdate"))
@@ -99,14 +101,14 @@ struct FloatingWidgetView: View {
 
                 Button {
                     Task {
-                        await model.refreshSelectedService()
+                        if let service = model.quickDisplayService { await model.refreshService(service) }
                         now = Date()
                     }
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
                 .buttonStyle(.borderless)
-                .disabled(model.selectedServiceBusy)
+                .disabled(model.quickDisplayService == nil || model.quickDisplayServiceBusy)
                 .help(localization.text("action.refresh"))
 
                 Button {
@@ -150,21 +152,15 @@ struct FloatingWidgetView: View {
     @MainActor
     private func updateNowWhileVisible() async {
         while !Task.isCancelled {
-            let currentNow = Date()
-            now = currentNow
-
-            if model.shouldAutomaticallyRefresh(now: currentNow) {
-                await model.refresh(reason: .automatic)
-                now = Date()
-            }
+            now = Date()
 
             try? await Task.sleep(for: .seconds(1))
         }
     }
 
     private var refreshSummary: String {
-        if model.selectedMuse { return model.muse.statusText(language: model.language, now: now) }
-        if model.selectedDeepSeek {
+        if model.quickDisplayService == .muse { return model.muse.statusText(language: model.language, now: now) }
+        if model.quickDisplayService == .deepSeek {
             return model.deepSeek.observedAt.map {
                 "DeepSeek · " + $0.formatted(date: .omitted, time: .standard)
             } ?? (model.language == .zhCN ? "DeepSeek 尚未更新" : "DeepSeek has not updated yet")

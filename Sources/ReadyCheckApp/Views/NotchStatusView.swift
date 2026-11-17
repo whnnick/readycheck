@@ -48,13 +48,20 @@ struct NotchStatusView: View {
 
     private var compactContent: some View {
         Group {
-            if model.selectedMuse {
+            if model.quickDisplayService == nil {
+                Button(action: model.showQuickDisplaySettings) {
+                    Image(systemName: "slider.horizontal.3")
+                        .foregroundStyle(.white).frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .contentShape(notchShape)
+                }.buttonStyle(.plain)
+                    .accessibilityLabel(model.localization.text("settings.quickDisplay"))
+            } else if model.quickDisplayService == .muse {
                 MuseCompactReadout(connection: model.muse, language: model.language, now: now)
                     .contentShape(notchShape).onTapGesture(perform: onClick)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("Muse 7d " + QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now)))
                     .accessibilityAddTraits(.isButton).accessibilityAction { onClick() }
-            } else if model.selectedService.presentation.readoutKind == .balance {
+            } else if model.quickDisplayService == .deepSeek {
                 ServiceCompactReadout(model: model, now: now)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(notchShape)

@@ -13,7 +13,7 @@ struct ServiceCompactReadout: View {
     private var window: QuotaWindow? {
         model.notchQuotaSelection.resolve(in: quota?.windows.filter(QuotaWindowPresentation.shouldShow) ?? [])
     }
-    private var isBalance: Bool { model.selectedService.presentation.readoutKind == .balance }
+    private var isBalance: Bool { model.quickDisplayService == .deepSeek }
     private var timestamp: Date? { isBalance ? model.deepSeek.observedAt : quota?.refreshedAt }
 
     var body: some View {

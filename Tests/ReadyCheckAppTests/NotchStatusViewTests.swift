@@ -51,8 +51,9 @@ final class NotchStatusViewTests: XCTestCase {
             if let saved { defaults.set(saved, forKey: key) } else { defaults.removeObject(forKey: key) }
         }
         model.snapshots = [snapshot(Date())]
-        for mode in ["dual", "single", "deepseek", "missing"] {
-            model.selectedDeepSeek = mode == "deepseek"
+        for mode in ["dual", "single", "disconnected", "missing"] {
+            model.codexOAuthStatus = mode == "disconnected" ? .notConnected : .connected
+            model.selectedDeepSeek = false
             model.notchShowsBothQuotas = mode != "single"
             model.snapshots = mode == "missing" ? [] : [snapshot(Date())]
             let view = NotchStatusView(model: model).frame(width: 185, height: 42)
@@ -91,6 +92,7 @@ final class NotchStatusViewTests: XCTestCase {
             if let saved { defaults.set(saved, forKey: key) } else { defaults.removeObject(forKey: key) }
         }
         model.selectedDeepSeek = false
+        model.codexOAuthStatus = .connected
         model.snapshots = [snapshot(Date())]
         for language in [AppLanguage.zhCN, .enUS] {
             model.language = language

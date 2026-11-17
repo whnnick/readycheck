@@ -134,7 +134,8 @@ struct DeepSeekConnectionControls: View {
                 .font(.footnote).foregroundStyle(.secondary)
             Link(text("创建或管理 API Key", "Create or manage API key"), destination: URL(string: "https://platform.deepseek.com/api_keys")!)
                 .font(.callout)
-            Text(text("Key 保存在本机钥匙串。应用运行时约每 5 分钟刷新，不发送模型请求。", "The key is stored in Keychain. Refreshes about every five minutes while the app runs; no model request is sent."))
+            Text(text("Key 保存在本机钥匙串。", "The key is stored in Keychain.") + " "
+                + LocalizationService(language: language).text("dashboard.refreshCadence"))
                 .font(.footnote).foregroundStyle(.secondary)
             HStack {
                 Text(connection.credentialError ? text("需要系统授权", "System access required") : connection.isConnected ? text("已保存 API 连接", "API connection saved") : text("未连接", "Not connected"))

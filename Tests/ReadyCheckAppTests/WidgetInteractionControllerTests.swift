@@ -50,13 +50,17 @@ final class WidgetInteractionControllerTests: XCTestCase {
         interaction.hoverChanged(false)
         try await Task.sleep(for: .milliseconds(100))
         XCTAssertEqual(interaction.state, .collapsed)
+        let opened = expectation(description: "Sustained hover opens a preview")
+        interaction.onChange = { if $0 == .preview { opened.fulfill() } }
         interaction.containsPointer = { true }
         interaction.hoverChanged(true)
-        try await Task.sleep(for: .milliseconds(100))
+        await fulfillment(of: [opened], timeout: 2)
         XCTAssertEqual(interaction.state, .preview)
+        let closed = expectation(description: "Pointer exit closes the preview")
+        interaction.onChange = { if $0 == .collapsed { closed.fulfill() } }
         interaction.containsPointer = { false }
         interaction.hoverChanged(false)
-        try await Task.sleep(for: .milliseconds(100))
+        await fulfillment(of: [closed], timeout: 2)
         XCTAssertEqual(interaction.state, .collapsed)
     }
 

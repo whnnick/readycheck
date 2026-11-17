@@ -1,5 +1,50 @@
 # Changelog
 
+## 0.7.2-dev.11 - 2026-11-17
+
+- Refresh connected services every minute while ReadyCheck runs on macOS and Windows. Settings explains the fixed cadence, and manual refresh remains available.
+- Muse details and DeepSeek connection settings show the same cadence.
+
+## 0.7.2-dev.10 - 2026-11-17
+
+- Show only the ReadyCheck icon in the macOS menu bar. Click it to see the selected services.
+
+## 0.7.2-dev.9 - 2026-11-17
+
+- Shorten the macOS menu-bar title to current readings. Service names and Muse’s weekly window remain available in the tooltip and menu.
+
+## 0.7.2-dev.8 - 2026-11-17
+
+- Add **Quick display** in Display settings. Choose which connected services appear in the capsule, menu bar, and widgets. Disconnected services are hidden, and the selection is saved. The aggregate capsule resizes to fit the entries.
+
+## 0.7.2-dev.7 - 2026-11-17
+
+- Animate the content when an open aggregate preview switches services on hover. Keep the side window mounted and reuse it for quick switches.
+
+## 0.7.2-dev.6 - 2026-11-17
+
+- Add 4 pt between aggregate capsule service rows for clearer separation. The capsule is 48 × 204 pt and retains its docked side and vertical center.
+
+## 0.7.2-dev.5 - 2026-11-17
+
+- Increase the aggregate service icons to 20 pt and show the services in the order Codex, Muse, DeepSeek.
+
+## 0.7.2-dev.4 - 2026-11-16
+
+- Enlarge the service icons inside the aggregate capsule so they read at the same scale as its 16 pt figures. Tighten the Codex ring spacing while keeping both quota rings visible. Switching services crossfades the detail content in place and honors Reduce Motion.
+
+## 0.7.2-dev.3 - 2026-11-16
+
+- Increase the aggregate rail readout to 16 pt. Codex keeps the 7-day allowance as its inner ring and shows the exact weekly figure in the side detail. Add hover feedback and slide the side detail in and out, respecting Reduce Motion.
+
+## 0.7.2-dev.2 - 2026-11-16
+
+- Redesign the macOS aggregate capsule as a persistent 48 × 196 pt rail with adaptive material, smaller service badges, and aligned readings. Docked capsules keep both their side and vertical center during the resize.
+
+## 0.7.2-dev.1 - 2026-11-16
+
+- The macOS aggregate capsule retracts to a small tab when snapped to either side of the display. Hover or click to reveal it, drag the tab to move it, and move the pointer away to retract it. A pinned detail keeps the capsule open.
+
 ## 0.7.1 - 2026-11-14
 
 - Fix Muse weekly allowance reads after a website deployment moved the settings reader into later immutable chunks. Recover once from a stale action that returns a conflict and retry a transient startup read once using the existing Muse session.

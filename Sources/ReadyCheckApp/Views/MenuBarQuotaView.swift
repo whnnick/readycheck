@@ -13,26 +13,44 @@ struct MenuBarQuotaView: View {
         model.localization
     }
 
+    private var service: ServiceSettingsTarget? { model.quickDisplayService }
+    private var codexSnapshots: [ProviderQuotaSnapshot] { model.snapshots.filter { $0.providerId == "codex-oauth" } }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
             Divider()
-            if model.selectedMuse {
+            if model.quickDisplayServices.count > 1 {
+                Picker(localization.text("settings.quickDisplay"), selection: Binding(
+                    get: { service }, set: { if let target = $0 { model.selectedService = target } }
+                )) {
+                    ForEach(model.quickDisplayServices, id: \.self) { target in
+                        Text(target.title).tag(Optional(target))
+                    }
+                }.pickerStyle(.segmented).labelsHidden()
+            }
+            if service == nil {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(localization.text("settings.quickDisplayEmpty")).foregroundStyle(.secondary)
+                    Button(localization.text("settings.quickDisplay")) { openDisplaySettings() }
+                }
+            } else if service == .muse {
                 ScrollView { MuseUsageView(connection: model.muse, language: model.language, now: now, detailed: false) }
                     .frame(maxHeight: 220)
-            } else if model.selectedDeepSeek {
+            } else if service == .deepSeek {
                 ScrollView {
                     DeepSeekBalancePanel(connection: model.deepSeek, language: model.language, now: now) {
-                        model.mainWindowPage = .overview
+                        model.selectedService = .deepSeek
+                        model.navigateToMainPage(.overview)
                         openSettings()
                     }
                 }.frame(maxHeight: 280)
-            } else if model.snapshots.isEmpty {
+            } else if codexSnapshots.isEmpty {
                 emptyState
             } else {
                 ScrollView(.vertical) {
                     VStack(alignment: .leading, spacing: 8) {
-                        ForEach(model.snapshots) { snapshot in
+                        ForEach(codexSnapshots) { snapshot in
                             ForEach(displayWindows(snapshot)) { window in
                                 CompactQuotaRow(window: window, snapshot: snapshot, localization: localization, now: now)
                             }
@@ -56,36 +74,22 @@ struct MenuBarQuotaView: View {
                 .frame(height: min(280, quotaContentHeight))
                 .onPreferenceChange(MenuQuotaContentHeight.self) { quotaContentHeight = $0 }
             }
-            if model.deepSeek.isConnected && !model.selectedDeepSeek {
-                Divider()
-                DeepSeekCompactRow(connection: model.deepSeek, language: model.language, now: now) {
-                    model.selectedDeepSeek = true
-                    model.mainWindowPage = .overview
-                    openSettings()
-                }
-            }
-            if model.muse.isEnabled && !model.selectedMuse {
+            if let service {
                 Divider()
                 Button {
-                    model.selectedService = .muse; model.mainWindowPage = .overview; openSettings()
+                    model.openServiceSettings(service)
+                    openSettings()
                 } label: {
-                    HStack { Text("Muse 7d"); Spacer(); Text(QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: now))) }
+                    HStack {
+                        Label(localization.text("navigation.reminders"), systemImage: "bell")
+                        Spacer()
+                        if service == .codex {
+                            Text(model.lowQuotaThreshold == 0 ? localization.text("lowQuota.off") : "\(model.lowQuotaThreshold)%")
+                        }
+                        Image(systemName: "chevron.right").font(.caption2)
+                    }
                 }.buttonStyle(.plain)
             }
-            Divider()
-            Button {
-                model.openServiceSettings(model.selectedService)
-                openSettings()
-            } label: {
-                HStack {
-                    Label(localization.text("navigation.reminders"), systemImage: "bell")
-                    Spacer()
-                    if model.selectedService == .codex {
-                        Text(model.lowQuotaThreshold == 0 ? localization.text("lowQuota.off") : "\(model.lowQuotaThreshold)%")
-                    }
-                    Image(systemName: "chevron.right").font(.caption2)
-                }
-            }.buttonStyle(.plain)
             Toggle(isOn: $model.widgetVisible) {
                 Label(localization.text("settings.desktopWidget"), systemImage: "macwindow.on.rectangle")
             }.toggleStyle(.switch).controlSize(.small)
@@ -115,26 +119,27 @@ struct MenuBarQuotaView: View {
                 Text(localization.text("app.name"))
                     .font(.headline)
 
-                Text(refreshSummary)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                if service != nil {
+                    Text(refreshSummary)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
 
-                Text(accountSummary)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                    Text(accountSummary)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
             }
 
             Spacer()
 
-            if model.selectedServiceBusy {
+            if model.quickDisplayServiceBusy {
                 ProgressView()
                     .controlSize(.small)
-            } else {
-                if model.selectedService == .codex { DataStatusButton(model: model).labelStyle(.iconOnly).controlSize(.small)
+            } else if service == .codex {
+                DataStatusButton(model: model).labelStyle(.iconOnly).controlSize(.small)
                     .help(localization.text("dataStatus.title"))
-                }
             }
         }
     }
@@ -173,24 +178,24 @@ struct MenuBarQuotaView: View {
             Divider()
             HStack {
                 Button {
-                    model.mainWindowPage = .overview
+                    if let service { model.selectedService = service }
+                    model.navigateToMainPage(.overview)
                     openSettings()
                 } label: {
                     Label(localization.text("bubble.openMainWindow"), systemImage: "arrow.up.forward.square")
                 }
                 Spacer()
                 Button {
-                    Task { await model.refreshSelectedService(); now = Date() }
+                    guard let service else { return }
+                    Task { await model.refreshService(service); now = Date() }
                 } label: { Image(systemName: "arrow.clockwise") }
-                .disabled(model.selectedServiceBusy)
+                .disabled(service == nil || model.quickDisplayServiceBusy)
                 .help(localization.text("action.refresh"))
                 .accessibilityLabel(localization.text("action.refresh"))
                 Menu {
-                    Button(localization.text("navigation.display")) {
-                        model.mainWindowPage = .settings; model.mainSettingsSection = .display; openSettings()
-                    }
+                    Button(localization.text("settings.quickDisplay")) { openDisplaySettings() }
                     Button(localization.text("navigation.connection")) {
-                        model.openServiceSettings(model.selectedService); openSettings()
+                        model.openServiceSettings(service ?? model.selectedService, section: .connection); openSettings()
                     }
                     Button(localization.text("navigation.general")) {
                         model.mainWindowPage = .settings; model.mainSettingsSection = .general; openSettings()
@@ -205,6 +210,12 @@ struct MenuBarQuotaView: View {
             }
         }
         .buttonStyle(.bordered).controlSize(.small)
+    }
+
+    private func openDisplaySettings() {
+        model.navigateToMainPage(.settings)
+        model.mainSettingsSection = .display
+        openSettings()
     }
 
     @MainActor
@@ -228,21 +239,15 @@ struct MenuBarQuotaView: View {
     @MainActor
     private func updateNowWhileVisible() async {
         while !Task.isCancelled {
-            let currentNow = Date()
-            now = currentNow
-
-            if model.shouldAutomaticallyRefresh(now: currentNow) {
-                await model.refresh(reason: .automatic)
-                now = Date()
-            }
+            now = Date()
 
             try? await Task.sleep(for: .seconds(1))
         }
     }
 
     private var refreshSummary: String {
-        if model.selectedMuse { return model.muse.statusText(language: model.language, now: now) }
-        if model.selectedDeepSeek {
+        if service == .muse { return model.muse.statusText(language: model.language, now: now) }
+        if service == .deepSeek {
             return model.deepSeek.observedAt.map {
                 (model.language == .zhCN ? "DeepSeek 更新于 " : "DeepSeek updated ") + $0.formatted(date: .omitted, time: .standard)
             } ?? (model.language == .zhCN ? "DeepSeek 尚未更新" : "DeepSeek has not updated yet")
@@ -264,8 +269,8 @@ struct MenuBarQuotaView: View {
     }
 
     private var accountSummary: String {
-        if model.selectedMuse { return "Muse · " + (model.muse.snapshot?.plan ?? "muse.ai") }
-        if model.selectedDeepSeek { return model.language == .zhCN ? "DeepSeek API 余额" : "DeepSeek API balance" }
+        if service == .muse { return "Muse · " + (model.muse.snapshot?.plan ?? "muse.ai") }
+        if service == .deepSeek { return model.language == .zhCN ? "DeepSeek API 余额" : "DeepSeek API balance" }
         if let email = model.codexOAuthLoginEmail, !email.isEmpty {
             return "\(localization.text("oauth.account.connectedAs")) \(email)"
         }

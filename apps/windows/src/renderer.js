@@ -23,7 +23,7 @@ const elements = {
   disconnectButton: document.getElementById("disconnectButton"),
   oauthStatusText: document.getElementById("oauthStatusText"),
   language: document.getElementById("language"),
-  refreshInterval: document.getElementById("refreshInterval"),
+  refreshHelp: document.getElementById("refreshHelp"),
   quotaContent: document.getElementById("quotaContent"),
   quotaRecoveryActions: document.getElementById("quotaRecoveryActions"),
   quotaRetryButton: document.getElementById("quotaRetryButton"),
@@ -115,8 +115,10 @@ function render(state) {
   if (elements.language) {
     elements.language.value = state.prefs.language;
   }
-  if (elements.refreshInterval) {
-    elements.refreshInterval.value = String(state.prefs.refreshIntervalMinutes);
+  if (elements.refreshHelp) {
+    elements.refreshHelp.textContent = state.prefs.language === "en"
+      ? "Refreshes every minute while ReadyCheck is running. Manual refresh is also available. Refresh only reads usage."
+      : "ReadyCheck 运行时每分钟自动刷新，也可手动刷新。刷新只读取用量。";
   }
 
   renderQuota(state);
@@ -861,9 +863,6 @@ function wireEvents() {
   }
   if (elements.language) {
     elements.language.addEventListener("change", () => updatePrefs({ language: elements.language.value }));
-  }
-  if (elements.refreshInterval) {
-    elements.refreshInterval.addEventListener("change", () => updatePrefs({ refreshIntervalMinutes: Number(elements.refreshInterval.value) }));
   }
   if (elements.resetWidgetButton) {
     elements.resetWidgetButton.addEventListener("click", () => window.readyCheck.resetWidgetPosition());

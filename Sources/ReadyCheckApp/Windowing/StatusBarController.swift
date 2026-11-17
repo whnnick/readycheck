@@ -1,17 +1,6 @@
 import AppKit
-import Observation
 import ReadyCheckCore
 import SwiftUI
-
-enum MenuBarQuotaLabel {
-    static func text(snapshot: ProviderQuotaSnapshot?, selection: NotchQuotaSelection, now: Date) -> String {
-        let primary = selection.displayWindows(in: snapshot?.windows ?? []).first
-        let label = primary.map(QuotaWindowDisplay.shortLabel) ?? "—"
-        let ratio = snapshot?.canShowPercentages(now: now) == true && snapshot?.isCached != true
-            ? primary?.displayableRemainingRatio : nil
-        return label + " " + QuotaFormatters.percentageText(for: ratio)
-    }
-}
 
 @MainActor
 final class StatusBarController: NSObject, NSPopoverDelegate {
@@ -20,64 +9,16 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
     private var outsideClickMonitor: Any?
-    private var statusClock: Task<Void, Never>?
 
     init(model: ReadyCheckAppModel, openSettings: @escaping @MainActor () -> Void) {
         self.model = model
         self.openSettings = openSettings
-        self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         super.init()
 
         configureStatusItem()
         configurePopover()
-        observeQuotaChanges()
-        statusClock = Task { [weak self] in
-            while !Task.isCancelled {
-                do { try await Task.sleep(for: .seconds(30)) } catch { return }
-                self?.updateQuotaLabel()
-            }
-        }
-    }
-
-    deinit { statusClock?.cancel() }
-
-    private func updateQuotaLabel() {
-        if model.selectedMuse {
-            statusItem.button?.title = "Muse 7d " + QuotaFormatters.percentageText(for: model.muse.remainingRatio(now: Date()))
-            statusItem.button?.toolTip = "ReadyCheck · Muse · " + model.muse.statusText(language: model.language, now: Date())
-            return
-        }
-        if model.selectedDeepSeek {
-            statusItem.button?.title = "DS " + DeepSeekDisplay.balanceText(connection: model.deepSeek, now: Date())
-            statusItem.button?.toolTip = "ReadyCheck · DeepSeek API"
-            return
-        }
-        statusItem.button?.title = MenuBarQuotaLabel.text(
-            snapshot: model.snapshots.first { $0.providerId == "codex-oauth" },
-            selection: model.notchQuotaSelection, now: Date())
-        let snapshot = model.snapshots.first { $0.providerId == "codex-oauth" }
-        statusItem.button?.toolTip = "ReadyCheck · " + (statusItem.button?.title ?? "—") + " · "
-            + model.localization.text(snapshot?.availabilityTextKey(now: Date()) ?? "status.unavailable")
-    }
-
-    private func observeQuotaChanges() {
-        withObservationTracking {
-            _ = model.snapshots
-            _ = model.notchQuotaSelection
-            _ = model.selectedService
-            _ = model.muse.snapshot
-            _ = model.muse.observedAt
-            _ = model.muse.error
-            _ = model.muse.isBusy
-            _ = model.deepSeek.snapshot
-            _ = model.deepSeek.observedAt
-            _ = model.deepSeek.error
-            _ = model.deepSeek.credentialError
-            updateQuotaLabel()
-        } onChange: { [weak self] in
-            Task { @MainActor in self?.observeQuotaChanges() }
-        }
     }
 
     func closePopover() {
@@ -89,9 +30,9 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         guard let button = statusItem.button else { return }
 
         button.image = makeMenuBarMark()
-        button.imagePosition = .imageLeading
-        button.font = .monospacedDigitSystemFont(ofSize: 11, weight: .medium)
+        button.imagePosition = .imageOnly
         button.toolTip = "ReadyCheck"
+        button.setAccessibilityLabel("ReadyCheck")
         button.target = self
         button.action = #selector(togglePopover(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])

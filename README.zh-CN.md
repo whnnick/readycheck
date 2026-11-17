@@ -3,14 +3,16 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Codex 还剩多少额度，什么时候重置，一眼看清。</strong></p>
 <p align="center">以 Codex 为核心的轻量、免费、开源监控工具：额度、Token 用量、账户权益与提醒。</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.1"><img src="https://img.shields.io/badge/source-0.7.1-3979ef" alt="源码 0.7.1"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
-<p align="center"><a href="#从这里开始">从这里开始</a> · <a href="docs/versions/0.7.1/RELEASE_NOTES.zh-CN.md">当前更新</a> · <a href="docs/versions/0.7.1/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">版本索引</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.2-dev.11"><img src="https://img.shields.io/badge/source-0.7.2--dev.11-3979ef" alt="源码 0.7.2-dev.11"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
+<p align="center"><a href="#从这里开始">从这里开始</a> · <a href="docs/versions/0.7.2/RELEASE_NOTES.zh-CN.md">当前更新</a> · <a href="docs/versions/0.7.2/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">版本索引</a></p>
 
 **ReadyCheck 0.7.1** 修复 Muse 网站更新后周额度无法读取的问题。[发布说明](docs/versions/0.7.1/RELEASE_NOTES.zh-CN.md) · [验收](docs/versions/0.7.1/QA.zh-CN.md)。
 
 Muse 在原有会话下通过了自动读取、手动刷新及重开验收。Codex 额度和 DeepSeek 余额也已实测。
 
 0.7.1 正式版安装包为 `ReadyCheck-0.7.1-macos.dmg` 与 `ReadyCheck-0.7.1-windows-x64-portable.zip`，验证进度见[验收记录](docs/versions/0.7.1/QA.zh-CN.md)。
+
+**0.7.2-dev.11 预览版**加入聚合胶囊和菜单的服务勾选、纯图标菜单栏，以及固定 1 分钟自动刷新。 [预览更新说明](docs/versions/0.7.2/RELEASE_NOTES.zh-CN.md) · [验收](docs/versions/0.7.2/QA.zh-CN.md)。
 
 <img src="docs/versions/0.7.0/evidence/0.7.0-aggregate-overview-zh-CN.png" width="470" alt="聚合胶囊与侧边详情合成界面，数值均为测试数据" />
 
@@ -19,8 +21,8 @@ Muse 在原有会话下通过了自动读取、手动刷新及重开验收。Cod
 | 通道 | 版本 | 获取方式 |
 | --- | --- | --- |
 | 稳定发布通道 | 0.7.1 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.1/ReadyCheck-0.7.1-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.1/ReadyCheck-0.7.1-windows-x64-portable.zip) |
-| **公开源码** | **0.7.1** | [源码 tag](https://github.com/whnnick/readycheck/tree/v0.7.1) · [更新与安装包校验值](docs/versions/0.7.1/QA.zh-CN.md) |
-| **此前预览版** | **0.7.0-dev.23** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.0-dev.23/ReadyCheck-0.7.0-dev.23-windows-x64-portable.zip) |
+| **公开源码** | **0.7.2-dev.11** | [源码 tag](https://github.com/whnnick/readycheck/tree/v0.7.2-dev.11) · [预览更新](docs/versions/0.7.2/RELEASE_NOTES.zh-CN.md) |
+| **最新预览版** | **0.7.2-dev.11** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.11/ReadyCheck-0.7.2-dev.11-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.11/ReadyCheck-0.7.2-dev.11-windows-x64-portable.zip) |
 
 稳定版下载为 0.7.1，安装包检查、Windows 运行器结果和设备边界见[验收记录](docs/versions/0.7.1/QA.zh-CN.md)。
 

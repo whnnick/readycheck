@@ -41,7 +41,9 @@ struct WidgetDetailHeader: View {
     }
 
     private var subtitle: String {
-        let target = service ?? model.selectedService
+        guard let target = service ?? model.quickDisplayService else {
+            return model.localization.text("settings.quickDisplayEmpty")
+        }
         if target == .muse {
             return (service == nil ? "Muse · " : "") + model.muse.statusText(language: model.language, now: now)
         }
@@ -58,7 +60,7 @@ struct WidgetDetailFooter: View {
     let openMainWindow: () -> Void
     var service: ServiceSettingsTarget?
 
-    private var target: ServiceSettingsTarget { service ?? model.selectedService }
+    private var target: ServiceSettingsTarget { service ?? model.quickDisplayService ?? .codex }
     private var isBalance: Bool { target == .deepSeek }
     private var actionSize: CGSize { service == nil ? CGSize(width: 16, height: 18) : CGSize(width: 24, height: 24) }
     private var isBusy: Bool {

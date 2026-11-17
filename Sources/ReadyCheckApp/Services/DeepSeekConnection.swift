@@ -132,7 +132,14 @@ final class DeepSeekConnection {
             await updateHistory(credential: credential, snapshot: result, date: date)
             await onReading?(credential.connectionID, result)
         } catch is CancellationError { return }
-        catch let failure as DeepSeekBalanceError { error = failure; refreshOutcome = .failed }
+        catch let failure as DeepSeekBalanceError {
+            error = failure
+            refreshOutcome = .failed
+            if failure == .unauthorized {
+                snapshot = nil
+                observedAt = nil
+            }
+        }
         catch { self.error = .network; refreshOutcome = .failed }
     }
 

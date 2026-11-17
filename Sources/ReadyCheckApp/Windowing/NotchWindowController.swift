@@ -67,8 +67,12 @@ final class NotchWindowController: NSObject {
         panel.onPointerUp = { [weak self] moved in
             guard let self else { return }
             defer { self.dragCancelled = false }
-            if moved { self.dragEnded() }
-            else if !self.isExpanded { self.setExpanded(true) }
+            if moved {
+                self.dragEnded()
+            } else if !self.isExpanded {
+                if self.model?.quickDisplayService == nil { self.model?.showQuickDisplaySettings() }
+                else { self.setExpanded(true) }
+            }
         }
         let controller = NSHostingController(rootView: makeView(model))
         controller.sizingOptions = []

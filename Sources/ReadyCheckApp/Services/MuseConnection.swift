@@ -88,7 +88,7 @@ final class MuseConnection {
             }
             while !Task.isCancelled {
                 guard self != nil else { return }
-                do { try await Task.sleep(for: .seconds(300)) } catch { return }
+                do { try await Task.sleep(for: .seconds(RefreshPolicy.default.interval)) } catch { return }
                 await self?.refresh()
             }
         }

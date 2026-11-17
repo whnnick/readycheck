@@ -30,7 +30,6 @@ struct SettingsView: View {
         Binding(get: { scrollOffsets[identity] ?? 0 }, set: { scrollOffsets[identity] = $0 })
     }
 
-    private let refreshIntervalOptions: [TimeInterval] = [60, 180, 300]
     private static let resetCreditRulesID = "reset-credit-rules"
 
     var body: some View {
@@ -402,6 +401,7 @@ struct SettingsView: View {
                 }
                 GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { notificationControls }
             case .display:
+                quickDisplayControls
                 quotaWindowControls
                 widgetControls
                 notchControls
@@ -422,6 +422,31 @@ struct SettingsView: View {
                 GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) { notificationControls }
                 Button(model.localization.text("about.title")) { model.showAboutWindow() }
             }
+        }
+    }
+
+    private var quickDisplayControls: some View {
+        GlassSurface(cornerRadius: 18, renderingMode: .staticSurface) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(model.localization.text("settings.quickDisplay")).font(.headline)
+                Text(model.localization.text("settings.quickDisplayHelp")).font(.caption).foregroundStyle(.secondary)
+                ForEach(ServiceSettingsTarget.quickDisplayOrder, id: \.self) { service in
+                    HStack {
+                        Toggle(service.title, isOn: Binding(
+                            get: { model.quickDisplaySelection.contains(service) },
+                            set: { enabled in
+                                if enabled { model.quickDisplaySelection.insert(service) }
+                                else { model.quickDisplaySelection.remove(service) }
+                            }
+                        )).toggleStyle(.checkbox)
+                        Spacer()
+                        Text(model.localization.text(model.isConnectedForQuickDisplay(service)
+                            ? "settings.quickDisplayConnected" : "settings.quickDisplayDisconnected"))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -688,17 +713,7 @@ struct SettingsView: View {
             Divider()
 
             preferenceSection(titleKey: "settings.refresh", systemImage: "arrow.clockwise") {
-                Picker(model.localization.text("settings.refreshInterval"), selection: $model.refreshInterval) {
-                    ForEach(refreshIntervalOptions, id: \.self) { interval in
-                        Text(refreshIntervalLabel(for: interval)).tag(interval)
-                    }
-                }
-
                 Text(model.localization.text("settings.refreshHelp"))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-
-                Text(model.localization.text("status.safeRefresh"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -898,19 +913,6 @@ struct SettingsView: View {
             model.localization.text("update.failed")
         case .updateAvailable(let update):
             "\(model.localization.text("update.available")) \(update.version)"
-        }
-    }
-
-    private func refreshIntervalLabel(for interval: TimeInterval) -> String {
-        switch interval {
-        case 60:
-            model.localization.text("refreshInterval.1m")
-        case 180:
-            model.localization.text("refreshInterval.3m")
-        case 300:
-            model.localization.text("refreshInterval.5m")
-        default:
-            "\(Int(interval))s"
         }
     }
 
@@ -1162,10 +1164,7 @@ struct SettingsView: View {
         while !Task.isCancelled {
             let currentNow = Date()
 
-            if model.lastRefreshAt != nil, model.shouldAutomaticallyRefresh(now: currentNow) {
-                await model.refresh(reason: .automatic)
-                now = Date()
-            } else if currentNow.timeIntervalSince(now) >= 30 {
+            if currentNow.timeIntervalSince(now) >= 30 {
                 now = currentNow
             }
 

@@ -7,8 +7,8 @@ import XCTest
 
 @MainActor
 final class BubbleWindowControllerTests: XCTestCase {
-    func testMuseSwitchKeepsTheSavedCenterAndReturnsToTheCodexDial() throws {
-        try withBubble { _, panel, host in
+    func testMuseSwitchKeepsTheSavedCenterAndReturnsToTheCodexDial() async throws {
+        try await withConnectedBubble { _, panel, host in
             let original = host.rootView.model.selectedService
             defer { host.rootView.model.selectedService = original }
             let center = CGPoint(x: panel.frame.midX, y: panel.frame.midY)
@@ -27,8 +27,8 @@ final class BubbleWindowControllerTests: XCTestCase {
         }
     }
 
-    func testServiceSwitchResizesRestingSurfaceAndRetainsPinnedStateAndCenter() throws {
-        try withBubble { _, panel, host in
+    func testServiceSwitchResizesRestingSurfaceAndRetainsPinnedStateAndCenter() async throws {
+        try await withConnectedBubble { _, panel, host in
             let model = host.rootView.model
             let center = CGPoint(x: panel.frame.midX, y: panel.frame.midY)
             XCTAssertEqual(panel.frame.size, CGSize(width: 92, height: 92))
@@ -55,9 +55,9 @@ final class BubbleWindowControllerTests: XCTestCase {
         }
     }
 
-    func testServiceSwitchKeepsEitherAttachedEdgeAndExplicitPin() throws {
+    func testServiceSwitchKeepsEitherAttachedEdgeAndExplicitPin() async throws {
         for edge in [BubbleWidgetPlacement.Edge.left, .right] {
-            try withBubble(edge: edge) { _, panel, host in
+            try await withConnectedBubble(edge: edge) { _, panel, host in
                 let resting = panel.frame
                 host.rootView.model.selectedDeepSeek = true
                 RunLoop.main.run(until: Date().addingTimeInterval(0.15))
@@ -228,10 +228,10 @@ final class BubbleWindowControllerTests: XCTestCase {
         }
     }
 
-    func testClickingPreviewPaddingNeverPinsEitherServiceAtEveryPlacement() throws {
+    func testClickingPreviewPaddingNeverPinsEitherServiceAtEveryPlacement() async throws {
         for deepSeek in [false, true] {
         for edge in [nil, BubbleWidgetPlacement.Edge.left, .right] {
-            try withBubble(edge: edge, deepSeek: deepSeek) { controller, panel, host in
+            try await withConnectedBubble(edge: edge, deepSeek: deepSeek) { controller, panel, host in
                 host.rootView.onTap()
                 RunLoop.main.run(until: Date().addingTimeInterval(0.4))
                 XCTAssertFalse(host.rootView.isPinned)
@@ -259,9 +259,9 @@ final class BubbleWindowControllerTests: XCTestCase {
         }
     }
 
-    func testBothServiceContentClicksStayPreviewAndThePinControlToggles() throws {
+    func testBothServiceContentClicksStayPreviewAndThePinControlToggles() async throws {
         for deepSeek in [false, true] {
-            try withBubble(deepSeek: deepSeek) { _, panel, host in
+            try await withConnectedBubble(deepSeek: deepSeek) { _, panel, host in
                 host.rootView.onTap()
                 RunLoop.main.run(until: Date().addingTimeInterval(0.4))
                 try click(panel, at: CGPoint(x: panel.frame.width / 2, y: panel.frame.height / 2))
@@ -304,7 +304,28 @@ final class BubbleWindowControllerTests: XCTestCase {
         }
     }
 
+    private func withConnectedBubble(edge: BubbleWidgetPlacement.Edge? = nil, deepSeek: Bool = false,
+                                     _ body: (BubbleWindowController, QuotaWidgetPanel, NSHostingController<BubbleWidgetView>) throws -> Void) async throws {
+        let suite = "connected-bubble-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { defaults.removePersistentDomain(forName: suite); try? FileManager.default.removeItem(at: directory) }
+        defaults.set(true, forKey: "ReadyCheck.muse.enabled.v1")
+        let store = InMemoryCredentialStore()
+        let balance = DeepSeekConnection(store: store, client: DeepSeekBalanceClient(loader: AggregateBalanceLoader()),
+            historyStore: DeepSeekBalanceHistoryStore(fileURL: directory.appendingPathComponent("history.json")))
+        await balance.connect(key: "synthetic")
+        let muse = MuseConnection(reader: AggregateMuseReader(), defaults: defaults)
+        await muse.refresh()
+        let model = ReadyCheckAppModel(credentialStore: store, deepSeekConnection: balance, museConnection: muse,
+            quotaNotificationService: QuotaNotificationService(client: BubbleTestNotificationClient(), verificationDelays: []),
+            widgetVisibilityDefaults: defaults)
+        model.codexOAuthStatus = .connected
+        try withBubble(edge: edge, deepSeek: deepSeek, connectedModel: model, body)
+    }
+
     private func withBubble(edge: BubbleWidgetPlacement.Edge? = nil, deepSeek: Bool = false, notchContext: NotchWindowController.ScreenContext? = nil,
+                            connectedModel: ReadyCheckAppModel? = nil,
                             _ body: (BubbleWindowController, QuotaWidgetPanel, NSHostingController<BubbleWidgetView>) throws -> Void) throws {
         _ = NSApplication.shared
         let defaults = UserDefaults.standard
@@ -315,11 +336,11 @@ final class BubbleWindowControllerTests: XCTestCase {
         let frame = edge.map { BubbleWidgetPlacement.tabFrame(from: bubble, edge: $0, in: visibleFrame) } ?? bubble
         defaults.set(NSStringFromRect(frame), forKey: key)
         let controller = BubbleWindowController(notchContextProvider: { notchContext })
-        let model = ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
+        let model = connectedModel ?? ReadyCheckAppModel(quotaNotificationService: QuotaNotificationService(
             client: BubbleTestNotificationClient(), verificationDelays: []))
-        let originalService = model.selectedDeepSeek
+        let originalService = model.selectedService
         model.selectedDeepSeek = deepSeek
-        defer { model.selectedDeepSeek = originalService }
+        defer { model.selectedService = originalService }
         let previous = Set(NSApp.windows.map(\.windowNumber))
         defer {
             controller.onNotchAttachment = nil

@@ -4,7 +4,7 @@ import SwiftUI
 struct ServiceEdgeReadout: View {
     let model: ReadyCheckAppModel
     let now: Date
-    private var isBalance: Bool { model.selectedService.presentation.readoutKind == .balance }
+    private var isBalance: Bool { model.quickDisplayService == .deepSeek }
     private var reading: BalanceSurfaceReading? { DeepSeekDisplay.readings(connection: model.deepSeek, now: now).first }
     private var snapshot: ProviderQuotaSnapshot? { model.snapshots.first { $0.providerId == "codex-oauth" } }
 

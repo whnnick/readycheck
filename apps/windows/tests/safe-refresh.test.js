@@ -16,7 +16,6 @@ assert.equal(isAllowedForRefresh("http://chatgpt.com/backend-api/wham/usage"), f
 
 assert.deepEqual(normalizePrefs({ refreshIntervalMinutes: 99, widgetDisplayMode: "full" }), {
   language: "zh-CN",
-  refreshIntervalMinutes: 1,
   widgetVisible: true,
   widgetAlwaysOnTop: true,
   widgetDisplayMode: "minimal"
@@ -32,7 +31,6 @@ assert.deepEqual(
   }),
   {
     language: "en",
-    refreshIntervalMinutes: 3,
     widgetVisible: false,
     widgetAlwaysOnTop: false,
     widgetDisplayMode: "detailed"

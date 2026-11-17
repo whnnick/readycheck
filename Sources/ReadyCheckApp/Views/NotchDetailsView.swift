@@ -11,19 +11,23 @@ struct NotchDetailsView: View {
 
     var body: some View {
         Group {
-            if model.selectedMuse {
+            if model.quickDisplayService == nil {
+                Button(model.localization.text("settings.quickDisplay")) {
+                    model.showQuickDisplaySettings()
+                    onDismiss()
+                }
+            } else if model.quickDisplayService == .muse {
                 VStack(alignment: .leading, spacing: 8) {
                     WidgetDetailHeader(model: model, now: now)
                     ScrollView { MuseUsageView(connection: model.muse, language: model.language, now: now, detailed: false) }
                     WidgetDetailFooter(model: model) {
-                        model.mainWindowPage = .overview; model.openMainWindowFromWidget(); onDismiss()
+                        model.openQuickDisplayOverview(); onDismiss()
                     }
                 }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .foregroundStyle(.white).environment(\.colorScheme, .dark)
-            } else if model.selectedService.presentation.readoutKind == .balance {
+            } else if model.quickDisplayService == .deepSeek {
                 BalanceDetailsView(model: model, now: now, compact: true) {
-                    model.mainWindowPage = .overview
-                    model.openMainWindowFromWidget()
+                    model.openQuickDisplayOverview()
                     onDismiss()
                 }
             } else {
@@ -60,8 +64,7 @@ struct NotchDetailsView: View {
                 }
             }
             WidgetDetailFooter(model: model) {
-                model.mainWindowPage = .overview
-                model.openMainWindowFromWidget()
+                model.openQuickDisplayOverview()
                 onDismiss()
             }
         }

@@ -65,7 +65,6 @@ async function main() {
   const state = new ReadyCheckState(
     {
       language: "zh-CN",
-      refreshIntervalMinutes: 1,
       widgetVisible: true,
       widgetAlwaysOnTop: true,
       widgetDisplayMode: "minimal"
@@ -106,7 +105,6 @@ async function main() {
   const quotaState = new ReadyCheckState(
     {
       language: "zh-CN",
-      refreshIntervalMinutes: 1,
       widgetVisible: true,
       widgetAlwaysOnTop: true,
       widgetDisplayMode: "minimal"
@@ -174,7 +172,6 @@ async function main() {
   const officialState = new ReadyCheckState(
     {
       language: "zh-CN",
-      refreshIntervalMinutes: 1,
       widgetVisible: true,
       widgetAlwaysOnTop: true,
       widgetDisplayMode: "minimal"
@@ -241,7 +238,6 @@ async function main() {
   const multiSourceState = new ReadyCheckState(
     {
       language: "zh-CN",
-      refreshIntervalMinutes: 1,
       widgetVisible: true,
       widgetAlwaysOnTop: true,
       widgetDisplayMode: "minimal"
@@ -310,7 +306,6 @@ async function main() {
   const refreshState = new ReadyCheckState(
     {
       language: "zh-CN",
-      refreshIntervalMinutes: 1,
       widgetVisible: true,
       widgetAlwaysOnTop: true,
       widgetDisplayMode: "minimal"

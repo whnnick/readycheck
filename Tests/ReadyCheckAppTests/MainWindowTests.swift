@@ -7,6 +7,25 @@ import XCTest
 
 @MainActor
 final class MainWindowTests: XCTestCase {
+    func testOneMinuteAutomaticRefreshIgnoresLegacyFiveMinutePreference() {
+        let defaults = UserDefaults.standard
+        let key = "ReadyCheck.refreshInterval.v1"
+        let saved = defaults.object(forKey: key)
+        defer {
+            if let saved { defaults.set(saved, forKey: key) }
+            else { defaults.removeObject(forKey: key) }
+        }
+        defaults.set(300, forKey: key)
+        let model = ReadyCheckAppModel(credentialStore: InMemoryCredentialStore(),
+            quotaNotificationService: QuotaNotificationService(client: DashboardNotificationClient(), verificationDelays: []))
+        let lastRefresh = Date()
+        model.lastRefreshAt = lastRefresh
+        XCTAssertFalse(model.shouldAutomaticallyRefresh(now: lastRefresh.addingTimeInterval(59)))
+        XCTAssertTrue(model.shouldAutomaticallyRefresh(now: lastRefresh.addingTimeInterval(60)))
+        model.isRefreshing = true
+        XCTAssertFalse(model.shouldAutomaticallyRefresh(now: lastRefresh.addingTimeInterval(61)))
+    }
+
     func testServiceSettingsReturnToOriginWithoutChangingAccountRules() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -443,7 +462,7 @@ final class MainWindowTests: XCTestCase {
             quotaHistoryStore: QuotaHistoryStore(fileURL: directory.appendingPathComponent("history.json")),
             quotaReminderStore: QuotaReminderStore(fileURL: directory.appendingPathComponent("reminders.json")),
             quotaNotificationService: QuotaNotificationService(client: DashboardNotificationClient(), verificationDelays: []))
-        let keys = ["ReadyCheck.language.v1", "ReadyCheck.refreshInterval.v1"]
+        let keys = ["ReadyCheck.language.v1"]
         let values = keys.map { UserDefaults.standard.object(forKey: $0) }
         let oldIcon = NSApp.applicationIconImage
         if let path = ProcessInfo.processInfo.environment["READYCHECK_UI_APP_ICON"], let icon = NSImage(contentsOfFile: path) { NSApp.applicationIconImage = icon }

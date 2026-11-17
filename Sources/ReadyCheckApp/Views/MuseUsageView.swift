@@ -50,7 +50,7 @@ struct MuseUsageView: View {
                     LabeledContent(date > now ? text("订阅续期", "Subscription renewal") : text("订阅日期（历史）", "Subscription date (past)"),
                                    value: date.formatted(date: .abbreviated, time: .omitted)).font(.caption)
                 }
-                Text(text("Muse 应用账户用量 · 每 5 分钟自动刷新", "Muse app account usage · Refreshes every 5 minutes"))
+                Text(LocalizationService(language: language).text("dashboard.refreshCadence"))
                     .font(.caption2).foregroundStyle(.secondary)
                 if let date = connection.observedAt {
                     Text(text("最近读取：", "Last read: ") + date.formatted(date: .omitted, time: .standard)).font(.caption2).foregroundStyle(.secondary)

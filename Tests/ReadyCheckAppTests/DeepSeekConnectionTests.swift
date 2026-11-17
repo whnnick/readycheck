@@ -184,6 +184,34 @@ final class DeepSeekConnectionTests: XCTestCase {
         XCTAssertEqual(connection.error, .rateLimited)
     }
 
+    func testQuickDisplayHidesRejectedCredentialUntilAReadingSucceeds() async {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let suite = "quick-display-deepseek-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite); try? FileManager.default.removeItem(at: directory) }
+        let store = InMemoryCredentialStore(), loader = MutableDeepSeekStub()
+        let connection = DeepSeekConnection(store: store, client: DeepSeekBalanceClient(loader: loader),
+            historyStore: DeepSeekBalanceHistoryStore(fileURL: directory.appendingPathComponent("history.json")))
+        let model = ReadyCheckAppModel(credentialStore: store, deepSeekConnection: connection,
+            quotaNotificationService: QuotaNotificationService(client: DeepSeekSilentNotifications(), verificationDelays: []),
+            widgetVisibilityDefaults: defaults)
+        await connection.connect(key: "synthetic")
+        let savedID = connection.connectionID
+        XCTAssertEqual(model.quickDisplayServices, [.deepSeek])
+        await loader.setStatus(401)
+        await connection.refresh()
+        XCTAssertEqual(connection.error, .unauthorized)
+        XCTAssertNil(connection.snapshot)
+        XCTAssertTrue(model.quickDisplayServices.isEmpty)
+        await loader.setStatus(429)
+        await connection.refresh()
+        XCTAssertTrue(model.quickDisplayServices.isEmpty)
+        await loader.setStatus(200)
+        await connection.refresh()
+        XCTAssertEqual(connection.connectionID, savedID)
+        XCTAssertEqual(model.quickDisplayServices, [.deepSeek])
+    }
+
     func testRefreshClearsPreviousBalanceWhenStoredConnectionChangesAndReadFails() async throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: dir) }
