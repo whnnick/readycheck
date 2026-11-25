@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.7.4 - 2026-11-26
+
+- The glass selection slides, stretches and settles in the macOS sidebar, settings and aggregate capsule. It follows rapid changes and respects Reduce Motion.
+- Mouse selection uses a thin highlight. Keyboard navigation adds the system focus color to the moving capsule.
+
+## 0.7.4-dev.3 - 2026-11-26
+
+- Show only the glass selection on a click in the sidebar and settings sections. Keyboard navigation uses the system focus color.
+
+## 0.7.4-dev.2 - 2026-11-26
+
+- Keep the main window’s focus highlight on the moving glass capsule so it arrives with the selection.
+
+## 0.7.4-dev.1 - 2026-11-26
+
+- Glass selection capsules slide, stretch and spring into place in macOS navigation, settings and the persistent aggregate capsule.
+
 ## 0.7.3 - 2026-11-17
 
 - Fix a macOS startup crash after a reboot or cleanup of the build directory. ReadyCheck loads icons and the Muse quota reader from the installed app.

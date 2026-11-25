@@ -12,6 +12,7 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
     private let interaction = WidgetInteractionController(hoverDelay: .milliseconds(350))
     private weak var model: ReadyCheckAppModel?
     private var host: NSHostingController<AggregateCapsuleView>?
+    private let railSelection = AggregateCapsuleRailSelection()
     private let detailState = AggregateCapsuleDetailState()
     private var detailTargetFrame: CGRect?
     private var detailDismissal: UUID?
@@ -156,16 +157,20 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
 
     private func updateRail() {
         guard let model, let rail else { return }
-        let view = AggregateCapsuleView(model: model, selected: interaction.state == .collapsed ? nil : service,
-            isPinned: isPinned, onSelect: { [weak self] in self?.select($0) },
+        let selection = interaction.state == .collapsed ? nil : service
+        if railSelection.service != selection { railSelection.service = selection }
+        if railSelection.isPinned != isPinned { railSelection.isPinned = isPinned }
+        guard host == nil else { return }
+
+        let view = AggregateCapsuleView(model: model, selection: railSelection,
+            onSelect: { [weak self] in self?.select($0) },
             onHover: { [weak self] in self?.hover($0, inside: $1) },
             onLeaveRail: { [weak self] in self?.railPointerExited() },
             onServicesChanged: { [weak self] in self?.updateVisibleServices() })
-        if let host { host.rootView = view }
-        else {
-            let host = NSHostingController(rootView: view); host.sizingOptions = []
-            rail.contentViewController = host; self.host = host
-        }
+        let host = NSHostingController(rootView: view)
+        host.sizingOptions = []
+        rail.contentViewController = host
+        self.host = host
     }
 
     private func updateVisibleServices() {

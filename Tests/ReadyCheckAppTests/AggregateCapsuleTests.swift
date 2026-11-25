@@ -286,6 +286,8 @@ final class AggregateCapsuleTests: XCTestCase {
             let host = try XCTUnwrap(panel.contentViewController as? NSHostingController<AggregateCapsuleDetailView>)
             let state = host.rootView.state
             let frame = panel.frame
+            let railHost = try XCTUnwrap(controller.rail?.contentViewController as? NSHostingController<AggregateCapsuleView>)
+            let railSelection = railHost.rootView.selection
 
             for next in [ServiceSettingsTarget.muse, .deepSeek, .codex] {
                 controller.hover(controller.service, inside: false)
@@ -295,13 +297,18 @@ final class AggregateCapsuleTests: XCTestCase {
                 XCTAssertTrue(panel.contentViewController === host)
                 XCTAssertTrue(host.rootView.state === state)
                 XCTAssertEqual(state.service, next)
+                XCTAssertTrue(controller.rail?.contentViewController === railHost)
+                XCTAssertTrue(railHost.rootView.selection === railSelection)
+                XCTAssertEqual(railSelection.service, next)
                 XCTAssertEqual(panel.frame, frame)
             }
 
             controller.togglePin()
             controller.hover(.muse, inside: true)
             XCTAssertTrue(state.isPinned)
+            XCTAssertTrue(railSelection.isPinned)
             XCTAssertEqual(state.service, .codex)
+            XCTAssertEqual(railSelection.service, .codex)
         }
     }
 
@@ -403,14 +410,14 @@ final class AggregateCapsuleTests: XCTestCase {
         try await withFixture { model in
             for language in [AppLanguage.zhCN, .enUS] {
                 model.language = language
-                let rail = AnyView(AggregateCapsuleView(model: model, selected: .codex, isPinned: true,
+                let rail = AnyView(AggregateCapsuleView(model: model, selection: .init(service: .codex, isPinned: true),
                     onSelect: { _ in }, onHover: { _, _ in }))
                 try capture(rail, size: AggregateCapsulePlacement.size, name: "rail-\(language.rawValue)")
                 try capture(rail, size: AggregateCapsulePlacement.size, name: "rail-light-\(language.rawValue)", colorScheme: .light)
                 let pair = HStack(spacing: 10) {
                     AggregateCapsuleDetailView(model: model, state: AggregateCapsuleDetailState(), onTogglePin: {}, onHover: { _ in })
                         .frame(width: 360, height: 400)
-                    AggregateCapsuleView(model: model, selected: .codex, onSelect: { _ in }, onHover: { _, _ in })
+                    AggregateCapsuleView(model: model, selection: .init(service: .codex), onSelect: { _ in }, onHover: { _, _ in })
                         .frame(width: AggregateCapsulePlacement.size.width, height: AggregateCapsulePlacement.size.height)
                 }.padding(8)
                 try capture(AnyView(pair), size: CGSize(width: 470, height: 416), name: "overview-\(language.rawValue)")

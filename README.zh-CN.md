@@ -3,10 +3,10 @@
 <h1 align="center">ReadyCheck</h1>
 <p align="center"><strong>Codex 还剩多少额度，什么时候重置，一眼看清。</strong></p>
 <p align="center">以 Codex 为核心的轻量、免费、开源监控工具：额度、Token 用量、账户权益与提醒。</p>
-<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.3"><img src="https://img.shields.io/badge/source-0.7.3-3979ef" alt="源码 0.7.3"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
-<p align="center"><a href="#从这里开始">从这里开始</a> · <a href="docs/versions/0.7.3/RELEASE_NOTES.zh-CN.md">当前更新</a> · <a href="docs/versions/0.7.3/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">版本索引</a></p>
+<p align="center"><a href="https://github.com/whnnick/readycheck/tree/v0.7.4"><img src="https://img.shields.io/badge/source-0.7.4-3979ef" alt="源码 0.7.4"></a> <a href="docs/INSTALL.zh-CN.md"><img src="https://img.shields.io/badge/macOS-14%2B-172333" alt="macOS 14+"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/whnnick/readycheck" alt="MIT 许可"></a></p>
+<p align="center"><a href="#从这里开始">从这里开始</a> · <a href="docs/versions/0.7.4/RELEASE_NOTES.zh-CN.md">当前更新</a> · <a href="docs/versions/0.7.4/QA.zh-CN.md">验收与边界</a> · <a href="docs/VERSIONS.md">版本索引</a></p>
 
-**ReadyCheck 0.7.3** 修复了 Mac 重启或清理构建目录后启动崩溃的问题。服务图标和 Muse 额度读取脚本会从已安装的 App 内读取。 [发布说明](docs/versions/0.7.3/RELEASE_NOTES.zh-CN.md) · [验收](docs/versions/0.7.3/QA.zh-CN.md)。
+**ReadyCheck 0.7.4** 为 macOS 左侧导航、设置和常驻聚合胶囊加入玻璃选中动效。鼠标点选时玻璃底带细高光滑动，键盘导航时显示系统焦点色。 [发布说明](docs/versions/0.7.4/RELEASE_NOTES.zh-CN.md) · [验收](docs/versions/0.7.4/QA.zh-CN.md)。
 
 <img src="docs/versions/0.7.0/evidence/0.7.0-aggregate-overview-zh-CN.png" width="470" alt="聚合胶囊与侧边详情合成界面，数值均为测试数据" />
 
@@ -14,11 +14,11 @@
 
 | 通道 | 版本 | 获取方式 |
 | --- | --- | --- |
-| 稳定发布通道 | 0.7.3 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.3/ReadyCheck-0.7.3-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.3/ReadyCheck-0.7.3-windows-x64-portable.zip) |
-| **公开源码** | **0.7.3** | [源码 tag](https://github.com/whnnick/readycheck/tree/v0.7.3) · [发布说明](docs/versions/0.7.3/RELEASE_NOTES.zh-CN.md) |
+| 稳定发布通道 | 0.7.4 | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.4/ReadyCheck-0.7.4-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.4/ReadyCheck-0.7.4-windows-x64-portable.zip) |
+| **公开源码** | **0.7.4** | [源码 tag](https://github.com/whnnick/readycheck/tree/v0.7.4) · [发布说明](docs/versions/0.7.4/RELEASE_NOTES.zh-CN.md) |
 | **上一预览版** | **0.7.2-dev.12** | [Mac DMG](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-macos.dmg) · [Windows ZIP](https://github.com/whnnick/readycheck/releases/download/v0.7.2-dev.12/ReadyCheck-0.7.2-dev.12-windows-x64-portable.zip) |
 
-稳定版下载为 0.7.3，安装包检查、Windows 运行器结果和设备边界见[验收记录](docs/versions/0.7.3/QA.zh-CN.md)。
+稳定版下载为 0.7.4，安装包检查、Windows 运行器结果和设备边界见[验收记录](docs/versions/0.7.4/QA.zh-CN.md)。
 
 <p align="center"><img src="docs/versions/0.7.0/evidence/0.7.0-codex-overview-zh.png" alt="ReadyCheck 0.7.0 原生 Codex 总览：5小时与7天剩余额度、重置节点及本机历史；合成数据" width="760"></p>
 <p align="center"><sub>0.7.0 Codex 界面。所有截图均使用合成数据，不是真实账户。</sub></p>

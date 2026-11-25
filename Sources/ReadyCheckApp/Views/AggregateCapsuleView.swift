@@ -1,4 +1,5 @@
 import AppKit
+import Observation
 import ReadyCheckCore
 import SwiftUI
 
@@ -50,19 +51,28 @@ struct AggregateServiceSummary: Identifiable {
     }
 }
 
+@MainActor @Observable
+final class AggregateCapsuleRailSelection {
+    var service: ServiceSettingsTarget?
+    var isPinned: Bool
+
+    init(service: ServiceSettingsTarget? = nil, isPinned: Bool = false) {
+        self.service = service
+        self.isPinned = isPinned
+    }
+}
+
 struct AggregateCapsuleView: View {
     static let cornerRadius = AggregateCapsulePlacement.size.width / 2
     static let headerHeight: CGFloat = 12
     static let bottomGripHeight: CGFloat = 10
 
     let model: ReadyCheckAppModel
-    var selected: ServiceSettingsTarget?
-    var isPinned = false
+    var selection = AggregateCapsuleRailSelection()
     let onSelect: (ServiceSettingsTarget) -> Void
     let onHover: (ServiceSettingsTarget, Bool) -> Void
     var onLeaveRail: () -> Void = {}
     var onServicesChanged: () -> Void = {}
-    @Environment(\.colorScheme) private var colorScheme
     @State private var now = Date()
 
     private var moreActionsLabel: String { model.language == .zhCN ? "胶囊更多操作" : "More capsule actions" }
@@ -86,10 +96,14 @@ struct AggregateCapsuleView: View {
                     }
                     ForEach(readings) { item in
                         AggregateCapsuleItem(item: item, language: model.language,
-                            selected: selected == item.id, pinned: isPinned && selected == item.id,
+                            selected: selection.service == item.id,
+                            pinned: selection.isPinned && selection.service == item.id,
                             onSelect: { onSelect(item.id) }, onHover: { onHover(item.id, $0) })
+                            .glassCapsuleItem(item.id)
                     }
-                }.frame(maxWidth: .infinity)
+                }
+                .glassCapsuleSelection(selection.service, axis: .vertical, kind: .insetSelection)
+                .frame(maxWidth: .infinity)
             }.scrollIndicators(.hidden)
             Menu { actions } label: {
                 Image(systemName: "ellipsis")
@@ -103,11 +117,7 @@ struct AggregateCapsuleView: View {
             grip.frame(maxWidth: .infinity).frame(height: Self.bottomGripHeight)
                 .contentShape(Rectangle()).help(dragHelp)
         }
-        .background {
-            shell.fill(.regularMaterial)
-                .overlay(shell.fill(colorScheme == .dark ? Color(white: 0.10).opacity(0.63) : Color.white.opacity(0.46)))
-                .overlay(shell.strokeBorder(.primary.opacity(0.14), lineWidth: 0.75))
-        }
+        .background { GlassCapsuleSurface(kind: .rail) }
         .clipShape(shell)
         .contentShape(shell)
         .onHover { if !$0 { onLeaveRail() } }
@@ -183,11 +193,7 @@ private struct AggregateCapsuleItem: View {
                 .frame(height: 8)
         }
         .frame(width: 44, height: AggregateCapsulePlacement.rowHeight)
-        .background(tint.opacity(selected ? 0.14 : isHovered ? 0.09 : 0), in: shape)
-        .overlay {
-            shape.strokeBorder(tint.opacity(selected ? 0.45 : isHovered ? 0.23 : 0), lineWidth: 0.75)
-                .allowsHitTesting(false)
-        }
+        .background(tint.opacity(isHovered && !selected ? 0.08 : 0), in: shape)
         .overlay(alignment: .topTrailing) {
             if pinned {
                 Image(systemName: "pin.fill")
@@ -198,7 +204,6 @@ private struct AggregateCapsuleItem: View {
             }
         }
         .animation(hoverAnimation, value: isHovered)
-        .animation(hoverAnimation, value: selected)
         .contentShape(shape)
     }
 }

@@ -298,11 +298,7 @@ struct SettingsView: View {
                     Label(model.settingsReturnTitle, systemImage: "arrow.left")
                 }.buttonStyle(.link)
             }
-            Picker(model.localization.text("navigation.settings"), selection: $model.mainSettingsSection) {
-                ForEach(MainSettingsSection.allCases) { section in
-                    Text(model.localization.text(section.titleKey)).tag(section)
-                }
-            }.pickerStyle(.segmented).labelsHidden()
+            MainSettingsSectionPicker(model: model)
             Text(model.localization.text("navigation.settings") + " / " + model.localization.text(model.mainSettingsSection.titleKey)
                 + ([MainSettingsSection.reminders, .connection].contains(model.mainSettingsSection) ? " / " + model.serviceSettingsTarget.title : ""))
                 .font(.caption).foregroundStyle(.secondary)
