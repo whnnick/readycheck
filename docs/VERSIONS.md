@@ -2,10 +2,10 @@
 
 | Channel / 通道 | Current version / 当前版本 | Evidence / 入口 |
 | --- | --- | --- |
-| Installed build / 本机安装版 | **0.7.4** | [Mac checks](versions/0.7.4/QA.md) / [本机验收](versions/0.7.4/QA.zh-CN.md) |
-| Public source / 公开源码 | **0.7.4** | [Source tag / 源码](https://github.com/whnnick/readycheck/tree/v0.7.4) · [English notes](versions/0.7.4/RELEASE_NOTES.md) / [中文说明](versions/0.7.4/RELEASE_NOTES.zh-CN.md) |
+| Installed build / 本机安装版 | **0.7.5** | [Mac checks](versions/0.7.5/QA.md) / [本机验收](versions/0.7.5/QA.zh-CN.md) |
+| Public source / 公开源码 | **0.7.5** | [Source tag / 源码](https://github.com/whnnick/readycheck/tree/v0.7.5) · [English notes](versions/0.7.5/RELEASE_NOTES.md) / [中文说明](versions/0.7.5/RELEASE_NOTES.zh-CN.md) |
 | Latest downloadable preview / 最新可下载预览 | **0.7.2-dev.12** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.2-dev.12) · [English notes](versions/0.7.2/RELEASE_NOTES.md) / [中文说明](versions/0.7.2/RELEASE_NOTES.zh-CN.md) |
-| Stable release channel / 稳定发布通道 | **0.7.4** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.4) · [English notes](versions/0.7.4/RELEASE_NOTES.md) / [中文说明](versions/0.7.4/RELEASE_NOTES.zh-CN.md) |
+| Stable release channel / 稳定发布通道 | **0.7.5** | [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.5) · [English notes](versions/0.7.5/RELEASE_NOTES.md) / [中文说明](versions/0.7.5/RELEASE_NOTES.zh-CN.md) |
 
 The 0.7.0 source/tag, installed Mac validation and Windows-runner results are linked in QA. / 0.7.0 源码标签、Mac 安装验收及 Windows 运行器结果见 QA。
 
@@ -26,6 +26,8 @@ The service catalog is a plan. Codex, DeepSeek and Muse have live macOS acceptan
 ## Earlier versions / 历史版本
 
 The following entries preserve the state recorded for each older version. / 下方保留各历史版本当时的记录。
+
+- [0.7.4 notes](versions/0.7.4/RELEASE_NOTES.md) / [更新说明](versions/0.7.4/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.7.4/QA.md) / [验收](versions/0.7.4/QA.zh-CN.md) · [GitHub Release](https://github.com/whnnick/readycheck/releases/tag/v0.7.4)
 
 - [0.6.1 notes](versions/0.6.1/RELEASE_NOTES.md) / [更新说明](versions/0.6.1/RELEASE_NOTES.zh-CN.md) · [Checks](versions/0.6.1/QA.md) / [验收](versions/0.6.1/QA.zh-CN.md) · [Retention](versions/0.6.1/RELEASE_AUDIT.md) / [功能保留](versions/0.6.1/RELEASE_AUDIT.zh-CN.md)。
 

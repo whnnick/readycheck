@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.5 - 2026-11-27
+
+- Click anywhere on a service row to preview it, or drag the row or a grip to move the aggregate capsule. Small pointer movement still counts as a click.
+- Hide the keyboard focus marker on mouse-down in the macOS sidebar and Settings. The glass selection animation and keyboard focus indicator remain available.
+
+## 0.7.5-dev.2 - 2026-11-26
+
+- Hide the keyboard focus marker as soon as the mouse is pressed in the main window. The glass selection still slides into place on click.
+
+## 0.7.5-dev.1 - 2026-11-26
+
+- Click anywhere on an aggregate capsule service row to preview it. Drag directly from a row or grip to move the capsule. Small pointer movement still counts as a click.
+
 ## 0.7.4 - 2026-11-26
 
 - The glass selection slides, stretches and settles in the macOS sidebar, settings and aggregate capsule. It follows rapid changes and respects Reduce Motion.

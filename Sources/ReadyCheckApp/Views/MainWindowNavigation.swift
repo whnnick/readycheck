@@ -1,4 +1,5 @@
 import AppKit
+import Observation
 import ReadyCheckCore
 import SwiftUI
 
@@ -39,8 +40,8 @@ enum MainSettingsSection: String, CaseIterable, Identifiable {
 
 struct MainWindowSidebar: View {
     @Bindable var model: ReadyCheckAppModel
+    let focusAppearance: NavigationFocusAppearance
     @FocusState private var focusedPage: MainWindowPage?
-    @State private var focusAppearance = NavigationFocusAppearance<MainWindowPage>()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -55,7 +56,6 @@ struct MainWindowSidebar: View {
                 ForEach(MainWindowPage.allCases) { page in
                     let selected = model.mainWindowPage == page
                     Button {
-                        focusAppearance.selected(page, event: NSApp.currentEvent?.type)
                         model.navigateToMainPage(page)
                         focusedPage = page
                     } label: {
@@ -75,12 +75,10 @@ struct MainWindowSidebar: View {
                 }
             }
             .glassCapsuleSelection(model.mainWindowPage, axis: .vertical, focused: keyboardFocus == model.mainWindowPage)
-            .onChange(of: focusedPage) { _, focus in focusAppearance.focusChanged(to: focus) }
             .onMoveCommand { direction in
                 guard let focusedPage, let page = adjacentMenuItem(
                     to: focusedPage, in: MainWindowPage.allCases, direction: direction, axis: .vertical
                 ) else { return }
-                focusAppearance.selected(page, event: .keyDown)
                 model.navigateToMainPage(page)
                 self.focusedPage = page
             }
@@ -110,8 +108,8 @@ struct MainWindowSidebar: View {
 
 struct MainSettingsSectionPicker: View {
     @Bindable var model: ReadyCheckAppModel
+    let focusAppearance: NavigationFocusAppearance
     @FocusState private var focusedSection: MainSettingsSection?
-    @State private var focusAppearance = NavigationFocusAppearance<MainSettingsSection>()
 
     var body: some View {
         let keyboardFocus = focusAppearance.keyboardFocus(for: focusedSection)
@@ -119,7 +117,6 @@ struct MainSettingsSectionPicker: View {
             ForEach(MainSettingsSection.allCases) { section in
                 let selected = section == model.mainSettingsSection
                 Button {
-                    focusAppearance.selected(section, event: NSApp.currentEvent?.type)
                     model.mainSettingsSection = section
                     focusedSection = section
                 } label: {
@@ -141,7 +138,6 @@ struct MainSettingsSectionPicker: View {
             }
         }
         .glassCapsuleSelection(model.mainSettingsSection, axis: .horizontal, focused: keyboardFocus == model.mainSettingsSection)
-        .onChange(of: focusedSection) { _, focus in focusAppearance.focusChanged(to: focus) }
         .padding(3)
         .background(.primary.opacity(0.055), in: Capsule())
         .overlay { Capsule().strokeBorder(.primary.opacity(0.12), lineWidth: 0.75).allowsHitTesting(false) }
@@ -152,26 +148,29 @@ struct MainSettingsSectionPicker: View {
             guard let focusedSection, let section = adjacentMenuItem(
                 to: focusedSection, in: MainSettingsSection.allCases, direction: direction, axis: .horizontal
             ) else { return }
-            focusAppearance.selected(section, event: .keyDown)
             model.mainSettingsSection = section
             self.focusedSection = section
         }
     }
 }
 
-struct NavigationFocusAppearance<Item: Equatable> {
-    private var pointerSelection: Item?
+@MainActor @Observable
+final class NavigationFocusAppearance {
+    private var showsKeyboardFocus = false
 
-    mutating func selected(_ item: Item, event: NSEvent.EventType?) {
-        pointerSelection = event == .keyDown ? nil : item
+    func record(_ event: NSEvent.EventType) {
+        switch event {
+        case .leftMouseDown, .rightMouseDown, .otherMouseDown:
+            if showsKeyboardFocus { showsKeyboardFocus = false }
+        case .keyDown:
+            if !showsKeyboardFocus { showsKeyboardFocus = true }
+        default:
+            break
+        }
     }
 
-    mutating func focusChanged(to item: Item?) {
-        if item != pointerSelection { pointerSelection = nil }
-    }
-
-    func keyboardFocus(for item: Item?) -> Item? {
-        item == pointerSelection ? nil : item
+    func keyboardFocus<Item>(for item: Item?) -> Item? {
+        showsKeyboardFocus ? item : nil
     }
 }
 

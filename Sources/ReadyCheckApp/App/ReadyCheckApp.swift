@@ -217,7 +217,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
             return
         }
 
-        let window = NSWindow(
+        let window = ReadyCheckMainWindow(
             contentRect: NSRect(x: 0, y: 0, width: 740, height: 760),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
@@ -231,7 +231,7 @@ final class ReadyCheckApplication: NSObject, NSApplicationDelegate {
         window.backgroundColor = .windowBackgroundColor
         window.isOpaque = true
         window.center()
-        window.contentView = NSHostingView(rootView: SettingsView(model: appModel))
+        window.contentView = NSHostingView(rootView: SettingsView(model: appModel, navigationFocus: window.navigationFocus))
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
         mainWindow = window

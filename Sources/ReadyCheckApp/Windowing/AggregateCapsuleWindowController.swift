@@ -64,28 +64,37 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         panel.title = "ReadyCheck · " + (model.language == .zhCN ? "聚合胶囊" : "Aggregate capsule")
         panel.delegate = self
         rail = panel
-        panel.canStartDrag = { [weak panel] point in
-            guard let panel else { return false }
-            let radius = AggregateCapsuleView.cornerRadius
-            let isGrip = point.y < AggregateCapsuleView.bottomGripHeight
-                || point.y > panel.frame.height - AggregateCapsuleView.headerHeight
-            return isGrip && NSBezierPath(roundedRect: CGRect(origin: .zero, size: panel.frame.size),
-                                          xRadius: radius, yRadius: radius).contains(point)
+        let targetAtPoint: (CGPoint) -> AggregateCapsuleView.PointerTarget? = { [weak self, weak panel] point in
+            guard let panel, let model = self?.model else { return nil }
+            return AggregateCapsuleView.pointerTarget(at: point, size: panel.frame.size, services: model.quickDisplayServices)
         }
-        panel.onPointerDown = { [weak self] in
-            guard let self else { return }
-            self.dragOrigin = self.rail?.frame
-            self.interaction.beginDrag(); self.interaction.collapse()
+        var pressedTarget: AggregateCapsuleView.PointerTarget?
+        panel.canStartDrag = { point in
+            targetAtPoint(point) != nil
         }
+        panel.onPointerPress = { point in pressedTarget = targetAtPoint(point) }
         panel.onPointerDrag = { [weak self] start, pointer in
-            guard let self, let origin = self.dragOrigin else { return }
-            self.rail?.setFrameOrigin(BubbleWidgetPlacement.draggedFrame(from: origin, pointerStart: start, pointerNow: pointer).origin)
+            guard let self, let rail = self.rail else { return }
+            if self.dragOrigin == nil {
+                self.dragOrigin = rail.frame
+                self.interaction.beginDrag()
+                self.interaction.collapse()
+            }
+            guard let origin = self.dragOrigin else { return }
+            rail.setFrameOrigin(BubbleWidgetPlacement.draggedFrame(from: origin, pointerStart: start, pointerNow: pointer).origin)
         }
         panel.onPointerUp = { [weak self] moved in
-            guard let self else { return }
-            if moved { self.finishDrag() }
+            guard moved, let self else { return }
+            self.finishDrag()
             self.dragOrigin = nil; self.interaction.endDrag()
             self.updateVisibleServices()
+        }
+        panel.onPointerClick = { [weak self] in
+            switch pressedTarget {
+            case .service(let service): self?.select(service)
+            case .quickDisplay: self?.model?.showQuickDisplaySettings()
+            case .grip, nil: break
+            }
         }
         updateRail()
         // Attaching a hosting controller can replace the initial content size.
@@ -139,6 +148,7 @@ final class AggregateCapsuleWindowController: NSObject, NSWindowDelegate {
         hideDetail(animated: false)
         rail?.delegate = nil; rail?.close(); detail?.close()
         rail = nil; detail = nil; host = nil; model = nil
+        dragOrigin = nil
         detailTargetFrame = nil
     }
 

@@ -204,6 +204,54 @@ final class AggregateCapsuleTests: XCTestCase {
         }
     }
 
+    func testServiceRowsSelectWithPointerJitterAndDragInwardFromEitherEdge() async throws {
+        try await withFixture { model in
+            let suite = "ReadyCheck.AggregatePointer." + UUID().uuidString
+            let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+            let visible = CGRect(x: 0, y: 0, width: 1440, height: 900)
+            let controller = AggregateCapsuleWindowController(visibleFrameProvider: { _ in visible },
+                pointerLocation: { .zero }, reduceMotionProvider: { true }, defaults: defaults)
+            defer { controller.close(); defaults.removePersistentDomain(forName: suite) }
+
+            for right in [false, true] {
+                let size = AggregateCapsulePlacement.size
+                let frame = CGRect(x: right ? visible.maxX - size.width : 0, y: 180, width: size.width, height: size.height)
+                defaults.set(NSStringFromRect(frame), forKey: AggregateCapsuleWindowController.frameKey)
+                controller.show(model: model)
+                let rail = try XCTUnwrap(controller.rail)
+                let row = CGPoint(x: right ? 44 : 4, y: 105)
+                let smallMove = CGPoint(x: row.x, y: row.y + 3)
+                try sendMouse(.leftMouseDown, at: row, to: rail)
+                try sendMouse(.leftMouseDragged, at: smallMove, to: rail)
+                try sendMouse(.leftMouseUp, at: smallMove, to: rail)
+                XCTAssertEqual(controller.service, .muse)
+                XCTAssertTrue(controller.detail?.isVisible == true)
+                XCTAssertEqual(rail.frame, frame)
+                XCTAssertFalse(rail.canStartDrag(CGPoint(x: size.width / 2, y: 16)), "The menu keeps its own hit target")
+
+                let grip = CGPoint(x: size.width / 2, y: 6)
+                try sendMouse(.leftMouseDown, at: grip, to: rail)
+                try sendMouse(.leftMouseUp, at: grip, to: rail)
+                XCTAssertTrue(controller.detail?.isVisible == true, "A grip tap does not dismiss the current detail")
+
+                let dx: CGFloat = right ? -160 : 160
+                try sendMouse(.leftMouseDown, at: row, to: rail)
+                try sendMouse(.leftMouseDragged, at: CGPoint(x: row.x + dx, y: row.y), to: rail)
+                try sendMouse(.leftMouseUp, at: row, to: rail)
+                XCTAssertEqual(rail.frame, frame.offsetBy(dx: dx, dy: 0))
+                XCTAssertFalse(controller.detail?.isVisible == true, "Releasing a drag does not select a service")
+                controller.close()
+            }
+        }
+    }
+
+    private func sendMouse(_ type: NSEvent.EventType, at point: CGPoint, to rail: BubbleWidgetPanel) throws {
+        let event = try XCTUnwrap(NSEvent.mouseEvent(with: type, location: point, modifierFlags: [],
+            timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: rail.windowNumber,
+            context: nil, eventNumber: 0, clickCount: 1, pressure: type == .leftMouseUp ? 0 : 1))
+        rail.sendEvent(event)
+    }
+
     func testWindowLevelChangesPreservePinningAndPlacement() async throws {
         try await withFixture { model in
             let defaults = UserDefaults.standard

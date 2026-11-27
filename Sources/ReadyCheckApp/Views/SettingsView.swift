@@ -4,6 +4,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Bindable var model: ReadyCheckAppModel
+    var navigationFocus = NavigationFocusAppearance()
 
     @State private var now = Date()
     @State private var accountDetailsExpanded = true
@@ -34,7 +35,7 @@ struct SettingsView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            MainWindowSidebar(model: model)
+            MainWindowSidebar(model: model, focusAppearance: navigationFocus)
             Divider()
             VStack(spacing: 0) {
                 if model.mainWindowPage == .settings {
@@ -298,7 +299,7 @@ struct SettingsView: View {
                     Label(model.settingsReturnTitle, systemImage: "arrow.left")
                 }.buttonStyle(.link)
             }
-            MainSettingsSectionPicker(model: model)
+            MainSettingsSectionPicker(model: model, focusAppearance: navigationFocus)
             Text(model.localization.text("navigation.settings") + " / " + model.localization.text(model.mainSettingsSection.titleKey)
                 + ([MainSettingsSection.reminders, .connection].contains(model.mainSettingsSection) ? " / " + model.serviceSettingsTarget.title : ""))
                 .font(.caption).foregroundStyle(.secondary)

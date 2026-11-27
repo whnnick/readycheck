@@ -66,6 +66,28 @@ struct AggregateCapsuleView: View {
     static let cornerRadius = AggregateCapsulePlacement.size.width / 2
     static let headerHeight: CGFloat = 12
     static let bottomGripHeight: CGFloat = 10
+    static let menuHeight: CGFloat = 12
+
+    enum PointerTarget: Equatable {
+        case grip
+        case service(ServiceSettingsTarget)
+        case quickDisplay
+    }
+
+    static func pointerTarget(at point: CGPoint, size: CGSize, services: [ServiceSettingsTarget]) -> PointerTarget? {
+        let radius = min(size.width, size.height) / 2
+        let outline = NSBezierPath(roundedRect: CGRect(origin: .zero, size: size), xRadius: radius, yRadius: radius)
+        guard outline.contains(point) else { return nil }
+        if point.y < bottomGripHeight || point.y >= size.height - headerHeight { return .grip }
+        // Keep the menu and any scrollable rows in SwiftUI's event path.
+        guard point.y > bottomGripHeight + menuHeight,
+              size.height >= AggregateCapsulePlacement.size(serviceCount: services.count).height else { return nil }
+        if services.isEmpty { return .quickDisplay }
+        let stride = AggregateCapsulePlacement.rowHeight + AggregateCapsulePlacement.rowSpacing
+        let y = size.height - headerHeight - point.y
+        let index = Int((y + AggregateCapsulePlacement.rowSpacing / 2) / stride)
+        return .service(services[min(index, services.count - 1)])
+    }
 
     let model: ReadyCheckAppModel
     var selection = AggregateCapsuleRailSelection()
@@ -108,10 +130,10 @@ struct AggregateCapsuleView: View {
             Menu { actions } label: {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 10, weight: .semibold))
-                    .frame(width: 26, height: 12)
+                    .frame(width: 26, height: Self.menuHeight)
             }
             .menuStyle(.borderlessButton).menuIndicator(.hidden)
-            .frame(width: 30, height: 12)
+            .frame(width: 30, height: Self.menuHeight)
             .help(moreActionsLabel).accessibilityLabel(moreActionsLabel)
             .accessibilityIdentifier("aggregate.moreActions")
             grip.frame(maxWidth: .infinity).frame(height: Self.bottomGripHeight)
